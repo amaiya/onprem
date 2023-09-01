@@ -35,10 +35,14 @@ llm = LLM(model_name=os.path.basename(url))
 llm.download_model(url, ssl_verify=True ) # set to False if corporate firewall gives you problems
 ```
 
-    There is already a file Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin in /home/amaiya/onprem_data. Do you want to still download it? (Y/n) Y
+    There is already a file Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin in /home/amaiya/onprem_data.
+     Do you want to still download it? (Y/n) Y
     [██████████████████████████████████████████████████]
 
-### Send Prompts to the LLM
+### Send Prompts to the LLM to Solve Problems
+
+This is an example of few-shot prompting, where we provide an example of
+what we want the LLM to do.
 
 ``` python
 prompt = """Extract the names of people in the supplied sentences. Here is an example:
@@ -55,7 +59,73 @@ saved_output = llm.prompt(prompt)
 
     Cillian Murphy, Florence Pugh
 
-### How to Speed Up Inference Using a GPU
+### Talk to Your Documents
+
+Answers are generated from the content of your documents.
+
+#### Step 1: Download Some Documents to a Folder
+
+``` python
+import os
+if not os.path.exists: os.mkdir('/tmp/sample_data')
+!wget --user-agent="Mozilla" https://arxiv.org/pdf/2004.10703.pdf -O /tmp/sample_data/ktrain_paper.pdf -q
+```
+
+#### Step 2: Ingest the Documents into a Vector Database
+
+``` python
+llm.ingest('/tmp/sample_data')
+```
+
+    Appending to existing vectorstore at /home/amaiya/onprem_data/vectordb
+    Loading documents from /tmp/sample_data
+    Loaded 9 new documents from /tmp/sample_data
+    Split into 57 chunks of text (max. 500 tokens each)
+    Creating embeddings. May take some minutes...
+    Ingestion complete! You can now query your documents using the prompt method
+
+    Loading new documents: 100%|██████████████████████| 1/1 [00:00<00:00,  7.74it/s]
+
+#### Step 3: Answer Questions About the Documents
+
+``` python
+question = """What is ktrain?"""
+answer, docs = llm.ask(question)
+print('References:')
+for i, document in enumerate(docs):
+    print(f"\n{i+1}.> " + document.metadata["source"] + ":")
+    print(document.page_content)
+```
+
+     Ktrain is an open-source machine learning (ML) toolbox that focuses on enabling automation in the ML workow, rather than trying to entirely replace human engineers with algorithms. Its goal is to provide a flexible and user-friendly way for researchers and practitioners to perform ML tasks such as data preparation, model selection, training, and evaluation, while also allowing for customization and experimentation. Overall, ktrain seeks to augment and complement human engineers rather than attempting to entirely replace them.References:
+
+    1.> /tmp/sample_data/downloaded_paper.pdf:
+    lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
+    tomation and instead focuses on either partially or fully automating other aspects of the
+    machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
+    2
+
+    2.> /tmp/sample_data/ktrain_paper.pdf:
+    lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
+    tomation and instead focuses on either partially or fully automating other aspects of the
+    machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
+    2
+
+    3.> /tmp/sample_data/downloaded_paper.pdf:
+    possible, ktrain automates (either algorithmically or through setting well-performing de-
+    faults), but also allows users to make choices that best ﬁt their unique application require-
+    ments. In this way, ktrain uses automation to augment and complement human engineers
+    rather than attempting to entirely replace them. In doing so, the strengths of both are
+    better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
+
+    4.> /tmp/sample_data/ktrain_paper.pdf:
+    possible, ktrain automates (either algorithmically or through setting well-performing de-
+    faults), but also allows users to make choices that best ﬁt their unique application require-
+    ments. In this way, ktrain uses automation to augment and complement human engineers
+    rather than attempting to entirely replace them. In doing so, the strengths of both are
+    better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
+
+### Speeding Up Inference Using a GPU
 
 The above example employed the use of a CPU.  
 If you have a GPU (even an older one with less VRAM), you can speed up

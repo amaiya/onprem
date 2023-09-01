@@ -32,6 +32,8 @@ class LLM:
                  n_ctx:int=2048, 
                  n_batch:int=1024,
                  mute_stream=False,
+                 embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
+                 embedding_model_kwargs:dict ={'device': 'cpu'},
                 verbose=False):
         """
         LLM Constructor
@@ -43,6 +45,8 @@ class LLM:
         - *n_ctx*: Token context window.
         - *n_batch*: Number of tokens to process in parallel.
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
+        - *embedding_model*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
+        - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
         - *verbose*: Verbosity
         """
         self.model_name = model_name
@@ -50,11 +54,14 @@ class LLM:
             warnings.warn('The model {model_name} does not exist in {U.get_datadir()}. '+\
                           'Please execute LLM.download() to download it.')
         self.llm = None
+        self.ingester = None
         self.n_gpu_layers = n_gpu_layers
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
         self.n_batch = n_batch
         self.callbacks = [] if mute_stream else [StreamingStdOutCallbackHandler()]
+        self.embedding_model_name = embedding_model_name
+        self.embedding_model_kwargs = embedding_model_kwargs
         self.verbose = verbose
  
     @classmethod
@@ -84,11 +91,18 @@ class LLM:
         else:
             warnings.warn(f'{model_name} was not downloaded because "Y" was not selected.')
         return
-    
+
+    def load_ingester(self):
+        """Get Ingester instance"""
+        if not self.ingester:
+            from onprem.ingest import Ingester
+            self.ingester = Ingester(embedding_model_name=self.embedding_model_name,
+                                     embedding_model_kwargs=self.embedding_model_kwargs)
+        return self.ingester
+        
+        
     def ingest(self, 
                source_directory:str,
-               embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
-               embedding_model_kwargs:dict ={'device': 'cpu'}
               ):
         """
         Ingests all documents in `source_folder` into vector database.
@@ -97,15 +111,14 @@ class LLM:
         **Args:**
         
         - *source_directory*: path to folder containing document store
-        - *embedding_model*: name of sentence-transformers model
-        - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
+
         
         **Returns:** `None`
         """
-        from onprem import ingest as I
-        I.ingest_documents(source_directory, 
-                           embedding_model_name=embedding_model_name,
-                           embedding_model_kwargs=embedding_model_kwargs)
+        ingester = self.load_ingester()
+        ingester.ingest(source_directory)
+        return
+
  
         
     def check_model(self):
@@ -120,7 +133,7 @@ class LLM:
     def load_llm(self):
         model_path = self.check_model()
         
-        if not self.llm or not self.qa:
+        if not self.llm:
             self.llm =  llm = LlamaCpp(model_path=model_path, 
                                        max_tokens=self.max_tokens, 
                                        n_batch=self.n_batch, 
@@ -138,3 +151,24 @@ class LLM:
         """
         llm = self.load_llm()
         return llm(prompt)  
+    
+    def ask(self, question, num_source_docs=4):
+        """
+        Answer a question based on source documents fed to the `ingest` method.
+        
+        **Args:**
+        - question: a question you want to ask
+        - num_source_docs: the number of ingested source documents use to generate answer
+        """
+        ingester = self.load_ingester()
+        db = ingester.get_db()
+        if not db:
+            raise ValueError('A vector database has not yet been created. Please call the LLM.ingest method.')
+        retriever = db.as_retriever(search_kwargs={"k": num_source_docs})
+        llm = self.load_llm()
+        qa = RetrievalQA.from_chain_type(llm=llm, 
+                                         chain_type="stuff", 
+                                         retriever=retriever, 
+                                         return_source_documents= True)
+        res = qa(question)
+        return res['result'], res['source_documents']

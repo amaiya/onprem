@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['chunk_size', 'chunk_overlap', 'LOADER_MAPPING', 'DEFAULT_DB', 'MyElmLoader', 'load_single_document', 'load_documents',
-           'process_documents', 'does_vectorstore_exist', 'ingest_documents']
+           'process_documents', 'does_vectorstore_exist', 'Ingester']
 
 # %% ../nbs/01_ingest.ipynb 3
 import os
@@ -140,52 +140,74 @@ from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 from .utils import get_datadir
 os.environ['TOKENIZERS_PARALLELISM'] = '0'
 DEFAULT_DB = 'vectordb'
-def ingest_documents(source_directory:str, 
-                     embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
-                     embedding_model_kwargs:dict ={'device': 'cpu'}
-                     ):
-    """
-    Ingests all documents in `source_folder` (previously-ingested documents are ignored)
 
-    **Args**:
+class Ingester:
+    def __init__(self,
+                 embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
+                 embedding_model_kwargs:dict ={'device': 'cpu'}
+                ):
+        """
+        Ingests all documents in `source_folder` (previously-ingested documents are ignored)
+
+        **Args**:
+          - *embedding_model*: name of sentence-transformers model
+          - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
+
+        **Returns**: `None`
+        """
+        self.persist_directory = os.path.join(get_datadir(), DEFAULT_DB)
+        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_name)
+        self.chroma_settings = Settings(persist_directory=self.persist_directory,anonymized_telemetry=False)
+        self.chroma_client = chromadb.PersistentClient(settings=self.chroma_settings , path=self.persist_directory)
+        return
+     
     
-      - *source_directory*: path to folder containing document store
-      - *embedding_model*: name of sentence-transformers model
-      - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
+    def get_db(self):
+        db = None
+        if does_vectorstore_exist(self.persist_directory, self.embeddings):
+            db = Chroma(persist_directory=self.persist_directory, 
+                        embedding_function=self.embeddings, 
+                        client_settings=self.chroma_settings, client=self.chroma_client)
+        return db
+            
     
-    **Returns**: `None`
-    """
-    if not os.path.exists(source_directory):
-        raise ValueError('The source_directory does not exist.')
-    persist_directory = os.path.join(get_datadir(), DEFAULT_DB)
-    embeddings = HuggingFaceEmbeddings(model_name=embedding_model_name)
-    chroma_settings = Settings(persist_directory=persist_directory,anonymized_telemetry=False)
-    chroma_client = chromadb.PersistentClient(settings=chroma_settings , path=persist_directory)
-    
-    texts = None
-    if does_vectorstore_exist(persist_directory, embeddings):
-        # Update and store locally vectorstore
-        print(f"Appending to existing vectorstore at {persist_directory}")
-        db = Chroma(persist_directory=persist_directory, 
-                    embedding_function=embeddings, 
-                    client_settings=chroma_settings, client=chroma_client)
-        collection = db.get()
-        texts = process_documents(source_directory, 
-                                  ignored_files=[metadata['source'] for metadata in collection['metadatas']])
+    def ingest(self,
+               source_directory:str, 
+              ):
+        """
+        Ingests all documents in `source_folder` (previously-ingested documents are ignored)
+
+        **Args**:
+
+          - *source_directory*: path to folder containing document store
+
+        **Returns**: `None`
+        """
+
+        if not os.path.exists(source_directory):
+            raise ValueError('The source_directory does not exist.')
+        texts = None
+        db = self.get_db()
+        if db:
+            # Update and store locally vectorstore
+            print(f"Appending to existing vectorstore at {self.persist_directory}")
+            collection = db.get()
+            texts = process_documents(source_directory, 
+                                      ignored_files=[metadata['source'] for metadata in collection['metadatas']])
+            if texts:
+                print(f"Creating embeddings. May take some minutes...")
+                db.add_documents(texts)
+        else:
+            # Create and store locally vectorstore
+            print("Creating new vectorstore")
+            texts = process_documents(source_directory)
+            if texts:
+                print(f"Creating embeddings. May take some minutes...")
+                db = Chroma.from_documents(texts, 
+                                           self.embeddings, persist_directory=self.persist_directory, 
+                                           client_settings=self.chroma_settings, client=self.chroma_client)
         if texts:
-            print(f"Creating embeddings. May take some minutes...")
-            db.add_documents(texts)
-    else:
-        # Create and store locally vectorstore
-        print("Creating new vectorstore")
-        texts = process_documents(source_directory)
-        if texts:
-            print(f"Creating embeddings. May take some minutes...")
-            db = Chroma.from_documents(texts, 
-                                       embeddings, persist_directory=persist_directory, 
-                                       client_settings=chroma_settings, client=chroma_client)
-    if texts:
-        db.persist()
-        print(f"Ingestion complete! You can now query your documents using the prompt method")
-    db = None
-    return
+            db.persist()
+            print(f"Ingestion complete! You can now query your documents using the prompt method")
+        db = None
+        return
