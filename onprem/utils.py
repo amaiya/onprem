@@ -7,9 +7,9 @@ __all__ = ['download', 'get_datadir']
 import os.path
 import requests
 import sys
-def download(url, filename):
+def download(url, filename, verify=False):
     with open(filename, "wb") as f:
-        response = requests.get(url, stream=True, verify=False)
+        response = requests.get(url, stream=True, verify=verify)
         total = response.headers.get("content-length")
 
         if total is None:

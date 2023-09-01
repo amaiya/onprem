@@ -58,9 +58,16 @@ class LLM:
         self.verbose = verbose
  
     @classmethod
-    def download_model(cls, model_url=DEFAULT_MODEL_NAME, confirm=True):
+    def download_model(cls, model_url=DEFAULT_MODEL_NAME, confirm=True, ssl_verify=True):
         """
         Download an LLM in GGML format supported by [lLama.cpp](https://github.com/ggerganov/llama.cpp).
+        
+        **Args:**
+        
+        - *model_url*: URL of model
+        - *confirm*: whether or not to confirm with user before downloading
+        - *ssl_verify*: If True, SSL certificates are verified. 
+                        You can set to False if corporate firewall gives you problems.
         """
         datadir = U.get_datadir()
         model_name = os.path.basename(model_url)
@@ -73,7 +80,7 @@ class LLM:
         if confirm:
             shall = input("%s (Y/n) " % confirm_msg) == "Y"
         if shall:
-            U.download(model_url, filename)
+            U.download(model_url, filename, verify=ssl_verify)
         else:
             warnings.warn(f'{model_name} was not downloaded because "Y" was not selected.')
         return
