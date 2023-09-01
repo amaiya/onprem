@@ -64,7 +64,7 @@ responses.
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.69 --no-cache-dir
 ```
 
-It is important to use the specific version shown above to do library
+It is important to use the specific version shown above due to library
 incompatibilities.
 
 #### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
@@ -72,4 +72,4 @@ incompatibilities.
 llm = LLM(model_name=os.path.basename(url), n_gpu_layers=128)
 
 With the steps above, calls to methods like `llm.prompt` will offload
-computation and speed up responses from the LLM.
+computation to your GPU and speed up responses from the LLM.
