@@ -82,37 +82,25 @@ saved_output = llm.prompt(prompt)
 
 Answers are generated from the content of your documents.
 
-#### Step 1: Download Some Documents to a Folder
+#### Step 1: Ingest the Documents into a Vector Database
 
 ``` python
-import os
-if not os.path.exists: os.mkdir('/tmp/sample_data')
-import requests
-r = requests.get('https://arxiv.org/pdf/2004.10703.pdf', stream=True)
-with open('/tmp/sample_data/ktrain_paper.pdf', "wb") as fd:
-    for chunk in r.iter_content(2048):
-        fd.write(chunk)
-```
-
-#### Step 2: Ingest the Documents into a Vector Database
-
-``` python
-llm.ingest('/tmp/sample_data')
+llm.ingest('./sample_data')
 ```
 
     Creating new vectorstore
-    Loading documents from /tmp/sample_data
-    Loaded 18 new documents from /tmp/sample_data
-    Split into 114 chunks of text (max. 500 tokens each)
+    Loading documents from ./sample_data
+    Loaded 11 new documents from ./sample_data
+    Split into 62 chunks of text (max. 500 tokens each)
     Creating embeddings. May take some minutes...
     Ingestion complete! You can now query your documents using the prompt method
 
-    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00,  9.39it/s]
+    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 11.58it/s]
 
 #### Step 3: Answer Questions About the Documents
 
 ``` python
-question = """Answer the following question in one sentence based only on the provided context: What is ktrain?"""
+question = """Please answer the following question in a single sentence using only the provided context: What is  ktrain?""" 
 answer, docs = llm.ask(question)
 print('\n\nReferences:\n\n')
 for i, document in enumerate(docs):
@@ -120,37 +108,40 @@ for i, document in enumerate(docs):
     print(document.page_content)
 ```
 
-     Ktrain is a machine learning framework that automates certain aspects of the workow while allowing for human input and choice to complement the strengths of both humans and machines.
+     K-Train is an automation tool that augments and complements human engineers during machine learning workow.
 
     References:
 
 
 
-    1.> /tmp/sample_data/downloaded_paper.pdf:
+    1.> ./sample_data/ktrain_paper.pdf:
     lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
     tomation and instead focuses on either partially or fully automating other aspects of the
     machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
     2
 
-    2.> /tmp/sample_data/ktrain_paper.pdf:
-    lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
-    tomation and instead focuses on either partially or fully automating other aspects of the
-    machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
-    2
-
-    3.> /tmp/sample_data/downloaded_paper.pdf:
+    2.> ./sample_data/ktrain_paper.pdf:
     possible, ktrain automates (either algorithmically or through setting well-performing de-
     faults), but also allows users to make choices that best ﬁt their unique application require-
     ments. In this way, ktrain uses automation to augment and complement human engineers
     rather than attempting to entirely replace them. In doing so, the strengths of both are
     better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
 
-    4.> /tmp/sample_data/ktrain_paper.pdf:
-    possible, ktrain automates (either algorithmically or through setting well-performing de-
-    faults), but also allows users to make choices that best ﬁt their unique application require-
-    ments. In this way, ktrain uses automation to augment and complement human engineers
-    rather than attempting to entirely replace them. In doing so, the strengths of both are
-    better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
+    3.> ./sample_data/ktrain_paper.pdf:
+    tifying examples that the model is getting the most wrong, and Explainable AI methods to
+    understand why mistakes were made.
+    3) Model-Application.
+    Both the model and the potentially complex set of steps re-
+    quired to preprocess raw data into the format expected by the model must be easily saved,
+    transferred to, and executed on new data in a production environment.
+    ktrain is a Python library for machine learning with the goal of presenting a simple,
+
+    4.> ./sample_data/ktrain_paper.pdf:
+    this may involve language-speciﬁc preprocessing (e.g., tokenization). In the case of images,
+    this may involve auto-normalizing pixel values in a way that a chosen model expects. In
+    the case of graphs, this may involve compiling attributes of nodes and links in the network
+    (Data61, 2018). All preprocessing methods in ktrain return a Preprocessor instance
+    that encapsulates all the preprocessing steps for a particular task, which can be employed
 
 ### Speeding Up Inference Using a GPU
 

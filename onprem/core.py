@@ -65,7 +65,7 @@ class LLM:
         self.verbose = verbose
  
     @classmethod
-    def download_model(cls, model_url=DEFAULT_MODEL_NAME, confirm=True, ssl_verify=True):
+    def download_model(cls, model_url=DEFAULT_MODEL_URL, confirm=True, ssl_verify=True):
         """
         Download an LLM in GGML format supported by [lLama.cpp](https://github.com/ggerganov/llama.cpp).
         
