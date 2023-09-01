@@ -74,7 +74,7 @@ class LLM:
         filename = os.path.join(datadir, model_name)
         confirm_msg = f"You are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"
         if os.path.isfile(filename):
-            confirm_msg = f'There is already a file {model_name} in {datadir}. Do you want to still download it?'
+            confirm_msg = f'There is already a file {model_name} in {datadir}.\n Do you want to still download it?'
             
         shall = True
         if confirm:
@@ -102,10 +102,10 @@ class LLM:
         
         **Returns:** `None`
         """
-        import onprem.ingest as ingest_fn
-        ingest_fn(source_directory, 
-                  embedding_model_name=embedding_model_name,
-                  embedding_model_kwargs=embedding_model_kwargs)
+        from onprem import ingest as I
+        I.ingest_documents(source_directory, 
+                           embedding_model_name=embedding_model_name,
+                           embedding_model_kwargs=embedding_model_kwargs)
  
         
     def check_model(self):
@@ -116,19 +116,25 @@ class LLM:
                              f'Execute the download_model() method to download it.')
         return model_path
         
-        
-    def prompt(self, prompt):
-        """
-        Send prompt to LLM to generate a response
-        """
+ 
+    def load_llm(self):
         model_path = self.check_model()
         
-        if not self.llm:
+        if not self.llm or not self.qa:
             self.llm =  llm = LlamaCpp(model_path=model_path, 
                                        max_tokens=self.max_tokens, 
                                        n_batch=self.n_batch, 
                                        callbacks=self.callbacks, 
                                        verbose=self.verbose, 
                                        n_gpu_layers=self.n_gpu_layers, 
-                                       n_ctx=self.n_ctx)
-        return self.llm(prompt)    
+                                       n_ctx=self.n_ctx)    
+
+        return self.llm
+        
+        
+    def prompt(self, prompt):
+        """
+        Send prompt to LLM to generate a response
+        """
+        llm = self.load_llm()
+        return llm(prompt)  
