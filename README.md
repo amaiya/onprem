@@ -16,6 +16,8 @@ practical applications.
 pip install onprem
 ```
 
+For GPU support, see additional instructions below.
+
 ## How to use
 
 ### Setup
