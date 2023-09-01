@@ -59,22 +59,6 @@ People:"""
 saved_output = llm.prompt(prompt)
 ```
 
-    llama.cpp: loading model from /home/amaiya/onprem_data/Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin
-    llama_model_load_internal: format     = ggjt v3 (latest)
-    llama_model_load_internal: n_vocab    = 32000
-    llama_model_load_internal: n_ctx      = 2048
-    llama_model_load_internal: n_embd     = 4096
-    llama_model_load_internal: n_mult     = 256
-    llama_model_load_internal: n_head     = 32
-    llama_model_load_internal: n_layer    = 32
-    llama_model_load_internal: n_rot      = 128
-    llama_model_load_internal: ftype      = 2 (mostly Q4_0)
-    llama_model_load_internal: n_ff       = 11008
-    llama_model_load_internal: model size = 7B
-    llama_model_load_internal: ggml ctx size =    0.08 MB
-    llama_model_load_internal: mem required  = 5407.72 MB (+ 1026.00 MB per state)
-    llama_new_context_with_model: kv self size  = 1024.00 MB
-
 
     Cillian Murphy, Florence Pugh
 
