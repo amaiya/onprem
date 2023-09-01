@@ -81,7 +81,7 @@ llm.ingest('./sample_data')
 
     Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 11.58it/s]
 
-#### Step 3: Answer Questions About the Documents
+#### Step 2: Answer Questions About the Documents
 
 ``` python
 question = """Please answer the following question in a single sentence using only the provided context: What is  ktrain?""" 
