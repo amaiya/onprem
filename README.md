@@ -56,6 +56,22 @@ People:"""
 saved_output = llm.prompt(prompt)
 ```
 
+    llama.cpp: loading model from /home/amaiya/onprem_data/Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin
+    llama_model_load_internal: format     = ggjt v3 (latest)
+    llama_model_load_internal: n_vocab    = 32000
+    llama_model_load_internal: n_ctx      = 2048
+    llama_model_load_internal: n_embd     = 4096
+    llama_model_load_internal: n_mult     = 256
+    llama_model_load_internal: n_head     = 32
+    llama_model_load_internal: n_layer    = 32
+    llama_model_load_internal: n_rot      = 128
+    llama_model_load_internal: ftype      = 2 (mostly Q4_0)
+    llama_model_load_internal: n_ff       = 11008
+    llama_model_load_internal: model size = 7B
+    llama_model_load_internal: ggml ctx size =    0.08 MB
+    llama_model_load_internal: mem required  = 5407.72 MB (+ 1026.00 MB per state)
+    llama_new_context_with_model: kv self size  = 1024.00 MB
+
 
     Cillian Murphy, Florence Pugh
 
@@ -77,27 +93,31 @@ if not os.path.exists: os.mkdir('/tmp/sample_data')
 llm.ingest('/tmp/sample_data')
 ```
 
-    Appending to existing vectorstore at /home/amaiya/onprem_data/vectordb
+    Creating new vectorstore
     Loading documents from /tmp/sample_data
-    Loaded 9 new documents from /tmp/sample_data
-    Split into 57 chunks of text (max. 500 tokens each)
+    Loaded 18 new documents from /tmp/sample_data
+    Split into 114 chunks of text (max. 500 tokens each)
     Creating embeddings. May take some minutes...
     Ingestion complete! You can now query your documents using the prompt method
 
-    Loading new documents: 100%|██████████████████████| 1/1 [00:00<00:00,  7.74it/s]
+    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00,  9.39it/s]
 
 #### Step 3: Answer Questions About the Documents
 
 ``` python
-question = """What is ktrain?"""
+question = """Answer the following question in one sentence based only on the provided context: What is ktrain?"""
 answer, docs = llm.ask(question)
-print('References:')
+print('\n\nReferences:\n\n')
 for i, document in enumerate(docs):
     print(f"\n{i+1}.> " + document.metadata["source"] + ":")
     print(document.page_content)
 ```
 
-     Ktrain is an open-source machine learning (ML) toolbox that focuses on enabling automation in the ML workow, rather than trying to entirely replace human engineers with algorithms. Its goal is to provide a flexible and user-friendly way for researchers and practitioners to perform ML tasks such as data preparation, model selection, training, and evaluation, while also allowing for customization and experimentation. Overall, ktrain seeks to augment and complement human engineers rather than attempting to entirely replace them.References:
+     Ktrain is a machine learning framework that automates certain aspects of the workow while allowing for human input and choice to complement the strengths of both humans and machines.
+
+    References:
+
+
 
     1.> /tmp/sample_data/downloaded_paper.pdf:
     lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
