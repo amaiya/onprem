@@ -15,6 +15,9 @@ LLMs into practical applications.
 
 ## Install
 
+Once [installing PyTorch](https://pytorch.org/get-started/locally/), you
+can install **OnPrem** with:
+
 ``` sh
 pip install onprem
 ```
@@ -84,7 +87,11 @@ Answers are generated from the content of your documents.
 ``` python
 import os
 if not os.path.exists: os.mkdir('/tmp/sample_data')
-!wget --user-agent="Mozilla" https://arxiv.org/pdf/2004.10703.pdf -O /tmp/sample_data/ktrain_paper.pdf -q
+import requests
+r = requests.get('https://arxiv.org/pdf/2004.10703.pdf', stream=True)
+with open('/tmp/sample_data/ktrain_paper.pdf', "wb") as fd:
+    for chunk in r.iter_content(2048):
+        fd.write(chunk)
 ```
 
 #### Step 2: Ingest the Documents into a Vector Database
