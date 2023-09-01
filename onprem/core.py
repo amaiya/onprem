@@ -45,7 +45,10 @@ class LLM:
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *verbose*: Verbosity
         """
-        self.model_name = model_name       
+        self.model_name = model_name
+        if not os.path.isfile(os.path.join(U.get_datadir(), model_name)):
+            warnings.warn('The model {model_name} does not exist in {U.get_datadir()}. '+\
+                          'Please execute LLM.download() to download it.')
         self.llm = None
         self.n_gpu_layers = n_gpu_layers
         self.max_tokens = max_tokens
@@ -54,15 +57,13 @@ class LLM:
         self.callbacks = [] if mute_stream else [StreamingStdOutCallbackHandler()]
         self.verbose = verbose
  
-    def download_model(self, model_url=DEFAULT_MODEL_NAME, confirm=True):
+    @classmethod
+    def download_model(cls, model_url=DEFAULT_MODEL_NAME, confirm=True):
         """
         Download an LLM in GGML format supported by [lLama.cpp](https://github.com/ggerganov/llama.cpp).
         """
         datadir = U.get_datadir()
-        model_name = os.path.basename(self.model_url)
-        if model_name != self.model_name:
-            warnings.warn('The model you downloaded ({model_name}) is different than the model '+\
-                          'specified during instantiation. This instance of LLM will now use {model_name}.')
+        model_name = os.path.basename(model_url)
         filename = os.path.join(datadir, model_name)
         confirm_msg = f"You are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"
         if os.path.isfile(filename):
