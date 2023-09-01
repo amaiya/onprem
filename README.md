@@ -144,7 +144,9 @@ incompatibilities.
 
 #### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
 
+``` python
 llm = LLM(model_name=os.path.basename(url), n_gpu_layers=128)
+```
 
 With the steps above, calls to methods like `llm.prompt` will offload
 computation to your GPU and speed up responses from the LLM.
