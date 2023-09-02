@@ -5,3 +5,4 @@ website:
       - 00_core.ipynb
       - 01_ingest.ipynb
       - 02_utils.ipynb
+      - 03_examples.ipynb
