@@ -39,7 +39,8 @@ class LLM:
         LLM Constructor
         
         **Args:**
-        
+
+        - *model_name*: Name of the model.  Must downloaded with call `LLM.download_model`.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *max_tokens*: The maximum number of tokens to generate.
         - *n_ctx*: Token context window.
@@ -52,7 +53,7 @@ class LLM:
         self.model_name = model_name
         if not os.path.isfile(os.path.join(U.get_datadir(), model_name)):
             warnings.warn('The model {model_name} does not exist in {U.get_datadir()}. '+\
-                          'Please execute LLM.download() to download it.')
+                          'Please execute LLM.download_model() to download it.')
         self.llm = None
         self.ingester = None
         self.n_gpu_layers = n_gpu_layers
