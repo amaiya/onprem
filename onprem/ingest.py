@@ -150,6 +150,7 @@ class Ingester:
         Ingests all documents in `source_folder` (previously-ingested documents are ignored)
 
         **Args**:
+        
           - *embedding_model*: name of sentence-transformers model
           - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
 
