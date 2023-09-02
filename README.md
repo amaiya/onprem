@@ -133,7 +133,7 @@ The above example employed the use of a CPU.
 If you have a GPU (even an older one with less VRAM), you can speed up
 responses.
 
-#### Step 1: Install `llama-cpp-python` with CUDABLAS support
+#### Step 1: Install `llama-cpp-python` with CUBLAS support
 
 ``` shell
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.69 --no-cache-dir
