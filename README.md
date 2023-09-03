@@ -32,15 +32,8 @@ For GPU support, see additional instructions below.
 import os.path
 from onprem import LLM
 
-url = 'https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGML/resolve/main/Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin'
-
-llm = LLM(model_name=os.path.basename(url))
-llm.download_model(url, ssl_verify=True ) # set to False if corporate firewall gives you problems
+llm = LLM()
 ```
-
-    There is already a file Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin in /home/amaiya/onprem_data.
-     Do you want to still download it? (Y/n) Y
-    [██████████████████████████████████████████████████]
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -72,19 +65,21 @@ Answers are generated from the content of your documents.
 llm.ingest('./sample_data')
 ```
 
+    2023-09-03 16:30:54.459509: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
+    To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 17.16it/s]
+
     Creating new vectorstore
     Loading documents from ./sample_data
     Loaded 11 new documents from ./sample_data
     Split into 62 chunks of text (max. 500 tokens each)
     Creating embeddings. May take some minutes...
-    Ingestion complete! You can now query your documents using the prompt method
-
-    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 11.58it/s]
+    Ingestion complete! You can now query your documents using the LLM.ask method
 
 #### Step 2: Answer Questions About the Documents
 
 ``` python
-question = """Please answer the following question in a single sentence using only the provided context: What is  ktrain?""" 
+question = """What is  ktrain?""" 
 answer, docs = llm.ask(question)
 print('\n\nReferences:\n\n')
 for i, document in enumerate(docs):
@@ -92,7 +87,10 @@ for i, document in enumerate(docs):
     print(document.page_content)
 ```
 
-     K-Train is an automation tool that augments and complements human engineers during machine learning workow.
+     Ktrain is a low-code machine learning library designed to augment human
+    engineers in the machine learning workow by automating or semi-automating various
+    aspects of model training, tuning, and application. Through its use, domain experts can
+    leverage their expertise while still benefiting from the power of machine learning techniques.
 
     References:
 
@@ -112,20 +110,21 @@ for i, document in enumerate(docs):
     better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
 
     3.> ./sample_data/ktrain_paper.pdf:
-    tifying examples that the model is getting the most wrong, and Explainable AI methods to
-    understand why mistakes were made.
-    3) Model-Application.
-    Both the model and the potentially complex set of steps re-
-    quired to preprocess raw data into the format expected by the model must be easily saved,
-    transferred to, and executed on new data in a production environment.
-    ktrain is a Python library for machine learning with the goal of presenting a simple,
+    with custom models and data formats, as well.
+    Inspired by other low-code (and no-
+    code) open-source ML libraries such as fastai (Howard and Gugger, 2020) and ludwig
+    (Molino et al., 2019), ktrain is intended to help further democratize machine learning by
+    enabling beginners and domain experts with minimal programming or data science experi-
+    4. http://archive.ics.uci.edu/ml/datasets/Twenty+Newsgroups
+    6
 
     4.> ./sample_data/ktrain_paper.pdf:
-    this may involve language-speciﬁc preprocessing (e.g., tokenization). In the case of images,
-    this may involve auto-normalizing pixel values in a way that a chosen model expects. In
-    the case of graphs, this may involve compiling attributes of nodes and links in the network
-    (Data61, 2018). All preprocessing methods in ktrain return a Preprocessor instance
-    that encapsulates all the preprocessing steps for a particular task, which can be employed
+    ktrain: A Low-Code Library for Augmented Machine Learning
+    toML platform and more of what might be called a “low-code” ML platform. Through
+    automation or semi-automation, ktrain facilitates the full machine learning workﬂow from
+    curating and preprocessing inputs (i.e., ground-truth-labeled training data) to training,
+    tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
+    experts who may have less experience with machine learning and software coding. Where
 
 ### Speeding Up Inference Using a GPU
 

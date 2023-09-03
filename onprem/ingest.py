@@ -209,6 +209,6 @@ class Ingester:
                                            client_settings=self.chroma_settings, client=self.chroma_client)
         if texts:
             db.persist()
-            print(f"Ingestion complete! You can now query your documents using the prompt method")
+            print(f"Ingestion complete! You can now query your documents using the LLM.ask method")
         db = None
         return
