@@ -35,7 +35,8 @@ class LLM:
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  use_larger=False,
-                verbose=False):
+                 confirm=True,
+                 verbose=False):
         """
         LLM Constructor
         
@@ -50,6 +51,7 @@ class LLM:
         - *embedding_model*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
         - *use_larger**: If True, a larger model than the default `model_url` will be used.
+        - *confirm*: whether or not to confirm with user before downloading a model
         - *verbose*: Verbosity
         """
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
@@ -57,7 +59,7 @@ class LLM:
             print(f'Since use_larger=True, we are using: {os.path.basename(DEFAULT_LARGER_URL)}')
         self.model_name = os.path.basename(model_url)
         if not os.path.isfile(os.path.join(U.get_datadir(), self.model_name)):
-            self.download_model(model_url)
+            self.download_model(model_url, confirm=confirm)
         self.llm = None
         self.ingester = None
         self.n_gpu_layers = n_gpu_layers
