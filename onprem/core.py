@@ -57,9 +57,9 @@ class LLM:
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
         if verbose:
             print(f'Since use_larger=True, we are using: {os.path.basename(DEFAULT_LARGER_URL)}')
-        self.model_name = os.path.basename(model_url)
+        self.model_name = os.path.basename(self.model_url)
         if not os.path.isfile(os.path.join(U.get_datadir(), self.model_name)):
-            self.download_model(model_url, confirm=confirm)
+            self.download_model(self.model_url, confirm=confirm)
         self.llm = None
         self.ingester = None
         self.n_gpu_layers = n_gpu_layers
