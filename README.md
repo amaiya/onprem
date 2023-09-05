@@ -23,7 +23,7 @@ can install **OnPrem.LLM** with:
 pip install onprem
 ```
 
-For GPU support, see additional instructions below.
+For fast GPU-accelerated inference, see additional instructions below.
 
 ## How to use
 
