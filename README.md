@@ -229,3 +229,30 @@ llm = LLM(model_name=os.path.basename(url), n_gpu_layers=128)
 
 With the steps above, calls to methods like `llm.prompt` will offload
 computation to your GPU and speed up responses from the LLM.
+
+## FAQ
+
+1.  How do I use other models with **OnPrem.LLM**?
+
+> You supply the URL to other models to the
+> [`LLM`](https://amaiya.github.io/onprem/core.html#llm) constructor, as
+> we did above in the code generation example.
+
+2.  I’m behind a corporate firewall and receiving an SSL error when
+    trying to download the model?
+
+> Try this:
+>
+> ``` python
+> from onprem import LLM
+> LLM.download_model(url, ssl_verify=False)
+> ```
+
+3.  Which models can I use with this?
+
+> We currently support models in GGML format. However, the GGML format
+> has now been superseded by GGUF. As of August 21st 2023, llama.cpp no
+> longer supports GGML models, which is why we are pinning to an older
+> version of all dependencies.
+>
+> Future versions of **OnPrem.LLM** will use the newer GGUF format.
