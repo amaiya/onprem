@@ -30,11 +30,17 @@ For fast GPU-accelerated inference, see additional instructions below.
 ### Setup
 
 ``` python
-import os.path
 from onprem import LLM
 
 llm = LLM()
 ```
+
+By default, a 7B-parameter model is used. If `use_larger=True`, a
+13B-parameter is used. You can also supply the URL to an LLM of your
+choosing to [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see
+code generation section below for an example). Currently, only models in
+GGML format are supported. Future versions of **OnPrem.LLM** will
+transition to the newer GGUF format.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -126,6 +132,79 @@ for i, document in enumerate(docs):
     curating and preprocessing inputs (i.e., ground-truth-labeled training data) to training,
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
+
+### Text to Code Generation
+
+We’ll use the CodeUp LLM by supplying the URL and employ the particular
+prompt format this model expects.
+
+``` python
+from onprem import LLM
+url = 'https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGML/resolve/main/codeup-llama-2-13b-chat-hf.ggmlv3.q4_1.bin'
+llm = LLM(url, n_gpu_layers=43) # see below for GPU information
+```
+
+Setup the prompt based on what [this model
+expects](https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGML#prompt-template-alpaca)
+(this is important):
+
+``` python
+template = """
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{prompt}
+
+### Response:"""
+```
+
+``` python
+answer = llm.prompt('Write Python code to validate an email address.', prompt_template=template)
+```
+
+
+    Here is an example of Python code that can be used to validate an email address:
+    ```
+    import re
+
+    def validate_email(email):
+        # Use a regular expression to check if the email address is in the correct format
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if re.match(pattern, email):
+            return True
+        else:
+            return False
+
+    # Test the validate_email function with different inputs
+    print("Email address is valid:", validate_email("example@example.com"))  # Should print "True"
+    print("Email address is invalid:", validate_email("example@"))  # Should print "False"
+    print("Email address is invalid:", validate_email("example.com"))  # Should print "False"
+    ```
+    The code defines a function `validate_email` that takes an email address as input and uses a regular expression to check if the email address is in the correct format. The regular expression checks for an email address that consists of one or more letters, numbers, periods, hyphens, or underscores followed by the `@` symbol, followed by one or more letters, periods, hyphens, or underscores followed by a `.` and two to three letters.
+    The function returns `True` if the email address is valid, and `False` otherwise. The code also includes some test examples to demonstrate how to use the function.
+
+Let’s try out the code generated above.
+
+``` python
+import re
+def validate_email(email):
+    # Use a regular expression to check if the email address is in the correct format
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
+print(validate_email('sam@@openai.com')) # bad email address
+print(validate_email('sam@openai'))      # bad email address
+print(validate_email('sam@openai.com'))  # good email address
+```
+
+    False
+    False
+    True
+
+The generated code may sometimes need editing, but this one worked
+out-of-the-box.
 
 ### Speeding Up Inference Using a GPU
 

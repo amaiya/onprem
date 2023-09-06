@@ -152,11 +152,13 @@ class LLM:
         return self.llm
         
         
-    def prompt(self, prompt):
+    def prompt(self, prompt, prompt_template=None):
         """
         Send prompt to LLM to generate a response
         """
         llm = self.load_llm()
+        if prompt_template:
+            prompt = prompt_template.format(**{'prompt': prompt})
         return llm(prompt)  
     
     def ask(self, question, num_source_docs=4):
