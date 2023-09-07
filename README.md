@@ -62,6 +62,9 @@ saved_output = llm.prompt(prompt)
 
     Cillian Murphy, Florence Pugh
 
+Additional prompt examples are [shown
+here](https://amaiya.github.io/onprem/examples.html).
+
 ### Talk to Your Documents
 
 Answers are generated from the content of your documents.
