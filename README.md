@@ -14,7 +14,8 @@ Simon Willison’s [LLM](https://pypi.org/project/llm/) command-line
 utility, **OnPrem.LLM** is intended to help integrate local LLMs into
 practical applications.
 
-Full documentation is [here](https://amaiya.github.io/onprem/).
+Documentation and examples are available
+[here](https://amaiya.github.io/onprem/).
 
 ## Install
 
