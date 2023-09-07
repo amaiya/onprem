@@ -11,8 +11,10 @@ machines with no internet connectivity (e.g., behind corporate
 firewalls). Inspired by the
 [privateGPT](https://github.com/imartinez/privateGPT) GitHub repo and
 Simon Willison’s [LLM](https://pypi.org/project/llm/) command-line
-utility, **OnPrem.LLM** is designed to help integrate local LLMs into
+utility, **OnPrem.LLM** is intended to help integrate local LLMs into
 practical applications.
+
+Full documentation is [here](https://amaiya.github.io/onprem/).
 
 ## Install
 
@@ -235,27 +237,42 @@ computation to your GPU and speed up responses from the LLM.
 
 ## FAQ
 
-1.  How do I use other models with **OnPrem.LLM**?
+1.  **How do I use other models with OnPrem.LLM?**
 
-> You supply the URL to other models to the
-> [`LLM`](https://amaiya.github.io/onprem/core.html#llm) constructor, as
-> we did above in the code generation example.
+    > You can supply the URL to other models to the `LLM` constructor,
+    > as we did above in the code generation example.
 
-2.  I’m behind a corporate firewall and receiving an SSL error when
-    trying to download the model?
+    > We currently support models in GGML format. However, the GGML
+    > format has now been superseded by GGUF. As of August 21st 2023,
+    > llama.cpp no longer supports GGML models, which is why we are
+    > pinning to an older version of all dependencies.
+    >
+    > Future versions of **OnPrem.LLM** will use the newer GGUF format.
 
-> Try this:
->
-> ``` python
-> from onprem import LLM
-> LLM.download_model(url, ssl_verify=False)
-> ```
+2.  **I’m behind a corporate firewall and receiving an SSL error when
+    trying to download the model?**
 
-3.  Which models can I use with this?
+    > Try this:
+    >
+    > ``` python
+    > from onprem import LLM
+    > LLM.download_model(url, ssl_verify=False)
+    > ```
 
-> We currently support models in GGML format. However, the GGML format
-> has now been superseded by GGUF. As of August 21st 2023, llama.cpp no
-> longer supports GGML models, which is why we are pinning to an older
-> version of all dependencies.
->
-> Future versions of **OnPrem.LLM** will use the newer GGUF format.
+3.  **How do I use this on a machine with no internet access?**
+
+    > Use the `LLM.download_model` method to download the model files to
+    > `<your_home_directory>/onprem_data` and transfer them to the same
+    > location on the air-gapped machine.
+
+    > For the `ingest` and `ask` methods, you will need to also download
+    > and transfer the embedding model files:
+    >
+    > ``` python
+    > from sentence_transformers import SentenceTransformer
+    > model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    > model.save('/some/folder')
+    > ```
+
+    > Copy the `some/folder` folder to the air-gapped machine and supply
+    > the path to `LLM` via the `embedding_model` parameter.
