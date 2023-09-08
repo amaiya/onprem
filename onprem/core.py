@@ -89,7 +89,7 @@ class LLM:
             
         shall = True
         if confirm:
-            shall = input("%s (Y/n) " % confirm_msg) == "Y"
+            shall = input("%s (y/N) " % confirm_msg).lower() == "y"
         if shall:
             U.download(model_url, filename, verify=ssl_verify)
         else:
