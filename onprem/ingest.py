@@ -176,7 +176,7 @@ class Ingester:
                source_directory:str, 
               ):
         """
-        Ingests all documents in `source_folder` (previously-ingested documents are ignored)
+        Ingests all documents in `source_folder` (previously-ingested documents are ignored).
 
         **Args**:
 
@@ -200,7 +200,7 @@ class Ingester:
                 db.add_documents(texts)
         else:
             # Create and store locally vectorstore
-            print("Creating new vectorstore")
+            print(f"Creating new vectorstore at {self.persist_directory}")
             texts = process_documents(source_directory)
             if texts:
                 print(f"Creating embeddings. May take some minutes...")

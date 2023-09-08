@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Print `persist_directory` when creating new vector store
 
 ### fixed:
 - N/A
