@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Print `persist_directory` when creating new vector store
+- Revert `numpy` pin
 
 
 ### fixed:
