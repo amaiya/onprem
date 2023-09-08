@@ -25,6 +25,7 @@ class LLM:
     def __init__(self, 
                  model_url=DEFAULT_MODEL_URL,
                  n_gpu_layers:Optional[int]=None, 
+                 model_download_path:Optional[str]=None,
                  max_tokens:int=512, 
                  n_ctx:int=2048, 
                  n_batch:int=1024,
@@ -41,6 +42,7 @@ class LLM:
 
         - *model_url*: URL to `.bin` model (currently must be GGML model).
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
+        - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *max_tokens*: The maximum number of tokens to generate.
         - *n_ctx*: Token context window.
         - *n_batch*: Number of tokens to process in parallel.
@@ -55,8 +57,9 @@ class LLM:
         if verbose:
             print(f'Since use_larger=True, we are using: {os.path.basename(DEFAULT_LARGER_URL)}')
         self.model_name = os.path.basename(self.model_url)
+        self.model_download_path = model_download_path
         if not os.path.isfile(os.path.join(U.get_datadir(), self.model_name)):
-            self.download_model(self.model_url, confirm=confirm)
+            self.download_model(self.model_url, model_download_path=self.model_download_path, confirm=confirm)
         self.llm = None
         self.ingester = None
         self.n_gpu_layers = n_gpu_layers
@@ -69,18 +72,19 @@ class LLM:
         self.verbose = verbose
  
     @classmethod
-    def download_model(cls, model_url=DEFAULT_MODEL_URL, confirm=True, ssl_verify=True):
+    def download_model(cls, model_url=DEFAULT_MODEL_URL, model_download_path:Optional[str]=None, confirm=True, ssl_verify=True):
         """
         Download an LLM in GGML format supported by [lLama.cpp](https://github.com/ggerganov/llama.cpp).
         
         **Args:**
         
         - *model_url*: URL of model
+        - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *confirm*: whether or not to confirm with user before downloading
         - *ssl_verify*: If True, SSL certificates are verified. 
                         You can set to False if corporate firewall gives you problems.
         """
-        datadir = U.get_datadir()
+        datadir = model_download_path or U.get_datadir()
         model_name = os.path.basename(model_url)
         filename = os.path.join(datadir, model_name)
         confirm_msg = f"You are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"
@@ -126,7 +130,7 @@ class LLM:
  
         
     def check_model(self):
-        datadir = U.get_datadir()
+        datadir = self.model_download_path or U.get_datadir()
         model_path = os.path.join(datadir, self.model_name)
         if not os.path.isfile(model_path):
             raise ValueError(f'The LLM model {self.model_name} does not appear to have been downloaded. '+\
