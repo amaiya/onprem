@@ -14,8 +14,10 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - Print `persist_directory` when creating new vector store
 
+
 ### fixed:
 - N/A
+
 
 
 ## 0.0.10 (2023-09-07)
