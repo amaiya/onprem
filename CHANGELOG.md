@@ -17,7 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- Fixed capitalization in download confirmation (#9), thanks to @rabilrbl
 
 
 
