@@ -6,11 +6,10 @@
 > data
 
 **OnPrem.LLM** is a simple Python package that makes it easier to run
-large language models (LLMs) on non-public or sensitive data and on
-machines with no internet connectivity (e.g., behind corporate
-firewalls). Inspired by the
-[privateGPT](https://github.com/imartinez/privateGPT) GitHub repo and
-Simon Willison’s [LLM](https://pypi.org/project/llm/) command-line
+large language models (LLMs) on non-public data and on machines with no
+internet connectivity (e.g., behind corporate firewalls). Inspired by
+the [privateGPT](https://github.com/imartinez/privateGPT) GitHub repo
+and Simon Willison’s [LLM](https://pypi.org/project/llm/) command-line
 utility, **OnPrem.LLM** is intended to help integrate local LLMs into
 practical applications.
 
