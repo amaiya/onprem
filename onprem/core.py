@@ -57,8 +57,8 @@ class LLM:
         if verbose:
             print(f'Since use_larger=True, we are using: {os.path.basename(DEFAULT_LARGER_URL)}')
         self.model_name = os.path.basename(self.model_url)
-        self.model_download_path = model_download_path
-        if not os.path.isfile(os.path.join(U.get_datadir(), self.model_name)):
+        self.model_download_path = model_download_path or U.get_datadir()
+        if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):
             self.download_model(self.model_url, model_download_path=self.model_download_path, confirm=confirm)
         self.llm = None
         self.ingester = None
@@ -130,7 +130,7 @@ class LLM:
  
         
     def check_model(self):
-        datadir = self.model_download_path or U.get_datadir()
+        datadir = self.model_download_path
         model_path = os.path.join(datadir, self.model_name)
         if not os.path.isfile(model_path):
             raise ValueError(f'The LLM model {self.model_name} does not appear to have been downloaded. '+\

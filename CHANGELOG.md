@@ -14,7 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Add optional argument to specify custom path to download LLM (#5), thanks to @rabilrbl
 
 ### fixed:
 - Fixed capitalization in download confirmation (#9), thanks to @rabilrbl
