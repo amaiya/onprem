@@ -6,6 +6,21 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+
+
+## 0.0.12 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
+
 ## 0.0.11 (2023-09-07)
 
 ### new:
@@ -14,7 +29,6 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - Print `persist_directory` when creating new vector store
 - Revert `numpy` pin
-
 
 ### fixed:
 - N/A
