@@ -15,7 +15,7 @@ practical applications.
 
 The full documentation is [here](https://amaiya.github.io/onprem/).
 
-A Google Colab demo of **OnPrem.LLM** is
+A Google Colab demo of installing and using **OnPrem.LLM** is
 [here](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing).
 
 ## Install
@@ -251,7 +251,7 @@ computation to your GPU and speed up responses from the LLM.
     >
     > Future versions of **OnPrem.LLM** will use the newer GGUF format.
 
-2.  **I’m behind a corporate firewall and receiving an SSL error when
+2.  **I’m behind a corporate firewall and am receiving an SSL error when
     trying to download the model?**
 
     > Try this:
@@ -278,3 +278,27 @@ computation to your GPU and speed up responses from the LLM.
 
     > Copy the `some/folder` folder to the air-gapped machine and supply
     > the path to `LLM` via the `embedding_model` parameter.
+
+4.  **When installing `onprem`, I’m getting errors related to
+    `llama-cpp-python` on Windows/Mac/Linux?** \> For **Linux** systems
+    like Ubuntu, try this:
+    `sudo apt-get install build-essential g++ clang`. Other tips are
+    [here](https://github.com/oobabooga/text-generation-webui/issues/1534).
+
+    > For **Windows** systems, either use [Windows Subsystem for Linux
+    > (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) or
+    > install [Microsoft Visual Studio build
+    > tools](https://visualstudio.microsoft.com/vs/older-downloads/) and
+    > ensure the selections shown in [this
+    > post](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1561343405)
+    > are installed. WSL is recommended.
+
+    > For **Macs**, try following [these
+    > tips](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1563333950).
+
+    > If you still have problems, there are various other tips for each
+    > of the above OSes in [this privateGPT repo
+    > thread](https://github.com/imartinez/privateGPT/issues/445). Of
+    > course, you can always still [easily
+    > use](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing)
+    > **OnPrem.LLM** on Google Colab.
