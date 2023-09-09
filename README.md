@@ -27,7 +27,8 @@ can install **OnPrem.LLM** with:
 pip install onprem
 ```
 
-For fast GPU-accelerated inference, see additional instructions below.
+For fast GPU-accelerated inference, see [additional instructions
+below](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu).
 
 ## How to use
 
@@ -213,7 +214,7 @@ print(validate_email('sam@openai.com'))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
-### Speeding Up Inference Using a GPU
+## Speeding Up Inference Using a GPU
 
 The above example employed the use of a CPU.  
 If you have a GPU (even an older one with less VRAM), you can speed up
@@ -233,6 +234,10 @@ incompatibilities.
 ``` python
 llm = LLM(model_name=os.path.basename(url), n_gpu_layers=128)
 ```
+
+The value for `n_gpu_layers` depends on your GPU memory and the model
+you’re using (e.g., max of 35 for default 7B model). You can reduce the
+value if you get an error (e.g., `CUDA OOM`).
 
 With the steps above, calls to methods like `llm.prompt` will offload
 computation to your GPU and speed up responses from the LLM.
