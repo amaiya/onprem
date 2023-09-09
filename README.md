@@ -300,6 +300,6 @@ computation to your GPU and speed up responses from the LLM.
     > If you still have problems, there are various other tips for each
     > of the above OSes in [this privateGPT repo
     > thread](https://github.com/imartinez/privateGPT/issues/445). Of
-    > course, you can always still [easily
+    > course, you can also [easily
     > use](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing)
     > **OnPrem.LLM** on Google Colab.
