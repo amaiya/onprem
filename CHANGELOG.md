@@ -19,6 +19,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Fixed capitalization in download confirmation (#9), thanks to @rabilrbl
+- Insert [dummy replacement](https://stackoverflow.com/questions/74918614/error-importing-seaborn-module-attributeerror/76760670#76760670) of decorator into numpy
 
 
 
