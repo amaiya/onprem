@@ -15,6 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Add optional argument to specify custom path to download LLM (#5), thanks to @rabilrbl
+- Add optional argument to specify custom path to vector DB (#11)
 
 ### fixed:
 - Fixed capitalization in download confirmation (#9), thanks to @rabilrbl
