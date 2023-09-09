@@ -8,7 +8,7 @@ Most recent releases are shown at the top. Each release shows:
 
 
 
-## 0.0.12 (TBD)
+## 0.0.12 (2023-09-09)
 
 ### new:
 - N/A
