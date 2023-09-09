@@ -280,10 +280,11 @@ computation to your GPU and speed up responses from the LLM.
     > the path to `LLM` via the `embedding_model` parameter.
 
 4.  **When installing `onprem`, I’m getting errors related to
-    `llama-cpp-python` on Windows/Mac/Linux?** \> For **Linux** systems
-    like Ubuntu, try this:
-    `sudo apt-get install build-essential g++ clang`. Other tips are
-    [here](https://github.com/oobabooga/text-generation-webui/issues/1534).
+    `llama-cpp-python` on Windows/Mac/Linux?**
+
+    > For **Linux** systems like Ubuntu, try this:
+    > `sudo apt-get install build-essential g++ clang`. Other tips are
+    > [here](https://github.com/oobabooga/text-generation-webui/issues/1534).
 
     > For **Windows** systems, either use [Windows Subsystem for Linux
     > (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) or
