@@ -143,6 +143,14 @@ for i, document in enumerate(docs):
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
 
+**Pro-Tip**: If you see the model hallucinating answers, you can supply
+`use_larger=True` to
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) and use the
+slightly larger default model better-suited to this use case (or supply
+the URL to a different model of your choosing to
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm)), which can
+provide better performance.
+
 ### Text to Code Generation
 
 We’ll use the CodeUp LLM by supplying the URL and employ the particular

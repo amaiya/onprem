@@ -7,13 +7,14 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.0.13 (TBD)
+## 0.0.13 (2023-09-10)
 
 ### new:
 - N/A
 
 ### changed
 - Accept extra `kwargs` and supply them to `langchain.llms.Llamacpp` (#12)
+- Add optional argument to specify custom path to vector DB (#11)
 
 ### fixed:
 - N/A
@@ -26,7 +27,6 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Add optional argument to specify custom path to download LLM (#5), thanks to @rabilrbl
-- Add optional argument to specify custom path to vector DB (#11)
 
 ### fixed:
 - Fixed capitalization in download confirmation (#9), thanks to @rabilrbl

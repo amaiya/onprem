@@ -24,15 +24,16 @@ DEFAULT_EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 class LLM:
     def __init__(self, 
                  model_url=DEFAULT_MODEL_URL,
+                 use_larger=False,
                  n_gpu_layers:Optional[int]=None, 
                  model_download_path:Optional[str]=None,
+                 vectordb_path:Optional[str]=None,
                  max_tokens:int=512, 
                  n_ctx:int=2048, 
                  n_batch:int=1024,
                  mute_stream=False,
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
                  embedding_model_kwargs:dict ={'device': 'cpu'},
-                 use_larger=False,
                  confirm=True,
                  verbose=False,
                  **kwargs):
@@ -42,15 +43,17 @@ class LLM:
         **Args:**
 
         - *model_url*: URL to `.bin` model (currently must be GGML model).
+        - *use_larger**: If True, a larger model than the default `model_url` will be used.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
+        - *vectordb_path*: Path to vector database (created if it doesn't exist). 
+                           Default is `onprem_data/vectordb` in user's home directory.
         - *max_tokens*: The maximum number of tokens to generate.
         - *n_ctx*: Token context window.
         - *n_batch*: Number of tokens to process in parallel.
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *embedding_model*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
-        - *use_larger**: If True, a larger model than the default `model_url` will be used.
         - *confirm*: whether or not to confirm with user before downloading a model
         - *verbose*: Verbosity
         """
@@ -61,6 +64,7 @@ class LLM:
         self.model_download_path = model_download_path or U.get_datadir()
         if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):
             self.download_model(self.model_url, model_download_path=self.model_download_path, confirm=confirm)
+        self.vectordb_path = vectordb_path
         self.llm = None
         self.ingester = None
         self.n_gpu_layers = n_gpu_layers
@@ -110,7 +114,8 @@ class LLM:
         if not self.ingester:
             from onprem.ingest import Ingester
             self.ingester = Ingester(embedding_model_name=self.embedding_model_name,
-                                     embedding_model_kwargs=self.embedding_model_kwargs)
+                                     embedding_model_kwargs=self.embedding_model_kwargs,
+                                    persist_directory=self.vectordb_path)
         return self.ingester
         
         

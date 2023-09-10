@@ -144,7 +144,8 @@ DEFAULT_DB = 'vectordb'
 class Ingester:
     def __init__(self,
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
-                 embedding_model_kwargs:dict ={'device': 'cpu'}
+                 embedding_model_kwargs:dict ={'device': 'cpu'},
+                 persist_directory:Optional[str]=None
                 ):
         """
         Ingests all documents in `source_folder` (previously-ingested documents are ignored)
@@ -153,10 +154,13 @@ class Ingester:
         
           - *embedding_model*: name of sentence-transformers model
           - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
+          - *persist_directory*: Path to vector database (created if it doesn't exist). 
+                                 Default is `onprem_data/vectordb` in user's home directory.
+
 
         **Returns**: `None`
         """
-        self.persist_directory = os.path.join(get_datadir(), DEFAULT_DB)
+        self.persist_directory = persist_directory or os.path.join(get_datadir(), DEFAULT_DB)
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_name)
         self.chroma_settings = Settings(persist_directory=self.persist_directory,anonymized_telemetry=False)
         self.chroma_client = chromadb.PersistentClient(settings=self.chroma_settings , path=self.persist_directory)
