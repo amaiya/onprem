@@ -164,6 +164,9 @@ class Ingester:
      
     
     def get_db(self):
+        """
+        Returns an instance to the `langchain.vectorstores.Chroma` instance
+        """
         db = None
         if does_vectorstore_exist(self.persist_directory, self.embeddings):
             db = Chroma(persist_directory=self.persist_directory, 

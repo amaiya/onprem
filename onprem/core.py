@@ -101,7 +101,10 @@ class LLM:
         return
 
     def load_ingester(self):
-        """Get Ingester instance"""
+        """
+        Get `Ingester` instance. 
+        You can access the `langchain.vectorstores.Chroma` instance with `load_ingester().get_db()`.
+        """
         if not self.ingester:
             from onprem.ingest import Ingester
             self.ingester = Ingester(embedding_model_name=self.embedding_model_name,
@@ -130,6 +133,9 @@ class LLM:
  
         
     def check_model(self):
+        """
+        Returns the path to the model
+        """
         datadir = self.model_download_path
         model_path = os.path.join(datadir, self.model_name)
         if not os.path.isfile(model_path):
@@ -139,6 +145,9 @@ class LLM:
         
  
     def load_llm(self):
+        """
+        Loads the LLM from the model path.
+        """
         model_path = self.check_model()
         
         if not self.llm:
