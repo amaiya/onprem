@@ -34,9 +34,10 @@ class LLM:
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  use_larger=False,
                  confirm=True,
-                 verbose=False):
+                 verbose=False,
+                 **kwargs):
         """
-        LLM Constructor
+        LLM Constructor.  Extra `kwargs` are fed directly to `langchain.llms.LlamaCpp`.
         
         **Args:**
 
@@ -70,6 +71,7 @@ class LLM:
         self.embedding_model_name = embedding_model_name
         self.embedding_model_kwargs = embedding_model_kwargs
         self.verbose = verbose
+        self.extra_kwargs = kwargs
  
     @classmethod
     def download_model(cls, model_url=DEFAULT_MODEL_URL, model_download_path:Optional[str]=None, confirm=True, ssl_verify=True):
@@ -157,7 +159,7 @@ class LLM:
                                        callbacks=self.callbacks, 
                                        verbose=self.verbose, 
                                        n_gpu_layers=self.n_gpu_layers, 
-                                       n_ctx=self.n_ctx)    
+                                       n_ctx=self.n_ctx, **self.extra_kwargs)    
 
         return self.llm
         

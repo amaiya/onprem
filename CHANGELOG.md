@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Accept extra `kwargs` and supply them to `langchain.llms.Llamacpp` (#12)
 
 ### fixed:
 - N/A
