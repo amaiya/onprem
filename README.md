@@ -40,12 +40,14 @@ from onprem import LLM
 llm = LLM()
 ```
 
-By default, a 7B-parameter model is used. If `use_larger=True`, a
-13B-parameter is used. You can also supply the URL to an LLM of your
-choosing to [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see
-code generation section below for an example). Currently, only models in
-GGML format are supported. Future versions of **OnPrem.LLM** will
-transition to the newer GGUF format.
+By default, a 7B-parameter model is downloaded and used. If
+`use_larger=True`, a 13B-parameter is used. You can also supply the URL
+to an LLM of your choosing to
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
+generation section
+below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
+example). Currently, only models in GGML format are supported. Future
+versions of **OnPrem.LLM** will transition to the newer GGUF format.
 
 ### Send Prompts to the LLM to Solve Problems
 
