@@ -74,7 +74,17 @@ here](https://amaiya.github.io/onprem/examples.html).
 
 ### Talk to Your Documents
 
-Answers are generated from the content of your documents.
+Answers are generated from the content of your documents. Here, we will
+supply `use_larger=True` to use the larger default model better suited
+to this use case in addition to using [GPU
+offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
+to speed up answer generation.
+
+``` python
+from onprem import LLM
+
+llm = LLM(use_larger=True, n_gpu_layers=35)
+```
 
 #### Step 1: Ingest the Documents into a Vector Database
 
@@ -82,14 +92,14 @@ Answers are generated from the content of your documents.
 llm.ingest('./sample_data')
 ```
 
-    2023-09-03 16:30:54.459509: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
+    2023-09-11 13:17:58.480777: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
     To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 17.16it/s]
+    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 14.87it/s]
 
-    Creating new vectorstore
+    Creating new vectorstore at /home/amaiya/onprem_data/vectordb
     Loading documents from ./sample_data
     Loaded 11 new documents from ./sample_data
-    Split into 62 chunks of text (max. 500 tokens each)
+    Split into 62 chunks of text (max. 500 chars each)
     Creating embeddings. May take some minutes...
     Ingestion complete! You can now query your documents using the LLM.ask method
 
@@ -98,19 +108,22 @@ llm.ingest('./sample_data')
 ``` python
 question = """What is  ktrain?""" 
 answer, docs = llm.ask(question)
-print('\n\nReferences:\n\n')
+```
+
+     ktrain is a low-code platform designed to facilitate the full machine learning workflow, from preprocessing inputs to training, tuning, troubleshooting, and applying models. It focuses on automating other aspects of the ML workflow in order to augment and complement human engineers rather than replacing them. Inspired by fastai and ludwig, ktrain is intended to democratize machine learning for beginners and domain experts with minimal programming or data science experience.
+
+The sources used by the model to generate the answer are stored in
+`docs`:
+
+``` python
+print('\nSources:\n')
 for i, document in enumerate(docs):
     print(f"\n{i+1}.> " + document.metadata["source"] + ":")
     print(document.page_content)
 ```
 
-     Ktrain is a low-code machine learning library designed to augment human
-    engineers in the machine learning workow by automating or semi-automating various
-    aspects of model training, tuning, and application. Through its use, domain experts can
-    leverage their expertise while still benefiting from the power of machine learning techniques.
 
-    References:
-
+    Sources:
 
 
     1.> ./sample_data/ktrain_paper.pdf:
@@ -142,14 +155,6 @@ for i, document in enumerate(docs):
     curating and preprocessing inputs (i.e., ground-truth-labeled training data) to training,
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
-
-**Pro-Tip**: If you see the model hallucinating answers, you can supply
-`use_larger=True` to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) and use the
-slightly larger default model better-suited to this use case (or supply
-the URL to a different model of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm)), which can
-provide better performance.
 
 ### Text to Code Generation
 
@@ -247,7 +252,8 @@ llm = LLM(n_gpu_layers=35)
 
 The value for `n_gpu_layers` depends on your GPU memory and the model
 you’re using (e.g., max of 35 for default 7B model). You can reduce the
-value if you get an error (e.g., `CUDA OOM`).
+value if you get an error (e.g., `CUDA OOM`) or you observe the model
+stalling in the middle of a response.
 
 With the steps above, calls to methods like `llm.prompt` will offload
 computation to your GPU and speed up responses from the LLM.
