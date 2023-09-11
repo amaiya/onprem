@@ -34,6 +34,7 @@ class LLM:
                  mute_stream=False,
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
                  embedding_model_kwargs:dict ={'device': 'cpu'},
+                 embedding_encode_kwargs:dict ={'normalize_embeddings': False},
                  confirm=True,
                  verbose=False,
                  **kwargs):
@@ -54,6 +55,8 @@ class LLM:
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *embedding_model*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
+        - *embedding_encode_kwargs*: arguments to encode method of 
+                                     embedding model (e.g., `{'normalize_embeddings': False}`).
         - *confirm*: whether or not to confirm with user before downloading a model
         - *verbose*: Verbosity
         """
@@ -74,6 +77,7 @@ class LLM:
         self.callbacks = [] if mute_stream else [StreamingStdOutCallbackHandler()]
         self.embedding_model_name = embedding_model_name
         self.embedding_model_kwargs = embedding_model_kwargs
+        self.embedding_encode_kwargs = embedding_encode_kwargs
         self.verbose = verbose
         self.extra_kwargs = kwargs
  
@@ -115,7 +119,8 @@ class LLM:
             from onprem.ingest import Ingester
             self.ingester = Ingester(embedding_model_name=self.embedding_model_name,
                                      embedding_model_kwargs=self.embedding_model_kwargs,
-                                    persist_directory=self.vectordb_path)
+                                     embedding_encode_kwargs=self.embedding_encode_kwargs,
+                                     persist_directory=self.vectordb_path)
         return self.ingester
         
         
