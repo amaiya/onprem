@@ -20,8 +20,8 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 ## Install
 
-Once [installing PyTorch](https://pytorch.org/get-started/locally/), you
-can install **OnPrem.LLM** with:
+Once you have [installed PyTorch](https://pytorch.org/get-started/locally/),
+you can install **OnPrem.LLM** with:
 
 ``` sh
 pip install onprem
