@@ -14,7 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Added `Ingester.get_embeddings` method to access instance of `HuggingFaceEmbeddings`
-- Added `chunk_size` and `chunk_overlap` parameters to `Ingester.ingest`
+- Added `chunk_size` and `chunk_overlap` parameters to `Ingester.ingest` and `LLM.ingest` (#13)
 
 ### fixed:
 - Check to ensure `source_directory` is a folder in `LLM.ingest` (#15)

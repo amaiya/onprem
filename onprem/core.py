@@ -121,6 +121,8 @@ class LLM:
         
     def ingest(self, 
                source_directory:str,
+               chunk_size:int=500,
+               chunk_overlap:int=50
               ):
         """
         Ingests all documents in `source_folder` into vector database.
@@ -129,12 +131,13 @@ class LLM:
         **Args:**
         
         - *source_directory*: path to folder containing document store
-
+        - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         
         **Returns:** `None`
         """
         ingester = self.load_ingester()
-        ingester.ingest(source_directory)
+        ingester.ingest(source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         return
 
  
