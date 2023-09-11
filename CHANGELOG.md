@@ -13,7 +13,8 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- TBD
+- Added `Ingester.get_embeddings` method to access instance of `HuggingFaceEmbeddings`
+- Added `chunk_size` and `chunk_overlap` parameters to `Ingester.ingest`
 
 ### fixed:
 - N/A

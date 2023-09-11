@@ -153,8 +153,8 @@ provide better performance.
 
 ### Text to Code Generation
 
-We’ll use the CodeUp LLM by supplying the URL and employ the particular
-prompt format this model expects.
+We’ll use the CodeUp LLM by supplying the URL and employing the
+particular prompt format this model expects.
 
 ``` python
 from onprem import LLM
