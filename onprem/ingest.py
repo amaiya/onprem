@@ -216,6 +216,8 @@ class Ingester:
 
         if not os.path.exists(source_directory):
             raise ValueError('The source_directory does not exist.')
+        elif os.path.isfile(source_directory):
+            raise ValueError('The source_directory argument must be a folder, not a file.')
         texts = None
         db = self.get_db()
         if db:
