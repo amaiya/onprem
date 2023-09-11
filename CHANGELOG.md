@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.0.14 (TBD)
+## 0.0.14 (2023-09-11)
 
 ### new:
 - N/A
@@ -17,7 +17,8 @@ Most recent releases are shown at the top. Each release shows:
 - Added `chunk_size` and `chunk_overlap` parameters to `Ingester.ingest`
 
 ### fixed:
-- N/A
+- Check to ensure `source_directory` is a folder in `LLM.ingest` (#15)
+
 
 ## 0.0.13 (2023-09-10)
 
