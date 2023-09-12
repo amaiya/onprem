@@ -10,7 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.16 (TBD)
 
 ### new:
-- N/A
+- Support for prompt templates in `ask`
 
 ### changed
 - Added `LLM.load_qa` method
