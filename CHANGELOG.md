@@ -10,7 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.16 (2023-09-12)
 
 ### new:
-- Support for prompt templates in `ask`
+- Support for prompt templates in `ask` (#17)
 
 ### changed
 - Added `LLM.load_qa` method
