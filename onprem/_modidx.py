@@ -28,4 +28,5 @@ d = { 'settings': { 'branch': 'master',
                                'onprem.ingest.load_single_document': ('ingest.html#load_single_document', 'onprem/ingest.py'),
                                'onprem.ingest.process_documents': ('ingest.html#process_documents', 'onprem/ingest.py')},
             'onprem.utils': { 'onprem.utils.download': ('utils.html#download', 'onprem/utils.py'),
-                              'onprem.utils.get_datadir': ('utils.html#get_datadir', 'onprem/utils.py')}}}
+                              'onprem.utils.get_datadir': ('utils.html#get_datadir', 'onprem/utils.py'),
+                              'onprem.utils.split_list': ('utils.html#split_list', 'onprem/utils.py')}}}

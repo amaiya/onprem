@@ -33,6 +33,8 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
 import chromadb
 from chromadb.config import Settings
+from . import utils as U
+
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
 
@@ -232,16 +234,27 @@ class Ingester:
                                       ignored_files=[metadata['source'] for metadata in collection['metadatas']])
             if texts:
                 print(f"Creating embeddings. May take some minutes...")
-                db.add_documents(texts)
+                split_docs_chunked = U.split_list(texts, 41000) # chroma max
+                for lst in split_docs_chunked:
+                    db.add_documents(lst)
         else:
             # Create and store locally vectorstore
             print(f"Creating new vectorstore at {self.persist_directory}")
             texts = process_documents(source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+                  
+
             if texts:
+                split_docs_chunked = U.split_list(texts, 41000) # chroma max
                 print(f"Creating embeddings. May take some minutes...")
-                db = Chroma.from_documents(texts, 
-                                           self.embeddings, persist_directory=self.persist_directory, 
-                                           client_settings=self.chroma_settings, client=self.chroma_client)
+                db = None
+                for lst in split_docs_chunked:
+                    if not db:
+                        db = Chroma.from_documents(lst, 
+                                                   self.embeddings, persist_directory=self.persist_directory, 
+                                                   client_settings=self.chroma_settings, client=self.chroma_client)
+                    else:
+                        db.add_documents(lst)
+
         if texts:
             db.persist()
             print(f"Ingestion complete! You can now query your documents using the LLM.ask method")

@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.0.16 (TBD)
+## 0.0.16 (2023-09-12)
 
 ### new:
 - Support for prompt templates in `ask`
@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added `LLM.load_qa` method
 
 ### fixed:
-- N/A
+- batchify input to `Chroma` (#18)
 
 
 ## 0.0.15 (2023-09-11)
