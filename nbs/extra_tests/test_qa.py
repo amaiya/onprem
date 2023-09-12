@@ -1,5 +1,5 @@
 """
-This is a simple local test of basic RAG functionality.
+This is a simple local test of basic functionality in script form.
 The "Exception ignored in: <function Llama.__del__ at 0x7fe2d96d7430>" from llama-cpp-python is
 ignored and doesn't affect functionality.
 """
@@ -17,10 +17,10 @@ if __name__ == "__main__":
     llm = LLM(vectordb_path=vectordb_path)
 
     # prompt
-    #saved_output = llm.prompt('Generate one cute name for a cat.')
+    saved_output = llm.prompt('What is the capital of France?')
     print()
 
-    # download data
+    # rag
 
     source_folder = tempfile.mkdtemp()
     U.download('https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/1/ktrain_paper.pdf', 
