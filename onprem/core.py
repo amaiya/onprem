@@ -185,15 +185,11 @@ class LLM:
         if prompt_template:
             prompt = prompt_template.format(**{'prompt': prompt})
         return llm(prompt)  
-    
-    def ask(self, question, num_source_docs=4):
+ 
+
+    def load_qa(self, num_source_docs:int=4):
         """
-        Answer a question based on source documents fed to the `ingest` method.
-        
-        **Args:**
-        
-        - question: a question you want to ask
-        - num_source_docs: the number of ingested source documents use to generate answer
+        Prepares and loads the `langchain.chains.RetrievalQA` object
         """
         ingester = self.load_ingester()
         db = ingester.get_db()
@@ -205,5 +201,18 @@ class LLM:
                                          chain_type="stuff", 
                                          retriever=retriever, 
                                          return_source_documents= True)
+        return qa
+
+    
+    def ask(self, question:str, num_source_docs:int=4):
+        """
+        Answer a question based on source documents fed to the `ingest` method.
+        
+        **Args:**
+        
+        - question: a question you want to ask
+        - num_source_docs: the number of ingested source documents use to generate answer
+        """
+        qa = self.load_qa(num_source_docs=num_source_docs)
         res = qa(question)
         return res['result'], res['source_documents']
