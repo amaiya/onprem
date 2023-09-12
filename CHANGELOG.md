@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.0.16 (TBD)
+
+### new:
+- N/A
+
+### changed
+- Added `LLM.load_qa` method
+
+### fixed:
+- N/A
+
+
 ## 0.0.15 (2023-09-11)
 
 ### new:
