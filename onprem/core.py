@@ -31,19 +31,19 @@ Helpful Answer:"""
 class LLM:
     def __init__(self, 
                  model_url=DEFAULT_MODEL_URL,
-                 use_larger=False,
+                 use_larger:bool=False,
                  n_gpu_layers:Optional[int]=None, 
                  model_download_path:Optional[str]=None,
                  vectordb_path:Optional[str]=None,
                  max_tokens:int=512, 
                  n_ctx:int=2048, 
                  n_batch:int=1024,
-                 mute_stream=False,
+                 mute_stream:bool=False,
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  embedding_encode_kwargs:dict ={'normalize_embeddings': False},
-                 confirm=True,
-                 verbose=False,
+                 confirm:bool=True,
+                 verbose:bool=False,
                  **kwargs):
         """
         LLM Constructor.  Extra `kwargs` are fed directly to `langchain.llms.LlamaCpp`.
@@ -51,7 +51,7 @@ class LLM:
         **Args:**
 
         - *model_url*: URL to `.bin` model (currently must be GGML model).
-        - *use_larger**: If True, a larger model than the default `model_url` will be used.
+        - *use_larger*: If True, a larger model than the default `model_url` will be used.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *vectordb_path*: Path to vector database (created if it doesn't exist). 
@@ -89,7 +89,10 @@ class LLM:
         self.extra_kwargs = kwargs
  
     @classmethod
-    def download_model(cls, model_url=DEFAULT_MODEL_URL, model_download_path:Optional[str]=None, confirm=True, ssl_verify=True):
+    def download_model(cls, model_url:str=DEFAULT_MODEL_URL, 
+                       model_download_path:Optional[str]=None, 
+                       confirm:bool=True, 
+                       ssl_verify:bool=True):
         """
         Download an LLM in GGML format supported by [lLama.cpp](https://github.com/ggerganov/llama.cpp).
         
@@ -184,9 +187,14 @@ class LLM:
         return self.llm
         
         
-    def prompt(self, prompt, prompt_template=None):
+    def prompt(self, prompt, prompt_template:Optional[str]=None):
         """
         Send prompt to LLM to generate a response
+        
+        **Args:**
+        
+        - *prompt*: The prompt to supply to the model
+        - *prompt_template*: Optional prompt template (must have a variable named "prompt")
         """
         llm = self.load_llm()
         if prompt_template:
@@ -194,7 +202,7 @@ class LLM:
         return llm(prompt)  
  
 
-    def load_qa(self, num_source_docs:int=4, prompt_template=DEFAULT_QA_PROMPT):
+    def load_qa(self, num_source_docs:int=4, prompt_template:str=DEFAULT_QA_PROMPT):
         """
         Prepares and loads the `langchain.chains.RetrievalQA` object
         

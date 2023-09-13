@@ -75,9 +75,10 @@ here](https://amaiya.github.io/onprem/examples.html).
 
 ### Talk to Your Documents
 
-Answers are generated from the content of your documents. Here, we will
-supply `use_larger=True` to use the larger default model better suited
-to this use case in addition to using [GPU
+Answers are generated from the content of your documents (i.e.,
+retrieval augmented generation or RAG). Here, we will supply
+`use_larger=True` to use the larger default model better suited to this
+use case in addition to using [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
 to speed up answer generation.
 
@@ -299,7 +300,7 @@ computation to your GPU and speed up responses from the LLM.
     > ```
 
     > Copy the `some/folder` folder to the air-gapped machine and supply
-    > the path to `LLM` via the `embedding_model` parameter.
+    > the path to `LLM` via the `embedding_model_name` parameter.
 
 4.  **When installing `onprem`, I’m getting errors related to
     `llama-cpp-python` on Windows/Mac/Linux?**

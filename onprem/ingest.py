@@ -81,6 +81,9 @@ LOADER_MAPPING = {
 
 
 def load_single_document(file_path: str) -> List[Document]:
+    """
+    Load a single document (invoked by `load_documents`).
+    """
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
         loader_class, loader_args = LOADER_MAPPING[ext]
@@ -113,8 +116,8 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     return results
 
 def process_documents(source_directory:str, ignored_files: List[str] = [],
-                      chunk_size=DEFAULT_CHUNK_SIZE, 
-                      chunk_overlap=DEFAULT_CHUNK_OVERLAP) -> List[Document]:
+                      chunk_size:int=DEFAULT_CHUNK_SIZE, 
+                      chunk_overlap:int=DEFAULT_CHUNK_OVERLAP) -> List[Document]:
     """
     Load documents and split in chunks
     

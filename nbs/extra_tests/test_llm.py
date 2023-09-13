@@ -20,6 +20,7 @@ if __name__ == "__main__":
     saved_output = llm.prompt('What is the capital of France?')
     assert('paris' in saved_output.lower())
     print()
+    print()
 
     # rag
 
