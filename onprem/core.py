@@ -60,7 +60,7 @@ class LLM:
         - *n_ctx*: Token context window.
         - *n_batch*: Number of tokens to process in parallel.
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
-        - *embedding_model*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
+        - *embedding_model_name*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
         - *embedding_encode_kwargs*: arguments to encode method of 
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
