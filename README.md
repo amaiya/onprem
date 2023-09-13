@@ -76,9 +76,9 @@ here](https://amaiya.github.io/onprem/examples.html).
 ### Talk to Your Documents
 
 Answers are generated from the content of your documents (i.e.,
-retrieval augmented generation or RAG). Here, we will supply
-`use_larger=True` to use the larger default model better suited to this
-use case in addition to using [GPU
+[retrieval augmented generation](https://arxiv.org/abs/2005.11401) or
+RAG). Here, we will supply `use_larger=True` to use the larger default
+model better suited to this use case in addition to using [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
 to speed up answer generation.
 
