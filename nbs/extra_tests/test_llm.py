@@ -38,7 +38,7 @@ if __name__ == "__main__":
               os.path.join(source_folder, 'sotu.txt'))
     llm.ingest(source_folder)
     print()
-    answers, sources = llm.ask("Who is Ketanji?")
+    answer, sources = llm.ask("Who is Ketanji?")
     assert(len(answer) > 8)
     assert(len(sources)==4)
     print()
