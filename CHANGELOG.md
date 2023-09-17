@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - `LLM` now accepts a `callbacks` parameter for custom callbacks. (#21)
+- added additional examples
 
 ### fixed:
 - N/A
