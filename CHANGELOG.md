@@ -9,11 +9,10 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.17 (TBD)
 
 ### new:
-- The `LLM.chat` method supports question-answering with conversational memory.
-
+- The `LLM.chat` method supports question-answering with conversational memory. (#20)
 
 ### changed
-- `LLM` now accepts a `callbacks` parameter for custom callbacks
+- `LLM` now accepts a `callbacks` parameter for custom callbacks. (#21)
 
 ### fixed:
 - N/A
