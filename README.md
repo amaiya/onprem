@@ -94,16 +94,14 @@ llm = LLM(use_larger=True, n_gpu_layers=35)
 llm.ingest('./sample_data')
 ```
 
-    2023-09-11 13:17:58.480777: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
-    To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-    Loading new documents: 100%|██████████████████████| 2/2 [00:00<00:00, 14.87it/s]
-
     Creating new vectorstore at /home/amaiya/onprem_data/vectordb
     Loading documents from ./sample_data
-    Loaded 11 new documents from ./sample_data
-    Split into 62 chunks of text (max. 500 chars each)
+    Loaded 12 new documents from ./sample_data
+    Split into 153 chunks of text (max. 500 chars each)
     Creating embeddings. May take some minutes...
     Ingestion complete! You can now query your documents using the LLM.ask method
+
+    Loading new documents: 100%|██████████████████████| 3/3 [00:00<00:00, 25.52it/s]
 
 #### Step 2: Answer Questions About the Documents
 

@@ -4,7 +4,8 @@
 __all__ = ['DEFAULT_MODEL_URL', 'DEFAULT_LARGER_URL', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT', 'LLM']
 
 # %% ../nbs/00_core.ipynb 3
-from langchain.chains import RetrievalQA
+from langchain.chains import RetrievalQA, ConversationalRetrievalChain
+from langchain.memory import ConversationBufferMemory
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.vectorstores import Chroma
@@ -39,6 +40,7 @@ class LLM:
                  n_ctx:int=2048, 
                  n_batch:int=1024,
                  mute_stream:bool=False,
+                 callbacks = [],
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  embedding_encode_kwargs:dict ={'normalize_embeddings': False},
@@ -60,6 +62,7 @@ class LLM:
         - *n_ctx*: Token context window.
         - *n_batch*: Number of tokens to process in parallel.
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
+        - *callbacks*: Callbacks to supply model
         - *embedding_model_name*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
         - *embedding_encode_kwargs*: arguments to encode method of 
@@ -77,11 +80,14 @@ class LLM:
         self.vectordb_path = vectordb_path
         self.llm = None
         self.ingester = None
+        self.qa = None
+        self.chatqa = None
         self.n_gpu_layers = n_gpu_layers
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
         self.n_batch = n_batch
         self.callbacks = [] if mute_stream else [StreamingStdOutCallbackHandler()]
+        if callbacks: self.callbacks.extend(callbacks)
         self.embedding_model_name = embedding_model_name
         self.embedding_model_kwargs = embedding_model_kwargs
         self.embedding_encode_kwargs = embedding_encode_kwargs
@@ -133,7 +139,18 @@ class LLM:
                                      persist_directory=self.vectordb_path)
         return self.ingester
         
-        
+
+    def load_vectordb(self):
+        """
+        Get Chroma db instance
+        """
+        ingester = self.load_ingester()
+        db = ingester.get_db()
+        if not db:
+            raise ValueError('A vector database has not yet been created. Please call the LLM.ingest method.')
+        return db
+
+    
     def ingest(self, 
                source_directory:str,
                chunk_size:int=500,
@@ -211,21 +228,37 @@ class LLM:
         - *num_source_docs*: the number of ingested source documents use to generate answer
         - *prompt_template*: A string representing the prompt with variables "context" and "question"      
         """
-        ingester = self.load_ingester()
-        db = ingester.get_db()
-        if not db:
-            raise ValueError('A vector database has not yet been created. Please call the LLM.ingest method.')
-        retriever = db.as_retriever(search_kwargs={"k": num_source_docs})
-        llm = self.load_llm()
-        PROMPT = PromptTemplate(
-                    template=prompt_template, input_variables=["context", "question"])
-        qa = RetrievalQA.from_chain_type(llm=llm, 
-                                         chain_type="stuff", 
-                                         retriever=retriever, 
-                                         return_source_documents= True,
-                                         chain_type_kwargs={'prompt':PROMPT})
-        return qa
+        if self.qa is None:
+            db = self.load_vectordb()
+            retriever = db.as_retriever(search_kwargs={"k": num_source_docs})
+            llm = self.load_llm()
+            PROMPT = PromptTemplate(
+                        template=prompt_template, input_variables=["context", "question"])
+            self.qa = RetrievalQA.from_chain_type(llm=llm, 
+                                                 chain_type="stuff", 
+                                                 retriever=retriever, 
+                                                 return_source_documents= True,
+                                                 chain_type_kwargs={'prompt':PROMPT})
+        return self.qa
 
+    def load_chatqa(self, num_source_docs:int=4):
+        """
+        Prepares and loads a `langchain.chains.ConversationalRetrievalChain` instance
+        
+        **Args:**
+        
+        - *num_source_docs*: the number of ingested source documents use to generate answer
+        """
+        if self.chatqa is None:
+            db = self.load_vectordb()
+            retriever = db.as_retriever(search_kwargs={"k": num_source_docs})
+            llm = self.load_llm()
+            memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+            self.chatqa = ConversationalRetrievalChain.from_llm(self.llm, 
+                                                                retriever,
+                                                                memory=memory)
+        return self.chatqa
+    
     
     def ask(self, question:str, num_source_docs:int=4, prompt_template=DEFAULT_QA_PROMPT):
         """
@@ -240,3 +273,21 @@ class LLM:
         qa = self.load_qa(num_source_docs=num_source_docs, prompt_template=prompt_template)
         res = qa(question)
         return res['result'], res['source_documents']
+    
+    
+    def chat(self, question:str, num_source_docs:int=4):
+        """
+        Chat with documents fed to the `ingest` method.
+        Unlike `LLM.ask`, `LLM.chat` includes conversational memory.
+        
+        **Args:**
+        
+        - *question*: a question you want to ask
+        - *num_source_docs*: the number of ingested source documents use to generate answer
+        
+        **Returns:**
+        - A dictionary with keys: `question`, `answer`, `chat_history`
+        """
+        chatqa = self.load_chatqa(num_source_docs=num_source_docs)
+        res = chatqa(question)
+        return res
