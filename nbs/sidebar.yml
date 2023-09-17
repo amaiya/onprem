@@ -5,4 +5,9 @@ website:
       - 00_core.ipynb
       - 01_ingest.ipynb
       - 02_utils.ipynb
-      - 03_examples.ipynb
+      - section: Examples
+        contents:
+        - 03_examples.ipynb
+        - 03b_examples_rag.ipynb
+        - 03c_examples_code.ipynb
+        - 03d_examples_semantic.ipynb
