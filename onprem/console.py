@@ -3,19 +3,14 @@ import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 
 try:
-    # streamlit>=1.12
     from streamlit.web import cli as stcli
 except ImportError:
-    # streamlit<1.12
-    from streamlit import cli as stcli
+    raise ImportError('Please install the latest version of streamlit: pip install streamlit')
 
 from onprem import __version__
 
 
 def cli():
-    # if "--version" in sys.argv[1:]:
-    # print(__version__)
-    # exit(0)
     parser = ArgumentParser(
         description=(
             "Start the streamlit app \n"
