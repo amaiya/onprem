@@ -241,9 +241,8 @@ onprem --port 8000
 Then, enter the `localhost:8000` (or `<domain_name>:8000` on your
 server) to access the application:
 
-<p align="center">
-<img src="https://github.com/amaiyaonpremn/raw/masteronprem_screenshot.png" width="200"/>
-</p>
+<img src="https://raw.githubusercontent.com/amaiya/onprem/master/onprem_screenshot.png" border=1 alt="screenshot" width="600"/>
+\>
 
 ## Speeding Up Inference Using a GPU
 
