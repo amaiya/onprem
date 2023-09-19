@@ -33,18 +33,6 @@ below](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu).
 
 ## How to Use
 
-\*
-<center>
-**Jump to Examples:** [*Use Prompts to Solve
-Problems*](https://amaiya.github.io/onprem/examples.html) \| [*Chat With
-Your Documents*](https://amaiya.github.io/onprem/examples_rag.html) \|
-[*Code Generation*](https://amaiya.github.io/onprem/examples_code.html)
-\| [*Semantic
-Similarity*](https://amaiya.github.io/onprem/examples_semantic.html)
-</center>
-
-- 
-
 ### Setup
 
 ``` python
