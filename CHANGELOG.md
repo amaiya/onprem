@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Use `CallbackManager` (#24)
 
 ### fixed:
 - N/A

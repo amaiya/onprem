@@ -9,6 +9,7 @@ from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.callbacks.manager import CallbackManager
 from langchain.vectorstores import Chroma
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
@@ -203,7 +204,7 @@ class LLM:
             self.llm =  llm = LlamaCpp(model_path=model_path, 
                                        max_tokens=self.max_tokens, 
                                        n_batch=self.n_batch, 
-                                       callbacks=self.callbacks, 
+                                       callback_manager = CallbackManager(self.callbacks),
                                        verbose=self.verbose, 
                                        n_gpu_layers=self.n_gpu_layers, 
                                        n_ctx=self.n_ctx, **self.extra_kwargs)    
