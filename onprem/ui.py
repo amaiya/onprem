@@ -15,7 +15,7 @@ DEFAULT_PROMPT = "List three cute names for a cat."
 def read_config():
     cfg_file = os.path.join(DATADIR, 'ui.yml')
     if not os.path.exists(cfg_file):
-        raise ValueError(f'There is no ui.yml file in {DATADIR}. Please create one. An example ui.yml file is here: http://blah')
+        raise ValueError(f'There is no ui.yml file in {DATADIR}. Please create one. An example ui.yml file is here: https://raw.githubusercontent.com/amaiya/onprem/ui/nbs/ui.yml')
     with open(cfg_file, 'r') as stream:
         cfg = yaml.safe_load(stream)
     return cfg
