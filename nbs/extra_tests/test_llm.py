@@ -19,8 +19,15 @@ def run(**kwargs):
     llm = LLM(model_url=url, vectordb_path=vectordb_path, n_gpu_layers=n_gpu_layers)
 
     # prompt
-    saved_output = llm.prompt('What is the capital of France?')
-    assert('paris' in saved_output.lower())
+    prompt = """Extract the names of people in the supplied sentences. Here is an example:
+Sentence: James Gandolfini and Paul Newman were great actors.
+People:
+James Gandolfini, Paul Newman
+Sentence:
+I like Cillian Murphy's acting. Florence Pugh is great, too.
+People:"""
+    saved_output = llm.prompt(prompt)
+    assert saved_output.strip() == 'Cillian Murphy, Florence Pugh', "bad response"
     print()
     print()
 
