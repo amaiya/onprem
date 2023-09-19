@@ -242,7 +242,7 @@ Then, enter the `localhost:8000` (or `<domain_name>:8000` on your
 server) to access the application:
 
 <p align="center">
-<img src="https://github.com/amaiyaonpremn/raw/masteronprem_screenshot.pngg" width="200"/>
+<img src="https://github.com/amaiyaonpremn/raw/masteronprem_screenshot.png" width="200"/>
 </p>
 
 ## Speeding Up Inference Using a GPU
