@@ -2,12 +2,12 @@ llm:
   # model name or URL
   model_url:  wizardlm-13b-v1.2.ggmlv3.q4_0.bin 
   # number of layeres to offload to GPU
-  n_gpu_layers: 35 
+  n_gpu_layers: 32
   # path to vector store
-  vectordb_path: /home/amaiya/onprem_data/vectordb 
+  vectordb_path: /home/username/onprem_data/vectordb 
 prompt:
-  # this text is appended to the prompt. The text below does a good job of reducing hallucination in the 13B model.
+  # This text is appended to the prompt. The text below appears to reduce hallucinations in the default 13B model but not smaller models.
   append_to_prompt: Do not answer if there is no mention of this in context. 
 streamlit:
   # title appearing in the streamlit app
-  title: 'Q&A'
+  title: 'OnPrem.LLM'
