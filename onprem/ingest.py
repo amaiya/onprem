@@ -260,6 +260,6 @@ class Ingester:
 
         if texts:
             db.persist()
-            print(f"Ingestion complete! You can now query your documents using the LLM.ask method")
+            print(f"Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods")
         db = None
         return
