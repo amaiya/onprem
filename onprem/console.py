@@ -13,7 +13,7 @@ from onprem import __version__
 def cli():
     parser = ArgumentParser(
         description=(
-            "Start the streamlit app \n"
+            "Start the OnPrem.LLM web app \n"
             "Example: onprem --port 8000 \n\n"
         ),
         formatter_class=RawTextHelpFormatter,
@@ -44,7 +44,7 @@ def cli():
         print(f"OnPrem.LLM v{__version__}")
         exit(0)
 
-    appfile = os.path.join(os.path.dirname(__file__), "ui.py")
+    appfile = os.path.join(os.path.dirname(__file__), "webapp.py")
     sys.argv = [
         "streamlit",
         "run",

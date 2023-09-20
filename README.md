@@ -243,6 +243,9 @@ remote server) in a Web browser to access the application:
 
 <img src="https://raw.githubusercontent.com/amaiya/onprem/master/onprem_screenshot.png" border="1" alt="screenshot" width="600"/>
 
+For more information, [see the corresponding
+documentation](https://amaiya.github.io/onprem/webapp.html).
+
 ## Speeding Up Inference Using a GPU
 
 The above example employed the use of a CPU.  
