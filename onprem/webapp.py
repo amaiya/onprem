@@ -71,7 +71,6 @@ def main():
     TITLE  = cfg.get('streamlit', {}).get('title', 'OnPrem.LLM')
     RAG_TITLE = cfg.get('streamlit', {}).get('rag_title', None)
     APPEND_TO_PROMPT = cfg.get('prompt', {}).get('append_to_prompt', '')
-    NUM_SOURCE_DOCS = cfg.get('streamlit', {}).get('num_source_docs', 4)
 
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)
@@ -91,24 +90,27 @@ def main():
         if question and ask_button:
             question = question + ' '+ APPEND_TO_PROMPT
             print(question)
-            answer, docs = llm.ask(question, num_source_docs=NUM_SOURCE_DOCS)
+            answer, docs = llm.ask(question)
             unique_sources = set()
             for doc in docs:
-                score = compute_similarity(answer, doc.page_content)
-                if score < 0.5: continue
+                answer_score = compute_similarity(answer, doc.page_content)
+                question_score = compute_similarity(question, doc.page_content)
+                if answer_score < 0.5 or question_score < 0.2: continue
                 unique_sources.add( (os.path.basename(doc.metadata['source']),
-                                     doc.metadata.get('page', None), doc.page_content, score))
+                                     doc.metadata.get('page', None), doc.page_content, question_score, answer_score))
             unique_sources = list(unique_sources)
             unique_sources.sort(key=lambda tup: tup[-1], reverse=True)
             if unique_sources:
                 st.markdown('**One or More of These Sources Were Used to Generate the Answer:**')
+                st.markdown('*You should inspect these sources to guard against hallucinations in the answer.*')
                 for source in unique_sources:
                     fname = source[0]
                     page = source[1] +1 if isinstance(source[1], int) else source[1]
                     content = source[2]
-                    score = source[3]
-                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {score}", help=content)
-            else:
+                    question_score = source[3]
+                    answer_score = source[4]
+                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score}", help=f'{content}... [QUESTION_TO_SOURCE_SIMILARITY: {question_score})')
+            elif "I don't know" not in answer:
                 st.warning('No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents '+\
                            'and increases the likelihood of false information in the answer. ' +\
                            'You should be more cautious when using this answer.')

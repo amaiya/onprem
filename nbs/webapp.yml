@@ -7,13 +7,10 @@ llm:
   vectordb_path: /home/your_user_name/onprem_data/vectordb
   # path to model download folder
   model_download_path: /home/your_user_name/onprem_data
-prompt:
-  # text to append to end of prompt
-  append_to_prompt: Do not answer if there is no mention of this in context.
+  # number of source documents used by LLM.ask and LLM.chat
+  rag_num_source_docs: 6
 streamlit:
   # title of application
   title: OnPrem.LLM
   # subtitle in "Talk to Your Documents" screen
   rag_title:
-  # number of source documents used by LLM.ask and LLM.chat
-  num_source_docs: 4

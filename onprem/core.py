@@ -30,9 +30,9 @@ from . import utils as U
 DEFAULT_MODEL_URL = 'https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGML/resolve/main/Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin'
 DEFAULT_LARGER_URL = ' https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin'
 DEFAULT_EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
-DEFAULT_QA_PROMPT = """"Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+DEFAULT_QA_PROMPT = """"Use the following pieces of context delimited by three backticks to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
-{context}
+```{context}```
 
 Question: {question}
 Helpful Answer:"""
@@ -52,6 +52,8 @@ class LLM:
                  embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  embedding_encode_kwargs:dict ={'normalize_embeddings': False},
+                 rag_num_source_docs:int = 4,
+                 #rag_score_threshold:float=0.5,
                  confirm:bool=True,
                  verbose:bool=False,
                  **kwargs):
@@ -75,6 +77,7 @@ class LLM:
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
         - *embedding_encode_kwargs*: arguments to encode method of 
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
+        - *rag_num_source_docs*: The maximum number of documents retrieved and fed to `LLM.ask` and `LLM.chat` to generate answers
         - *confirm*: whether or not to confirm with user before downloading a model
         - *verbose*: Verbosity
         """
@@ -99,6 +102,8 @@ class LLM:
         self.embedding_model_name = embedding_model_name
         self.embedding_model_kwargs = embedding_model_kwargs
         self.embedding_encode_kwargs = embedding_encode_kwargs
+        self.rag_num_source_docs = rag_num_source_docs
+        self.rag_score_threshold = 0.5 # not currently used as we are not supplying search_type to db.as_retriever
         self.verbose = verbose
         self.extra_kwargs = kwargs
  
@@ -227,18 +232,19 @@ class LLM:
         return llm(prompt)  
  
 
-    def load_qa(self, num_source_docs:int=4, prompt_template:str=DEFAULT_QA_PROMPT):
+    def load_qa(self, prompt_template:str=DEFAULT_QA_PROMPT):
         """
         Prepares and loads the `langchain.chains.RetrievalQA` object
         
         **Args:**
         
-        - *num_source_docs*: the number of ingested source documents use to generate answer
         - *prompt_template*: A string representing the prompt with variables "context" and "question"      
         """
         if self.qa is None:
             db = self.load_vectordb()
-            retriever = db.as_retriever(search_kwargs={"k": num_source_docs})
+            retriever = db.as_retriever(
+                                        #search_type='similarity_score_threshold',
+                                        search_kwargs={"k": self.rag_num_source_docs, 'score_threshold':self.rag_score_threshold})
             llm = self.load_llm()
             PROMPT = PromptTemplate(
                         template=prompt_template, input_variables=["context", "question"])
@@ -249,18 +255,16 @@ class LLM:
                                                  chain_type_kwargs={'prompt':PROMPT})
         return self.qa
 
-    def load_chatqa(self, num_source_docs:int=4):
+    def load_chatqa(self):
         """
         Prepares and loads a `langchain.chains.ConversationalRetrievalChain` instance
-        
-        **Args:**
-        
-        - *num_source_docs*: the number of ingested source documents use to generate answer
         """
         if self.chatqa is None:
 
             db = self.load_vectordb()
-            retriever = db.as_retriever(search_kwargs={"k": num_source_docs})
+            retriever = db.as_retriever(
+                                        #search_type='similarity_score_threshold', # see note in constructor
+                                        search_kwargs={"k": self.rag_num_source_docs, 'score_threshold':self.rag_score_threshold})
             llm = self.load_llm()
             memory = AnswerConversationBufferMemory(memory_key="chat_history", return_messages=True)
             self.chatqa = ConversationalRetrievalChain.from_llm(self.llm, 
@@ -270,26 +274,25 @@ class LLM:
         return self.chatqa
     
     
-    def ask(self, question:str, num_source_docs:int=4, prompt_template=DEFAULT_QA_PROMPT):
+    def ask(self, question:str, prompt_template=DEFAULT_QA_PROMPT):
         """
         Answer a question based on source documents fed to the `ingest` method.
         
         **Args:**
         
         - *question*: a question you want to ask
-        - *num_source_docs*: the number of ingested source documents use to generate answer
         - *prompt_template*: A string representing the prompt with variables "context" and "question"
 
         **Returns:**
 
         - A tuple consisting of the answer and the list of source documents used to generate the answer.
         """
-        qa = self.load_qa(num_source_docs=num_source_docs, prompt_template=prompt_template)
+        qa = self.load_qa(prompt_template=prompt_template)
         res = qa(question)
         return res['result'], res['source_documents']
     
     
-    def chat(self, question:str, num_source_docs:int=4):
+    def chat(self, question:str):
         """
         Chat with documents fed to the `ingest` method.
         Unlike `LLM.ask`, `LLM.chat` includes conversational memory.
@@ -297,12 +300,11 @@ class LLM:
         **Args:**
         
         - *question*: a question you want to ask
-        - *num_source_docs*: the number of ingested source documents use to generate answer
         
         **Returns:**
         
         - A dictionary with keys: `question`, `answer`, `chat_history`, `source_documents`
         """
-        chatqa = self.load_chatqa(num_source_docs=num_source_docs)
+        chatqa = self.load_chatqa()
         res = chatqa(question)
         return res
