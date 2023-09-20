@@ -108,6 +108,10 @@ def main():
                     content = source[2]
                     score = source[3]
                     st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {score}", help=content)
+            else:
+                st.warning('No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents '+\
+                           'and increases the likelihood of false information in the answer. ' +\
+                           'You should be more cautious when using this answer.')
     else:
         prompt = st.text_area('Submit a Prompt to the LLM:', '', height=100, placeholder=DEFAULT_PROMPT)
         submit_button = st.button("Submit")
