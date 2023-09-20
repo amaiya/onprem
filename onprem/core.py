@@ -63,6 +63,7 @@ class LLM:
         **Args:**
 
         - *model_url*: URL to `.bin` model (currently must be GGML model).
+                       Can also be the filename of model if it has already been downloaded to `model_download_path`.
         - *use_larger*: If True, a larger model than the default `model_url` will be used.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
