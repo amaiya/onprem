@@ -9,7 +9,7 @@ llm:
   model_download_path: /home/your_user_name/onprem_data
   # number of source documents used by LLM.ask and LLM.chat
   rag_num_source_docs: 6
-streamlit:
+ui:
   # title of application
   title: OnPrem.LLM
   # subtitle in "Talk to Your Documents" screen

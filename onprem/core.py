@@ -28,7 +28,7 @@ class AnswerConversationBufferMemory(ConversationBufferMemory):
 # %% ../nbs/00_core.ipynb 5
 from . import utils as U
 DEFAULT_MODEL_URL = 'https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGML/resolve/main/Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin'
-DEFAULT_LARGER_URL = ' https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin'
+DEFAULT_LARGER_URL = 'https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin'
 DEFAULT_EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 DEFAULT_QA_PROMPT = """"Use the following pieces of context delimited by three backticks to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
@@ -53,7 +53,6 @@ class LLM:
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  embedding_encode_kwargs:dict ={'normalize_embeddings': False},
                  rag_num_source_docs:int = 4,
-                 #rag_score_threshold:float=0.5,
                  confirm:bool=True,
                  verbose:bool=False,
                  **kwargs):

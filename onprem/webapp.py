@@ -9,20 +9,50 @@ from onprem import LLM, utils as U
 
 DATADIR = U.get_datadir()
 DEFAULT_PROMPT = "List three cute names for a cat."
+DEFAULT_YAML = """
+llm:
+  # model url (or model file name if previously downloaded)
+  model_url: https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin
+  # number of layers offloaded to GPU
+  n_gpu_layers: 32
+  # path to vector db folder
+  vectordb_path: {datadir}/vectordb
+  # path to model download folder
+  model_download_path: {datadir}
+  # number of source documents used by LLM.ask and LLM.chat
+  rag_num_source_docs: 6
+ui:
+  # title of application
+  title: OnPrem.LLM
+  # subtitle in "Talk to Your Documents" screen
+  rag_title:
+"""
+DEFAULT_YAML_FNAME = 'webapp.yml'
+DEFAULT_YAML_FPATH = os.path.join(DATADIR, DEFAULT_YAML_FNAME)
+
+def write_default_yaml():
+    """
+    write default webapp.yml
+    """
+    yaml_content = DEFAULT_YAML.format(datadir=U.get_datadir()).strip()
+    with open(DEFAULT_YAML_FPATH, 'w') as f:
+        f.write(yaml_content)
+    return
+
 def read_config():
-    cfg_file = os.path.join(DATADIR, 'webapp.yml')
-    if not os.path.exists(cfg_file):
-        raise ValueError(f'There is no webapp.yml file in {DATADIR}. ' +\
-                          'Please create one. An example webapp.yml file ' +\
-                          'can be downloaded from here: https://raw.githubusercontent.com/amaiya/onprem/master/nbs/webapp.yml'
-                         )
-    with open(cfg_file, 'r') as stream:
+    """
+    Read config file.  Returns a dictionary of the configuration and a boolean indicating whether or not a new config was created.
+    """
+    exists = os.path.exists(DEFAULT_YAML_FPATH)
+    if not exists:
+        write_default_yaml()
+    with open(DEFAULT_YAML_FPATH, 'r') as stream:
         cfg = yaml.safe_load(stream)
-    return cfg
+    return cfg, not exists
 
 @st.cache_resource
 def get_llm():
-    llm_config = read_config()['llm']
+    llm_config = read_config()[0]['llm']
     return LLM(confirm=False, **llm_config)
 
 
@@ -66,7 +96,7 @@ def setup_llm():
 
 def main():
     # Page setup
-    cfg = read_config()
+    cfg, cfg_was_created = read_config()
 
     TITLE  = cfg.get('streamlit', {}).get('title', 'OnPrem.LLM')
     RAG_TITLE = cfg.get('streamlit', {}).get('rag_title', None)
@@ -74,6 +104,8 @@ def main():
 
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)
+    if cfg_was_created:
+        st.warning(f'No {DEFAULT_YAML_FNAME} file was found in {DATADIR}, a default one was created for you. Please edit as necessary.')
 
     screen = st.sidebar.radio("Choose a Screen:",
                               ("Talk to Your Documents", "Use Prompts to Solve Problems"))
