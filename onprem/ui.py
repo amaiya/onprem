@@ -78,6 +78,8 @@ st.sidebar.markdown(f"**Curent Model:**")
 st.sidebar.markdown(f"*{os.path.basename(cfg['llm']['model_url'])}*")
 if screen == 'Talk to Your Documents':
     st.sidebar.markdown('**Note:** Be sure to check any displayed sources to guard against hallucinations in answers.')
+    if cfg['streamlit'].get('rag_title', None):
+        st.header(cfg['streamlit']['rag_title'])
     question = st.text_input("Enter a question and press the `Ask` button:", value="")
     ask_button = st.button("Ask")
     llm = setup_llm()

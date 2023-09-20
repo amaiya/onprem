@@ -13,3 +13,4 @@ prompt:
 streamlit:
   # title of application
   title: OnPrem.LLM
+  rag_title:
