@@ -1,13 +1,15 @@
 llm:
-  # model name or URL
-  model_url:  wizardlm-13b-v1.2.ggmlv3.q4_0.bin 
-  # number of layeres to offload to GPU
+  # model url or name (model should already have been downloaed) 
+  model_url:  wizardlm-13b-v1.2.ggmlv3.q4_0.bin
+  # number of layers offloaded to GPU
   n_gpu_layers: 32
-  # path to vector store
-  vectordb_path: /home/username/onprem_data/vectordb 
+  # path to vector db folder
+  vectordb_path: /home/your_user_name/onprem_data/vectordb
+  # path to model download folder
+  model_download_path: /home/your_user_name/onprem_data
 prompt:
-  # This text is appended to the prompt. The text below appears to reduce hallucinations in the default 13B model but not smaller models.
-  append_to_prompt: Do not answer if there is no mention of this in context. 
+  # text to append to end of prompt
+  append_'to_prompt: Do not answer if there is no mention of this in context.
 streamlit:
-  # title appearing in the streamlit app
-  title: 'OnPrem.LLM'
+  # title of application
+  title: OnPrem.LLM

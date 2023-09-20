@@ -239,7 +239,7 @@ onprem --port 8000
 ```
 
 Then, enter `localhost:8000` (or `<domain_name>:8000` if running on
-remote server) to access the application:
+remote server) in a Web browser to access the application:
 
 <img src="https://raw.githubusercontent.com/amaiya/onprem/master/onprem_screenshot.png" border="1" alt="screenshot" width="600"/>
 

@@ -40,13 +40,12 @@ class StreamHandler(BaseCallbackHandler):
         self.display_method = display_method
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
-        with st.spinner('Typing...'):
-            self.text += token + ""
-            display_function = getattr(self.container, self.display_method, None)
-            if display_function is not None:
-                display_function(self.text)
-            else:
-                raise ValueError(f"Invalid display_method: {self.display_method}")
+        self.text += token + ""
+        display_function = getattr(self.container, self.display_method, None)
+        if display_function is not None:
+            display_function(self.text)
+        else:
+            raise ValueError(f"Invalid display_method: {self.display_method}")
 
 
 def setup_llm():
@@ -68,7 +67,7 @@ if screen == 'Talk to Your Documents':
         question = question + ' '+cfg.get('prompt', {}).get('append_to_prompt', '')
         print(question)
         answer, docs = llm.ask(question)
-        st.markdown('#### One or More of These Sources Were Used to Generate the Answer:')
+        st.markdown('**One or More of These Sources Were Used to Generate the Answer:**')
         unique_sources = set()
         for doc in docs:
             unique_sources.add( (os.path.basename(doc.metadata['source']),
