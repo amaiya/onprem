@@ -9,7 +9,7 @@ llm:
   model_download_path: /home/your_user_name/onprem_data
 prompt:
   # text to append to end of prompt
-  append_'to_prompt: Do not answer if there is no mention of this in context.
+  append_to_prompt: Do not answer if there is no mention of this in context.
 streamlit:
   # title of application
   title: OnPrem.LLM

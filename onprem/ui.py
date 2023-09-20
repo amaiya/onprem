@@ -4,12 +4,15 @@
 __all__ = []
 
 # %% ../nbs/99_ui.ipynb 3
+import os, yaml
+import numpy as np
 import streamlit as st
 from langchain.callbacks import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.manager import CallbackManager
-import os, yaml
+from sentence_transformers import SentenceTransformer, util
 from onprem import LLM, utils as U
+
 DATADIR = U.get_datadir()
 DEFAULT_PROMPT = "List three cute names for a cat."
 def read_config():
@@ -20,11 +23,24 @@ def read_config():
         cfg = yaml.safe_load(stream)
     return cfg
 
-
 @st.cache_resource
 def get_llm():
     llm_config = read_config()['llm']
     return LLM(**llm_config)
+
+
+@st.cache_resource
+def get_embedding_model():
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    return model
+
+
+def compute_similarity(sentence1, sentence2):
+    model = get_embedding_model()
+    embedding1 = model.encode(sentence1, convert_to_tensor=True)
+    embedding2 = model.encode(sentence2, convert_to_tensor=True)
+    cosine_score = util.pytorch_cos_sim(embedding1, embedding2)
+    return cosine_score.cpu().numpy()[0][0]
 
 
 # Page setup
@@ -58,7 +74,10 @@ def setup_llm():
 
 screen = st.sidebar.radio("Choose a Screen:",
                           ("Talk to Your Documents", "Use Prompts to Solve Problems"))
+st.sidebar.markdown(f"**Curent Model:**")
+st.sidebar.markdown(f"*{os.path.basename(cfg['llm']['model_url'])}*")
 if screen == 'Talk to Your Documents':
+    st.sidebar.markdown('**Note:** Be sure to check any displayed sources to guard against hallucinations in answers.')
     question = st.text_input("Enter a question and press the `Ask` button:", value="")
     ask_button = st.button("Ask")
     llm = setup_llm()
@@ -67,17 +86,21 @@ if screen == 'Talk to Your Documents':
         question = question + ' '+cfg.get('prompt', {}).get('append_to_prompt', '')
         print(question)
         answer, docs = llm.ask(question)
-        st.markdown('**One or More of These Sources Were Used to Generate the Answer:**')
         unique_sources = set()
         for doc in docs:
+            score = compute_similarity(answer, doc.page_content)
+            if score < 0.5: continue
             unique_sources.add( (os.path.basename(doc.metadata['source']),
-                                 doc.metadata.get('page', None), doc.page_content))
+                                 doc.metadata.get('page', None), doc.page_content, score))
         unique_sources = list(unique_sources)
-        for source in unique_sources:
-            fname = source[0]
-            page = source[1] +1 if isinstance(source[1], int) else source[1]
-            content = source[2]
-            st.markdown(f"- {fname} {', page '+str(page) if page else ''}", help=content)
+        if unique_sources:
+            st.markdown('**One or More of These Sources Were Used to Generate the Answer:**')
+            for source in unique_sources:
+                fname = source[0]
+                page = source[1] +1 if isinstance(source[1], int) else source[1]
+                content = source[2]
+                score = source[3]
+                st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {score}", help=content)
 else:
     prompt = st.text_area('Submit a Prompt to the LLM:', '', height=200, placeholder=DEFAULT_PROMPT)
     submit_button = st.button("Submit")
