@@ -110,7 +110,7 @@ def main():
                     question_score = source[3]
                     answer_score = source[4]
                     st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score}", help=f'{content}... [QUESTION_TO_SOURCE_SIMILARITY: {question_score})')
-            elif "I don't know" not in answer:
+            elif "I don't know" not in answer and "context" not in answer:
                 st.warning('No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents '+\
                            'and increases the likelihood of false information in the answer. ' +\
                            'You should be more cautious when using this answer.')
