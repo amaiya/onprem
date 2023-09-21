@@ -11,3 +11,4 @@ website:
         - 03b_examples_rag.ipynb
         - 03c_examples_code.ipynb
         - 03d_examples_semantic.ipynb
+        - 03z_webapp.ipynb
