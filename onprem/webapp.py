@@ -21,6 +21,8 @@ llm:
   model_download_path: {datadir}
   # number of source documents used by LLM.ask and LLM.chat
   rag_num_source_docs: 6
+  # minimum similarity score for source to be considered by LLM.ask/LLM.chat
+  rag_score_threshold: 0.2
 ui:
   # title of application
   title: OnPrem.LLM
@@ -105,7 +107,7 @@ def main():
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)
     if cfg_was_created:
-        st.warning(f'No {DEFAULT_YAML_FNAME} file was found in {DATADIR}, a default one was created for you. Please edit as necessary.')
+        st.warning(f'No {DEFAULT_YAML_FNAME} file was found in {DATADIR}, so a default one was created for you. Please edit as necessary.')
 
     screen = st.sidebar.radio("Choose a Screen:",
                               ("Talk to Your Documents", "Use Prompts to Solve Problems"))

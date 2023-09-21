@@ -53,6 +53,7 @@ class LLM:
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  embedding_encode_kwargs:dict ={'normalize_embeddings': False},
                  rag_num_source_docs:int = 4,
+                 rag_score_threshold:float=0.2,
                  confirm:bool=True,
                  verbose:bool=False,
                  **kwargs):
@@ -78,6 +79,7 @@ class LLM:
         - *embedding_encode_kwargs*: arguments to encode method of 
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         - *rag_num_source_docs*: The maximum number of documents retrieved and fed to `LLM.ask` and `LLM.chat` to generate answers
+        - *rag_score_threshold*: Minimum similarity score for source to be considered by `LLM.ask` and `LLM.chat`
         - *confirm*: whether or not to confirm with user before downloading a model
         - *verbose*: Verbosity
         """
@@ -103,7 +105,7 @@ class LLM:
         self.embedding_model_kwargs = embedding_model_kwargs
         self.embedding_encode_kwargs = embedding_encode_kwargs
         self.rag_num_source_docs = rag_num_source_docs
-        self.rag_score_threshold = 0.5 # not currently used as we are not supplying search_type to db.as_retriever
+        self.rag_score_threshold = rag_score_threshold
         self.verbose = verbose
         self.extra_kwargs = kwargs
  
@@ -182,8 +184,7 @@ class LLM:
         **Returns:** `None`
         """
         ingester = self.load_ingester()
-        ingester.ingest(source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        return
+        return ingester.ingest(source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
  
         
@@ -243,7 +244,7 @@ class LLM:
         if self.qa is None:
             db = self.load_vectordb()
             retriever = db.as_retriever(
-                                        #search_type='similarity_score_threshold',
+                                        search_type='similarity_score_threshold',
                                         search_kwargs={"k": self.rag_num_source_docs, 'score_threshold':self.rag_score_threshold})
             llm = self.load_llm()
             PROMPT = PromptTemplate(
@@ -263,7 +264,7 @@ class LLM:
 
             db = self.load_vectordb()
             retriever = db.as_retriever(
-                                        #search_type='similarity_score_threshold', # see note in constructor
+                                        search_type='similarity_score_threshold', # see note in constructor
                                         search_kwargs={"k": self.rag_num_source_docs, 'score_threshold':self.rag_score_threshold})
             llm = self.load_llm()
             memory = AnswerConversationBufferMemory(memory_key="chat_history", return_messages=True)
