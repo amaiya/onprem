@@ -229,6 +229,23 @@ print(validate_email('sam@openai.com'))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
+## Built-In Web App
+
+**OnPrem.LLM** includes a built-in Web app to access the LLM. To start
+it, run the following command after installation:
+
+``` shell
+onprem --port 8000
+```
+
+Then, enter `localhost:8000` (or `<domain_name>:8000` if running on
+remote server) in a Web browser to access the application:
+
+<img src="https://raw.githubusercontent.com/amaiya/onprem/master/onprem_screenshot.png" border="1" alt="screenshot" width="800"/>
+
+For more information, [see the corresponding
+documentation](https://amaiya.github.io/onprem/webapp.html).
+
 ## Speeding Up Inference Using a GPU
 
 The above example employed the use of a CPU.  

@@ -1,0 +1,16 @@
+llm:
+  # model url (or model file name if previously downloaded)
+  model_url: https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin
+  # number of layers offloaded to GPU
+  n_gpu_layers: 32
+  # path to vector db folder
+  vectordb_path: /home/your_user_name/onprem_data/vectordb
+  # path to model download folder
+  model_download_path: /home/your_user_name/onprem_data
+  # number of source documents used by LLM.ask and LLM.chat
+  rag_num_source_docs: 6
+ui:
+  # title of application
+  title: OnPrem.LLM
+  # subtitle in "Talk to Your Documents" screen
+  rag_title:
