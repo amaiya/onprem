@@ -53,7 +53,7 @@ class LLM:
                  embedding_model_kwargs:dict ={'device': 'cpu'},
                  embedding_encode_kwargs:dict ={'normalize_embeddings': False},
                  rag_num_source_docs:int = 4,
-                 rag_score_threshold:float=0.2,
+                 rag_score_threshold:float=0.0,
                  confirm:bool=True,
                  verbose:bool=False,
                  **kwargs):

@@ -22,7 +22,7 @@ llm:
   # number of source documents used by LLM.ask and LLM.chat
   rag_num_source_docs: 6
   # minimum similarity score for source to be considered by LLM.ask/LLM.chat
-  rag_score_threshold: 0.2
+  rag_score_threshold: 0.0
 ui:
   # title of application
   title: OnPrem.LLM
