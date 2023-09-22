@@ -6,24 +6,26 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.20 (TBD)
+## 0.0.20 (2023-09-22)
 
 ### new:
-- N/A
+- Support for `GGUF` format as the default LLM format. (#1)
 
 ### changed
-- N/A
+- All default models have been changed to `GGUF` models.
+- updated pin for `llama-cpp-python` to support GGUF format.
 
 ### fixed:
-- N/A
+- Misc adjustments and bug fixes for built-in Web app
 
 
 ## 0.0.19 (2023-09-21)
 
 ### new:
-- **Possible Breaking Change**: Support for `score_threshold` in `LLM.ask` and `LLM.chat` (#26)
+- Suport for a Built-in Web app
 
 ### changed
+- **Possible Breaking Change**: Support for `score_threshold` in `LLM.ask` and `LLM.chat` (#26)
 - Use `CallbackManager` (#24)
 
 ### fixed:
