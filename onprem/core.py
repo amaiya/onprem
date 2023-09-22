@@ -55,7 +55,7 @@ class LLM:
                  rag_num_source_docs:int = 4,
                  rag_score_threshold:float=0.0,
                  confirm:bool=True,
-                 verbose:bool=False,
+                 verbose:bool=True,
                  **kwargs):
         """
         LLM Constructor.  Extra `kwargs` are fed directly to `langchain.llms.LlamaCpp`.
@@ -84,8 +84,6 @@ class LLM:
         - *verbose*: Verbosity
         """
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
-        if verbose:
-            print(f'Since use_larger=True, we are using: {os.path.basename(DEFAULT_LARGER_URL)}')
         self.model_name = os.path.basename(self.model_url)
         self.model_download_path = model_download_path or U.get_datadir()
         if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):
