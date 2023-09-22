@@ -117,7 +117,8 @@ def main():
         st.sidebar.markdown('**Note:** Be sure to check any displayed sources to guard against hallucinations in answers.')
         if RAG_TITLE:
             st.header(cfg['streamlit']['rag_title'])
-        question = st.text_input("Enter a question and press the `Ask` button:", value="")
+        question = st.text_input("Enter a question and press the `Ask` button:", value="", 
+                                 help="Tip: If you don't like the answer quality, try pressing the Ask button again.")
         ask_button = st.button("Ask")
         llm = setup_llm()
 
