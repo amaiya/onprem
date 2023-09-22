@@ -27,8 +27,8 @@ class AnswerConversationBufferMemory(ConversationBufferMemory):
 
 # %% ../nbs/00_core.ipynb 5
 from . import utils as U
-DEFAULT_MODEL_URL = 'https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGML/resolve/main/Wizard-Vicuna-7B-Uncensored.ggmlv3.q4_0.bin'
-DEFAULT_LARGER_URL = 'https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin'
+DEFAULT_MODEL_URL = 'https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGUF/resolve/main/Wizard-Vicuna-7B-Uncensored.Q4_K_M.gguf'
+DEFAULT_LARGER_URL = 'https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGUF/resolve/main/wizardlm-13b-v1.2.Q4_K_M.gguf'
 DEFAULT_EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 DEFAULT_QA_PROMPT = """"Use the following pieces of context delimited by three backticks to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
@@ -84,8 +84,6 @@ class LLM:
         - *verbose*: Verbosity
         """
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
-        if verbose:
-            print(f'Since use_larger=True, we are using: {os.path.basename(DEFAULT_LARGER_URL)}')
         self.model_name = os.path.basename(self.model_url)
         self.model_download_path = model_download_path or U.get_datadir()
         if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):

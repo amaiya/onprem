@@ -106,7 +106,6 @@ def run(**kwargs):
 
 
     # setup
-    url = 'https://huggingface.co/TheBloke/orca_mini_3B-GGML/resolve/main/orca-mini-3b.ggmlv3.q4_1.bin'
     url = kwargs['url']
     n_gpu_layers = kwargs['gpu']
     llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers)
@@ -146,8 +145,8 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/TheBloke/orca_mini_3B-GGML/resolve/main/orca-mini-3b.ggmlv3.q4_1.bin",
-        help=("URL of model. Default is a URL to orca-mini-3b.ggmlv3.q4_1.bin."),
+        default="https://huggingface.co/juanjgit/orca_mini_3B-GGUF/resolve/main/orca-mini-3b.q4_0.gguf",
+        help=("URL of model. Default is a URL to orca-mini-3b.q4_0.gguf."),
     )
 
     args = parser.parse_args()
