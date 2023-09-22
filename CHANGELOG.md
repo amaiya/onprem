@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.21 (under development)
 
 ### new:
-- N/A
+- Support for hyperlinks to sources in RAG screen of  Web app (#28)
 
 ### changed
 - N/A

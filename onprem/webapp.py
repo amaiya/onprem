@@ -1,5 +1,6 @@
 import os, yaml
 import numpy as np
+from pathlib import Path
 import streamlit as st
 from langchain.callbacks import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
@@ -28,6 +29,10 @@ ui:
   title: OnPrem.LLM
   # subtitle in "Talk to Your Documents" screen
   rag_title:
+  # path to folder containing raw documents (used to construct direct links to document sources)
+  rag_source_path:
+  # base url (used to construct direct links to document sources)
+  rag_base_url:
 """
 DEFAULT_YAML_FNAME = 'webapp.yml'
 DEFAULT_YAML_FPATH = os.path.join(DATADIR, DEFAULT_YAML_FNAME)
@@ -95,6 +100,16 @@ def setup_llm():
     llm.llm.callbacks = [stream_handler]
     return llm
 
+def construct_link(filepath, source_path=None, base_url=None):
+    """
+    constructs a link to a document
+    """
+    filename = os.path.basename(filepath)
+    if source_path is None or base_url is None:
+        return filename
+    relative = str(Path(filepath).relative_to(source_path))
+    link = os.path.join(base_url, relative)
+    return f'[{filename}]({link})'
 
 def main():
     # Page setup
@@ -107,6 +122,8 @@ def main():
     if os.path.exists(os.path.join(U.get_datadir(), 'rag_text.md')):
         with open(os.path.join(U.get_datadir(), 'rag_text.md'), 'r') as f:
             RAG_TEXT = f.read()
+    RAG_SOURCE_PATH = cfg.get('ui', {}).get('rag_source_path', None)
+    RAG_BASE_URL = cfg.get('ui', {}).get('rag_base_url', None)
 
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)
@@ -138,7 +155,7 @@ def main():
                 answer_score = compute_similarity(answer, doc.page_content)
                 question_score = compute_similarity(question, doc.page_content)
                 if answer_score < 0.5 or question_score < 0.3: continue
-                unique_sources.add( (os.path.basename(doc.metadata['source']),
+                unique_sources.add( (doc.metadata['source'],
                                      doc.metadata.get('page', None), doc.page_content, question_score, answer_score))
             unique_sources = list(unique_sources)
             unique_sources.sort(key=lambda tup: tup[-1], reverse=True)
@@ -147,6 +164,7 @@ def main():
                 st.markdown('*You should inspect these sources to guard against hallucinations in the answer.*')
                 for source in unique_sources:
                     fname = source[0]
+                    fname = construct_link(fname, source_path=RAG_SOURCE_PATH, base_url = RAG_BASE_URL)
                     page = source[1] +1 if isinstance(source[1], int) else source[1]
                     content = source[2]
                     question_score = source[3]

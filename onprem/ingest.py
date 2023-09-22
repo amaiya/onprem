@@ -97,6 +97,7 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     """
     Loads all documents from the source documents directory, ignoring specified files
     """
+    source_dir = os.path.abspath(source_dir)
     all_files = []
     for ext in LOADER_MAPPING:
         all_files.extend(
