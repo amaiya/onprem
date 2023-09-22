@@ -282,9 +282,9 @@ computation to your GPU and speed up responses from the LLM.
     > as we did above in the code generation example.
 
     > As of v0.0.20, we support models in GGUF format, which supersedes
-    > the older GGML format (e.g., llama.cpp-supported models with
-    > `GGUF` in the file name on
-    > [huggingface.co](https://huggingface.co/models)).
+    > the older GGML format. You can find llama.cpp-supported models
+    > with `GGUF` in the file name on
+    > [huggingface.co](https://huggingface.co/models?sort=trending&search=gguf).
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
     trying to download the model?**
@@ -338,3 +338,10 @@ computation to your GPU and speed up responses from the LLM.
     > course, you can also [easily
     > use](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing)
     > **OnPrem.LLM** on Google Colab.
+
+5.  **`LlamaCpp` is failing to load my model from the model path on
+    Google Colab.**
+
+    > For reasons that are unclear, newer versions of `llama-cpp-python`
+    > fail to load models on Google Colab unless you supply
+    > `verbose=True` to the `LLM` constructor.
