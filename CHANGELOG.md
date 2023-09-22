@@ -22,9 +22,9 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - Built-in Web app for both RAG and general prompting
-- **Possible Breaking Change**: Support for `score_threshold` in `LLM.ask` and `LLM.chat` (#26)
 
 ### changed
+- **Possible Breaking Change**: Support for `score_threshold` in `LLM.ask` and `LLM.chat` (#26)
 - Use `CallbackManager` (#24)
 
 ### fixed:
