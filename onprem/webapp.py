@@ -164,7 +164,7 @@ def main():
             unique_sources.sort(key=lambda tup: tup[-1], reverse=True)
             if unique_sources:
                 st.markdown('**One or More of These Sources Were Used to Generate the Answer:**')
-                st.markdown('*You should inspect these sources for more information and to also guard against hallucinations in the answer.*')
+                st.markdown('*You can inspect these sources for more information and to also guard against hallucinations in the answer.*')
                 for source in unique_sources:
                     fname = source[0]
                     fname = construct_link(fname, source_path=RAG_SOURCE_PATH, base_url = RAG_BASE_URL)
