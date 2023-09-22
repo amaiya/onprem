@@ -104,12 +104,15 @@ def construct_link(filepath, source_path=None, base_url=None):
     """
     constructs a link to a document
     """
+    import urllib
     filename = os.path.basename(filepath)
-    if source_path is None or base_url is None:
+    if source_path is None:
         return filename
+    base_url = base_url or '/'
     relative = str(Path(filepath).relative_to(source_path))
-    link = os.path.join(base_url, relative)
-    return f'[{filename}]({link})'
+    link = os.path.join(base_url, relative) 
+    return f'<a href="{urllib.parse.quote(link)}" ' +\
+           f'target="_blank" title="Click to view original source">{filename}</a>'
 
 def main():
     # Page setup
@@ -169,7 +172,8 @@ def main():
                     content = source[2]
                     question_score = source[3]
                     answer_score = source[4]
-                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score}", help=f'{content}... [QUESTION_TO_SOURCE_SIMILARITY: {question_score})')
+                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score}", help=f'{content}... [QUESTION_TO_SOURCE_SIMILARITY: {question_score})', 
+                                unsafe_allow_html=True)
             elif "I don't know" not in answer:
                 st.warning('No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents '+\
                            'and increases the likelihood of false information in the answer. ' +\
