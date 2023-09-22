@@ -124,7 +124,8 @@ def main():
         if RAG_TEXT:
             st.markdown(RAG_TEXT, unsafe_allow_html=True)
         question = st.text_input("Enter a question and press the `Ask` button:", value="", 
-                                 help="Tip: If you don't like the answer quality after pressing 'Ask', try pressing the Ask button a second time.")
+                                 help="Tip: If you don't like the answer quality after pressing 'Ask', try pressing the Ask button a second time. "
+                                      "You can also try re-phrasing the question.")
         ask_button = st.button("Ask")
         llm = setup_llm()
 
