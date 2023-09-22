@@ -100,8 +100,8 @@ def main():
     # Page setup
     cfg, cfg_was_created = read_config()
 
-    TITLE  = cfg.get('streamlit', {}).get('title', 'OnPrem.LLM')
-    RAG_TITLE = cfg.get('streamlit', {}).get('rag_title', None)
+    TITLE  = cfg.get('ui', {}).get('title', 'OnPrem.LLM')
+    RAG_TITLE = cfg.get('ui', {}).get('rag_title', None)
     APPEND_TO_PROMPT = cfg.get('prompt', {}).get('append_to_prompt', '')
     RAG_TEXT = None
     if os.path.exists(os.path.join(U.get_datadir(), 'rag_text.md')):
@@ -120,11 +120,11 @@ def main():
     if screen == 'Talk to Your Documents':
         st.sidebar.markdown('**Note:** Be sure to check any displayed sources to guard against hallucinations in answers.')
         if RAG_TITLE:
-            st.header(cfg['streamlit']['rag_title'])
+            st.header(RAG_TITLE)
         if RAG_TEXT:
-            st.markdown(RAG_TEXT)
+            st.markdown(RAG_TEXT, unsafe_allow_html=True)
         question = st.text_input("Enter a question and press the `Ask` button:", value="", 
-                                 help="Tip: If you don't like the answer quality, try pressing the Ask button again.")
+                                 help="Tip: If you don't like the answer quality after pressing 'Ask', try pressing the Ask button a second time.")
         ask_button = st.button("Ask")
         llm = setup_llm()
 
