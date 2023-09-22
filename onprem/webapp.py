@@ -12,7 +12,7 @@ DEFAULT_PROMPT = "List three cute names for a cat."
 DEFAULT_YAML = """
 llm:
   # model url (or model file name if previously downloaded)
-  model_url: 'https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGUF/resolve/main/wizardlm-13b-v1.2.Q4_K_M.gguf
+  model_url: https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGUF/resolve/main/wizardlm-13b-v1.2.Q4_K_M.gguf
   # number of layers offloaded to GPU
   n_gpu_layers: 32
   # path to vector db folder
