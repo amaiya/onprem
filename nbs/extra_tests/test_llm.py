@@ -41,7 +41,7 @@ def test_rag(llm, **kwargs):
               os.path.join(source_folder, 'sotu.txt'))
     llm.ingest(source_folder)
     print()
-    answer, sources = llm.ask("Who is Ketanji?")
+    answer, sources = llm.ask("Who is Ketanji? Brown Jackson")
     assert(len(answer) > 8)
     print()
     print()
