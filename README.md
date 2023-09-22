@@ -47,8 +47,7 @@ to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
 generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
-example). Currently, only models in GGML format are supported. Future
-versions of **OnPrem.LLM** will transition to the newer GGUF format.
+example). As of v0.0.20, **OnPrem.LLM** supports the newer GGUF format.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -163,12 +162,12 @@ particular prompt format this model expects.
 
 ``` python
 from onprem import LLM
-url = 'https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGML/resolve/main/codeup-llama-2-13b-chat-hf.ggmlv3.q4_1.bin'
+url = 'https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf'
 llm = LLM(url, n_gpu_layers=43) # see below for GPU information
 ```
 
 Setup the prompt based on what [this model
-expects](https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGML#prompt-template-alpaca)
+expects](https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF#prompt-template-alpaca)
 (this is important):
 
 ``` python
@@ -282,14 +281,10 @@ computation to your GPU and speed up responses from the LLM.
     > You can supply the URL to other models to the `LLM` constructor,
     > as we did above in the code generation example.
 
-    > We currently support models in GGML format (e.g., `ggmlv3` in the
-    > model file name on
-    > [huggingface.co](https://huggingface.co/models)). However, the
-    > GGML format has now been superseded by GGUF. As of August 21st
-    > 2023, llama.cpp no longer supports GGML models, which is why we
-    > are pinning to an older version of all dependencies.
-    >
-    > Future versions of **OnPrem.LLM** will use the newer GGUF format.
+    > As of v0.0.20, we support models in GGUF format, which supersedes
+    > the older GGML format (e.g., llama.cpp-supported models with
+    > `GGUF` in the file name on
+    > [huggingface.co](https://huggingface.co/models)).
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
     trying to download the model?**
