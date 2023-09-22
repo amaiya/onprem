@@ -12,7 +12,7 @@ DEFAULT_PROMPT = "List three cute names for a cat."
 DEFAULT_YAML = """
 llm:
   # model url (or model file name if previously downloaded)
-  model_url: https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGML/resolve/main/wizardlm-13b-v1.2.ggmlv3.q4_0.bin
+  model_url: 'https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGUF/resolve/main/wizardlm-13b-v1.2.Q4_K_M.gguf
   # number of layers offloaded to GPU
   n_gpu_layers: 32
   # path to vector db folder
@@ -103,6 +103,10 @@ def main():
     TITLE  = cfg.get('streamlit', {}).get('title', 'OnPrem.LLM')
     RAG_TITLE = cfg.get('streamlit', {}).get('rag_title', None)
     APPEND_TO_PROMPT = cfg.get('prompt', {}).get('append_to_prompt', '')
+    RAG_TEXT = None
+    if os.path.exists(os.path.join(U.get_datadir(), 'rag_text.md')):
+        with open(os.path.join(U.get_datadir(), 'rag_text.md'), 'r') as f:
+            RAG_TEXT = f.read()
 
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)
@@ -117,6 +121,8 @@ def main():
         st.sidebar.markdown('**Note:** Be sure to check any displayed sources to guard against hallucinations in answers.')
         if RAG_TITLE:
             st.header(cfg['streamlit']['rag_title'])
+        if RAG_TEXT:
+            st.markdown(RAG_TEXT)
         question = st.text_input("Enter a question and press the `Ask` button:", value="", 
                                  help="Tip: If you don't like the answer quality, try pressing the Ask button again.")
         ask_button = st.button("Ask")
