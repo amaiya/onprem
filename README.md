@@ -30,6 +30,10 @@ pip install onprem
 
 For fast GPU-accelerated inference, see [additional instructions
 below](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu).
+See [the FAQ](https://amaiya.github.io/onprem/#faq), if you experience
+issues with
+[llama-cpp-python](https://pypi.org/project/llama-cpp-python/)
+installation.
 
 ## How to Use
 
@@ -316,6 +320,12 @@ computation to your GPU and speed up responses from the LLM.
 
 4.  **When installing `onprem`, I’m getting errors related to
     `llama-cpp-python` on Windows/Mac/Linux?**
+
+    > See [this LangChain documentation on
+    > LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
+    > to help on insalling the `llama-cpp-python` package for your
+    > system. Additional tips for different operating systems are shown
+    > below:
 
     > For **Linux** systems like Ubuntu, try this:
     > `sudo apt-get install build-essential g++ clang`. Other tips are
