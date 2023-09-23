@@ -100,6 +100,32 @@ def setup_llm():
     llm.llm.callbacks = [stream_handler]
     return llm
 
+
+
+def check_create_symlink(source_path, base_url):
+    """
+    Symlink to folder named <name> in datadir from streamlit's static folder
+    """
+    if base_url or not source_path:
+        return source_path, base_url
+
+    # set new source path
+    new_source_path = os.path.dirname(source_path)
+    symlink_name = os.path.basename(source_path)
+
+    # check for existence
+    staticdir = os.path.join(os.path.dirname(st.__file__), "static")
+    if os.path.islink(os.path.join(staticdir, symlink_name)):
+        return new_source_path, symlink_name
+
+    # attempt creation
+    try:
+        os.symlink(new_source_path, os.path.join(staticdir, symlink_name))
+    except Exception as e:
+        return source_path, base_url
+    return new_source_path, base_url
+
+
 def construct_link(filepath, source_path=None, base_url=None):
     """
     constructs a link to a document
@@ -127,6 +153,7 @@ def main():
             RAG_TEXT = f.read()
     RAG_SOURCE_PATH = cfg.get('ui', {}).get('rag_source_path', None)
     RAG_BASE_URL = cfg.get('ui', {}).get('rag_base_url', None)
+    RAG_SOURCE_PATH, RAG_BASE_URL = check_create_symlink(RAG_SOURCE_PATH, RAG_BASE_URL)
 
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)

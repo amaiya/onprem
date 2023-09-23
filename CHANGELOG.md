@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.22 (under development)
 
 ### new:
-- N/A
+- attempt to auto-create symlinks for serving source documents
 
 ### changed
 - N/A
