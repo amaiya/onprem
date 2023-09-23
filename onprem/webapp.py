@@ -29,9 +29,9 @@ ui:
   title: OnPrem.LLM
   # subtitle in "Talk to Your Documents" screen
   rag_title:
-  # path to folder containing raw documents (used to construct direct links to document sources)
+  # path to folder containing raw documents (i.e., absolute path of folder you supplied to LLM.ingest)
   rag_source_path:
-  # base url (used to construct direct links to document sources)
+  # base url (leave blank unless you're running your own separate web server to serve source documents)
   rag_base_url:
 """
 DEFAULT_YAML_FNAME = 'webapp.yml'
