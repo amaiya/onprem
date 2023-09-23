@@ -339,9 +339,11 @@ computation to your GPU and speed up responses from the LLM.
     > use](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing)
     > **OnPrem.LLM** on Google Colab.
 
-5.  **`LlamaCpp` is failing to load my model from the model path on
-    Google Colab.**
+5.  **`llama-cpp-python` is failing to load my model from the model path
+    on Google Colab.**
 
     > For reasons that are unclear, newer versions of `llama-cpp-python`
     > fail to load models on Google Colab unless you supply
-    > `verbose=True` to the `LLM` constructor.
+    > `verbose=True` to the `LLM` constructor (which is passed directly
+    > to `llama-cpp-python`). If you experience this problem locally,
+    > try supplying `verbose=True` to `LLM`.
