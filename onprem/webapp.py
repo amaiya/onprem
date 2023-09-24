@@ -206,12 +206,15 @@ def main():
                            'and increases the likelihood of false information in the answer. ' +\
                            'You should be more cautious when using this answer.')
     else:
-        prompt = st.text_area('Submit a Prompt to the LLM:', '', height=100, placeholder=DEFAULT_PROMPT)
+        prompt = st.text_area('Submit a Prompt to the LLM:', '', height=100, placeholder=DEFAULT_PROMPT,
+                               help="Tip: If you don't like the response quality after pressing 'Submit', try pressing the button a second time. "
+                                    "You can also try re-phrasing the prompt.")
         submit_button = st.button("Submit")
         st.markdown('*Examples of using prompts to solve different problems are [here](https://amaiya.github.io/onprem/examples.html).*')
         st.markdown('---')
         llm = setup_llm()
         if prompt and submit_button:
+            print(prompt)
             saved_output = llm.prompt(prompt)
 
 
