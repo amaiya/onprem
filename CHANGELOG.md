@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.22 (under development)
+## 0.0.22 (2023-09-24)
 
 ### new:
 - attempt to auto-create symlinks for serving source documents
