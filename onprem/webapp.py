@@ -199,7 +199,7 @@ def main():
                     content = source[2]
                     question_score = source[3]
                     answer_score = source[4]
-                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score}", help=f'{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score}]', 
+                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score}", help=f'{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score})', 
                                 unsafe_allow_html=True)
             elif "I don't know" not in answer:
                 st.warning('No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents '+\
