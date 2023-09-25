@@ -259,7 +259,7 @@ responses.
 #### Step 1: Install `llama-cpp-python` with CUBLAS support
 
 ``` shell
-CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.69 --no-cache-dir
+CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.2.6 --no-cache-dir
 ```
 
 It is important to use the specific version shown above due to library
