@@ -252,11 +252,17 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 
 ## Speeding Up Inference Using a GPU
 
-The above example employed the use of a CPU.  
-If you have a GPU (even an older one with less VRAM), you can speed up
-responses.
+The above example employed the use of a CPU. If you have a GPU (even an
+older one with less VRAM), you can speed up responses. See [the
+LangChain docs on
+LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
+for installing `llama-cpp-python` with GPU support for your system.
 
-#### Step 1: Install `llama-cpp-python` with CUBLAS support
+The steps below describe installing and using `llama-cpp-python` with
+`cuBLAS` support and can be employed for GPU acceleration on Linux and
+Google Colab, for example.
+
+#### Step 1: Install `llama-cpp-python` with cuBLAS support
 
 ``` shell
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.2.6 --no-cache-dir
