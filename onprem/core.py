@@ -106,6 +106,7 @@ class LLM:
         self.rag_score_threshold = rag_score_threshold
         self.verbose = verbose
         self.extra_kwargs = kwargs
+        self.load_llm()
  
     @classmethod
     def download_model(cls, model_url:str=DEFAULT_MODEL_URL, 

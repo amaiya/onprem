@@ -1,6 +1,7 @@
 import os, yaml
 import numpy as np
 from pathlib import Path
+import mimetypes
 import streamlit as st
 from langchain.callbacks import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
@@ -24,11 +25,15 @@ llm:
   rag_num_source_docs: 6
   # minimum similarity score for source to be considered by LLM.ask/LLM.chat
   rag_score_threshold: 0.0
+  # verbosity of Llama.cpp
+  verbose: FALSE
 ui:
   # title of application
   title: OnPrem.LLM
   # subtitle in "Talk to Your Documents" screen
   rag_title:
+  # path to markdown file with contents that will be inserted below rag_title
+  rag_text_path:
   # path to folder containing raw documents (i.e., absolute path of folder you supplied to LLM.ingest)
   rag_source_path:
   # base url (leave blank unless you're running your own separate web server to serve source documents)
@@ -58,7 +63,7 @@ def read_config():
     return cfg, not exists
 
 @st.cache_resource
-def get_llm():
+def load_llm():
     llm_config = read_config()[0]['llm']
     return LLM(confirm=False, **llm_config)
 
@@ -93,7 +98,7 @@ class StreamHandler(BaseCallbackHandler):
 
 
 def setup_llm():
-    llm = get_llm()
+    llm = load_llm()
     chat_box = st.empty()
     stream_handler = StreamHandler(chat_box, display_method='write')
     _ = llm.load_llm()
@@ -140,6 +145,13 @@ def construct_link(filepath, source_path=None, base_url=None):
     return f'<a href="{urllib.parse.quote(link)}" ' +\
            f'target="_blank" title="Click to view original source">{filename}</a>'
 
+def is_txt(fpath):
+    try:
+        result = mimetypes.guess_type(fpath)
+        return result[0] and result[0].startswith('text/')
+    except:
+        return False
+
 def main():
     # Page setup
     cfg, cfg_was_created = read_config()
@@ -148,8 +160,9 @@ def main():
     RAG_TITLE = cfg.get('ui', {}).get('rag_title', None)
     APPEND_TO_PROMPT = cfg.get('prompt', {}).get('append_to_prompt', '')
     RAG_TEXT = None
-    if os.path.exists(os.path.join(U.get_datadir(), 'rag_text.md')):
-        with open(os.path.join(U.get_datadir(), 'rag_text.md'), 'r') as f:
+    RAG_TEXT_PATH = cfg.get('ui', {}).get('rag_text_path', None)
+    if RAG_TEXT_PATH and os.path.isfile(RAG_TEXT_PATH) and is_txt(RAG_TEXT_PATH):
+        with open(RAG_TEXT_PATH, 'r') as f:
             RAG_TEXT = f.read()
     RAG_SOURCE_PATH = cfg.get('ui', {}).get('rag_source_path', None)
     RAG_BASE_URL = cfg.get('ui', {}).get('rag_base_url', None)

@@ -6,16 +6,16 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.24 (under development)
+## 0.0.24 (2023-09-26)
 
 ### new:
 - N/A
 
 ### changed
-- N/A
+- Added `rag_text_path` and `verbose` to default `webapp.yml`.
 
 ### fixed:
-- N/A
+- Moving `load_llm` to constructor seems to prevent model loading issues in `Llamacpp` (#30)
 
 
 ## 0.0.23 (2023-09-25)
