@@ -284,6 +284,11 @@ stalling in the middle of a response.
 With the steps above, calls to methods like `llm.prompt` will offload
 computation to your GPU and speed up responses from the LLM.
 
+The above assumes that NVIDIA drivers and the CUDA toolkit are already
+installed. On Ubuntu Linux systems, this can be accomplished [with a
+single
+command](https://lambdalabs.com/lambda-stack-deep-learning-software).
+
 ## FAQ
 
 1.  **How do I use other models with OnPrem.LLM?**
@@ -329,7 +334,7 @@ computation to your GPU and speed up responses from the LLM.
 
     > See [this LangChain documentation on
     > LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
-    > for help on insalling the `llama-cpp-python` package for your
+    > for help on installing the `llama-cpp-python` package for your
     > system. Additional tips for different operating systems are shown
     > below:
 
