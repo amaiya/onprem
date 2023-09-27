@@ -26,7 +26,10 @@ llm:
   # minimum similarity score for source to be considered by LLM.ask/LLM.chat
   rag_score_threshold: 0.0
   # verbosity of Llama.cpp
-  verbose: FALSE
+  verbose: TRUE
+prompt:
+  # prompt_template used with LLM.prompt (e.g, for models that accept a system prompt)
+  prompt_template:
 ui:
   # title of application
   title: OnPrem.LLM
@@ -161,6 +164,7 @@ def main():
     APPEND_TO_PROMPT = cfg.get('prompt', {}).get('append_to_prompt', '')
     RAG_TEXT = None
     RAG_TEXT_PATH = cfg.get('ui', {}).get('rag_text_path', None)
+    PROMPT_TEMPLATE = cfg.get('prompt', {}).get('prompt_template', None)
     if RAG_TEXT_PATH and os.path.isfile(RAG_TEXT_PATH) and is_txt(RAG_TEXT_PATH):
         with open(RAG_TEXT_PATH, 'r') as f:
             RAG_TEXT = f.read()
@@ -230,7 +234,7 @@ def main():
         llm = setup_llm()
         if prompt and submit_button:
             print(prompt)
-            saved_output = llm.prompt(prompt)
+            saved_output = llm.prompt(prompt, prompt_template=PROMPT_TEMPLATE)
 
 
 if __name__ == "__main__":
