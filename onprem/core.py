@@ -285,11 +285,15 @@ class LLM:
 
         **Returns:**
 
-        - A tuple consisting of the answer and the list of source documents used to generate the answer.
+        - A dictionary with keys: `answer`, `source_documents`, `question`
         """
         qa = self.load_qa(prompt_template=prompt_template)
         res = qa(question)
-        return res['result'], res['source_documents']
+        res['question'] = res['query']
+        del res['query']
+        res['answer'] = res['result']
+        del res['result']
+        return res
     
     
     def chat(self, question:str):
@@ -303,7 +307,7 @@ class LLM:
         
         **Returns:**
         
-        - A dictionary with keys: `question`, `answer`, `chat_history`, `source_documents`
+        - A dictionary with keys: `answer`, `source_documents`, `question`, `chat_history`
         """
         chatqa = self.load_chatqa()
         res = chatqa(question)

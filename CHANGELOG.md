@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- **Breaking Change**: The `LLM.ask` method now returns a dictionary with keys: `answer`, `source_documents`, and `question` (#31)
 
 ### fixed:
 - N/A

@@ -110,7 +110,7 @@ llm.ingest('./sample_data')
 
 ``` python
 question = """What is  ktrain?""" 
-answer, docs = llm.ask(question)
+result = llm.ask(question)
 ```
 
      ktrain is a low-code platform designed to facilitate the full machine learning workflow, from preprocessing inputs to training, tuning, troubleshooting, and applying models. It focuses on automating other aspects of the ML workflow in order to augment and complement human engineers rather than replacing them. Inspired by fastai and ludwig, ktrain is intended to democratize machine learning for beginners and domain experts with minimal programming or data science experience.
@@ -120,7 +120,7 @@ The sources used by the model to generate the answer are stored in
 
 ``` python
 print('\nSources:\n')
-for i, document in enumerate(docs):
+for i, document in enumerate(result['source_documents']):
     print(f"\n{i+1}.> " + document.metadata["source"] + ":")
     print(document.page_content)
 ```
