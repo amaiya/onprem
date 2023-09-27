@@ -7,8 +7,6 @@ __all__ = ['download', 'get_datadir', 'split_list']
 import os.path
 import requests
 import sys
-
-
 def download(url, filename, verify=False):
     with open(filename, "wb") as f:
         response = requests.get(url, stream=True, verify=verify)
@@ -40,4 +38,4 @@ def get_datadir():
 
 def split_list(input_list, chunk_size):
     for i in range(0, len(input_list), chunk_size):
-        yield input_list[i : i + chunk_size]
+        yield input_list[i:i + chunk_size]

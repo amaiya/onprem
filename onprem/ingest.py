@@ -37,7 +37,7 @@ from . import utils as U
 
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
-COLLECTION_NAME = "onprem_chroma"
+COLLECTION_NAME = 'onprem_chroma'
 
 # %% ../nbs/01_ingest.ipynb 4
 class MyElmLoader(UnstructuredEmailLoader):
@@ -49,9 +49,9 @@ class MyElmLoader(UnstructuredEmailLoader):
             try:
                 doc = UnstructuredEmailLoader.load(self)
             except ValueError as e:
-                if "text/html content not found in email" in str(e):
+                if 'text/html content not found in email' in str(e):
                     # Try plain text
-                    self.unstructured_kwargs["content_source"] = "text/plain"
+                    self.unstructured_kwargs["content_source"]="text/plain"
                     doc = UnstructuredEmailLoader.load(self)
                 else:
                     raise
@@ -93,7 +93,6 @@ def load_single_document(file_path: str) -> List[Document]:
 
     raise ValueError(f"Unsupported file extension '{ext}'")
 
-
 def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Document]:
     """
     Loads all documents from the source documents directory, ignoring specified files
@@ -107,41 +106,31 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
         all_files.extend(
             glob.glob(os.path.join(source_dir, f"**/*{ext.upper()}"), recursive=True)
         )
-    filtered_files = [
-        file_path for file_path in all_files if file_path not in ignored_files
-    ]
+    filtered_files = [file_path for file_path in all_files if file_path not in ignored_files]
 
     with Pool(processes=os.cpu_count()) as pool:
         results = []
-        with tqdm(
-            total=len(filtered_files), desc="Loading new documents", ncols=80
-        ) as pbar:
-            for i, docs in enumerate(
-                pool.imap_unordered(load_single_document, filtered_files)
-            ):
+        with tqdm(total=len(filtered_files), desc='Loading new documents', ncols=80) as pbar:
+            for i, docs in enumerate(pool.imap_unordered(load_single_document, filtered_files)):
                 results.extend(docs)
                 pbar.update()
 
     return results
 
-
-def process_documents(
-    source_directory: str,
-    ignored_files: List[str] = [],
-    chunk_size: int = DEFAULT_CHUNK_SIZE,
-    chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
-) -> List[Document]:
+def process_documents(source_directory:str, ignored_files: List[str] = [],
+                      chunk_size:int=DEFAULT_CHUNK_SIZE, 
+                      chunk_overlap:int=DEFAULT_CHUNK_OVERLAP) -> List[Document]:
     """
     Load documents and split in chunks
-
+    
     **Args**:
 
       - *source_directory*: path to folder containing document store
       - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
       - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
-
+      
     **Returns:** list of `langchain.docstore.document.Document` objects
-
+    
     """
     print(f"Loading documents from {source_directory}")
     documents = load_documents(source_directory, ignored_files)
@@ -149,95 +138,79 @@ def process_documents(
         print("No new documents to load")
         return
     print(f"Loaded {len(documents)} new documents from {source_directory}")
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size, chunk_overlap=chunk_overlap
-    )
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     texts = text_splitter.split_documents(documents)
     print(f"Split into {len(texts)} chunks of text (max. {chunk_size} chars each)")
     return texts
-
 
 def does_vectorstore_exist(db) -> bool:
     """
     Checks if vectorstore exists
     """
-    if not db.get()["documents"]:
+    if not db.get()['documents']:
         return False
     return True
 
 # %% ../nbs/01_ingest.ipynb 6
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 from .utils import get_datadir
-
-os.environ["TOKENIZERS_PARALLELISM"] = "0"
-DEFAULT_DB = "vectordb"
-
+os.environ['TOKENIZERS_PARALLELISM'] = '0'
+DEFAULT_DB = 'vectordb'
 
 class Ingester:
-    def __init__(
-        self,
-        embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
-        embedding_model_kwargs: dict = {"device": "cpu"},
-        embedding_encode_kwargs: dict = {"normalize_embeddings": False},
-        persist_directory: Optional[str] = None,
-    ):
+    def __init__(self,
+                 embedding_model_name:str ='sentence-transformers/all-MiniLM-L6-v2',
+                 embedding_model_kwargs:dict ={'device': 'cpu'},
+                 embedding_encode_kwargs:dict ={'normalize_embeddings': False},
+                 persist_directory:Optional[str]=None
+                ):
         """
         Ingests all documents in `source_folder` (previously-ingested documents are ignored)
 
         **Args**:
-
+        
           - *embedding_model*: name of sentence-transformers model
           - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
-          - *embedding_encode_kwargs*: arguments to encode method of
+          - *embedding_encode_kwargs*: arguments to encode method of 
                                        embedding model (e.g., `{'normalize_embeddings': False}`).
-          - *persist_directory*: Path to vector database (created if it doesn't exist).
+          - *persist_directory*: Path to vector database (created if it doesn't exist). 
                                  Default is `onprem_data/vectordb` in user's home directory.
 
 
         **Returns**: `None`
         """
-        self.persist_directory = persist_directory or os.path.join(
-            get_datadir(), DEFAULT_DB
-        )
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name=embedding_model_name,
-            model_kwargs=embedding_model_kwargs,
-            encode_kwargs=embedding_encode_kwargs,
-        )
-        self.chroma_settings = Settings(
-            persist_directory=self.persist_directory, anonymized_telemetry=False
-        )
-        self.chroma_client = chromadb.PersistentClient(
-            settings=self.chroma_settings, path=self.persist_directory
-        )
+        self.persist_directory = persist_directory or os.path.join(get_datadir(), DEFAULT_DB)
+        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model_name, 
+                                                model_kwargs=embedding_model_kwargs,
+                                                encode_kwargs=embedding_encode_kwargs)
+        self.chroma_settings = Settings(persist_directory=self.persist_directory,anonymized_telemetry=False)
+        self.chroma_client = chromadb.PersistentClient(settings=self.chroma_settings , path=self.persist_directory)
         return
-
+     
+  
     def get_db(self):
         """
         Returns an instance to the `langchain.vectorstores.Chroma` instance
         """
-        db = Chroma(
-            persist_directory=self.persist_directory,
-            embedding_function=self.embeddings,
-            client_settings=self.chroma_settings,
-            client=self.chroma_client,
-            collection_metadata={"hnsw:space": "cosine"},
-            collection_name=COLLECTION_NAME,
-        )
+        db = Chroma(persist_directory=self.persist_directory, 
+                    embedding_function=self.embeddings, 
+                    client_settings=self.chroma_settings, client=self.chroma_client,
+                    collection_metadata={"hnsw:space": "cosine"}, collection_name=COLLECTION_NAME)
         return db if does_vectorstore_exist(db) else None
 
+    
     def get_embedding_model(self):
         """
         Returns an instance to the `langchain.embeddings.huggingface.HuggingFaceEmbeddings` instance
         """
         return self.embeddings
-
-    def ingest(
-        self,
-        source_directory: str,
-        chunk_size: int = DEFAULT_CHUNK_SIZE,
-        chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
-    ):
+    
+    
+    def ingest(self,
+               source_directory:str,
+               chunk_size:int=DEFAULT_CHUNK_SIZE,
+               chunk_overlap:int=DEFAULT_CHUNK_OVERLAP
+              ):
         """
         Ingests all documents in `source_directory` (previously-ingested documents are ignored).
 
@@ -251,56 +224,42 @@ class Ingester:
         """
 
         if not os.path.exists(source_directory):
-            raise ValueError("The source_directory does not exist.")
+            raise ValueError('The source_directory does not exist.')
         elif os.path.isfile(source_directory):
-            raise ValueError(
-                "The source_directory argument must be a folder, not a file."
-            )
+            raise ValueError('The source_directory argument must be a folder, not a file.')
         texts = None
         db = self.get_db()
         if db:
             # Update and store locally vectorstore
             print(f"Appending to existing vectorstore at {self.persist_directory}")
             collection = db.get()
-            texts = process_documents(
-                source_directory,
-                ignored_files=[
-                    metadata["source"] for metadata in collection["metadatas"]
-                ],
-            )
+            texts = process_documents(source_directory, 
+                                      ignored_files=[metadata['source'] for metadata in collection['metadatas']])
             if texts:
                 print(f"Creating embeddings. May take some minutes...")
-                split_docs_chunked = U.split_list(texts, 41000)  # chroma max
+                split_docs_chunked = U.split_list(texts, 41000) # chroma max
                 for lst in split_docs_chunked:
                     db.add_documents(lst)
         else:
             # Create and store locally vectorstore
             print(f"Creating new vectorstore at {self.persist_directory}")
-            texts = process_documents(
-                source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap
-            )
+            texts = process_documents(source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+                  
 
             if texts:
-                split_docs_chunked = U.split_list(texts, 41000)  # chroma max
+                split_docs_chunked = U.split_list(texts, 41000) # chroma max
                 print(f"Creating embeddings. May take some minutes...")
                 db = None
                 for lst in split_docs_chunked:
                     if not db:
-                        db = Chroma.from_documents(
-                            lst,
-                            self.embeddings,
-                            persist_directory=self.persist_directory,
-                            client_settings=self.chroma_settings,
-                            client=self.chroma_client,
-                            collection_metadata={"hnsw:space": "cosine"},
-                            collection_name=COLLECTION_NAME,
-                        )
+                        db = Chroma.from_documents(lst, 
+                                                   self.embeddings, persist_directory=self.persist_directory, 
+                                                   client_settings=self.chroma_settings, client=self.chroma_client,
+                                                   collection_metadata={"hnsw:space": "cosine"}, collection_name=COLLECTION_NAME)
                     else:
                         db.add_documents(lst)
         if texts:
             db.persist()
-            print(
-                f"Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
-            )
+            print(f"Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods")
         db = None
         return
