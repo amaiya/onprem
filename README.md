@@ -94,7 +94,7 @@ llm = LLM(use_larger=True, n_gpu_layers=35)
 #### Step 1: Ingest the Documents into a Vector Database
 
 ``` python
-llm.ingest('./sample_data')
+llm.ingest("./sample_data")
 ```
 
     Creating new vectorstore at /home/amaiya/onprem_data/vectordb
@@ -109,7 +109,7 @@ llm.ingest('./sample_data')
 #### Step 2: Answer Questions About the Documents
 
 ``` python
-question = """What is  ktrain?""" 
+question = """What is  ktrain?"""
 result = llm.ask(question)
 ```
 
@@ -119,8 +119,8 @@ The sources used by the model to generate the answer are stored in
 `docs`:
 
 ``` python
-print('\nSources:\n')
-for i, document in enumerate(result['source_documents']):
+print("\nSources:\n")
+for i, document in enumerate(result["source_documents"]):
     print(f"\n{i+1}.> " + document.metadata["source"] + ":")
     print(document.page_content)
 ```
@@ -166,8 +166,9 @@ particular prompt format this model expects.
 
 ``` python
 from onprem import LLM
-url = 'https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf'
-llm = LLM(url, n_gpu_layers=43) # see below for GPU information
+
+url = "https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf"
+llm = LLM(url, n_gpu_layers=43)  # see below for GPU information
 ```
 
 Setup the prompt based on what [this model
@@ -185,7 +186,9 @@ Below is an instruction that describes a task. Write a response that appropriate
 ```
 
 ``` python
-answer = llm.prompt('Write Python code to validate an email address.', prompt_template=template)
+answer = llm.prompt(
+    "Write Python code to validate an email address.", prompt_template=template
+)
 ```
 
 
@@ -213,16 +216,20 @@ Let’s try out the code generated above.
 
 ``` python
 import re
+
+
 def validate_email(email):
     # Use a regular expression to check if the email address is in the correct format
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if re.match(pattern, email):
         return True
     else:
         return False
-print(validate_email('sam@@openai.com')) # bad email address
-print(validate_email('sam@openai'))      # bad email address
-print(validate_email('sam@openai.com'))  # good email address
+
+
+print(validate_email("sam@@openai.com"))  # bad email address
+print(validate_email("sam@openai"))  # bad email address
+print(validate_email("sam@openai.com"))  # good email address
 ```
 
     False
