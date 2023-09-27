@@ -192,7 +192,9 @@ def main():
         if question and ask_button:
             question = question + ' '+ APPEND_TO_PROMPT
             print(question)
-            answer, docs = llm.ask(question)
+            result = llm.ask(question)
+            answer = result['answer']
+            docs = result['source_documents']
             unique_sources = set()
             for doc in docs:
                 answer_score = compute_similarity(answer, doc.page_content)
