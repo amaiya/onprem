@@ -5,7 +5,9 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 try:
     from streamlit.web import cli as stcli
 except ImportError:
-    raise ImportError('Please install the latest version of streamlit: pip install streamlit')
+    raise ImportError(
+        "Please install the latest version of streamlit: pip install streamlit"
+    )
 
 from onprem import __version__
 
@@ -13,8 +15,7 @@ from onprem import __version__
 def cli():
     parser = ArgumentParser(
         description=(
-            "Start the OnPrem.LLM web app \n"
-            "Example: onprem --port 8000 \n\n"
+            "Start the OnPrem.LLM web app \n" "Example: onprem --port 8000 \n\n"
         ),
         formatter_class=RawTextHelpFormatter,
     )

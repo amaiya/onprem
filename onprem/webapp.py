@@ -42,17 +42,19 @@ ui:
   # base url (leave blank unless you're running your own separate web server to serve source documents)
   rag_base_url:
 """
-DEFAULT_YAML_FNAME = 'webapp.yml'
+DEFAULT_YAML_FNAME = "webapp.yml"
 DEFAULT_YAML_FPATH = os.path.join(DATADIR, DEFAULT_YAML_FNAME)
+
 
 def write_default_yaml():
     """
     write default webapp.yml
     """
     yaml_content = DEFAULT_YAML.format(datadir=U.get_datadir()).strip()
-    with open(DEFAULT_YAML_FPATH, 'w') as f:
+    with open(DEFAULT_YAML_FPATH, "w") as f:
         f.write(yaml_content)
     return
+
 
 def read_config():
     """
@@ -61,19 +63,20 @@ def read_config():
     exists = os.path.exists(DEFAULT_YAML_FPATH)
     if not exists:
         write_default_yaml()
-    with open(DEFAULT_YAML_FPATH, 'r') as stream:
+    with open(DEFAULT_YAML_FPATH, "r") as stream:
         cfg = yaml.safe_load(stream)
     return cfg, not exists
 
+
 @st.cache_resource
 def load_llm():
-    llm_config = read_config()[0]['llm']
+    llm_config = read_config()[0]["llm"]
     return LLM(confirm=False, **llm_config)
 
 
 @st.cache_resource
 def get_embedding_model():
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer("all-MiniLM-L6-v2")
     return model
 
 
@@ -86,7 +89,7 @@ def compute_similarity(sentence1, sentence2):
 
 
 class StreamHandler(BaseCallbackHandler):
-    def __init__(self, container, initial_text="", display_method='markdown'):
+    def __init__(self, container, initial_text="", display_method="markdown"):
         self.container = container
         self.text = initial_text
         self.display_method = display_method
@@ -103,11 +106,10 @@ class StreamHandler(BaseCallbackHandler):
 def setup_llm():
     llm = load_llm()
     chat_box = st.empty()
-    stream_handler = StreamHandler(chat_box, display_method='write')
+    stream_handler = StreamHandler(chat_box, display_method="write")
     _ = llm.load_llm()
     llm.llm.callbacks = [stream_handler]
     return llm
-
 
 
 def check_create_symlink(source_path, base_url):
@@ -139,98 +141,137 @@ def construct_link(filepath, source_path=None, base_url=None):
     constructs a link to a document
     """
     import urllib
+
     filename = os.path.basename(filepath)
     if source_path is None:
         return filename
-    base_url = base_url or '/'
+    base_url = base_url or "/"
     relative = str(Path(filepath).relative_to(source_path))
-    link = os.path.join(base_url, relative) 
-    return f'<a href="{urllib.parse.quote(link)}" ' +\
-           f'target="_blank" title="Click to view original source">{filename}</a>'
+    link = os.path.join(base_url, relative)
+    return (
+        f'<a href="{urllib.parse.quote(link)}" '
+        + f'target="_blank" title="Click to view original source">{filename}</a>'
+    )
+
 
 def is_txt(fpath):
     try:
         result = mimetypes.guess_type(fpath)
-        return result[0] and result[0].startswith('text/')
+        return result[0] and result[0].startswith("text/")
     except:
         return False
+
 
 def main():
     # Page setup
     cfg, cfg_was_created = read_config()
 
-    TITLE  = cfg.get('ui', {}).get('title', 'OnPrem.LLM')
-    RAG_TITLE = cfg.get('ui', {}).get('rag_title', None)
-    APPEND_TO_PROMPT = cfg.get('prompt', {}).get('append_to_prompt', '')
+    TITLE = cfg.get("ui", {}).get("title", "OnPrem.LLM")
+    RAG_TITLE = cfg.get("ui", {}).get("rag_title", None)
+    APPEND_TO_PROMPT = cfg.get("prompt", {}).get("append_to_prompt", "")
     RAG_TEXT = None
-    RAG_TEXT_PATH = cfg.get('ui', {}).get('rag_text_path', None)
-    PROMPT_TEMPLATE = cfg.get('prompt', {}).get('prompt_template', None)
+    RAG_TEXT_PATH = cfg.get("ui", {}).get("rag_text_path", None)
+    PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
     if RAG_TEXT_PATH and os.path.isfile(RAG_TEXT_PATH) and is_txt(RAG_TEXT_PATH):
-        with open(RAG_TEXT_PATH, 'r') as f:
+        with open(RAG_TEXT_PATH, "r") as f:
             RAG_TEXT = f.read()
-    RAG_SOURCE_PATH = cfg.get('ui', {}).get('rag_source_path', None)
-    RAG_BASE_URL = cfg.get('ui', {}).get('rag_base_url', None)
+    RAG_SOURCE_PATH = cfg.get("ui", {}).get("rag_source_path", None)
+    RAG_BASE_URL = cfg.get("ui", {}).get("rag_base_url", None)
     RAG_SOURCE_PATH, RAG_BASE_URL = check_create_symlink(RAG_SOURCE_PATH, RAG_BASE_URL)
 
     st.set_page_config(page_title=TITLE, page_icon="🐍", layout="wide")
     st.title(TITLE)
     if cfg_was_created:
-        st.warning(f'No {DEFAULT_YAML_FNAME} file was found in {DATADIR}, so a default one was created for you. Please edit as necessary.')
+        st.warning(
+            f"No {DEFAULT_YAML_FNAME} file was found in {DATADIR}, so a default one was created for you. Please edit as necessary."
+        )
 
-    screen = st.sidebar.radio("Choose a Screen:",
-                              ("Talk to Your Documents", "Use Prompts to Solve Problems"))
+    screen = st.sidebar.radio(
+        "Choose a Screen:", ("Talk to Your Documents", "Use Prompts to Solve Problems")
+    )
     st.sidebar.markdown(f"**Curent Model:**")
     st.sidebar.markdown(f"*{os.path.basename(cfg['llm']['model_url'])}*")
-    if screen == 'Talk to Your Documents':
-        st.sidebar.markdown('**Note:** Be sure to check any displayed sources to guard against hallucinations in answers.')
+    if screen == "Talk to Your Documents":
+        st.sidebar.markdown(
+            "**Note:** Be sure to check any displayed sources to guard against hallucinations in answers."
+        )
         if RAG_TITLE:
             st.header(RAG_TITLE)
         if RAG_TEXT:
             st.markdown(RAG_TEXT, unsafe_allow_html=True)
-        question = st.text_input("Enter a question and press the `Ask` button:", value="", 
-                                 help="Tip: If you don't like the answer quality after pressing 'Ask', try pressing the Ask button a second time. "
-                                      "You can also try re-phrasing the question.")
+        question = st.text_input(
+            "Enter a question and press the `Ask` button:",
+            value="",
+            help="Tip: If you don't like the answer quality after pressing 'Ask', try pressing the Ask button a second time. "
+            "You can also try re-phrasing the question.",
+        )
         ask_button = st.button("Ask")
         llm = setup_llm()
 
         if question and ask_button:
-            question = question + ' '+ APPEND_TO_PROMPT
+            question = question + " " + APPEND_TO_PROMPT
             print(question)
             result = llm.ask(question)
-            answer = result['answer']
-            docs = result['source_documents']
+            answer = result["answer"]
+            docs = result["source_documents"]
             unique_sources = set()
             for doc in docs:
                 answer_score = compute_similarity(answer, doc.page_content)
                 question_score = compute_similarity(question, doc.page_content)
-                if answer_score < 0.5 or question_score < 0.3: continue
-                unique_sources.add( (doc.metadata['source'],
-                                     doc.metadata.get('page', None), doc.page_content, question_score, answer_score))
+                if answer_score < 0.5 or question_score < 0.3:
+                    continue
+                unique_sources.add(
+                    (
+                        doc.metadata["source"],
+                        doc.metadata.get("page", None),
+                        doc.page_content,
+                        question_score,
+                        answer_score,
+                    )
+                )
             unique_sources = list(unique_sources)
             unique_sources.sort(key=lambda tup: tup[-1], reverse=True)
             if unique_sources:
-                st.markdown('**One or More of These Sources Were Used to Generate the Answer:**')
-                st.markdown('*You can inspect these sources for more information and to also guard against hallucinations in the answer.*')
+                st.markdown(
+                    "**One or More of These Sources Were Used to Generate the Answer:**"
+                )
+                st.markdown(
+                    "*You can inspect these sources for more information and to also guard against hallucinations in the answer.*"
+                )
                 for source in unique_sources:
                     fname = source[0]
-                    fname = construct_link(fname, source_path=RAG_SOURCE_PATH, base_url = RAG_BASE_URL)
-                    page = source[1] +1 if isinstance(source[1], int) else source[1]
+                    fname = construct_link(
+                        fname, source_path=RAG_SOURCE_PATH, base_url=RAG_BASE_URL
+                    )
+                    page = source[1] + 1 if isinstance(source[1], int) else source[1]
                     content = source[2]
                     question_score = source[3]
                     answer_score = source[4]
-                    st.markdown(f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score:.3f}", help=f'{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score:.3f})', 
-                                unsafe_allow_html=True)
+                    st.markdown(
+                        f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score:.3f}",
+                        help=f"{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score:.3f})",
+                        unsafe_allow_html=True,
+                    )
             elif "I don't know" not in answer:
-                st.warning('No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents '+\
-                           'and increases the likelihood of false information in the answer. ' +\
-                           'You should be more cautious when using this answer.')
+                st.warning(
+                    "No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents "
+                    + "and increases the likelihood of false information in the answer. "
+                    + "You should be more cautious when using this answer."
+                )
     else:
-        prompt = st.text_area('Submit a Prompt to the LLM:', '', height=100, placeholder=DEFAULT_PROMPT,
-                               help="Tip: If you don't like the response quality after pressing 'Submit', try pressing the button a second time. "
-                                    "You can also try re-phrasing the prompt.")
+        prompt = st.text_area(
+            "Submit a Prompt to the LLM:",
+            "",
+            height=100,
+            placeholder=DEFAULT_PROMPT,
+            help="Tip: If you don't like the response quality after pressing 'Submit', try pressing the button a second time. "
+            "You can also try re-phrasing the prompt.",
+        )
         submit_button = st.button("Submit")
-        st.markdown('*Examples of using prompts to solve different problems are [here](https://amaiya.github.io/onprem/examples.html).*')
-        st.markdown('---')
+        st.markdown(
+            "*Examples of using prompts to solve different problems are [here](https://amaiya.github.io/onprem/examples.html).*"
+        )
+        st.markdown("---")
         llm = setup_llm()
         if prompt and submit_button:
             print(prompt)

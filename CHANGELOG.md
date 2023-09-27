@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Include `prompt_template` variable in YAML (#32)
+- Use `black` formatting
 
 ### fixed:
 - N/A
