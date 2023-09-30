@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Remove pin for `llama-cpp-python` so latest is always used (#33)
 
 ### fixed:
 - N/A
