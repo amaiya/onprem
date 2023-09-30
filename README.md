@@ -37,8 +37,9 @@ issues with
 installation.
 
 **Note:** The `pip install onprem` command will install PyTorch and
-llama-cpp-python automatically if not already installed, but not in a
-way that is optimized for your system (e.g., with GPU support).
+llama-cpp-python automatically if not already installed, but we
+recommend visting the links above to install these packages in a way
+that is optimized for your system (e.g., with GPU support).
 
 ## How to Use
 
