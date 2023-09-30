@@ -21,8 +21,9 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 ## Install
 
 Once you have [installed
-PyTorch](https://pytorch.org/get-started/locally/), you can install
-**OnPrem.LLM** with:
+PyTorch](https://pytorch.org/get-started/locally/) and [installed
+llama-cpp-python](https://python.langchain.com/docs/integrations/llms/llamacpp#installation),
+you can install **OnPrem.LLM** with:
 
 ``` sh
 pip install onprem
@@ -34,6 +35,10 @@ See [the FAQ](https://amaiya.github.io/onprem/#faq), if you experience
 issues with
 [llama-cpp-python](https://pypi.org/project/llama-cpp-python/)
 installation.
+
+**Note:** The `pip install onprem` command will install PyTorch and
+llama-cpp-python automatically if not already installed, but not in a
+way that is optimized for your system (e.g., with GPU support).
 
 ## How to Use
 
