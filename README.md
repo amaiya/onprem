@@ -393,5 +393,6 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > `llama-cpp-python`:
 
     > ``` sh
-    > CMAKE_ARGS="-DLLAMA_OPENBLAS=ON -DLLAMA_AVX2=OFF -DLLAMA_AVX=OFF -DLLAMA_F16C=OFF -DLLAMA_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
+    > # example
+    > CMAKE_ARGS="-DLLAMA_CUBLAS=ON -DLLAMA_AVX2=OFF -DLLAMA_AVX=OFF -DLLAMA_F16C=OFF -DLLAMA_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
     > ```
