@@ -59,7 +59,7 @@ class LLM:
         rag_num_source_docs: int = 4,
         rag_score_threshold: float = 0.0,
         confirm: bool = True,
-        verbose: bool = False,
+        verbose: bool = True,
         **kwargs,
     ):
         """

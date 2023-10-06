@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.28 (development)
+## 0.0.28 (2023-10-06)
 
 ### new:
 - N/A
@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- Changed default value for `verbose` in `LLM` from False to True due to `llama-cpp-python` bug (#37)
 
 
 ## 0.0.27 (2023-09-30)
