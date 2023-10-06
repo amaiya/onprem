@@ -7,8 +7,8 @@ website:
       - 02_utils.ipynb
       - section: Examples
         contents:
-        - 03_examples.ipynb
-        - 03b_examples_rag.ipynb
-        - 03c_examples_code.ipynb
-        - 03d_examples_semantic.ipynb
-        - 03z_webapp.ipynb
+        - 99a_examples.ipynb
+        - 99b_examples_rag.ipynb
+        - 99c_examples_code.ipynb
+        - 99d_examples_semantic.ipynb
+        - 99z_webapp.ipynb
