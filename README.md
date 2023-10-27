@@ -257,7 +257,7 @@ onprem --port 8000
 Then, enter `localhost:8000` (or `<domain_name>:8000` if running on
 remote server) in a Web browser to access the application:
 
-<img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/onprem_screenshot.png" border="1" alt="screenshot" width="800"/>
+<img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/onprem_screenshot.png" border="1" alt="screenshot" width="775"/>
 
 For more information, [see the corresponding
 documentation](https://amaiya.github.io/onprem/webapp.html).
@@ -314,6 +314,11 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > the older GGML format. You can find llama.cpp-supported models
     > with `GGUF` in the file name on
     > [huggingface.co](https://huggingface.co/models?sort=trending&search=gguf).
+
+    > Make sure you are pointing to the URL of the actual GGUF model
+    > file, which is the “download” link on the model’s page:
+
+    > <img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/model_download_link.png" border="1" alt="screenshot" width="775"/>
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
     trying to download the model?**

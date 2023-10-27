@@ -137,10 +137,12 @@ class LLM:
         - *ssl_verify*: If True, SSL certificates are verified.
                         You can set to False if corporate firewall gives you problems.
         """
+        if 'https://huggingface.co' in model_url and 'resolve' not in model_url:
+            warnings.warn('\n\nThe supplied URL may not be pointing to the actual GGUF model file.  Please check it.\n\n')
         datadir = model_download_path or U.get_datadir()
         model_name = os.path.basename(model_url)
         filename = os.path.join(datadir, model_name)
-        confirm_msg = f"You are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"
+        confirm_msg = f"\nYou are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"
         if os.path.isfile(filename):
             confirm_msg = f"There is already a file {model_name} in {datadir}.\n Do you want to still download it?"
 
