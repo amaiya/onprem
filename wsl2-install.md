@@ -22,6 +22,6 @@ Steps to Install onprem with GPU on WSL2
 11. Created another venv that inherits the system site packages, then repeated
     steps 8-10. It works!
 
-The question remains. Did I really need to install the lambda stack? I didn't
+The question remains: Did I really need to install the lambda stack? I didn't
 snapshot the system before doing that, so I will have to repeat steps 1-9,
 making sure in step 5 to inherit system site packages.
