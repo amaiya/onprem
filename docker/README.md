@@ -56,11 +56,16 @@ How to Run onprem in a Docker Container
 
    ```shell
    $ sudo docker run --rm -it --gpus=all --cap-add SYS_RESOURCE -e USE_MLOCK=0 \
-         -v ~/onprem_data:/home/root/onprem_data cuda_simple
+       -v ~/onprem_data:/root/onprem_data onprem_cuda
    >>> from onprem import LLM
    >>> llm = LLM(n_gpu_layers=35)
    … et cetera …
    ```
+
+You may use additional `-v` options to specify mapping a host folder to a folder
+on the container if, e.g., you have a script utilizing *onprem* that you want
+to execute. The *onprem_cuda* image does not include any facility for running
+Jupyter notebooks.
 
 If you wish to run the Streamlit application from the container, this command
 will launch it on a given port, mapping that port to be accessible from the
@@ -68,6 +73,6 @@ host:
 
 ```shell
 $ sudo docker run --gpus=all --cap-add SYS_RESOURCE -e USE_MLOCK=0 \
-    -v ~/onprem_data:/home/root/onprem_data -p 8000:8000 cuda_simple \
+    -v ~/onprem_data:/root/onprem_data -p 8000:8000 onprem_cuda \
     onprem --port 8000
 ```
