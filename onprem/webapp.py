@@ -77,7 +77,8 @@ def load_llm():
         llm = LLM(confirm=False, **llm_config)
         success = True
     except RuntimeError:
-        print("Will try to replace built-in sqlite3 with pysqlite3", file=sys.stderr)
+        print("Will try to replace built-in sqlite3 with pysqlite3 (recc. pip install pysqlite3-binary)",
+              file=sys.stderr)
     if not success:
         import importlib
 
