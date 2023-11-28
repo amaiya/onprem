@@ -71,17 +71,13 @@ def read_config():
 
 @st.cache_resource
 def load_llm():
-    success = False
     llm_config = read_config()[0]["llm"]
     try:
         llm = LLM(confirm=False, **llm_config)
-        success = True
     except RuntimeError:
         print("Will try to replace built-in sqlite3 with pysqlite3 (recc. pip install pysqlite3-binary)",
               file=sys.stderr)
-    if not success:
         import importlib
-
         importlib.import_module("pysqlite3")
         sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
         llm = LLM(confirm=False, **llm_config)
