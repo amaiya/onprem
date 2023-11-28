@@ -78,7 +78,10 @@ def load_llm():
         print("Will try to replace built-in sqlite3 with pysqlite3 (recc. pip install pysqlite3-binary)",
               file=sys.stderr)
         import importlib
-        importlib.import_module("pysqlite3")
+        try:
+            importlib.import_module("pysqlite3")
+        except:
+            raise  # We really are in trouble, so just re-raise the exception.
         sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
         llm = LLM(confirm=False, **llm_config)
     return llm
