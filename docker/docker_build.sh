@@ -37,5 +37,5 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Change to the script's directory
 cd "$script_dir"
 
-docker build -t cuda_simple:$suffix -f Dockerfile-cuda_simple-$suffix .
+docker build -t cuda_simple:$suffix -f Dockerfile-cuda_simple-$suffix ..
 docker build -t onprem_cuda:$suffix -f Dockerfile-$suffix ..

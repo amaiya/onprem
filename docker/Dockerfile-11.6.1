@@ -1,4 +1,5 @@
 FROM cuda_simple:11.6.1
 RUN python3 -m pip install pysqlite3-binary streamlit
 RUN python3 -m pip install -e .
+COPY docker/replace_sqlite3.py replace_sqlite3.py
 CMD python3
