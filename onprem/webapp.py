@@ -1,6 +1,5 @@
 import os, yaml
 import numpy as np
-import sys
 from pathlib import Path
 import mimetypes
 import streamlit as st
@@ -72,19 +71,7 @@ def read_config():
 @st.cache_resource
 def load_llm():
     llm_config = read_config()[0]["llm"]
-    try:
-        llm = LLM(confirm=False, **llm_config)
-    except RuntimeError:
-        print("Will try to replace built-in sqlite3 with pysqlite3 (recc. pip install pysqlite3-binary)",
-              file=sys.stderr)
-        import importlib
-        try:
-            importlib.import_module("pysqlite3")
-        except:
-            raise  # We really are in trouble, so just re-raise the exception.
-        sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
-        llm = LLM(confirm=False, **llm_config)
-    return llm
+    return LLM(confirm=False, **llm_config)
 
 
 @st.cache_resource
