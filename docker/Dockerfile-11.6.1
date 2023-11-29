@@ -1,3 +1,4 @@
 FROM cuda_simple:11.6.1
-RUN python3 -m pip install pysqlite3-binary onprem streamlit
+RUN python3 -m pip install pysqlite3-binary streamlit
+RUN python3 -m pip install -e .
 CMD python3
