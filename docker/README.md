@@ -76,3 +76,16 @@ $ sudo docker run --gpus=all --cap-add SYS_RESOURCE -e USE_MLOCK=0 \
     -v ~/onprem_data:/root/onprem_data -p 8000:8000 onprem_cuda \
     onprem --port 8000
 ```
+
+If *~/onprem_data/webapp.yml* already exists on your host machine, referring to host
+paths under the `llm` key, you may need to modify the `llm.vectordb_path` and
+`lm_model_download_path` keys as follows:
+
+```yaml
+vectordb_path: /root/onprem_data/vectordb
+model_download_path: /root/onprem_data
+```
+
+If you wish to use the corpus query feature, you will need to define an additional volume
+mapping the folders defined by `ui.reg_text_path` and `ui.rag_source_path` to, e.g.,
+*/root/text-docs* and */root/raw-docs* in the container.
