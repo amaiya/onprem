@@ -1,5 +1,4 @@
 # Copied from https://github.com/abetlen/llama-cpp-python/blob/22917989003c5e67623d54ab45affa1e0e475410/docker/cuda_simple/Dockerfile
-ARG CUDA_IMAGE="12.1.1-devel-ubuntu22.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 
 # We need to set the host to 0.0.0.0 to allow outside access

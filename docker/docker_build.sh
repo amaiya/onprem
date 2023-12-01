@@ -47,12 +47,13 @@ then
 fi
 
 # Set the suffix of the Dockerfile to use
-suffix="12.3.0"
+tag="12.3.0"
 if [ "$cuda_version" -eq 11 ]; then
-    suffix="11.8.0"
+    tag="11.8.0"
 fi
+cuda_image=${tag}-devel-ubuntu22.04
 
 echo "Building the CUDA ${suffix} container image."
-docker build --build-arg CUDA_IMAGE=$suffix -t onprem_cuda:$suffix -f Dockerfile-cuda ..
+docker build --build-arg CUDA_IMAGE=$cuda_image -t onprem_cuda:$tag -f Dockerfile-cuda ..
 
 build_cpu_image
