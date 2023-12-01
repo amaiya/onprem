@@ -26,6 +26,7 @@ fi
 
 # Are we building CUDA 12 or CUDA 11?
 cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)*" | grep -P -o "\d+" | head -n 1`
+echo "Detected driver supporting CUDA ${cuda_version}."
 if [ "$cuda_version" -ne 11 ] && [ "$cuda_vesion" -ne 12 ]
 then
     print_guide
@@ -36,7 +37,7 @@ suffix="12.1.1"
 if [ "$cuda_version" -eq 11 ]; then
     suffix="11.6.1"
 fi
-
+echo "Building the CUDA ${suffix} container images."
 
 # Get the directory of the script
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
