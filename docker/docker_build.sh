@@ -20,7 +20,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$script_dir"
 
 function build_cpu_image() {
-    echo "Building the CPU-only image."
+    echo "Building the CPU-only image, called onprem:cpu."
     docker build -t onprem:cpu -f Dockerfile-cpu ..
 }
 
@@ -53,7 +53,7 @@ if [ "$cuda_version" -eq 11 ]; then
 fi
 cuda_image=${tag}-devel-ubuntu22.04
 
-echo "Building onprem:$tag based on nvidia/cuda:$cuda_image"
+echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image"
 docker build --build-arg CUDA_IMAGE=$cuda_image -t onprem_cuda:$tag -f Dockerfile-cuda ..
 
 build_cpu_image
