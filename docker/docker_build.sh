@@ -53,7 +53,7 @@ if [ "$cuda_version" -eq 11 ]; then
 fi
 cuda_image=${tag}-devel-ubuntu22.04
 
-echo "Building the CUDA ${suffix} container image."
+echo "Building onprem:$tag based on nvidia/cuda:$cuda_image"
 docker build --build-arg CUDA_IMAGE=$cuda_image -t onprem_cuda:$tag -f Dockerfile-cuda ..
 
 build_cpu_image
