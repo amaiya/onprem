@@ -1,5 +1,5 @@
 # Copied from https://github.com/abetlen/llama-cpp-python/blob/22917989003c5e67623d54ab45affa1e0e475410/docker/cuda_simple/Dockerfile
-ARG CUDA_IMAGE="11.6.1-devel-ubuntu20.04"
+ARG CUDA_IMAGE="12.1.1-devel-ubuntu22.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 
 # We need to set the host to 0.0.0.0 to allow outside access
@@ -9,7 +9,7 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y git build-essential \
     python3 python3-pip gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
-    libopenblas-dev \
+    libclblast-dev libopenblas-dev \
     && mkdir -p /etc/OpenCL/vendors \
     && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
@@ -28,5 +28,9 @@ RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
 # Copy the context in
 COPY . .
 
-# Run the server
-CMD python3 -m llama_cpp.server
+# Install Streamlit, then onprem from local context
+RUN python3 -m pip install streamlit
+RUN python3 -m pip install .
+
+# Default to launching into the REPL
+CMD python3

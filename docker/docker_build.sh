@@ -47,13 +47,12 @@ then
 fi
 
 # Set the suffix of the Dockerfile to use
-suffix="12.1.1"
+suffix="12.3.0"
 if [ "$cuda_version" -eq 11 ]; then
-    suffix="11.6.1"
+    suffix="11.8.0"
 fi
 
-echo "Building the CUDA ${suffix} container images."
-docker build -t cuda_simple:$suffix -f Dockerfile-cuda_simple-$suffix ..
-docker build -t onprem_cuda:$suffix -f Dockerfile-$suffix ..
+echo "Building the CUDA ${suffix} container image."
+docker build --build-arg CUDA_IMAGE=$suffix -t onprem_cuda:$suffix -f Dockerfile-cuda ..
 
 build_cpu_image
