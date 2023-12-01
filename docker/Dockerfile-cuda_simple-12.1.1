@@ -13,8 +13,6 @@ RUN apt-get update && apt-get upgrade -y \
     && mkdir -p /etc/OpenCL/vendors \
     && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
-COPY . .
-
 # setting build related env vars
 ENV CUDA_DOCKER_ARCH=all
 ENV LLAMA_CUBLAS=1
@@ -26,6 +24,9 @@ RUN python3 -m pip install --upgrade pytest cmake scikit-build fastapi uvicorn \
 
 # Install llama-cpp-python (build with cuda)
 RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
+
+# Copy the context in
+COPY . .
 
 # Run the server
 CMD python3 -m llama_cpp.server
