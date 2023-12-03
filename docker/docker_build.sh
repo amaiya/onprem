@@ -35,22 +35,10 @@ then
   exit
 fi
 
-# Are we building CUDA 12 or CUDA 11?
-cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)+" | grep -P -o "\d+(\.\d+)+" | head -n 1`
-echo "Detected driver supporting CUDA ${cuda_version}."
-if [ "$cuda_version" -ne 11 ] && [ "$cuda_vesion" -ne 12 ]
-then
-    echo "This script can only build CUDA images for CUDA 11 or 12. Don't"
-    echo "worry! I'll still build you a cpu-only image."
-    build_cpu_image
-    exit
-fi
-
-# Set the suffix of the Dockerfile to use
-tag="12.3.0"
-if [ "$cuda_version" -eq 11 ]; then
-    tag="11.8.0"
-fi
+# Get device CUDA version, and find a supporting image tag
+cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)+" | grep -P -o "\d+(\.\d+)+"`
+echo "Detected driver supporting CUDA Version ${cuda_version}"
+tag=`get_cuda_image_tag ${cuda_version}`
 cuda_image=${tag}-devel-ubuntu22.04
 
 echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image"
