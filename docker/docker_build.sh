@@ -36,7 +36,7 @@ then
 fi
 
 # Are we building CUDA 12 or CUDA 11?
-cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)*" | grep -P -o "\d+" | head -n 1`
+cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)+" | grep -P -o "\d+(\.\d+)+" | head -n 1`
 echo "Detected driver supporting CUDA ${cuda_version}."
 if [ "$cuda_version" -ne 11 ] && [ "$cuda_vesion" -ne 12 ]
 then
