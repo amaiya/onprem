@@ -26,7 +26,7 @@ def main(cuda_version: str):
         print(
             "The supported versions change over time. Search nvidia-cuda\n"
             "tags for devel-ubuntu22 to see if the latest matches those stored\n"
-            "in this script.",
+            "in this script. Feel free to submit a pull request with what you find!",
             file=stderr,
         )
         exit(1)

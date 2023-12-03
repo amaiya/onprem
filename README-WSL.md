@@ -13,8 +13,8 @@ First, Install Ubuntu 22.04 WSL Instance
 This is quite simple to do. At a command prompt: `wsl --install -d Ubuntu-22.04`
 
 Ubuntu 22.04 is a preference of the author, not a requirement. Almost any instance
-type with a modern enough Python version will work just fine. The NVIDIA GPU
-section below has only been tried on an Ubuntu 22.04 instance though.
+type with a modern enough Python version will work just fine. However, the
+NVIDIA GPU section below has only been tested on Ubuntu 22.04 instances.
 
 Once the environment started for the first time, WSL works just like a native
 Ubuntu installation. If you have an NVIDIA device supporting CUDA, you can even
