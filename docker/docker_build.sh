@@ -38,7 +38,7 @@ fi
 # Get device CUDA version, and find a supporting image tag
 cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)+" | grep -P -o "\d+(\.\d+)+"`
 echo "Detected driver supporting CUDA Version ${cuda_version}"
-tag=`get_cuda_image_tag ${cuda_version}`
+tag=`./get_cuda_image_tag ${cuda_version}`
 cuda_image=${tag}-devel-ubuntu22.04
 
 echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image"
