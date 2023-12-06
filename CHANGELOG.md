@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- progress bar for embeddings creation (#46)
 
 ### fixed:
 - Added `python-docx` as dependency (#43)

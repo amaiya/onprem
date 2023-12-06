@@ -38,6 +38,7 @@ from . import utils as U
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
 COLLECTION_NAME = "onprem_chroma"
+CHROMA_MAX = 41000
 
 # %% ../nbs/01_ingest.ipynb 4
 class MyElmLoader(UnstructuredEmailLoader):
@@ -165,6 +166,13 @@ def does_vectorstore_exist(db) -> bool:
         return False
     return True
 
+
+def batchify_chunks(texts):
+    split_docs_chunked = U.split_list(texts, CHROMA_MAX)
+    total_chunks = sum(1 for _ in U.split_list(texts, CHROMA_MAX))
+    return split_docs_chunked, total_chunks
+
+
 # %% ../nbs/01_ingest.ipynb 6
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 from .utils import get_datadir
@@ -270,8 +278,8 @@ class Ingester:
             )
             if texts:
                 print(f"Creating embeddings. May take some minutes...")
-                split_docs_chunked = U.split_list(texts, 41000)  # chroma max
-                for lst in split_docs_chunked:
+                chunk_batches, total_chunks = batchify_chunks(texts)
+                for lst in tqdm(chunk_batches, total=total_chunks):
                     db.add_documents(lst)
         else:
             # Create and store locally vectorstore
@@ -281,10 +289,11 @@ class Ingester:
             )
 
             if texts:
-                split_docs_chunked = U.split_list(texts, 41000)  # chroma max
+                chunk_batches, total_chunks = batchify_chunks(texts)
                 print(f"Creating embeddings. May take some minutes...")
                 db = None
-                for lst in split_docs_chunked:
+
+                for lst in tqdm(chunk_batches, total=total_chunks):
                     if not db:
                         db = Chroma.from_documents(
                             lst,
