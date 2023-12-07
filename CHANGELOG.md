@@ -13,9 +13,11 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - progress bar for embeddings creation (#46)
+- Support model-specific prompt templates in `LLM.ask` method (#47)
 
 ### fixed:
 - Added `python-docx` as dependency (#43)
+- Pass `prompt_template` to `ask` method in Web app (#47)
 
 
 ## 0.0.29 (2023-10-27)

@@ -304,19 +304,22 @@ class LLM:
             )
         return self.chatqa
 
-    def ask(self, question: str, prompt_template=DEFAULT_QA_PROMPT):
+    def ask(self, question: str, qa_template=DEFAULT_QA_PROMPT, prompt_template=None):
         """
         Answer a question based on source documents fed to the `ingest` method.
 
         **Args:**
 
         - *question*: a question you want to ask
-        - *prompt_template*: A string representing the prompt with variables "context" and "question"
+        - *qa_template*: A string representing the prompt with variables "context" and "question"
+        - *prompt_template*: the model-specific template in which everything (including QA template) should be wrapped.
+                            hould have a single variable "{prompt}".
 
         **Returns:**
 
         - A dictionary with keys: `answer`, `source_documents`, `question`
         """
+        prompt_template = qa_template if prompt_template is None else prompt_template.format(**{'prompt': qa_template})
         qa = self.load_qa(prompt_template=prompt_template)
         res = qa(question)
         res["question"] = res["query"]

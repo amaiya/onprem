@@ -210,8 +210,9 @@ def main():
 
         if question and ask_button:
             question = question + " " + APPEND_TO_PROMPT
-            print(question)
-            result = llm.ask(question)
+            print(f'question : {question}')
+            print(f'prompt_template: {PROMPT_TEMPLATE}')
+            result = llm.ask(question, prompt_template=PROMPT_TEMPLATE)
             answer = result["answer"]
             docs = result["source_documents"]
             unique_sources = set()

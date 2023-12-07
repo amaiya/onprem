@@ -271,13 +271,16 @@ LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
 for installing `llama-cpp-python` with GPU support for your system.
 
 The steps below describe installing and using `llama-cpp-python` with
-`cuBLAS` support and can be employed for GPU acceleration on Linux and
-Google Colab, for example.
+`cuBLAS` support and can be employed for GPU acceleration on systems
+with NVIDIA GPUs (e.g., Linux, WSL2, Google Colab).
 
 #### Step 1: Install `llama-cpp-python` with cuBLAS support
 
 ``` shell
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+
+# For Mac users replace above with:
+# CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 ```
 
 #### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
@@ -316,9 +319,29 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > [huggingface.co](https://huggingface.co/models?sort=trending&search=gguf).
 
     > Make sure you are pointing to the URL of the actual GGUF model
-    > file, which is the “download” link on the model’s page:
+    > file, which is the “download” link on the model’s page. An example
+    > for **Mistral-7B** is shown below:
 
     > <img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/model_download_link.png" border="1" alt="screenshot" width="775"/>
+
+    > Note that some models have specific prompts. For instance, the
+    > prompt template required for **Zephyr-7B**, as described on the
+    > [model’s
+    > page](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF), is:
+    >
+    > `<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>`
+    >
+    > So, to use the Zephyr-7B model, you must supply the
+    > `prompt_template` argument to methods like `LLM.ask` and
+    > `LLM.prompt` (or specify it in the `webapp.yml` for for the Web
+    > app).
+    >
+    > ``` python
+    > # how to use Zephyr-7B with OnPrem.LLM
+    > llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf')
+    >  prompt_template = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>"
+    >  llm.prompt("List three cute names for a cat.", prompt_template=prompt_template)
+    > ```
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
     trying to download the model?**
