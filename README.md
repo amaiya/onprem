@@ -333,8 +333,8 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     >
     > So, to use the Zephyr-7B model, you must supply the
     > `prompt_template` argument to methods like `LLM.ask` and
-    > `LLM.prompt` (or specify it in the `webapp.yml` for for the Web
-    > app).
+    > `LLM.prompt` (or specify it in the `webapp.yml` configuration for
+    > the Web app).
     >
     > ``` python
     > # how to use Zephyr-7B with OnPrem.LLM
