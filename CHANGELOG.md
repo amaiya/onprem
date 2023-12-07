@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Added `python-docx` as dependency (#43)
+- Added `python-pptx` as dependency (#44)
 - Pass `prompt_template` to `ask` method in Web app (#47)
 - Skip file beginning with '~$' in `LLM.ingest` (#45)
 
