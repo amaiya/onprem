@@ -52,7 +52,8 @@ case "$cuda_image" in
     ;;
 esac
 
-echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image"
+echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image and using"
+echo "$torch_index_url for the torch packages"
 docker build --build-arg CUDA_IMAGE=$cuda_image \
   --build-arg TORCH_INDEX_URL=$torch_index_url -t onprem_cuda:$tag \
   -f Dockerfile-cuda ..
