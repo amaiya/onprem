@@ -22,8 +22,8 @@ RUN python3 -m pip install --upgrade pip wheel setuptools
 ARG TORCH_INDEX_URL
 RUN python3 -m pip install torch torchvision torchaudio \
   --index-url ${TORCH_INDEX_URL}
-# RUN python3 -m pip install --upgrade pytest cmake scikit-build fastapi uvicorn \
-#   sse-starlette pydantic-settings starlette-context
+RUN python3 -m pip install --upgrade pytest cmake scikit-build fastapi uvicorn \
+  sse-starlette pydantic-settings starlette-context
 
 # Install llama-cpp-python (build with cuda)
 RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
