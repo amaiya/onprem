@@ -35,13 +35,26 @@ then
   exit
 fi
 
-# Get device CUDA version, and find a supporting image tag
+# Get device CUDA version, and find a supporting image tag, and Torch package index
 cuda_version=`nvidia-smi | grep -P -o "CUDA Version: \d+(\.\d+)+" | grep -P -o "\d+(\.\d+)+"`
 echo "Detected driver supporting CUDA Version ${cuda_version}"
 tag=`./get_cuda_image_tag ${cuda_version}`
 cuda_image=${tag}-devel-ubuntu22.04
+case "$cuda_image" in
+  "12"*)
+    torch_index_url=https://pypi.org/pypi
+    ;;
+  "11.8"*)
+    torch_index_url=https://download.pytorch.org/whl/cu118
+    ;;
+  "11.7"*)
+    torch_index_url=https://download.pytorch.org/whl/cu117
+    ;;
+esac
 
 echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image"
-docker build --build-arg CUDA_IMAGE=$cuda_image -t onprem_cuda:$tag -f Dockerfile-cuda ..
+docker build --build-arg CUDA_IMAGE=$cuda_image \
+  --build-arg TORCH_INDEX_URL=$torch_index_url -t onprem_cuda:$tag \
+  -f Dockerfile-cuda ..
 
 build_cpu_image
