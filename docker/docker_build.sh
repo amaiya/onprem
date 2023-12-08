@@ -50,6 +50,11 @@ case "$cuda_image" in
   "11.7"*)
     torch_index_url=https://download.pytorch.org/whl/cu117
     ;;
+  *)
+    echo "I don't know which package index to use for PyTorch with $cuda_image"
+    build_cpu_image
+    exit
+    ;;
 esac
 
 echo "Building onprem_cuda:$tag based on nvidia/cuda:$cuda_image and using"
