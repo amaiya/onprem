@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- Upgrades to all dependencies
+- Upgrades to all dependencies, but pin `chromadb==0.4.15` to retain compatibilitiy with older langchain
 
 ### fixed:
 - N/A
