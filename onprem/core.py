@@ -106,6 +106,7 @@ class LLM:
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
         self.n_batch = n_batch
+        self.mute_stream = mute_stream
         self.callbacks = [] if mute_stream else [StreamingStdOutCallbackHandler()]
         if callbacks:
             self.callbacks.extend(callbacks)

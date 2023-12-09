@@ -161,8 +161,8 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/juanjgit/orca_mini_3B-GGUF/resolve/main/orca-mini-3b.q4_0.gguf",
-        help=("URL of model. Default is a URL to orca-mini-3b.q4_0.gguf."),
+        default="https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGUF/resolve/main/Wizard-Vicuna-7B-Uncensored.Q4_K_M.gguf",
+        help=("URL of model. Default is a URL to Wizard-Vicuna-7B-Uncensored."),
     )
 
     args = parser.parse_args()

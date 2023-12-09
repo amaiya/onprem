@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.0.31 (TBD)
+
+### new:
+- The `guider` module, a simplistic interface to Guidance
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
 ## 0.0.30 (2023-12-07)
 
 ### new:
