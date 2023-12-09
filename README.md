@@ -187,13 +187,14 @@ guider = Guider(llm)
 ```
 
 ``` python
+# create the Guider instance
 from onprem.guider import Guider
 from guidance import gen, select
 guider = Guider(llm)
 
+# this is a function that generates a Guidance prompt that will be fed to Guider
 sample_weapons = ["sword", "axe", "mace", "spear", "bow", "crossbow"]
 sample_armour = ["leather", "chainmail", "plate"]
-
 def generate_character_prompt(
     character_one_liner,
     weapons: list[str] = sample_weapons,
@@ -221,6 +222,7 @@ def generate_character_prompt(
 ```
 
 ``` python
+# feed prompt to Guider and extract JSON
 import json
 d = guider.prompt(generate_character_prompt("A quick and nimble fighter"), echo=False)
 print('Generated JSON:')
