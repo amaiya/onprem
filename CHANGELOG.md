@@ -6,10 +6,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.31 (TBD)
+## 0.0.31 (2023-12-09)
 
 ### new:
-- The `guider` module, a simplistic interface to Guidance
+- The `guider` module, a simplistic interface to [Guidance](https://github.com/guidance-ai/guidance) (#34)
 
 ### changed
 - N/A
