@@ -49,7 +49,7 @@ class LLM:
         model_download_path: Optional[str] = None,
         vectordb_path: Optional[str] = None,
         max_tokens: int = 512,
-        n_ctx: int = 2048,
+        n_ctx: int = 3900,
         n_batch: int = 1024,
         mute_stream: bool = False,
         callbacks=[],
@@ -75,7 +75,7 @@ class LLM:
         - *vectordb_path*: Path to vector database (created if it doesn't exist).
                            Default is `onprem_data/vectordb` in user's home directory.
         - *max_tokens*: The maximum number of tokens to generate.
-        - *n_ctx*: Token context window.
+        - *n_ctx*: Token context window. (Llama2 models have max of 4096.)
         - *n_batch*: Number of tokens to process in parallel.
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *callbacks*: Callbacks to supply model

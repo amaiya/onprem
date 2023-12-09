@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Upgrades to all dependencies, but pin `chromadb==0.4.15` to retain compatibilitiy with older langchain
+- Default `n_ctx` (context window) changed to 3900
 
 ### fixed:
 - N/A
