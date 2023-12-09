@@ -222,26 +222,24 @@ def generate_character_prompt(
 
 ``` python
 import json
-d = guider.prompt(generate_character_prompt("A quick and nimble fighter"))
+d = guider.prompt(generate_character_prompt("A quick and nimble fighter"), echo=False)
 print('Generated JSON:')
 print(json.dumps(d, indent=4))
 ```
 
-<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>{&quot;description&quot; : &quot;A quick and nimble fighter&quot;,&quot;name&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>R</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ap</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>id</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> St</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ri</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ker</span>&quot;,&quot;age&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> </span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>2</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>5</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,&quot;</span>armour&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>le</span>ather&quot;,&quot;weapon&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>spe</span>ar&quot;,&quot;class&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>fig</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>h</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ter</span>&quot;,&quot;mantra&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>I</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> am</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> swift</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> and</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> dead</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ly</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>.</span>&quot;,&quot;strength&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> </span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>8</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,&quot;</span>quest_items&quot; : [<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>I</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ron</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> In</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>got</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>&quot;,&quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>Le</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ather</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> St</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>rap</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>&quot;,&quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>Sh</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>arp</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> Stone</span>&quot;]<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>}</span></pre>
-
     Generated JSON:
     {
         "items": [
-            "Sharp Stone",
-            "Leather Strap",
-            "Iron Ingot"
+            "Quest Item 3",
+            "Quest Item 2",
+            "Quest Item 1"
         ],
-        "age": "18",
-        "mantra": "I am swift and deadly.",
+        "age": "10",
+        "mantra": "I am the blade of justice.",
         "character_class": "fighter",
-        "weapon": "spear",
+        "weapon": "sword",
         "armour": "leather",
-        "character_name": "Rapid Striker"
+        "character_name": "Katana"
     }
 
 #### Using Regular Expressions to Control LLM Generation
@@ -250,11 +248,8 @@ print(json.dumps(d, indent=4))
 prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
 Answer: """ + gen(name='answer', regex='\d+')
 
-guider.prompt(prompt)
+guider.prompt(prompt, echo=False)
 ```
-
-<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
-Answer:<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> </span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>7</span></pre>
 
     {'answer': '7'}
 

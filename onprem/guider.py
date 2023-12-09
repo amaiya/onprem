@@ -24,10 +24,9 @@ class Guider:
 
         """
         self.llm = llm
-        self.model = models.LlamaCpp(self.llm.llm.client, echo=not self.llm.mute_stream) 
 
 
-    def prompt(self, guidance_program: str or guidance._grammar.Join):
+    def prompt(self, guidance_program: str or guidance._grammar.Join, echo=True):
         """
         A guided prompt. Input is a [Guidance program](https://github.com/guidance-ai/guidance) (`guidance>=0.1.0`) 
         that specifies constraints and conditions on the output for the prompt.
@@ -35,10 +34,12 @@ class Guider:
         **Args:**
 
         - *guidance_program*: A Guidance program (`>=0.1.0`) in the form a string or a `guidance._grammar.Join` object
+        - *echo*: If True, echo highlighted output in Jupyter notebook. Set `echo=False` if running stand-alone script.
 
         **Returns:**
 
         - A dictionary with keys specified in the Guidance program and values containing the model outputs
         """
-        output = self.model + guidance_program
+        model = models.LlamaCpp(self.llm.llm.client, echo=echo) 
+        output = model + guidance_program
         return output._variables
