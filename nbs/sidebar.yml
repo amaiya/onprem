@@ -11,4 +11,5 @@ website:
         - 99b_examples_rag.ipynb
         - 99c_examples_code.ipynb
         - 99d_examples_semantic.ipynb
+        - 99e_examples_guided_prompts.ipynb
         - 99z_webapp.ipynb
