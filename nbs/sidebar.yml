@@ -5,6 +5,7 @@ website:
       - 00_core.ipynb
       - 01_ingest.ipynb
       - 02_utils.ipynb
+      - 03_guider.ipynb
       - section: Examples
         contents:
         - 99a_examples.ipynb

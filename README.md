@@ -165,6 +165,111 @@ for i, document in enumerate(result["source_documents"]):
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
 
+### Guided Prompts
+
+You can use **OnPrem.LLM** with the
+[Guidance](https://github.com/guidance-ai/guidance) package to guide the
+LLM to generate outputs based on your conditions and constraints. We’ll
+show a couple of examples here, but see [our documentation on guided
+prompts](https://amaiya.github.io/onprem/examples_guided_prompts.html)
+for more information.
+
+#### Structured Outputs with [`onprem.guider.Guider`](https://amaiya.github.io/onprem/guider.html#guider)
+
+Here, we’ll use a
+[`Guider`](https://amaiya.github.io/onprem/guider.html#guider)instance
+to generate fictional D&D-type characters that conform to the precise
+structure we want (i.e., JSON):
+
+``` python
+from onprem.guider import Guider
+guider = Guider(llm)
+```
+
+``` python
+from onprem.guider import Guider
+from guidance import gen, select
+guider = Guider(llm)
+
+sample_weapons = ["sword", "axe", "mace", "spear", "bow", "crossbow"]
+sample_armour = ["leather", "chainmail", "plate"]
+
+def generate_character_prompt(
+    character_one_liner,
+    weapons: list[str] = sample_weapons,
+    armour: list[str] = sample_armour,
+    n_items: int = 3
+):
+    prompt = ''
+    prompt += "{"
+    prompt += f'"description" : "{character_one_liner}",'
+    prompt += '"name" : "' + gen(name="character_name", stop='"') + '",'
+    prompt += '"age" : ' + gen(name="age", regex="[0-9]+") + ','
+    prompt += '"armour" : "' + select(armour, name="armour") + '",'
+    prompt += '"weapon" : "' + select(weapons, name="weapon") + '",'
+    prompt += '"class" : "' + gen(name="character_class", stop='"') + '",'
+    prompt += '"mantra" : "' + gen(name="mantra", stop='"') + '",'
+    prompt += '"strength" : ' + gen(name="age", regex="[0-9]+") + ','
+    prompt += '"quest_items" : [ '
+    for i in range(n_items):
+        prompt += '"' + gen(name="items", list_append=True, stop='"') + '"'  
+        if i < n_items - 1:
+            prompt += ','
+    prompt += "]"
+    prompt += "}"
+    return prompt
+```
+
+``` python
+import json
+d = guider.prompt(generate_character_prompt("A quick and nimble fighter"))
+print(json.dumps(d, indent=4))
+```
+
+<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>{&quot;description&quot; : &quot;A quick and nimble fighter&quot;,&quot;name&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>R</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ap</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>id</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> St</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ri</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ker</span>&quot;,&quot;age&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> </span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>2</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>5</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,&quot;</span>armour&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>le</span>ather&quot;,&quot;weapon&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>spe</span>ar&quot;,&quot;class&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>fig</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>h</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ter</span>&quot;,&quot;mantra&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>I</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> am</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> swift</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> and</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> dead</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ly</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>.</span>&quot;,&quot;strength&quot; :<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> </span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>8</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,&quot;</span>quest_items&quot; : [<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> &quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>I</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ron</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> Sh</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ield</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>&quot;,&quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>He</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>avy</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> Bo</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>ots</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>&quot;,&quot;</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>Long</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>s</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>word</span>&quot;]<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>}</span></pre>
+
+    {
+        "items": [
+            "Longsword",
+            "Heavy Boots",
+            "Iron Shield"
+        ],
+        "age": "18",
+        "mantra": "I am swift and deadly.",
+        "character_class": "fighter",
+        "weapon": "spear",
+        "armour": "leather",
+        "character_name": "Rapid Striker"
+    }
+
+#### Using Regular Expressions to Control LLM Generation
+
+``` python
+prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
+Answer: """ + gen(name='answer', regex='\d+')
+
+guider.prompt(prompt)
+```
+
+<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
+Answer:<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> </span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>7</span></pre>
+
+    {'answer': '7'}
+
+``` python
+prompt = '19, 18,' + gen(name='output', max_tokens=50, stop_regex='[^\d]7[^\d]')
+guider.prompt(prompt)
+```
+
+<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>19, 18<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>7</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>6</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>5</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>4</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>3</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>2</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>0</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 9</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 8</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span></pre>
+
+    {'output': ' 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,'}
+
+See [the
+documentation](https://amaiya.github.io/onprem/examples_guided_prompts.html)
+for more examples of how to use
+[Guidance](https://github.com/guidance-ai/guidance) with **OnPrem.LLM**.
+
 ### Text to Code Generation
 
 We’ll use the CodeUp LLM by supplying the URL and employing the
