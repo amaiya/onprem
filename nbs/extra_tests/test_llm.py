@@ -70,6 +70,18 @@ def test_rag(llm, **kwargs):
     shutil.rmtree(llm.vectordb_path)
     return
 
+def test_guider(llm, **kwargs):
+
+    from onprem.guider import Guider
+    guider = Guider(llm)
+
+    from guidance import select, gen
+
+    prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?  Answer: """ + gen('answer', regex='\d+')
+    result = guider.prompt(prompt)
+    print(result)
+    assert(int(result['answer']) == 7)
+
 
 def test_semantic(**kwargs):
     vectordb_path = tempfile.mkdtemp()
@@ -129,8 +141,12 @@ def run(**kwargs):
     n_gpu_layers = kwargs["gpu"]
     llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers)
 
+
     # prompt test
     test_prompt(llm, **kwargs)
+
+    # guided prompt test
+    test_guider(llm, **kwargs)
 
     # rag test
     test_rag(llm, **kwargs)
