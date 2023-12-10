@@ -83,6 +83,22 @@ def test_guider(llm, **kwargs):
     assert(int(result['answer']) == 7)
 
 
+def test_summarization(llm, **kwargs):
+
+    from onprem.pipelines import Summarizer
+    summ = Summarizer(llm)
+    from langchain.document_loaders import WebBaseLoader
+
+    loader = WebBaseLoader("https://lilianweng.github.io/posts/2023-06-23-agent/")
+    docs = loader.load()
+    with open('/tmp/blog.txt', 'w') as f:
+        f.write(docs[0].page_content)
+    text = summ.summarize('/tmp/blog.txt', max_chunks_to_use=1) 
+    print(text)
+    assert(len(text) > 0)
+
+
+
 def test_semantic(**kwargs):
     vectordb_path = tempfile.mkdtemp()
     url = kwargs["url"]
@@ -147,6 +163,9 @@ def run(**kwargs):
 
     # guided prompt test
     test_guider(llm, **kwargs)
+
+    # summarization test
+    test_summarization(llm, **kwargs)
 
     # rag test
     test_rag(llm, **kwargs)
