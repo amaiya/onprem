@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.32 (TBD)
 
 ### new:
-- N/A
+- Summarization pipeline (#35)
 
 ### changed
 - Upgrades to all dependencies, but pin `chromadb==0.4.15` to retain compatibilitiy with older langchain
