@@ -271,7 +271,7 @@ for more examples of how to use
 
 ### Summarization Pipeline
 
-Summarize your documents with an LLM.
+Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
 
 ``` python
 from onprem import LLM
