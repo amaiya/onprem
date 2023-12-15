@@ -119,6 +119,23 @@ class LLM:
         self.extra_kwargs = kwargs
         self.load_llm()
 
+
+    def update_max_tokens(self, value:int=512):
+        """
+        Update `max_tokens` (maximum length of generation).
+        """
+        llm = self.load_llm()
+        llm.max_tokens = value
+
+
+    def update_stop(self, value:list=[]):
+        """
+        Update `max_tokens` (maximum length of generation).
+        """
+        llm = self.load_llm()
+        llm.stop = value
+
+
     @classmethod
     def download_model(
         cls,
