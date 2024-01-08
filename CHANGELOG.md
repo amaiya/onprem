@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.0.34 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
 ## 0.0.33 (2024-01-08)
 
 ### new:
