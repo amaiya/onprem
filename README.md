@@ -457,7 +457,7 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     >
     > `<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>`
     >
-    > So, to use the Zephyr-7B model, you must supply the
+    > So, to use the **Zephyr-7B** model, you must supply the
     > `prompt_template` argument to the `LLM` constructor (or specify it
     > in the `webapp.yml` configuration for the Web app).
     >
@@ -466,7 +466,7 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf',
     >           prompt_template = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>",
     >           n_gpu_layers=33)
-    >  llm.prompt("List three cute names for a cat.")
+    > llm.prompt("List three cute names for a cat.")
     > ```
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
