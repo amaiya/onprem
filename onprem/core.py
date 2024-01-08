@@ -46,6 +46,7 @@ class LLM:
         model_url=DEFAULT_MODEL_URL,
         use_larger: bool = False,
         n_gpu_layers: Optional[int] = None,
+        prompt_template: Optional[str] = None,
         model_download_path: Optional[str] = None,
         vectordb_path: Optional[str] = None,
         max_tokens: int = 512,
@@ -71,6 +72,7 @@ class LLM:
                        Can also be the filename of model if it has already been downloaded to `model_download_path`.
         - *use_larger*: If True, a larger model than the default `model_url` will be used.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
+        - *prompt_template*: Optional prompt template (must have a variable named "prompt").
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *vectordb_path*: Path to vector database (created if it doesn't exist).
                            Default is `onprem_data/vectordb` in user's home directory.
@@ -97,6 +99,7 @@ class LLM:
                 model_download_path=self.model_download_path,
                 confirm=confirm,
             )
+        self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path
         self.llm = None
         self.ingester = None
@@ -117,6 +120,13 @@ class LLM:
         self.rag_score_threshold = rag_score_threshold
         self.verbose = verbose
         self.extra_kwargs = kwargs
+
+
+        # explicitly set offload_kqv
+        # reference: https://github.com/abetlen/llama-cpp-python/issues/999#issuecomment-1858041458
+        self.offload_kqv = True if n_gpu_layers is not None and n_gpu_layers > 0 else False
+
+        # load LLM
         self.load_llm()
 
 
@@ -251,6 +261,7 @@ class LLM:
                 verbose=self.verbose,
                 n_gpu_layers=self.n_gpu_layers,
                 n_ctx=self.n_ctx,
+                offload_kqv = self.offload_kqv,
                 **self.extra_kwargs,
             )
 
@@ -263,9 +274,13 @@ class LLM:
         **Args:**
 
         - *prompt*: The prompt to supply to the model
-        - *prompt_template*: Optional prompt template (must have a variable named "prompt")
+        - *prompt_template*: Optional prompt template (must have a variable named "prompt").
+                             This value will override any `prompt_template` value supplied 
+                             to `LLM` constructor.
+
         """
         llm = self.load_llm()
+        prompt_template = self.prompt_template if prompt_template is None else prompt_template
         if prompt_template:
             prompt = prompt_template.format(**{"prompt": prompt})
         return llm(prompt)
@@ -331,12 +346,14 @@ class LLM:
         - *question*: a question you want to ask
         - *qa_template*: A string representing the prompt with variables "context" and "question"
         - *prompt_template*: the model-specific template in which everything (including QA template) should be wrapped.
-                            hould have a single variable "{prompt}".
+                            Should have a single variable "{prompt}". Overrides the `prompt_template` parameter supplied to 
+                            `LLM` constructor.
 
         **Returns:**
 
         - A dictionary with keys: `answer`, `source_documents`, `question`
         """
+        prompt_template = self.prompt_template if prompt_template is None else prompt_template
         prompt_template = qa_template if prompt_template is None else prompt_template.format(**{'prompt': qa_template})
         qa = self.load_qa(prompt_template=prompt_template)
         res = qa(question)
