@@ -6,17 +6,17 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.33 (TBD)
+## 0.0.33 (2023-01-08)
 
 ### new:
 - N/A
 
 ### changed
-- Added `prompt_template` parameter to `LLM` constructor
+- Added `prompt_template` parameter to `LLM` constructor (#51)
 - Added `update_max_tokens` and `update_stop` methods to `LLM` for dynamic adjustments during prompt experiments
 
 ### fixed:
-- Explicitly set `offload_kqv` to ensure GPUs are fully utilized
+- Explicitly set `offload_kqv` to ensure GPUs are fully utilized (#50)
 
 
 ## 0.0.32 (2023-12-10)

@@ -57,7 +57,10 @@ to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
 generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
-example). As of v0.0.20, **OnPrem.LLM** supports the newer GGUF format.
+example). Any extra parameters supplied to
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
+directly to `llama-cpp-python`. As of v0.0.20, **OnPrem.LLM** supports
+the newer GGUF format.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -461,9 +464,10 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     >
     > ``` python
     > # how to use Zephyr-7B with OnPrem.LLM
-    > llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf')
-    >  prompt_template = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>"
-    >  llm.prompt("List three cute names for a cat.", prompt_template=prompt_template)
+    > llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf',
+    >           prompt_template = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>",
+    >           n_gpu_layers=33)
+    >  llm.prompt("List three cute names for a cat.")
     > ```
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
