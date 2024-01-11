@@ -450,9 +450,9 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
 
     > <img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/model_download_link.png" border="1" alt="screenshot" width="775"/>
 
-    > Note that some models have specific prompts. For instance, the
-    > prompt template required for **Zephyr-7B**, as described on the
-    > [model’s
+    > Note that some models have specific prompt formats. For instance,
+    > the prompt template required for **Zephyr-7B**, as described on
+    > the [model’s
     > page](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF), is:
     >
     > `<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>`
