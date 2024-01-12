@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.34 (TBD)
 
 ### new:
-- N/A
+- Uses [Zephyr-7B](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF) as default model in `webapp.yml`. (#52)
 
 ### changed
 - N/A
