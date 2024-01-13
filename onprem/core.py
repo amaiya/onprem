@@ -267,7 +267,7 @@ class LLM:
 
         return self.llm
 
-    def prompt(self, prompt, prompt_template: Optional[str] = None):
+    def prompt(self, prompt, prompt_template: Optional[str] = None, stop=[]):
         """
         Send prompt to LLM to generate a response
 
@@ -277,13 +277,20 @@ class LLM:
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
                              This value will override any `prompt_template` value supplied 
                              to `LLM` constructor.
+        - *stop*: a list of strings to stop generation when encountered. 
+                  This value will Override the `stop` parameter supplied to `LLM` constructor.
 
         """
         llm = self.load_llm()
         prompt_template = self.prompt_template if prompt_template is None else prompt_template
         if prompt_template:
             prompt = prompt_template.format(**{"prompt": prompt})
-        return llm(prompt)
+        llm_stop = self.llm.stop
+        if stop:
+            self.llm.stop = stop
+        res = llm(prompt)
+        self.llm.stop = llm_stop
+        return res
 
     def load_qa(self, prompt_template: str = DEFAULT_QA_PROMPT):
         """
