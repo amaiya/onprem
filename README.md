@@ -92,7 +92,9 @@ Answers are generated from the content of your documents (i.e.,
 RAG). Here, we will supply `use_larger=True` to use the larger default
 model better suited to this use case in addition to using [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
-to speed up answer generation.
+to speed up answer generation. However, the smaller Zephyr-7B model may
+perform even better, responds faster, and is used in our [example
+notebook](https://amaiya.github.io/onprem/examples_rag.html).
 
 ``` python
 from onprem import LLM
