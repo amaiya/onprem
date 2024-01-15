@@ -363,7 +363,7 @@ class LLM:
         prompt_template = self.prompt_template if prompt_template is None else prompt_template
         prompt_template = qa_template if prompt_template is None else prompt_template.format(**{'prompt': qa_template})
         qa = self.load_qa(prompt_template=prompt_template)
-        res = qa(question)
+        res = qa.invoke(question)
         res["question"] = res["query"]
         del res["query"]
         res["answer"] = res["result"]
@@ -384,5 +384,5 @@ class LLM:
         - A dictionary with keys: `answer`, `source_documents`, `question`, `chat_history`
         """
         chatqa = self.load_chatqa()
-        res = chatqa(question)
+        res = chatqa.invoke(question)
         return res
