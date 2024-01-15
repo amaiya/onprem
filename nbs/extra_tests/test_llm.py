@@ -87,7 +87,7 @@ def test_summarization(llm, **kwargs):
 
     from onprem.pipelines import Summarizer
     summ = Summarizer(llm)
-    from langchain.document_loaders import WebBaseLoader
+    from langchain_community.document_loaders import WebBaseLoader
 
     loader = WebBaseLoader("https://lilianweng.github.io/posts/2023-06-23-agent/")
     docs = loader.load()
