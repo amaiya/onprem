@@ -62,13 +62,14 @@ class Summarizer:
         - *llm*: An `onprem.LLM` object
         - *prompt_template*: A model specific prompt_template with a single placeholder named "{prompt}".
                              All prompts (e.g., Map-Reduce prompts) are wrapped within this prompt.
+                             If supplied, overrides the `prompt_template` supplied to the `LLM` constructor.
         - *map_prompt*: Map prompt for Map-Reduce summarization. If None, default is used.
         - *reduce_prompt*: Reduce prompt for Map-Reduce summarization. If None, default is used.
         - *refine_prompt*: Refine prompt for Refine-based summarization. If None, default is used.
 
         """
         self.llm = llm
-        self.prompt_template = prompt_template
+        self.prompt_template = prompt_template if prompt_template is not None else llm.prompt_template
         self.map_prompt = map_prompt if map_prompt else DEFAULT_MAP_PROMPT
         self.reduce_prompt = reduce_prompt if reduce_prompt else DEFAULT_REDUCE_PROMPT
         self.refine_prompt = refine_prompt if refine_prompt else DEFAULT_REFINE_PROMPT
@@ -190,7 +191,7 @@ class Summarizer:
         split_docs = text_splitter.split_documents(docs)
         split_docs = split_docs[:max_chunks_to_use] if max_chunks_to_use else split_docs
 
-        return map_reduce_chain.run(split_docs)
+        return map_reduce_chain.invoke(split_docs)
 
     def _refine(self, docs, chunk_size=1000, chunk_overlap=0, 
                 max_chunks_to_use = None, **kwargs):
