@@ -94,8 +94,9 @@ def test_summarization(llm, **kwargs):
     with open('/tmp/blog.txt', 'w') as f:
         f.write(docs[0].page_content)
     text = summ.summarize('/tmp/blog.txt', max_chunks_to_use=1) 
-    print(text)
-    assert(len(text) > 0)
+    assert('output_text' in text)
+    print(text['output_text'])
+    assert(len(text['output_text']) > 0)
 
 
 
