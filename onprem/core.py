@@ -270,9 +270,10 @@ class LLM:
 
         return self.llm
 
-    def prompt(self, prompt, prompt_template: Optional[str] = None, stop:list=[]):
+    def prompt(self, prompt, prompt_template: Optional[str] = None, stop:list=[], **kwargs):
         """
-        Send prompt to LLM to generate a response
+        Send prompt to LLM to generate a response.
+        Extra keyword arguments are sent directly to the model invocation.
 
         **Args:**
 
@@ -289,7 +290,7 @@ class LLM:
         if prompt_template:
             prompt = prompt_template.format(**{"prompt": prompt})
         stop = stop if stop else self.stop
-        res = llm.invoke(prompt, stop=stop)
+        res = llm.invoke(prompt, stop=stop, **kwargs)
         return res
 
     def load_qa(self, prompt_template: str = DEFAULT_QA_PROMPT):
@@ -344,9 +345,10 @@ class LLM:
             )
         return self.chatqa
 
-    def ask(self, question: str, qa_template=DEFAULT_QA_PROMPT, prompt_template=None):
+    def ask(self, question: str, qa_template=DEFAULT_QA_PROMPT, prompt_template=None, **kwargs):
         """
         Answer a question based on source documents fed to the `ingest` method.
+        Extra keyword arguments are sent directly to the model invocation.
 
         **Args:**
 
@@ -363,17 +365,18 @@ class LLM:
         prompt_template = self.prompt_template if prompt_template is None else prompt_template
         prompt_template = qa_template if prompt_template is None else prompt_template.format(**{'prompt': qa_template})
         qa = self.load_qa(prompt_template=prompt_template)
-        res = qa.invoke(question)
+        res = qa.invoke(question, **kwargs)
         res["question"] = res["query"]
         del res["query"]
         res["answer"] = res["result"]
         del res["result"]
         return res
 
-    def chat(self, question: str):
+    def chat(self, question: str, **kwargs):
         """
         Chat with documents fed to the `ingest` method.
         Unlike `LLM.ask`, `LLM.chat` includes conversational memory.
+        Extra keyword arguments are sent directly to the model invocation.
 
         **Args:**
 
@@ -384,5 +387,5 @@ class LLM:
         - A dictionary with keys: `answer`, `source_documents`, `question`, `chat_history`
         """
         chatqa = self.load_chatqa()
-        res = chatqa.invoke(question)
+        res = chatqa.invoke(question, **kwargs)
         return res
