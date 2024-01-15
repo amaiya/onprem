@@ -29,9 +29,9 @@ from langchain.document_loaders import (
 )
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
 import chromadb
 from chromadb.config import Settings
 from . import utils as U

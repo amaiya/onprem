@@ -7,12 +7,12 @@ __all__ = ['DEFAULT_MODEL_URL', 'DEFAULT_LARGER_URL', 'DEFAULT_EMBEDDING_MODEL',
 # %% ../nbs/00_core.ipynb 3
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks.manager import CallbackManager
-from langchain.vectorstores import Chroma
-from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_community.llms import LlamaCpp
 import chromadb
 import os
 import warnings
@@ -288,7 +288,7 @@ class LLM:
         llm_stop = self.llm.stop
         if stop:
             self.llm.stop = stop
-        res = llm(prompt)
+        res = llm.invoke(prompt)
         self.llm.stop = llm_stop
         return res
 
