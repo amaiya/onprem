@@ -52,6 +52,7 @@ class LLM:
         max_tokens: int = 512,
         n_ctx: int = 3900,
         n_batch: int = 1024,
+        stop:list=[],
         mute_stream: bool = False,
         callbacks=[],
         embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
@@ -79,6 +80,7 @@ class LLM:
         - *max_tokens*: The maximum number of tokens to generate.
         - *n_ctx*: Token context window. (Llama2 models have max of 4096.)
         - *n_batch*: Number of tokens to process in parallel.
+        - *stop*: a list of strings to stop generation when encountered (applied to all calls to `LLM.prompt`)
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *callbacks*: Callbacks to supply model
         - *embedding_model_name*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
@@ -109,6 +111,7 @@ class LLM:
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
         self.n_batch = n_batch
+        self.stop = stop
         self.mute_stream = mute_stream
         self.callbacks = [] if mute_stream else [StreamingStdOutCallbackHandler()]
         if callbacks:
@@ -267,7 +270,7 @@ class LLM:
 
         return self.llm
 
-    def prompt(self, prompt, prompt_template: Optional[str] = None, stop=[]):
+    def prompt(self, prompt, prompt_template: Optional[str] = None, stop:list=[]):
         """
         Send prompt to LLM to generate a response
 
@@ -278,18 +281,15 @@ class LLM:
                              This value will override any `prompt_template` value supplied 
                              to `LLM` constructor.
         - *stop*: a list of strings to stop generation when encountered. 
-                  This value will Override the `stop` parameter supplied to `LLM` constructor.
+                  This value will override the `stop` parameter supplied to `LLM` constructor.
 
         """
         llm = self.load_llm()
         prompt_template = self.prompt_template if prompt_template is None else prompt_template
         if prompt_template:
             prompt = prompt_template.format(**{"prompt": prompt})
-        llm_stop = self.llm.stop
-        if stop:
-            self.llm.stop = stop
-        res = llm.invoke(prompt)
-        self.llm.stop = llm_stop
+        stop = stop if stop else self.stop
+        res = llm.invoke(prompt, stop=stop)
         return res
 
     def load_qa(self, prompt_template: str = DEFAULT_QA_PROMPT):
