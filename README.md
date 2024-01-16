@@ -395,9 +395,9 @@ saved_result = llm.prompt('List three cute  names for a cat and explain why each
 
     1. Whiskers: Whiskers is a cute name for a cat because it perfectly describes one of the most adorable features of a feline - their long, delicate whiskers. It's a playful and endearing name that captures the essence of a cat's charm.
 
-    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes feelings of softness and sweetness. Just like a bowl of creamy pudding, this name suggests a cat that is cuddly, gentle, and irresistibly lovable.
+    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes a sense of softness and sweetness. Just like a bowl of creamy pudding, this name brings to mind a cat's cuddly and lovable nature. It's a name that instantly makes you want to snuggle up with your furry friend.
 
-    3. Muffin: Muffin is a cute name for a cat because it brings to mind a small, round, and fluffy treat. This name is perfect for a cat with a plump and huggable appearance, making it an adorable choice that reflects their adorable nature.
+    3. Muffin: Muffin is an adorable name for a cat because it conjures up images of something small, round, and irresistibly cute - just like a cat! This name is playful and charming, and it perfectly captures the delightful and lovable nature of our feline companions.
 
 ## Built-In Web App
 
