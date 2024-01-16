@@ -13,6 +13,7 @@ from langchain.prompts import PromptTemplate
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import LlamaCpp
+from langchain_openai import ChatOpenAI
 import chromadb
 import os
 import warnings
@@ -95,7 +96,7 @@ class LLM:
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
         self.model_name = os.path.basename(self.model_url)
         self.model_download_path = model_download_path or U.get_datadir()
-        if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):
+        if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)) and not self.is_openai_model():
             self.download_model(
                 self.model_url,
                 model_download_path=self.model_download_path,
@@ -132,6 +133,13 @@ class LLM:
         # load LLM
         self.load_llm()
 
+        # issue warning
+        if self.is_openai_model():
+            warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
+                          f'Use with caution, as your data and prompts will be sent externally.')
+
+    def is_openai_model(self):
+        return self.model_url.lower().startswith('openai')
 
     def update_max_tokens(self, value:int=512):
         """
@@ -240,6 +248,7 @@ class LLM:
         """
         Returns the path to the model
         """
+        if self.is_openai_model(): return None
         datadir = self.model_download_path
         model_path = os.path.join(datadir, self.model_name)
         if not os.path.isfile(model_path):
@@ -255,8 +264,14 @@ class LLM:
         """
         model_path = self.check_model()
 
-        if not self.llm:
-            self.llm = llm = LlamaCpp(
+        if not self.llm and self.is_openai_model():
+            self.llm = ChatOpenAI(model_name=self.model_name, 
+                                  callback_manager=CallbackManager(self.callbacks), 
+                                  streaming=not self.mute_stream,
+                                  max_tokens=self.max_tokens,
+                                  **self.extra_kwargs)
+        elif not self.llm:
+            self.llm = LlamaCpp(
                 model_path=model_path,
                 max_tokens=self.max_tokens,
                 n_batch=self.n_batch,
@@ -269,6 +284,7 @@ class LLM:
             )
 
         return self.llm
+
 
     def prompt(self, prompt, prompt_template: Optional[str] = None, stop:list=[], **kwargs):
         """
@@ -291,7 +307,9 @@ class LLM:
             prompt = prompt_template.format(**{"prompt": prompt})
         stop = stop if stop else self.stop
         res = llm.invoke(prompt, stop=stop, **kwargs)
-        return res
+        return res.content if self.is_openai_model() else res
+
+
 
     def load_qa(self, prompt_template: str = DEFAULT_QA_PROMPT):
         """

@@ -373,6 +373,32 @@ print(validate_email("sam@openai.com"))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
+## Using OpenAI Models with OnPrem.LLM
+
+Even when using on-premises language models, it can sometimes be useful
+to have easy access to non-local, cloud-based models (e.g., OpenAI) for
+testing, producing baselines for comparison, and generating synthetic
+examples for fine-tuning. For these reasons, in spite of the name,
+**OnPrem.LLM** now includes support for OpenAI chat models:
+
+``` python
+from onprem import LLM
+llm = LLM(model_url='openai://gpt-3.5-turbo', temperature=0) # ChatGPT
+```
+
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:138: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
+
+``` python
+saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
+```
+
+    1. Whiskers: Whiskers is a cute name for a cat because it perfectly describes one of the most adorable features of a feline - their long, delicate whiskers. It's a playful and endearing name that captures the essence of a cat's charm.
+
+    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes feelings of softness and sweetness. Just like a bowl of creamy pudding, this name suggests a cat that is cuddly, gentle, and irresistibly lovable.
+
+    3. Muffin: Muffin is a cute name for a cat because it brings to mind a small, round, and fluffy treat. This name is perfect for a cat with a plump and huggable appearance, making it an adorable choice that reflects their adorable nature.
+
 ## Built-In Web App
 
 **OnPrem.LLM** includes a built-in Web app to access the LLM. To start

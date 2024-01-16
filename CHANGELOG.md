@@ -6,10 +6,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.0.36 (TBD)
+## 0.0.36 (2024-01-16)
 
 ### new:
-- N/A
+- Support for OpenAI models (#55) 
 
 ### changed
 - `LLM.prompt`, 'LLM.ask`, and `LLM.chat` now accept extra `**kwargs` that are sent diretly to model (#54)

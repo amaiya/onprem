@@ -71,6 +71,7 @@ def test_rag(llm, **kwargs):
     return
 
 def test_guider(llm, **kwargs):
+    if llm.is_openai_model(): return
 
     from onprem.guider import Guider
     guider = Guider(llm)
@@ -104,7 +105,7 @@ def test_semantic(**kwargs):
     vectordb_path = tempfile.mkdtemp()
     url = kwargs["url"]
     llm = LLM(
-        url=url,
+        model_url=url,
         embedding_model_name="sentence-transformers/nli-mpnet-base-v2",
         embedding_encode_kwargs={"normalize_embeddings": True},
         vectordb_path=vectordb_path,
@@ -156,6 +157,7 @@ def run(**kwargs):
     # setup
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
+    print(url)
     llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers)
 
 
