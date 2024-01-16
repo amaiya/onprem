@@ -70,8 +70,9 @@ class LLM:
 
         **Args:**
 
-        - *model_url*: URL to `.bin` model (currently must be GGML model).
-                       Can also be the filename of model if it has already been downloaded to `model_download_path`.
+        - *model_url*: URL to `.GGUF` model (or the filename if already been downloaded to `model_download_path`).
+                       To use a non-local OpenAI model instead, replace URL with: `openai://<name_of_model>` 
+                       (e.g., `openai://gpt-3.5-turbo`).
         - *use_larger*: If True, a larger model than the default `model_url` will be used.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
