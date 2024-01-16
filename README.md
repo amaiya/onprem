@@ -373,7 +373,7 @@ print(validate_email("sam@openai.com"))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
-## Using OpenAI Models with OnPrem.LLM
+### Using OpenAI Models with OnPrem.LLM
 
 Even when using on-premises language models, it can sometimes be useful
 to have easy access to non-local, cloud-based models (e.g., OpenAI) for
