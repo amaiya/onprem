@@ -507,6 +507,16 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > LLM.download_model(url, ssl_verify=False)
     > ```
 
+    > You can download the embedding model (used by `LLM.ingest` and
+    > `LLM.ask`) as follows:
+    >
+    > ``` sh
+    > wget --no-check-certificate https://public.ukp.informatik.tu-darmstadt.de/reimers/sentence-transformers/v0.2/all-MiniLM-L6-v2.zip
+    > ```
+
+    > Supply the unzipped folder name as the `embedding_model_name`
+    > argument to `LLM`.
+
 3.  **How do I use this on a machine with no internet access?**
 
     > Use the `LLM.download_model` method to download the model files to
