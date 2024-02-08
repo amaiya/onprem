@@ -70,12 +70,42 @@ def test_rag(llm, **kwargs):
     shutil.rmtree(llm.vectordb_path)
     return
 
+def test_guider(llm, **kwargs):
+    if llm.is_openai_model(): return
+
+    from onprem.guider import Guider
+    guider = Guider(llm)
+
+    from guidance import select, gen
+
+    prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?  Answer: """ + gen('answer', regex='\d+')
+    result = guider.prompt(prompt)
+    print(result)
+    assert(int(result['answer']) == 7)
+
+
+def test_summarization(llm, **kwargs):
+
+    from onprem.pipelines import Summarizer
+    summ = Summarizer(llm)
+    from langchain_community.document_loaders import WebBaseLoader
+
+    loader = WebBaseLoader("https://lilianweng.github.io/posts/2023-06-23-agent/")
+    docs = loader.load()
+    with open('/tmp/blog.txt', 'w') as f:
+        f.write(docs[0].page_content)
+    text = summ.summarize('/tmp/blog.txt', max_chunks_to_use=1) 
+    assert('output_text' in text)
+    print(text['output_text'])
+    assert(len(text['output_text']) > 0)
+
+
 
 def test_semantic(**kwargs):
     vectordb_path = tempfile.mkdtemp()
     url = kwargs["url"]
     llm = LLM(
-        url=url,
+        model_url=url,
         embedding_model_name="sentence-transformers/nli-mpnet-base-v2",
         embedding_encode_kwargs={"normalize_embeddings": True},
         vectordb_path=vectordb_path,
@@ -127,10 +157,18 @@ def run(**kwargs):
     # setup
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
+    print(url)
     llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers)
+
 
     # prompt test
     test_prompt(llm, **kwargs)
+
+    # guided prompt test
+    test_guider(llm, **kwargs)
+
+    # summarization test
+    test_summarization(llm, **kwargs)
 
     # rag test
     test_rag(llm, **kwargs)
@@ -161,8 +199,8 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/juanjgit/orca_mini_3B-GGUF/resolve/main/orca-mini-3b.q4_0.gguf",
-        help=("URL of model. Default is a URL to orca-mini-3b.q4_0.gguf."),
+        default="https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGUF/resolve/main/Wizard-Vicuna-7B-Uncensored.Q4_K_M.gguf",
+        help=("URL of model. Default is a URL to Wizard-Vicuna-7B-Uncensored."),
     )
 
     args = parser.parse_args()

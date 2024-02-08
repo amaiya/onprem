@@ -5,10 +5,15 @@ website:
       - 00_core.ipynb
       - 01_ingest.ipynb
       - 02_utils.ipynb
+      - 03_guider.ipynb
+      - 04_pipelines.ipynb
       - section: Examples
         contents:
         - 99a_examples.ipynb
         - 99b_examples_rag.ipynb
         - 99c_examples_code.ipynb
         - 99d_examples_semantic.ipynb
+        - 99e_examples_guided_prompts.ipynb
+        - 99f_examples_summarization.ipynb
+        - 99g_examples_openai.ipynb
         - 99z_webapp.ipynb

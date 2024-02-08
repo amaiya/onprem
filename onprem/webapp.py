@@ -14,7 +14,8 @@ DEFAULT_PROMPT = "List three cute names for a cat."
 DEFAULT_YAML = """
 llm:
   # model url (or model file name if previously downloaded)
-  model_url: https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGUF/resolve/main/wizardlm-13b-v1.2.Q4_K_M.gguf
+  # if changing, be sure to update the prompt_template variable below
+  model_url: https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf
   # number of layers offloaded to GPU
   n_gpu_layers: 32
   # path to vector db folder
@@ -27,9 +28,12 @@ llm:
   rag_score_threshold: 0.0
   # verbosity of Llama.cpp
   verbose: TRUE
+  # additional parameters added in the "llm" YAML section will be fed directly to LlamaCpp (e.g., temperature)
+  #temperature: 0.0
 prompt:
-  # prompt_template used with LLM.prompt (e.g, for models that accept a system prompt)
-  prompt_template:
+  # The default prompt_template is specifically for the Zephyr-7B model.
+  # It will need to be changed if you change the model_url above.
+  prompt_template: <|system|>\\n</s>\\n<|user|>\\nPROMPT_VARIABLE</s>\\n<|assistant|>
 ui:
   # title of application
   title: OnPrem.LLM
@@ -51,6 +55,7 @@ def write_default_yaml():
     write default webapp.yml
     """
     yaml_content = DEFAULT_YAML.format(datadir=U.get_datadir()).strip()
+    yaml_content = yaml_content.replace('PROMPT_VARIABLE', '{prompt}')
     with open(DEFAULT_YAML_FPATH, "w") as f:
         f.write(yaml_content)
     return
@@ -210,8 +215,9 @@ def main():
 
         if question and ask_button:
             question = question + " " + APPEND_TO_PROMPT
-            print(question)
-            result = llm.ask(question)
+            print(f'question : {question}')
+            print(f'prompt_template: {PROMPT_TEMPLATE}')
+            result = llm.ask(question, prompt_template=PROMPT_TEMPLATE)
             answer = result["answer"]
             docs = result["source_documents"]
             unique_sources = set()

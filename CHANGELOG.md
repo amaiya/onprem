@@ -6,6 +6,96 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.0.36 (2024-01-16)
+
+### new:
+- Support for OpenAI models (#55) 
+
+### changed
+- `LLM.prompt`, 'LLM.ask`, and `LLM.chat` now accept extra `**kwargs` that are sent diretly to model (#54)
+
+### fixed:
+- N/A
+
+
+## 0.0.35 (2024-01-15)
+
+### new:
+- N/A
+
+### changed
+- Updates for `langchain>=0.1.0` (which is now minimum version)
+
+### fixed:
+- N/A
+
+
+## 0.0.34 (2024-01-13)
+
+### new:
+- Uses [Zephyr-7B](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF) as default model in `webapp.yml`. (#52)
+
+### changed
+- Added `stop` paramter to `LLM.prompt` (overrides `stop` paramter supplied to constructor) (#53)
+
+### fixed:
+- N/A
+
+
+## 0.0.33 (2024-01-08)
+
+### new:
+- N/A
+
+### changed
+- Added `prompt_template` parameter to `LLM` constructor (#51)
+- Added `update_max_tokens` and `update_stop` methods to `LLM` for dynamic adjustments during prompt experiments
+
+### fixed:
+- Explicitly set `offload_kqv` to ensure GPUs are fully utilized (#50)
+
+
+## 0.0.32 (2023-12-10)
+
+### new:
+- Summarization pipeline (#35)
+
+### changed
+- Upgrades to all dependencies, but pin `chromadb==0.4.15` to retain compatibilitiy with older langchain
+- Default `n_ctx` (context window) changed to 3900
+
+### fixed:
+- N/A
+
+
+## 0.0.31 (2023-12-09)
+
+### new:
+- The `guider` module, a simplistic interface to [Guidance](https://github.com/guidance-ai/guidance) (#34)
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
+## 0.0.30 (2023-12-07)
+
+### new:
+- N/A
+
+### changed
+- progress bar for embeddings creation (#46)
+- Support model-specific prompt templates in `LLM.ask` method (#47)
+
+### fixed:
+- Added `python-docx` as dependency (#43)
+- Added `python-pptx` as dependency (#44)
+- Pass `prompt_template` to `ask` method in Web app (#47)
+- Skip file beginning with '~$' in `LLM.ingest` (#45)
+
+
 ## 0.0.29 (2023-10-27)
 
 ### new:

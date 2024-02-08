@@ -57,7 +57,10 @@ to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
 generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
-example). As of v0.0.20, **OnPrem.LLM** supports the newer GGUF format.
+example). Any extra parameters supplied to
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
+directly to `llama-cpp-python`. As of v0.0.20, **OnPrem.LLM** supports
+the newer GGUF format.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -89,7 +92,9 @@ Answers are generated from the content of your documents (i.e.,
 RAG). Here, we will supply `use_larger=True` to use the larger default
 model better suited to this use case in addition to using [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
-to speed up answer generation.
+to speed up answer generation. However, the smaller Zephyr-7B model may
+perform even better, responds faster, and is used in our [example
+notebook](https://amaiya.github.io/onprem/examples_rag.html).
 
 ``` python
 from onprem import LLM
@@ -164,6 +169,129 @@ for i, document in enumerate(result["source_documents"]):
     curating and preprocessing inputs (i.e., ground-truth-labeled training data) to training,
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
+
+### Guided Prompts
+
+You can use **OnPrem.LLM** with the
+[Guidance](https://github.com/guidance-ai/guidance) package to guide the
+LLM to generate outputs based on your conditions and constraints. We’ll
+show a couple of examples here, but see [our documentation on guided
+prompts](https://amaiya.github.io/onprem/examples_guided_prompts.html)
+for more information.
+
+#### Structured Outputs with [`onprem.guider.Guider`](https://amaiya.github.io/onprem/guider.html#guider)
+
+Here, we’ll use a
+[`Guider`](https://amaiya.github.io/onprem/guider.html#guider)instance
+to generate fictional D&D-type characters that conform to the precise
+structure we want (i.e., JSON):
+
+``` python
+from onprem.guider import Guider
+guider = Guider(llm)
+```
+
+``` python
+# create the Guider instance
+from onprem.guider import Guider
+from guidance import gen, select
+guider = Guider(llm)
+
+# this is a function that generates a Guidance prompt that will be fed to Guider
+sample_weapons = ["sword", "axe", "mace", "spear", "bow", "crossbow"]
+sample_armour = ["leather", "chainmail", "plate"]
+def generate_character_prompt(
+    character_one_liner,
+    weapons: list[str] = sample_weapons,
+    armour: list[str] = sample_armour,
+    n_items: int = 3
+):
+    prompt = ''
+    prompt += "{"
+    prompt += f'"description" : "{character_one_liner}",'
+    prompt += '"name" : "' + gen(name="character_name", stop='"') + '",'
+    prompt += '"age" : ' + gen(name="age", regex="[0-9]+") + ','
+    prompt += '"armour" : "' + select(armour, name="armour") + '",'
+    prompt += '"weapon" : "' + select(weapons, name="weapon") + '",'
+    prompt += '"class" : "' + gen(name="character_class", stop='"') + '",'
+    prompt += '"mantra" : "' + gen(name="mantra", stop='"') + '",'
+    prompt += '"strength" : ' + gen(name="age", regex="[0-9]+") + ','
+    prompt += '"quest_items" : [ '
+    for i in range(n_items):
+        prompt += '"' + gen(name="items", list_append=True, stop='"') + '"'  
+        if i < n_items - 1:
+            prompt += ','
+    prompt += "]"
+    prompt += "}"
+    return prompt
+```
+
+``` python
+# feed prompt to Guider and extract JSON
+import json
+d = guider.prompt(generate_character_prompt("A quick and nimble fighter"), echo=False)
+print('Generated JSON:')
+print(json.dumps(d, indent=4))
+```
+
+    Generated JSON:
+    {
+        "items": [
+            "Quest Item 3",
+            "Quest Item 2",
+            "Quest Item 1"
+        ],
+        "age": "10",
+        "mantra": "I am the blade of justice.",
+        "character_class": "fighter",
+        "weapon": "sword",
+        "armour": "leather",
+        "character_name": "Katana"
+    }
+
+#### Using Regular Expressions to Control LLM Generation
+
+``` python
+prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
+Answer: """ + gen(name='answer', regex='\d+')
+
+guider.prompt(prompt, echo=False)
+```
+
+    {'answer': '7'}
+
+``` python
+prompt = '19, 18,' + gen(name='output', max_tokens=50, stop_regex='[^\d]7[^\d]')
+guider.prompt(prompt)
+```
+
+<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>19, 18<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>7</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>6</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>5</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>4</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>3</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>2</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>0</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 9</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 8</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span></pre>
+
+    {'output': ' 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,'}
+
+See [the
+documentation](https://amaiya.github.io/onprem/examples_guided_prompts.html)
+for more examples of how to use
+[Guidance](https://github.com/guidance-ai/guidance) with **OnPrem.LLM**.
+
+### Summarization Pipeline
+
+Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
+
+``` python
+from onprem import LLM
+llm = LLM(n_gpu_layers=35, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
+```
+
+``` python
+from onprem.pipelines import Summarizer
+summ = Summarizer(llm)
+
+text = summ.summarize('sample_data/1/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
+print(text)
+```
+
+     The KTrain library provides an easy-to-use framework for building and training machine learning models using low-code techniques for various data types (text, image, graph, tabular) and tasks (classification, regression). It can be used to fine-tune pretrained models in text classification and image classification tasks respectively. Additionally, it reduces cognitive load by providing a unified interface to various and disparate machine learning tasks, allowing users to focus on more important tasks that may require domain expertise or are less amenable to automation.
 
 ### Text to Code Generation
 
@@ -245,6 +373,32 @@ print(validate_email("sam@openai.com"))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
+### Using OpenAI Models with OnPrem.LLM
+
+Even when using on-premises language models, it can sometimes be useful
+to have easy access to non-local, cloud-based models (e.g., OpenAI) for
+testing, producing baselines for comparison, and generating synthetic
+examples for fine-tuning. For these reasons, in spite of the name,
+**OnPrem.LLM** now includes support for OpenAI chat models:
+
+``` python
+from onprem import LLM
+llm = LLM(model_url='openai://gpt-3.5-turbo', temperature=0) # ChatGPT
+```
+
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:138: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
+
+``` python
+saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
+```
+
+    1. Whiskers: Whiskers is a cute name for a cat because it perfectly describes one of the most adorable features of a feline - their long, delicate whiskers. It's a playful and endearing name that captures the essence of a cat's charm.
+
+    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes a sense of softness and sweetness. Just like a bowl of creamy pudding, this name brings to mind a cat's cuddly and lovable nature. It's a name that instantly makes you want to snuggle up with your furry friend.
+
+    3. Muffin: Muffin is an adorable name for a cat because it conjures up images of something small, round, and irresistibly cute - just like a cat! This name is playful and charming, and it perfectly captures the delightful and lovable nature of our feline companions.
+
 ## Built-In Web App
 
 **OnPrem.LLM** includes a built-in Web app to access the LLM. To start
@@ -271,13 +425,16 @@ LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
 for installing `llama-cpp-python` with GPU support for your system.
 
 The steps below describe installing and using `llama-cpp-python` with
-`cuBLAS` support and can be employed for GPU acceleration on Linux and
-Google Colab, for example.
+`cuBLAS` support and can be employed for GPU acceleration on systems
+with NVIDIA GPUs (e.g., Linux, WSL2, Google Colab).
 
 #### Step 1: Install `llama-cpp-python` with cuBLAS support
 
 ``` shell
 CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+
+# For Mac users replace above with:
+# CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 ```
 
 #### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
@@ -316,9 +473,29 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > [huggingface.co](https://huggingface.co/models?sort=trending&search=gguf).
 
     > Make sure you are pointing to the URL of the actual GGUF model
-    > file, which is the “download” link on the model’s page:
+    > file, which is the “download” link on the model’s page. An example
+    > for **Mistral-7B** is shown below:
 
     > <img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/model_download_link.png" border="1" alt="screenshot" width="775"/>
+
+    > Note that some models have specific prompt formats. For instance,
+    > the prompt template required for **Zephyr-7B**, as described on
+    > the [model’s
+    > page](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF), is:
+    >
+    > `<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>`
+    >
+    > So, to use the **Zephyr-7B** model, you must supply the
+    > `prompt_template` argument to the `LLM` constructor (or specify it
+    > in the `webapp.yml` configuration for the Web app).
+    >
+    > ``` python
+    > # how to use Zephyr-7B with OnPrem.LLM
+    > llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf',
+    >           prompt_template = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>",
+    >           n_gpu_layers=33)
+    > llm.prompt("List three cute names for a cat.")
+    > ```
 
 2.  **I’m behind a corporate firewall and am receiving an SSL error when
     trying to download the model?**
@@ -329,6 +506,16 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > from onprem import LLM
     > LLM.download_model(url, ssl_verify=False)
     > ```
+
+    > You can download the embedding model (used by `LLM.ingest` and
+    > `LLM.ask`) as follows:
+    >
+    > ``` sh
+    > wget --no-check-certificate https://public.ukp.informatik.tu-darmstadt.de/reimers/sentence-transformers/v0.2/all-MiniLM-L6-v2.zip
+    > ```
+
+    > Supply the unzipped folder name as the `embedding_model_name`
+    > argument to `LLM`.
 
 3.  **How do I use this on a machine with no internet access?**
 
@@ -400,4 +587,15 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > ``` sh
     > # example
     > CMAKE_ARGS="-DLLAMA_CUBLAS=ON -DLLAMA_AVX2=OFF -DLLAMA_AVX=OFF -DLLAMA_F16C=OFF -DLLAMA_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
+    > ```
+
+7.  **How can I speed up
+    [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest)
+    using my GPU?**
+
+    > Try using the `embedding_model_kwargs` argument:
+    >
+    > ``` python
+    > from onprem import LLM
+    > llm  = LLM(embedding_model_kwargs={'device':'cuda'})
     > ```
