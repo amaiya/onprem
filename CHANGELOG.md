@@ -14,6 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - Added `ignore_fn` argument to `LLM.ingest` to allow more control over ignoring certain files (#58)
 - Added `Ingester.get_ingested_files` to show files ingested into vector database (#59)
+- If encountering a loading error when processing a file, skip and continue instead of halting (#60)
 
 ### fixed:
 - N/A
