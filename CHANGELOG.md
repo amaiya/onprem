@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - Docker support
 
 ### changed
-- N/A
+- Added `ignore_fn` argument to `LLM.ingest` to allow more control over ignoring certain files (#58)
 
 ### fixed:
 - N/A

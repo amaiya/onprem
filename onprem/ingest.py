@@ -9,7 +9,7 @@ __all__ = ['DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'COLLECTION_NAME', 'CH
 import os
 import os.path
 import glob
-from typing import List
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union, Callable
 from dotenv import load_dotenv
 from multiprocessing import Pool
 from tqdm import tqdm
@@ -95,7 +95,8 @@ def load_single_document(file_path: str) -> List[Document]:
     raise ValueError(f"Unsupported file extension '{ext}'")
 
 
-def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Document]:
+def load_documents(source_dir: str, ignored_files: List[str] = [], ignore_fn:Optional[Callable] = None
+) -> List[Document]:
     """
     Loads all documents from the source documents directory, ignoring specified files
     """
@@ -108,8 +109,10 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
         all_files.extend(
             glob.glob(os.path.join(source_dir, f"**/*{ext.upper()}"), recursive=True)
         )
+
     filtered_files = [
         file_path for file_path in all_files if file_path not in ignored_files and not os.path.basename(file_path).startswith('~$')
+         and (ignore_fn is None or not ignore_fn(file_path))
     ]
 
     with Pool(processes=os.cpu_count()) as pool:
@@ -131,6 +134,9 @@ def process_documents(
     ignored_files: List[str] = [],
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
+    ignore_fn:Optional[Callable] = None
+
+
 ) -> List[Document]:
     """
     Load documents and split in chunks
@@ -140,12 +146,14 @@ def process_documents(
       - *source_directory*: path to folder containing document store
       - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
       - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+      - *ignore_fn*: Optional function that accepts the file path (including file name) as input and returns True
+                     if file path should not be ingested.
 
     **Returns:** list of `langchain.docstore.document.Document` objects
 
     """
     print(f"Loading documents from {source_directory}")
-    documents = load_documents(source_directory, ignored_files)
+    documents = load_documents(source_directory, ignored_files, ignore_fn=ignore_fn)
     if not documents:
         print("No new documents to load")
         return
@@ -174,7 +182,6 @@ def batchify_chunks(texts):
 
 
 # %% ../nbs/01_ingest.ipynb 6
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 from .utils import get_datadir
 
 os.environ["TOKENIZERS_PARALLELISM"] = "0"
@@ -240,11 +247,20 @@ class Ingester:
         """
         return self.embeddings
 
+
+    def get_ingested_files(self):
+        """
+        Returns a list of files previously added to vector database (typically via `LLM.ingest`)
+        """
+        return [d['source'] for d in self.get_db().get()['metadatas']]
+
+
     def ingest(
         self,
         source_directory: str,
         chunk_size: int = DEFAULT_CHUNK_SIZE,
         chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
+        ignore_fn:Optional[Callable] = None
     ):
         """
         Ingests all documents in `source_directory` (previously-ingested documents are ignored).
@@ -254,6 +270,9 @@ class Ingester:
           - *source_directory*: path to folder containing document store
           - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
           - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+          - *ignore_fn*: Optional function that accepts the file path (including file name) as input and returns True
+                         if file path should not be ingested.
+
 
         **Returns**: `None`
         """
@@ -273,8 +292,9 @@ class Ingester:
             texts = process_documents(
                 source_directory,
                 ignored_files=[
-                    metadata["source"] for metadata in collection["metadatas"]
-                ],
+                    metadata["source"] for metadata in collection["metadatas"]],
+                ignore_fn=ignore_fn
+
             )
             if texts:
                 print(f"Creating embeddings. May take some minutes...")
@@ -285,7 +305,7 @@ class Ingester:
             # Create and store locally vectorstore
             print(f"Creating new vectorstore at {self.persist_directory}")
             texts = process_documents(
-                source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap
+                source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn
             )
 
             if texts:
