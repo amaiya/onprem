@@ -252,7 +252,7 @@ class Ingester:
         """
         Returns a list of files previously added to vector database (typically via `LLM.ingest`)
         """
-        return [d['source'] for d in self.get_db().get()['metadatas']]
+        return set([d['source'] for d in self.get_db().get()['metadatas']])
 
 
     def ingest(

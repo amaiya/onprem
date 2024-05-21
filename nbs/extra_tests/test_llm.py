@@ -26,13 +26,20 @@ People:"""
 def test_rag(llm, **kwargs):
     llm.vectordb_path = tempfile.mkdtemp()
 
+    # make source folder
     source_folder = tempfile.mkdtemp()
+
+    # download ktrain paper
     U.download(
         "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/1/ktrain_paper.pdf",
         os.path.join(source_folder, "ktrain.pdf"),
     )
+
+    # ingest ktrain paper
     llm.ingest(source_folder)
     assert os.path.exists(source_folder)
+
+    # QA on ktrain paper
     print()
     print("LLM.ask test")
     print()
@@ -41,17 +48,26 @@ def test_rag(llm, **kwargs):
     assert len(result["source_documents"]) == 4
     assert "question" in result
     print()
+
+
+    # download SOTU
     U.download(
         "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/3/state_of_the_union.txt",
         os.path.join(source_folder, "sotu.txt"),
     )
+
+    # ingest SOTU
     llm.ingest(source_folder)
+
+    # QA on SOTU
     print()
     result = llm.ask("Who is Ketanji? Brown Jackson")
     assert len(result["answer"]) > 8
     assert "question" in result
     assert "source_documents" in result
     print()
+
+    # QA chat test
     print()
     print("LLM.chat test")
     print()
@@ -66,6 +82,22 @@ def test_rag(llm, **kwargs):
     assert len(result["answer"]) > 8
     print()
     print()
+
+    # download MS financial statement
+    U.download(
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/2/ms-financial-statement.pdf",
+        os.path.join(source_folder, "ms-financial-statement.pdf"),
+    )
+
+    # ingest but ignore MS financial statement
+    llm.ingest(source_folder, ignore_fn=lambda x: os.path.basename(x) == 'ms-financial-statement.pdf')
+    ingested_files = llm.ingester.get_ingested_files()
+    print([os.path.basename(x) for x in ingested_files])
+    assert(len(ingested_files) == 2)
+    assert('ms-inancial-statement.pdf' not in [os.path.basename(x) for x in ingested_files])
+
+
+    # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
     return
