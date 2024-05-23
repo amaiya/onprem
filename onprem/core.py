@@ -97,6 +97,13 @@ class LLM:
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
         self.model_name = os.path.basename(self.model_url)
         self.model_download_path = model_download_path or U.get_datadir()
+        if self.is_local():
+            try:
+                from llama_cpp import Llama
+            except ImportError:
+                raise ValueError('To run local LLMs, the llama-cpp-python package is required. ' +\
+                                 'You can visit https://python.langchain.com/docs/integrations/llms/llamacpp ' +\
+                                 'and follow the instructions for your operating system.')
         if self.is_local() and not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):
             self.download_model(
                 self.model_url,

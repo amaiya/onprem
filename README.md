@@ -22,13 +22,16 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 ## Install
 
 Once you have [installed
-PyTorch](https://pytorch.org/get-started/locally/) and [installed
-llama-cpp-python](https://python.langchain.com/docs/integrations/llms/llamacpp#installation),
-you can install **OnPrem.LLM** with:
+PyTorch](https://pytorch.org/get-started/locally/), you can install
+**OnPrem.LLM** with the following steps:
 
-``` sh
-pip install onprem
-```
+1.  Install **llama-cpp-python** by [visiting this
+    site](https://python.langchain.com/docs/integrations/llms/llamacpp#installation)
+    and following instructions for your operating system and machine.
+    For CPU-based installations (i.e., no GPU acceleration), you can
+    simply do: `pip install llama-cpp-python`.
+
+2.  Install **OnPrem.LLM**: `pip install onprem`
 
 For fast GPU-accelerated inference, see [additional instructions
 below](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu).
@@ -37,10 +40,12 @@ issues with
 [llama-cpp-python](https://pypi.org/project/llama-cpp-python/)
 installation.
 
-**Note:** The `pip install onprem` command will install PyTorch and
-llama-cpp-python automatically if not already installed, but we
-recommend visting the links above to install these packages in a way
-that is optimized for your system (e.g., with GPU support).
+**Note:** If using **OnPrem.LLM** with an LLM being served through an
+[external REST
+API](https://amaiya.github.io/onprem/#using-onprem.llm-with-rest-apis-like-vllm)
+(e.g., vLLM, OpenLLM, Ollama), installation of `llama-cpp-python` is
+optional. You will only be asked to install it if attempting to use a
+locally installed model directly.
 
 ## How to Use
 
@@ -399,9 +404,9 @@ from onprem import LLM
 llm = LLM(model_url='http://localhost:8000/v1')
 ```
 
-You can now easily access the served LLM to solve problems with
-**OnPrem.LLM** as you normally would (e.g., RAG question-answering,
-summarization, few-shot prompting, code generation, etc.).
+That’s it! Solve problems with **OnPrem.LLM** as you normally would
+(e.g., RAG question-answering, summarization, few-shot prompting, code
+generation, etc.).
 
 ### Using OpenAI Models with OnPrem.LLM
 
