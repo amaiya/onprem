@@ -379,7 +379,7 @@ print(validate_email("sam@openai.com"))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
-### Using OnPrem.LLM with REST APIs like vLLM
+### Using with LLMs Served Through REST APIs like vLLM, OpenLLM, and Ollama
 
 **OnPrem.LLM** can be used with LLMs being served through any
 OpenAI-compatible REST API. This means you can use **OnPrem.LLM** with
@@ -401,7 +401,7 @@ server you just started:
 
 ``` python
 from onprem import LLM
-llm = LLM(model_url='http://localhost:8000/v1', api_key='na') 
+llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123') 
 # Note: The API key can either supplied directly or stored in the OPENAI_API_KEY environment variable.
 #       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
 ```
@@ -435,6 +435,16 @@ saved_result = llm.prompt('List three cute  names for a cat and explain why each
     2. Pudding: Pudding is an incredibly cute name for a cat because it evokes a sense of softness and sweetness. Just like a bowl of creamy pudding, this name brings to mind a cat's cuddly and lovable nature. It's a name that instantly makes you want to snuggle up with your furry friend.
 
     3. Muffin: Muffin is an adorable name for a cat because it conjures up images of something small, round, and irresistibly cute - just like a cat! This name is playful and charming, and it perfectly captures the delightful and lovable nature of our feline companions.
+
+**Azure OpenAI**
+
+For Azure OpenAI models, use the following URL format:
+
+``` python
+llm = LLM(model_url='azure://<deployment_name>', ...) 
+# <deployment_name> is the Azure deployment name and additional Azure-specific parameters 
+# can be supplied as extra arguments to LLM (or set as environment variables)
+```
 
 ## Built-In Web App
 
