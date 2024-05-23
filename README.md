@@ -401,7 +401,9 @@ server you just started:
 
 ``` python
 from onprem import LLM
-llm = LLM(model_url='http://localhost:8000/v1')
+llm = LLM(model_url='http://localhost:8000/v1', api_key='na') 
+# Note: The API key can either supplied directly or stored in the OPENAI_API_KEY environment variable.
+#       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
 ```
 
 That’s it! Solve problems with **OnPrem.LLM** as you normally would
