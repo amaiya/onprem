@@ -24,8 +24,8 @@ class Guider:
 
         """
         self.llm = llm
-        if llm.is_openai_model():
-            raise ValueError(f'The suppplied LLM is {llm.model_name}. The Guider currently only supports local, on-premises model.')
+        if not llm.is_local():
+            raise ValueError(f'The suppplied LLM is {llm.model_url}, but the Guider currently only supports local, on-premises model.')
 
 
     def prompt(self, guidance_program: str or guidance._grammar.Join, echo=True):

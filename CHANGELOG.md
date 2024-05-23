@@ -9,6 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.0.37 (TBD)
 
 ### new:
+- Use OnPrem.LLM with OpenAI-compatible REST APIs (#61)
 - Docker support
 
 ### changed

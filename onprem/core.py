@@ -97,7 +97,7 @@ class LLM:
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
         self.model_name = os.path.basename(self.model_url)
         self.model_download_path = model_download_path or U.get_datadir()
-        if not os.path.isfile(os.path.join(self.model_download_path, self.model_name)) and not self.is_openai_model():
+        if self.is_local() and not os.path.isfile(os.path.join(self.model_download_path, self.model_name)):
             self.download_model(
                 self.model_url,
                 model_download_path=self.model_download_path,
@@ -141,6 +141,14 @@ class LLM:
 
     def is_openai_model(self):
         return self.model_url.lower().startswith('openai')
+
+
+    def is_local_api(self):
+        basename = os.path.basename(self.model_url)
+        return self.model_url.lower().startswith('http') and not basename.lower().endswith('.gguf') and not basename.lower().endswith('.bin')
+
+    def is_local(self):
+        return not self.is_openai_model() and not self.is_local_api()
 
     def update_max_tokens(self, value:int=512):
         """
@@ -251,7 +259,7 @@ class LLM:
         """
         Returns the path to the model
         """
-        if self.is_openai_model(): return None
+        if not self.is_local(): return None
         datadir = self.model_download_path
         model_path = os.path.join(datadir, self.model_name)
         if not os.path.isfile(model_path):
@@ -269,6 +277,13 @@ class LLM:
 
         if not self.llm and self.is_openai_model():
             self.llm = ChatOpenAI(model_name=self.model_name, 
+                                  callback_manager=CallbackManager(self.callbacks), 
+                                  streaming=not self.mute_stream,
+                                  max_tokens=self.max_tokens,
+                                  **self.extra_kwargs)
+        elif not self.llm and self.is_local_api():
+            self.llm = ChatOpenAI(base_url=self.model_url,
+                                  #model_name=self.model_name, 
                                   callback_manager=CallbackManager(self.callbacks), 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,

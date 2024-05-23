@@ -374,6 +374,35 @@ print(validate_email("sam@openai.com"))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
+### Using OnPrem.LLM with REST APIs like vLLM
+
+**OnPrem.LLM** can be used with LLMs being served through any
+OpenAI-compatible REST API. This means you can use **OnPrem.LLM** with
+tools like [vLLM](https://github.com/vllm-project/vllm),
+[OpenLLM](https://github.com/bentoml/OpenLLM),
+[Ollama](https://ollama.com/blog/openai-compatibility), and the
+[llama.cpp
+server](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md).
+
+For instance, using [vLLM](https://github.com/vllm-project/vllm), you
+can serve a LLaMA 3 model as follows:
+
+``` sh
+python -m vllm.entrypoints.openai.api_server --model NousResearch/Meta-Llama-3-8B-Instruct --dtype auto --api-key token-abc123
+```
+
+You can then connect OnPrem.LLM to the LLM by supplying the URL of the
+server you just started:
+
+``` python
+from onprem import LLM
+llm = LLM(model_url='http://localhost:8000/v1')
+```
+
+You can now easily access the served LLM to solve problems with
+**OnPrem.LLM** as you normally would (e.g., RAG question-answering,
+summarization, few-shot prompting, code generation, etc.).
+
 ### Using OpenAI Models with OnPrem.LLM
 
 Even when using on-premises language models, it can sometimes be useful
