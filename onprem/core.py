@@ -13,7 +13,7 @@ from langchain.prompts import PromptTemplate
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import LlamaCpp
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
 import chromadb
 import os
 import warnings
@@ -71,8 +71,9 @@ class LLM:
         **Args:**
 
         - *model_url*: URL to `.GGUF` model (or the filename if already been downloaded to `model_download_path`).
-                       To use a non-local OpenAI model instead, replace URL with: `openai://<name_of_model>` 
-                       (e.g., `openai://gpt-3.5-turbo`).
+                       To use an OpenAI-compatible REST API (e.g., vLLM, OpenLLM, Ollama), supply the URL (e.g., `http://localhost:8080/v1`).
+                       To use a cloud-based OpenAI model, replace URL with: `openai://<name_of_model>` (e.g., `openai://gpt-3.5-turbo`).
+                       To use Azure OpenAI, replace URL with: with: `azure://<deployment_name>`.
         - *use_larger*: If True, a larger model than the default `model_url` will be used.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
@@ -148,6 +149,9 @@ class LLM:
 
     def is_openai_model(self):
         return self.model_url.lower().startswith('openai')
+
+    def is_azure(self):
+        return self.model_url.lower().startswith('azure')
 
 
     def is_local_api(self):
@@ -288,6 +292,13 @@ class LLM:
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
+        elif not self.llm and self.is_azure():
+            self.llm = AzureChatOpenAI(azure_deployment=self.model_name, 
+                                  callback_manager=CallbackManager(self.callbacks), 
+                                  streaming=not self.mute_stream,
+                                  max_tokens=self.max_tokens,
+                                  **self.extra_kwargs)
+
         elif not self.llm and self.is_local_api():
             self.llm = ChatOpenAI(base_url=self.model_url,
                                   #model_name=self.model_name, 

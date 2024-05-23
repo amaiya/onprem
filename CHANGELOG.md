@@ -10,6 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - Use OnPrem.LLM with OpenAI-compatible REST APIs (#61)
+- experimental support for Azure OpenAI (#63)
 - Docker support
 
 ### changed
