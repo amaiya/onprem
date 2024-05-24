@@ -221,6 +221,12 @@ Below is an instruction that describes a task. Write a response that appropriate
 ### Response:"""
 ```
 
+You can supply the `prompte_template` to either the
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) constructor
+(above) or the
+[`LLM.prompt`](https://amaiya.github.io/onprem/core.html#llm.prompt)
+method. We will do the latter here:
+
 ``` python
 answer = llm.prompt(
     "Write Python code to validate an email address.", prompt_template=template
@@ -278,8 +284,8 @@ out-of-the-box.
 ### Connecting to LLMs Served Through REST APIs
 
 **OnPrem.LLM** can be used with LLMs being served through any
-OpenAI-compatible REST API. This means you can use **OnPrem.LLM** with
-tools like [vLLM](https://github.com/vllm-project/vllm),
+OpenAI-compatible REST API. This means you can easily use **OnPrem.LLM**
+with tools like [vLLM](https://github.com/vllm-project/vllm),
 [OpenLLM](https://github.com/bentoml/OpenLLM),
 [Ollama](https://ollama.com/blog/openai-compatibility), and the
 [llama.cpp
@@ -298,7 +304,7 @@ server you just started:
 ``` python
 from onprem import LLM
 llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123') 
-# Note: The API key can either supplied directly or stored in the OPENAI_API_KEY environment variable.
+# Note: The API key can either be supplied directly or stored in the OPENAI_API_KEY environment variable.
 #       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
 ```
 
