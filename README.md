@@ -42,7 +42,7 @@ installation.
 
 **Note:** If using **OnPrem.LLM** with an LLM being served through an
 [external REST
-API](https://amaiya.github.io/onprem/#using-onprem.llm-with-rest-apis-like-vllm)
+API](https://amaiya.github.io/onprem/#Connecting-to-LLMs-Served-Through-REST-APIs)
 (e.g., vLLM, OpenLLM, Ollama), installation of `llama-cpp-python` is
 optional. You will only be asked to install it if attempting to use a
 locally installed model directly.
@@ -176,6 +176,172 @@ for i, document in enumerate(result["source_documents"]):
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
 
+### Summarization Pipeline
+
+Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
+
+``` python
+from onprem import LLM
+llm = LLM(n_gpu_layers=35, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
+```
+
+``` python
+from onprem.pipelines import Summarizer
+summ = Summarizer(llm)
+
+text = summ.summarize('sample_data/1/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
+print(text)
+```
+
+     The KTrain library provides an easy-to-use framework for building and training machine learning models using low-code techniques for various data types (text, image, graph, tabular) and tasks (classification, regression). It can be used to fine-tune pretrained models in text classification and image classification tasks respectively. Additionally, it reduces cognitive load by providing a unified interface to various and disparate machine learning tasks, allowing users to focus on more important tasks that may require domain expertise or are less amenable to automation.
+
+### Text to Code Generation
+
+We’ll use the CodeUp LLM by supplying the URL and employing the
+particular prompt format this model expects.
+
+``` python
+from onprem import LLM
+
+url = "https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf"
+llm = LLM(url, n_gpu_layers=43)  # see below for GPU information
+```
+
+Setup the prompt based on what [this model
+expects](https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF#prompt-template-alpaca)
+(this is important):
+
+``` python
+template = """
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{prompt}
+
+### Response:"""
+```
+
+``` python
+answer = llm.prompt(
+    "Write Python code to validate an email address.", prompt_template=template
+)
+```
+
+
+    Here is an example of Python code that can be used to validate an email address:
+    ```
+    import re
+
+    def validate_email(email):
+        # Use a regular expression to check if the email address is in the correct format
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if re.match(pattern, email):
+            return True
+        else:
+            return False
+
+    # Test the validate_email function with different inputs
+    print("Email address is valid:", validate_email("example@example.com"))  # Should print "True"
+    print("Email address is invalid:", validate_email("example@"))  # Should print "False"
+    print("Email address is invalid:", validate_email("example.com"))  # Should print "False"
+    ```
+    The code defines a function `validate_email` that takes an email address as input and uses a regular expression to check if the email address is in the correct format. The regular expression checks for an email address that consists of one or more letters, numbers, periods, hyphens, or underscores followed by the `@` symbol, followed by one or more letters, periods, hyphens, or underscores followed by a `.` and two to three letters.
+    The function returns `True` if the email address is valid, and `False` otherwise. The code also includes some test examples to demonstrate how to use the function.
+
+Let’s try out the code generated above.
+
+``` python
+import re
+
+
+def validate_email(email):
+    # Use a regular expression to check if the email address is in the correct format
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
+
+
+print(validate_email("sam@@openai.com"))  # bad email address
+print(validate_email("sam@openai"))  # bad email address
+print(validate_email("sam@openai.com"))  # good email address
+```
+
+    False
+    False
+    True
+
+The generated code may sometimes need editing, but this one worked
+out-of-the-box.
+
+### Connecting to LLMs Served Through REST APIs
+
+**OnPrem.LLM** can be used with LLMs being served through any
+OpenAI-compatible REST API. This means you can use **OnPrem.LLM** with
+tools like [vLLM](https://github.com/vllm-project/vllm),
+[OpenLLM](https://github.com/bentoml/OpenLLM),
+[Ollama](https://ollama.com/blog/openai-compatibility), and the
+[llama.cpp
+server](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md).
+
+For instance, using [vLLM](https://github.com/vllm-project/vllm), you
+can serve a LLaMA 3 model as follows:
+
+``` sh
+python -m vllm.entrypoints.openai.api_server --model NousResearch/Meta-Llama-3-8B-Instruct --dtype auto --api-key token-abc123
+```
+
+You can then connect OnPrem.LLM to the LLM by supplying the URL of the
+server you just started:
+
+``` python
+from onprem import LLM
+llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123') 
+# Note: The API key can either supplied directly or stored in the OPENAI_API_KEY environment variable.
+#       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
+```
+
+That’s it! Solve problems with **OnPrem.LLM** as you normally would
+(e.g., RAG question-answering, summarization, few-shot prompting, code
+generation, etc.).
+
+### Using OpenAI Models with OnPrem.LLM
+
+Even when using on-premises language models, it can sometimes be useful
+to have easy access to non-local, cloud-based models (e.g., OpenAI) for
+testing, producing baselines for comparison, and generating synthetic
+examples for fine-tuning. For these reasons, in spite of the name,
+**OnPrem.LLM** now includes support for OpenAI chat models:
+
+``` python
+from onprem import LLM
+llm = LLM(model_url='openai://gpt-3.5-turbo', temperature=0) # ChatGPT
+```
+
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:138: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
+
+``` python
+saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
+```
+
+    1. Whiskers: Whiskers is a cute name for a cat because it perfectly describes one of the most adorable features of a feline - their long, delicate whiskers. It's a playful and endearing name that captures the essence of a cat's charm.
+
+    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes a sense of softness and sweetness. Just like a bowl of creamy pudding, this name brings to mind a cat's cuddly and lovable nature. It's a name that instantly makes you want to snuggle up with your furry friend.
+
+    3. Muffin: Muffin is an adorable name for a cat because it conjures up images of something small, round, and irresistibly cute - just like a cat! This name is playful and charming, and it perfectly captures the delightful and lovable nature of our feline companions.
+
+**Azure OpenAI**
+
+For Azure OpenAI models, use the following URL format:
+
+``` python
+llm = LLM(model_url='azure://<deployment_name>', ...) 
+# <deployment_name> is the Azure deployment name and additional Azure-specific parameters 
+# can be supplied as extra arguments to LLM (or set as environment variables)
+```
+
 ### Guided Prompts
 
 You can use **OnPrem.LLM** with the
@@ -279,172 +445,6 @@ See [the
 documentation](https://amaiya.github.io/onprem/examples_guided_prompts.html)
 for more examples of how to use
 [Guidance](https://github.com/guidance-ai/guidance) with **OnPrem.LLM**.
-
-### Summarization Pipeline
-
-Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
-
-``` python
-from onprem import LLM
-llm = LLM(n_gpu_layers=35, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
-```
-
-``` python
-from onprem.pipelines import Summarizer
-summ = Summarizer(llm)
-
-text = summ.summarize('sample_data/1/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
-print(text)
-```
-
-     The KTrain library provides an easy-to-use framework for building and training machine learning models using low-code techniques for various data types (text, image, graph, tabular) and tasks (classification, regression). It can be used to fine-tune pretrained models in text classification and image classification tasks respectively. Additionally, it reduces cognitive load by providing a unified interface to various and disparate machine learning tasks, allowing users to focus on more important tasks that may require domain expertise or are less amenable to automation.
-
-### Text to Code Generation
-
-We’ll use the CodeUp LLM by supplying the URL and employing the
-particular prompt format this model expects.
-
-``` python
-from onprem import LLM
-
-url = "https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf"
-llm = LLM(url, n_gpu_layers=43)  # see below for GPU information
-```
-
-Setup the prompt based on what [this model
-expects](https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF#prompt-template-alpaca)
-(this is important):
-
-``` python
-template = """
-Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{prompt}
-
-### Response:"""
-```
-
-``` python
-answer = llm.prompt(
-    "Write Python code to validate an email address.", prompt_template=template
-)
-```
-
-
-    Here is an example of Python code that can be used to validate an email address:
-    ```
-    import re
-
-    def validate_email(email):
-        # Use a regular expression to check if the email address is in the correct format
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if re.match(pattern, email):
-            return True
-        else:
-            return False
-
-    # Test the validate_email function with different inputs
-    print("Email address is valid:", validate_email("example@example.com"))  # Should print "True"
-    print("Email address is invalid:", validate_email("example@"))  # Should print "False"
-    print("Email address is invalid:", validate_email("example.com"))  # Should print "False"
-    ```
-    The code defines a function `validate_email` that takes an email address as input and uses a regular expression to check if the email address is in the correct format. The regular expression checks for an email address that consists of one or more letters, numbers, periods, hyphens, or underscores followed by the `@` symbol, followed by one or more letters, periods, hyphens, or underscores followed by a `.` and two to three letters.
-    The function returns `True` if the email address is valid, and `False` otherwise. The code also includes some test examples to demonstrate how to use the function.
-
-Let’s try out the code generated above.
-
-``` python
-import re
-
-
-def validate_email(email):
-    # Use a regular expression to check if the email address is in the correct format
-    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    if re.match(pattern, email):
-        return True
-    else:
-        return False
-
-
-print(validate_email("sam@@openai.com"))  # bad email address
-print(validate_email("sam@openai"))  # bad email address
-print(validate_email("sam@openai.com"))  # good email address
-```
-
-    False
-    False
-    True
-
-The generated code may sometimes need editing, but this one worked
-out-of-the-box.
-
-### Using with LLMs Served Through REST APIs like vLLM, OpenLLM, and Ollama
-
-**OnPrem.LLM** can be used with LLMs being served through any
-OpenAI-compatible REST API. This means you can use **OnPrem.LLM** with
-tools like [vLLM](https://github.com/vllm-project/vllm),
-[OpenLLM](https://github.com/bentoml/OpenLLM),
-[Ollama](https://ollama.com/blog/openai-compatibility), and the
-[llama.cpp
-server](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md).
-
-For instance, using [vLLM](https://github.com/vllm-project/vllm), you
-can serve a LLaMA 3 model as follows:
-
-``` sh
-python -m vllm.entrypoints.openai.api_server --model NousResearch/Meta-Llama-3-8B-Instruct --dtype auto --api-key token-abc123
-```
-
-You can then connect OnPrem.LLM to the LLM by supplying the URL of the
-server you just started:
-
-``` python
-from onprem import LLM
-llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123') 
-# Note: The API key can either supplied directly or stored in the OPENAI_API_KEY environment variable.
-#       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
-```
-
-That’s it! Solve problems with **OnPrem.LLM** as you normally would
-(e.g., RAG question-answering, summarization, few-shot prompting, code
-generation, etc.).
-
-### Using OpenAI Models with OnPrem.LLM
-
-Even when using on-premises language models, it can sometimes be useful
-to have easy access to non-local, cloud-based models (e.g., OpenAI) for
-testing, producing baselines for comparison, and generating synthetic
-examples for fine-tuning. For these reasons, in spite of the name,
-**OnPrem.LLM** now includes support for OpenAI chat models:
-
-``` python
-from onprem import LLM
-llm = LLM(model_url='openai://gpt-3.5-turbo', temperature=0) # ChatGPT
-```
-
-    /home/amaiya/projects/ghub/onprem/onprem/core.py:138: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
-      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
-
-``` python
-saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
-```
-
-    1. Whiskers: Whiskers is a cute name for a cat because it perfectly describes one of the most adorable features of a feline - their long, delicate whiskers. It's a playful and endearing name that captures the essence of a cat's charm.
-
-    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes a sense of softness and sweetness. Just like a bowl of creamy pudding, this name brings to mind a cat's cuddly and lovable nature. It's a name that instantly makes you want to snuggle up with your furry friend.
-
-    3. Muffin: Muffin is an adorable name for a cat because it conjures up images of something small, round, and irresistibly cute - just like a cat! This name is playful and charming, and it perfectly captures the delightful and lovable nature of our feline companions.
-
-**Azure OpenAI**
-
-For Azure OpenAI models, use the following URL format:
-
-``` python
-llm = LLM(model_url='azure://<deployment_name>', ...) 
-# <deployment_name> is the Azure deployment name and additional Azure-specific parameters 
-# can be supplied as extra arguments to LLM (or set as environment variables)
-```
 
 ## Built-In Web App
 
