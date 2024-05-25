@@ -133,6 +133,23 @@ def test_summarization(llm, **kwargs):
 
 
 
+def test_extraction(llm, **kwargs):
+    import os
+    from onprem import LLM
+    from onprem.pipelines import Extractor
+    # Using an cloud-based, off-premises model here!
+    llm = LLM(verbose=False, mute_stream=True, temperature=0, n_gpu_layers=kwargs['gpu']) 
+    extractor = Extractor(llm)
+    prompt = """Your task is to extract the name of the research institution from the following text delimiated by three backticks.
+    Return NA if there is no research institution mentioned.
+    ```{text}```
+    """
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
+    df = extractor.apply(prompt, fpath=fpath, pdf_pages=[1], stop=[])
+    print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
+    assert 'Institute for Defense Analyses' in df.loc[df['Extractions'] != 'NA'].Extractions[0]
+
+
 def test_semantic(**kwargs):
     vectordb_path = tempfile.mkdtemp()
     url = kwargs["url"]
@@ -199,11 +216,15 @@ def run(**kwargs):
     # guided prompt test
     test_guider(llm, **kwargs)
 
-    # summarization test
-    test_summarization(llm, **kwargs)
 
     # rag test
     test_rag(llm, **kwargs)
+
+    # summarization test
+    test_summarization(llm, **kwargs)
+
+    # extraction test
+    test_extraction(llm, **kwargs)
 
     # semantic simlarity test
     test_semantic(**kwargs)
