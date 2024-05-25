@@ -15,6 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - Docker support
 
 ### changed
+- change default model to Mistral (#65)
 - allow installation of onprem without llama-cpp-python for easier use with LLMs served through 
   REST APIs (#62)
 - Added `ignore_fn` argument to `LLM.ingest` to allow more control over ignoring certain files (#58)

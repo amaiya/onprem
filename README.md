@@ -85,8 +85,7 @@ People:"""
 saved_output = llm.prompt(prompt)
 ```
 
-
-    Cillian Murphy, Florence Pugh
+     Cillian Murphy, Florence Pugh.
 
 Additional prompt examples are [shown
 here](https://amaiya.github.io/onprem/examples.html).
@@ -95,17 +94,16 @@ here](https://amaiya.github.io/onprem/examples.html).
 
 Answers are generated from the content of your documents (i.e.,
 [retrieval augmented generation](https://arxiv.org/abs/2005.11401) or
-RAG). Here, we will supply `use_larger=True` to use the larger default
-model better suited to this use case in addition to using [GPU
+RAG). Here, we will use [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
-to speed up answer generation. However, the smaller Zephyr-7B model may
-perform even better, responds faster, and is used in our [example
+to speed up answer generation. However, the Zephyr-7B model may perform
+even better, responds faster, and is used in our [example
 notebook](https://amaiya.github.io/onprem/examples_rag.html).
 
 ``` python
 from onprem import LLM
 
-llm = LLM(use_larger=True, n_gpu_layers=35)
+llm = LLM(n_gpu_layers=35)
 ```
 
 #### Step 1: Ingest the Documents into a Vector Database
@@ -119,9 +117,10 @@ llm.ingest("./sample_data")
     Loaded 12 new documents from ./sample_data
     Split into 153 chunks of text (max. 500 chars each)
     Creating embeddings. May take some minutes...
-    Ingestion complete! You can now query your documents using the LLM.ask method
+    Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods
 
-    Loading new documents: 100%|██████████████████████| 3/3 [00:00<00:00, 25.52it/s]
+    Loading new documents: 100%|██████████████████████| 3/3 [00:00<00:00, 13.71it/s]
+    100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:02<00:00,  2.49s/it]
 
 #### Step 2: Answer Questions About the Documents
 
@@ -130,7 +129,7 @@ question = """What is  ktrain?"""
 result = llm.ask(question)
 ```
 
-     ktrain is a low-code platform designed to facilitate the full machine learning workflow, from preprocessing inputs to training, tuning, troubleshooting, and applying models. It focuses on automating other aspects of the ML workflow in order to augment and complement human engineers rather than replacing them. Inspired by fastai and ludwig, ktrain is intended to democratize machine learning for beginners and domain experts with minimal programming or data science experience.
+     Ktrain is a low-code machine learning library designed to facilitate the full machine learning workflow from curating and preprocessing inputs to training, tuning, troubleshooting, and applying models. Ktrain is well-suited for domain experts who may have less experience with machine learning and software coding.
 
 The sources used by the model to generate the answer are stored in
 `result['source_documents']`:
@@ -146,20 +145,20 @@ for i, document in enumerate(result["source_documents"]):
     Sources:
 
 
-    1.> ./sample_data/ktrain_paper.pdf:
+    1.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
     lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
     tomation and instead focuses on either partially or fully automating other aspects of the
     machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
     2
 
-    2.> ./sample_data/ktrain_paper.pdf:
+    2.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
     possible, ktrain automates (either algorithmically or through setting well-performing de-
     faults), but also allows users to make choices that best ﬁt their unique application require-
     ments. In this way, ktrain uses automation to augment and complement human engineers
     rather than attempting to entirely replace them. In doing so, the strengths of both are
     better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
 
-    3.> ./sample_data/ktrain_paper.pdf:
+    3.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
     with custom models and data formats, as well.
     Inspired by other low-code (and no-
     code) open-source ML libraries such as fastai (Howard and Gugger, 2020) and ludwig
@@ -168,7 +167,7 @@ for i, document in enumerate(result["source_documents"]):
     4. http://archive.ics.uci.edu/ml/datasets/Twenty+Newsgroups
     6
 
-    4.> ./sample_data/ktrain_paper.pdf:
+    4.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
     ktrain: A Low-Code Library for Augmented Machine Learning
     toML platform and more of what might be called a “low-code” ML platform. Through
     automation or semi-automation, ktrain facilitates the full machine learning workﬂow from
@@ -189,11 +188,11 @@ llm = LLM(n_gpu_layers=35, verbose=False, mute_stream=True) # disabling viewing 
 from onprem.pipelines import Summarizer
 summ = Summarizer(llm)
 
-text = summ.summarize('sample_data/1/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
-print(text)
+resp = summ.summarize('sample_data/1/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
+print(resp['output_text'])
 ```
 
-     The KTrain library provides an easy-to-use framework for building and training machine learning models using low-code techniques for various data types (text, image, graph, tabular) and tasks (classification, regression). It can be used to fine-tune pretrained models in text classification and image classification tasks respectively. Additionally, it reduces cognitive load by providing a unified interface to various and disparate machine learning tasks, allowing users to focus on more important tasks that may require domain expertise or are less amenable to automation.
+     Ktrain is an open-source machine learning library that offers a unified interface for various machine learning tasks. The library supports both supervised and non-supervised machine learning, and includes methods for training models, evaluating models, making predictions on new data, and providing explanations for model decisions. Additionally, the library integrates with various explainable AI libraries such as shap, eli5 with lime, and others to provide more interpretable models.
 
 ### Information Extraction Pipeline
 
@@ -215,7 +214,7 @@ df = extractor.apply(prompt, fpath='sample_data/1/ktrain_paper.pdf', pdf_pages=[
 df.loc[df['Extractions'] != 'NA'].Extractions[0]
 ```
 
-    /home/amaiya/projects/ghub/onprem/onprem/core.py:147: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:156: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
     'Institute for Defense Analyses'
@@ -390,6 +389,9 @@ to generate fictional D&D-type characters that conform to the precise
 structure we want (i.e., JSON):
 
 ``` python
+from onprem import LLM
+
+llm = LLM(n_gpu_layers=35, verbose=False)
 from onprem.guider import Guider
 guider = Guider(llm)
 ```
@@ -440,16 +442,16 @@ print(json.dumps(d, indent=4))
     Generated JSON:
     {
         "items": [
-            "Quest Item 3",
-            "Quest Item 2",
-            "Quest Item 1"
+            "a set of lockpicks",
+            "a map of the local area",
+            "a set of thieves' tools"
         ],
         "age": "10",
-        "mantra": "I am the blade of justice.",
-        "character_class": "fighter",
-        "weapon": "sword",
+        "mantra": "Stay nimble, stay quick.",
+        "character_class": "rogue",
+        "weapon": "crossbow",
         "armour": "leather",
-        "character_name": "Katana"
+        "character_name": "Rogue"
     }
 
 #### Using Regular Expressions to Control LLM Generation
