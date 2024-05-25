@@ -134,20 +134,17 @@ def test_summarization(llm, **kwargs):
 
 
 def test_extraction(llm, **kwargs):
-    import os
-    from onprem import LLM
     from onprem.pipelines import Extractor
-    # Using an cloud-based, off-premises model here!
-    llm = LLM(verbose=False, mute_stream=True, temperature=0, n_gpu_layers=kwargs['gpu']) 
     extractor = Extractor(llm)
-    prompt = """Your task is to extract the name of the research institution from the following text delimiated by three backticks.
-    Return NA if there is no research institution mentioned.
-    ```{text}```
+    prompt = """The following text is delimited by ### and is from the first page of a research paper.  Extract the author of the research paper.
+    If the author is listed, begin the response with "Author:" and then output the name and nothing else.
+    If there is no author mentioned in the text, output NA.
+    ###{text}###
     """
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
     df = extractor.apply(prompt, fpath=fpath, pdf_pages=[1], stop=[])
     print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
-    assert 'Institute for Defense Analyses' in df.loc[df['Extractions'] != 'NA'].Extractions[0]
+    assert 'Arun S. Maiya' in df.loc[df['Extractions'] != 'NA'].Extractions[0]
 
 
 def test_semantic(**kwargs):
@@ -252,8 +249,8 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGUF/resolve/main/Wizard-Vicuna-7B-Uncensored.Q4_K_M.gguf",
-        help=("URL of model. Default is a URL to Wizard-Vicuna-7B-Uncensored."),
+        default="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+        help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
     )
 
     args = parser.parse_args()
