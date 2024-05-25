@@ -195,6 +195,26 @@ print(text)
 
      The KTrain library provides an easy-to-use framework for building and training machine learning models using low-code techniques for various data types (text, image, graph, tabular) and tasks (classification, regression). It can be used to fine-tune pretrained models in text classification and image classification tasks respectively. Additionally, it reduces cognitive load by providing a unified interface to various and disparate machine learning tasks, allowing users to focus on more important tasks that may require domain expertise or are less amenable to automation.
 
+### Information Extraction Pipeline
+
+Extract information from raw documents (e.g., PDFs, MS Word) with an
+LLM.
+
+``` python
+from onprem import LLM
+from onprem.pipelines import Extractor
+# Using an cloud-based, off-premises model here!
+llm = LLM(model_url='openai://gpt-3.5-turbo', verbose=False, mute_stream=True, temperature=0) 
+extractor = Extractor(llm)
+df = extractor.apply(prompt, fpath='sample_data/1/ktrain_paper.pdf', pdf_pages=[1], stop=['\n'])
+df.loc[df['Extractions'] != 'NA'].Extractions[0]
+```
+
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:147: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
+
+    'Institute for Defense Analyses'
+
 ### Text to Code Generation
 
 We’ll use the CodeUp LLM by supplying the URL and employing the
