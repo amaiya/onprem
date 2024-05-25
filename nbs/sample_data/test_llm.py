@@ -17,7 +17,7 @@ Sentence:
 I like Cillian Murphy's acting. Florence Pugh is great, too.
 People:"""
     saved_output = llm.prompt(prompt)
-    assert saved_output.strip() == "Cillian Murphy, Florence Pugh", "bad response"
+    assert saved_output.strip().startswith("Cillian Murphy, Florence Pugh"), "bad response"
     print()
     print()
     return

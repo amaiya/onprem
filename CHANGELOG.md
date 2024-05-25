@@ -23,6 +23,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - If encountering a loading error when processing a file, skip and continue instead of halting (#60)
+- Add check for partially download files (#49)
 
 
 ## 0.0.36 (2024-01-16)
