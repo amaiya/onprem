@@ -206,6 +206,11 @@ from onprem.pipelines import Extractor
 # Using an cloud-based, off-premises model here!
 llm = LLM(model_url='openai://gpt-3.5-turbo', verbose=False, mute_stream=True, temperature=0) 
 extractor = Extractor(llm)
+prompt = """Extract the names of research institutions (e.g., universities, research labs, corporations, etc.) 
+from the following sentence delimitated by three backticks. If there are no organizations, return NA.  
+If there are multiple organizations, separate them with commas.
+```{text}```
+"""
 df = extractor.apply(prompt, fpath='sample_data/1/ktrain_paper.pdf', pdf_pages=[1], stop=['\n'])
 df.loc[df['Extractions'] != 'NA'].Extractions[0]
 ```
