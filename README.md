@@ -202,7 +202,7 @@ LLM.
 ``` python
 from onprem import LLM
 from onprem.pipelines import Extractor
-# Using an cloud-based, off-premises model here!
+# Notice that we're using a cloud-based, off-premises model here! See "OpenAI" section below.
 llm = LLM(model_url='openai://gpt-3.5-turbo', verbose=False, mute_stream=True, temperature=0) 
 extractor = Extractor(llm)
 prompt = """Extract the names of research institutions (e.g., universities, research labs, corporations, etc.) 
@@ -381,13 +381,6 @@ show a couple of examples here, but see [our documentation on guided
 prompts](https://amaiya.github.io/onprem/examples_guided_prompts.html)
 for more information.
 
-#### Structured Outputs with [`onprem.guider.Guider`](https://amaiya.github.io/onprem/guider.html#guider)
-
-Here, we’ll use a
-[`Guider`](https://amaiya.github.io/onprem/guider.html#guider)instance
-to generate fictional D&D-type characters that conform to the precise
-structure we want (i.e., JSON):
-
 ``` python
 from onprem import LLM
 
@@ -396,65 +389,8 @@ from onprem.guider import Guider
 guider = Guider(llm)
 ```
 
-``` python
-# create the Guider instance
-from onprem.guider import Guider
-from guidance import gen, select
-guider = Guider(llm)
-
-# this is a function that generates a Guidance prompt that will be fed to Guider
-sample_weapons = ["sword", "axe", "mace", "spear", "bow", "crossbow"]
-sample_armour = ["leather", "chainmail", "plate"]
-def generate_character_prompt(
-    character_one_liner,
-    weapons: list[str] = sample_weapons,
-    armour: list[str] = sample_armour,
-    n_items: int = 3
-):
-    prompt = ''
-    prompt += "{"
-    prompt += f'"description" : "{character_one_liner}",'
-    prompt += '"name" : "' + gen(name="character_name", stop='"') + '",'
-    prompt += '"age" : ' + gen(name="age", regex="[0-9]+") + ','
-    prompt += '"armour" : "' + select(armour, name="armour") + '",'
-    prompt += '"weapon" : "' + select(weapons, name="weapon") + '",'
-    prompt += '"class" : "' + gen(name="character_class", stop='"') + '",'
-    prompt += '"mantra" : "' + gen(name="mantra", stop='"') + '",'
-    prompt += '"strength" : ' + gen(name="age", regex="[0-9]+") + ','
-    prompt += '"quest_items" : [ '
-    for i in range(n_items):
-        prompt += '"' + gen(name="items", list_append=True, stop='"') + '"'  
-        if i < n_items - 1:
-            prompt += ','
-    prompt += "]"
-    prompt += "}"
-    return prompt
-```
-
-``` python
-# feed prompt to Guider and extract JSON
-import json
-d = guider.prompt(generate_character_prompt("A quick and nimble fighter"), echo=False)
-print('Generated JSON:')
-print(json.dumps(d, indent=4))
-```
-
-    Generated JSON:
-    {
-        "items": [
-            "a set of lockpicks",
-            "a map of the local area",
-            "a set of thieves' tools"
-        ],
-        "age": "10",
-        "mantra": "Stay nimble, stay quick.",
-        "character_class": "rogue",
-        "weapon": "crossbow",
-        "armour": "leather",
-        "character_name": "Rogue"
-    }
-
-#### Using Regular Expressions to Control LLM Generation
+With the Guider, you can use use Regular Expressions to control LLM
+generation:
 
 ``` python
 prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
