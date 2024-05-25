@@ -96,6 +96,7 @@ class LLM:
         - *verbose*: Verbosity
         """
         self.model_url = DEFAULT_LARGER_URL if use_larger else model_url
+        self.model_url = self.model_url.split("?")[0]
         self.model_name = os.path.basename(self.model_url)
         self.model_download_path = model_download_path or U.get_datadir()
         if self.is_local():
