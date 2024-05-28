@@ -196,8 +196,8 @@ print(resp['output_text'])
 
 ### Information Extraction Pipeline
 
-Extract information from raw documents (e.g., PDFs, MS Word) with an
-LLM.
+Extract information from raw documents (e.g., PDFs, MS Word documents)
+with an LLM.
 
 ``` python
 from onprem import LLM
@@ -206,7 +206,7 @@ from onprem.pipelines import Extractor
 llm = LLM(model_url='openai://gpt-3.5-turbo', verbose=False, mute_stream=True, temperature=0) 
 extractor = Extractor(llm)
 prompt = """Extract the names of research institutions (e.g., universities, research labs, corporations, etc.) 
-from the following sentence delimitated by three backticks. If there are no organizations, return NA.  
+from the following sentence delimited by three backticks. If there are no organizations, return NA.  
 If there are multiple organizations, separate them with commas.
 ```{text}```
 """
@@ -214,7 +214,7 @@ df = extractor.apply(prompt, fpath='sample_data/1/ktrain_paper.pdf', pdf_pages=[
 df.loc[df['Extractions'] != 'NA'].Extractions[0]
 ```
 
-    /home/amaiya/projects/ghub/onprem/onprem/core.py:156: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:159: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
     'Institute for Defense Analyses'
