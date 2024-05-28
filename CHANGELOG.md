@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - information extraction pipeline (#64)
 - experimental support for Azure OpenAI (#63)
 - Docker support
+- Few-Shot classification pipeline (#66)
 
 ### changed
 - change default model to Mistral (#65)
