@@ -147,6 +147,42 @@ def test_extraction(llm, **kwargs):
     assert 'Arun S. Maiya' in df.loc[df['Extractions'] != 'NA'].Extractions[0]
 
 
+def test_classifier(**kwargs):
+    from onprem.pipelines import FewShotClassifier
+    clf = FewShotClassifier(use_smaller=True)
+
+
+    from sklearn.datasets import fetch_20newsgroups
+    import pandas as pd
+    import numpy as np
+
+
+    # Fetching data
+    classes = ["soc.religion.christian", "sci.space"]
+    newsgroups = fetch_20newsgroups(subset="all", categories=classes)
+    corpus = np.array(newsgroups.data)
+    group_labels = np.array(newsgroups.target_names)[newsgroups.target]
+
+    # Wrangling data into a dataframe and selecting training examples
+    data = pd.DataFrame({"text": corpus, "label": group_labels})
+    train_df = data.groupby("label").sample(5)
+    test_df = data.drop(index=train_df.index)
+
+    # small sample of entire dataset set (and much smaller than the test set)
+    X_sample = train_df['text'].values
+    y_sample = train_df['label'].values
+
+    # test set
+    X_test = test_df['text'].values
+    y_test = test_df['label'].values
+
+    clf.train(X_sample,  y_sample, num_epochs=1, batch_size=16, num_iterations=20)
+    assert clf.evaluate(X_test, y_test, labels=clf.model.labels)['accuracy'] > 0.9
+
+    assert clf.predict(['Elon Musk likes launching satellites.']).tolist()[0] == 'sci.space'
+
+
+
 def test_semantic(**kwargs):
     vectordb_path = tempfile.mkdtemp()
     url = kwargs["url"]
@@ -213,7 +249,6 @@ def run(**kwargs):
     # guided prompt test
     test_guider(llm, **kwargs)
 
-
     # rag test
     test_rag(llm, **kwargs)
 
@@ -222,6 +257,9 @@ def run(**kwargs):
 
     # extraction test
     test_extraction(llm, **kwargs)
+
+    # classifier test
+    test_classifier(**kwargs)
 
     # semantic simlarity test
     test_semantic(**kwargs)
