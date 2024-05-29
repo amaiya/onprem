@@ -103,9 +103,10 @@ class ClassifierBase(ABC):
             y_pred = [self.model.labels.index(y) for y in y_pred]
             if y_eval[0] in self.model.labels:
                 y_eval = [self.model.labels.index(y) for y in y_eval]
-                
+
         result = classification_report(y_eval, y_pred, 
-                                       output_dict=not print_report, target_names= labels if labels else None)
+                                       output_dict=not print_report, 
+                                       target_names= self.get_labels(labels))
         if print_report:
             return result
         else:
@@ -134,11 +135,19 @@ class ClassifierBase(ABC):
         from transformers import AutoTokenizer
         tokenizer = AutoTokenizer.from_pretrained(self.model_id_or_path)
 
-        explainer = shap.Explainer(f, tokenizer, output_names=labels if labels else None)
+        
+        output_names = self.get_labels(labels)
+        explainer = shap.Explainer(f, tokenizer, output_names=self.get_labels(labels))
         shap_values = explainer(X)
         shap.plots.text(shap_values)
           
-    
+    def get_labels(self, labels:List[str]=[]):
+        """
+        Inspect model and return labels
+        """
+        target_names = labels if labels else self.model.labels
+        target_names = target_names if target_names else None
+        return target_names
 
 class FewShotClassifier(ClassifierBase):
     def __init__(
