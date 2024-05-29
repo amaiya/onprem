@@ -6,7 +6,6 @@ website:
       - 01_ingest.ipynb
       - 02_utils.ipynb
       - 03_guider.ipynb
-      - 04_pipelines.ipynb
       - 04_pipelines.summarizer.ipynb
       - 04_pipelines.extractor.ipynb
       - 04_pipelines.classifier.ipynb
