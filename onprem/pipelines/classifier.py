@@ -23,6 +23,7 @@ class ClassifierBase(ABC):
     def train(self,
               X:List[str],
               y:Union[List[int], List[str]],
+              max_steps:int=50,
               num_epochs:int=10,
               batch_size:int=32,
               **kwargs,
@@ -35,6 +36,7 @@ class ClassifierBase(ABC):
 
         - *X*: List of texts
         - *y*: List of integers representing labels
+        - *max_steps*: If set to a positive number, the total number of training steps to perform. Overrides num_epochs. 
         - *num_epochs*: Number of epochs to train
         - *batch_size*: Batch size
 
