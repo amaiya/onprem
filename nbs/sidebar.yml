@@ -19,6 +19,6 @@ website:
         - 99e_examples_guided_prompts.ipynb
         - 99f_examples_summarization.ipynb
         - 99g_examples_information_extraction.ipynb
-        - 99h_examples_classification.pynb
+        - 99h_examples_classification.ipynb
         - 99x_examples_openai.ipynb
         - 99z_webapp.ipynb
