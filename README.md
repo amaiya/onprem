@@ -22,19 +22,22 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 ------------------------------------------------------------------------
 
 *Latest News* 🔥 - \[2024/06\] v0.1.0 of **OnPrem.LLM** has been
-released. Lots of new updates! - [Ability to use with any
-OpenAI-compatible
-API](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
-(e.g., vLLM, Ollama, OpenLLM, etc.). - Pipeline for [information
-extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
-from raw documents. - Pipeline for [few-shot text
-classification](https://amaiya.github.io/onprem/examples_classification.html)
-(i.e., training a classifier on a tiny number of labeled examples) along
-with the ability to explain few-shot predictions. - Default model and
-examples changed to
-[Mistral-7B-Instruct-0.2](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) -
-[API augmentations and bug
-fixes](https://github.com/amaiya/onprem/blob/master/CHANGELOG.md)
+released. Lots of new updates!
+
+- [Ability to use with any OpenAI-compatible
+  API](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
+  (e.g., vLLM, Ollama, OpenLLM, etc.).
+- Pipeline for [information
+  extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
+  from raw documents.
+- Pipeline for [few-shot text
+  classification](https://amaiya.github.io/onprem/examples_classification.html)
+  (i.e., training a classifier on a tiny number of labeled examples)
+  along with the ability to explain few-shot predictions.
+- Default model and examples changed to
+  [Mistral-7B-Instruct-0.2](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)
+- [API augmentations and bug
+  fixes](https://github.com/amaiya/onprem/blob/master/CHANGELOG.md)
 
 ------------------------------------------------------------------------
 
