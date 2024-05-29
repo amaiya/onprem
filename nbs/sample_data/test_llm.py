@@ -176,8 +176,12 @@ def test_classifier(**kwargs):
     X_test = test_df['text'].values
     y_test = test_df['label'].values
 
-    clf.train(X_sample,  y_sample, num_epochs=1, batch_size=16, num_iterations=20)
-    assert clf.evaluate(X_test, y_test, labels=clf.model.labels)['accuracy'] > 0.9
+    #clf.train(X_sample,  y_sample, num_epochs=1, batch_size=16, num_iterations=20)
+    clf.train(X_sample,  y_sample, max_steps=20)
+    
+    acc =  clf.evaluate(X_test, y_test, labels=clf.model.labels)['accuracy'] 
+    print(acc)
+    assert acc > 0.9
 
     assert clf.predict(['Elon Musk likes launching satellites.']).tolist()[0] == 'sci.space'
 
