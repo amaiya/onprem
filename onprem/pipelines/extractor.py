@@ -6,9 +6,8 @@ __all__ = ['Extractor']
 # %% ../../nbs/04_pipelines.extractor.ipynb 3
 import os
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union, Callable
-from syntok import segmenter
-import textwrap
 import pandas as pd
+from ..utils import segment
 
 from ..ingest import load_single_document
 
@@ -68,6 +67,7 @@ class Extractor:
 
 
 
+
         **Returns:**
 
         - pd.Dataframe: a Dataframe with results
@@ -89,7 +89,7 @@ class Extractor:
             content = '\n\n'.join([doc.page_content for doc in docs])
         
         # segment
-        chunks = self.segment(content)
+        chunks = segment(content)
         extractions = []
         texts = []
         for chunk in chunks:
@@ -101,26 +101,3 @@ class Extractor:
         return df
             
         return results
-
-
-    def segment(self, text:str, unit:str='paragraph', maxchars:int=2048):
-        """
-        Segments text into a list of paragraphs or sentences depending on value of `unit`.
-        """
-        units = []
-        for paragraph in segmenter.analyze(text):
-            sentences = []
-            for sentence in paragraph:
-                text = ""
-                for token in sentence:
-                    text += f'{token.spacing}{token.value}'
-                sentences.append(text)
-            if unit == 'sentence':
-                units.extend(sentences)
-            else:
-                units.append(" ".join(sentences))
-        chunks = []
-        for s in units:
-            parts = textwrap.wrap(s, maxchars, break_long_words=False)
-            chunks.extend(parts)
-        return chunks
