@@ -36,7 +36,7 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
     classification](https://amaiya.github.io/onprem/examples_classification.html)
     (i.e., training a classifier on a tiny number of labeled examples)
     along with the ability to explain few-shot predictions.
-  - Default model and examples changed to
+  - Default model changed to
     [Mistral-7B-Instruct-v0.2](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)
   - [API augmentations and bug
     fixes](https://github.com/amaiya/onprem/blob/master/CHANGELOG.md)
