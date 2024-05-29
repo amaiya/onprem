@@ -189,7 +189,7 @@ class FewShotClassifier(ClassifierBase):
              ):
         """
         Trains the classifier on a list of texts (`X`) and a list of labels (`y`).
-        Additional keyword arguments are passed directly to `SetFit.TrainingArguments`.
+        Additional keyword arguments are passed directly to `SetFit.TrainingArguments`
 
         **Args:**
 
