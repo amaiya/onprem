@@ -222,7 +222,7 @@ df.loc[df['Extractions'] != 'NA'].Extractions[0]
 ### Few-Shot Classification
 
 Make accurate text classification predictions using only a tiny number
-of labeled examples. Inspect and explain individual predictions.
+of labeled examples.
 
 ``` python
 # create classifier
@@ -250,56 +250,27 @@ X_test, y_test = test_df['text'].values, test_df['label'].values
 
 # train
 clf.train(X_sample,  y_sample, max_steps=20)
-```
 
-    model_head.pkl not found on HuggingFace Hub, initialising classification head with random weights. You should TRAIN this model on a downstream task to use it for predictions and inference.
-    Applying column mapping to the training dataset
-    ***** Running training *****
-      Num unique pairs = 60
-      Batch size = 32
-      Num epochs = 10
-      Total optimization steps = 20
-
-    Map:   0%|          | 0/10 [00:00<?, ? examples/s]
-
-<div>
-
-    <div>
-      &#10;      <progress value='20' max='20' style='width:300px; height:20px; vertical-align: middle;'></progress>
-      [20/20 00:04, Epoch 10/0]
-    </div>
-    &#10;
-| Step | Training Loss |
-|------|---------------|
-
-<p>
-
-</div>
-
-``` python
+# evaluate
 print(clf.evaluate(X_test, y_test, print_report=True))
-```
 
-                            precision    recall  f1-score   support
+#OUTPUT
+#                        precision    recall  f1-score   support
+#
+#
+             sci.space       0.98      0.99      0.98       98#2
+soc.religion.christian       0.99      0.98      0.98       #9#2
 
-                 sci.space       0.98      0.99      0.98       982
-    soc.religion.christian       0.99      0.98      0.98       992
+              accuracy                           0.98      #1974
+             macro avg       0.98      0.98      0.98     # 1974
+          weighted avg       0.98      0.98      0.98    
 
-                  accuracy                           0.98      1974
-                 macro avg       0.98      0.98      0.98      1974
-              weighted avg       0.98      0.98      0.98      1974
-
-``` python
+# make predictions
 clf.predict(['Elon Musk likes launching satellites.']).tolist()[0]
+
+#OUTPUT
+#sci.space
 ```
-
-    'sci.space'
-
-``` python
-clf.predict_proba(['Elon Musk likes launching satellites.']).tolist()[0]
-```
-
-    [0.601985079195845, 0.39801492080415507]
 
 ### Text to Code Generation
 
