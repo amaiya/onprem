@@ -26,6 +26,8 @@ class ClassifierBase(ABC):
               max_steps:int=50,
               num_epochs:int=10,
               batch_size:int=32,
+              metric='accuracy',
+              callbacks=None,
               **kwargs,
              ):
         """
@@ -39,6 +41,8 @@ class ClassifierBase(ABC):
         - *max_steps*: If set to a positive number, the total number of training steps to perform. Overrides num_epochs. 
         - *num_epochs*: Number of epochs to train
         - *batch_size*: Batch size
+        - *metric*: metric to use
+        - *callbacks*:  A list of callbacks to customize the training loop.
 
         **Returns:**
 
@@ -185,6 +189,8 @@ class FewShotClassifier(ClassifierBase):
               y:Union[List[int], List[str]],
               num_epochs:int=10,
               batch_size:int=32,
+              metric='accuracy',
+              callbacks=None,
               **kwargs,
              ):
         """
@@ -197,6 +203,8 @@ class FewShotClassifier(ClassifierBase):
         - *y*: List of integers representing labels
         - *num_epochs*: Number of epochs to train
         - *batch_size*: Batch size
+        - *metric*: metric to use
+        - *callbacks*:  A list of callbacks to customize the training loop.
 
         **Returns:**
 
@@ -215,6 +223,8 @@ class FewShotClassifier(ClassifierBase):
         trainer = Trainer(
                     model=self.model,
                     args=args,
+                    metric=metric,
+                    callbacks=callbacks,
                     train_dataset=train_dataset,
                     column_mapping={"text": "text", "label": "label"}
         )

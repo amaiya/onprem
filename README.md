@@ -81,9 +81,8 @@ from onprem import LLM
 llm = LLM()
 ```
 
-By default, a 7B-parameter model is downloaded and used. If
-`use_larger=True`, a 13B-parameter is used. You can also supply the URL
-to an LLM of your choosing to
+By default, a 7B-parameter model is downloaded and used. However, you
+can easily supply the URL to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
 generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
@@ -120,8 +119,9 @@ Answers are generated from the content of your documents (i.e.,
 [retrieval augmented generation](https://arxiv.org/abs/2005.11401) or
 RAG). Here, we will use [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
-to speed up answer generation. However, the Zephyr-7B model may perform
-even better, responds faster, and is used in our [example
+to speed up answer generation using the default model. However, the
+Zephyr-7B model may perform even better, responds faster, and is used in
+our [example
 notebook](https://amaiya.github.io/onprem/examples_rag.html).
 
 ``` python
