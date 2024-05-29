@@ -252,24 +252,12 @@ X_test, y_test = test_df['text'].values, test_df['label'].values
 clf.train(X_sample,  y_sample, max_steps=20)
 
 # evaluate
-print(clf.evaluate(X_test, y_test, print_report=True))
-
-#OUTPUT
-#                        precision    recall  f1-score   support
-#
-#
-             sci.space       0.98      0.99      0.98       98#2
-soc.religion.christian       0.99      0.98      0.98       #9#2
-
-              accuracy                           0.98      #1974
-             macro avg       0.98      0.98      0.98     # 1974
-          weighted avg       0.98      0.98      0.98    
+print(clf.evaluate(X_test, y_test)['accuracy'])
+#output: 0.98
 
 # make predictions
 clf.predict(['Elon Musk likes launching satellites.']).tolist()[0]
-
-#OUTPUT
-#sci.space
+#output: sci.space
 ```
 
 ### Text to Code Generation

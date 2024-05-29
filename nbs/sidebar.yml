@@ -7,6 +7,9 @@ website:
       - 02_utils.ipynb
       - 03_guider.ipynb
       - 04_pipelines.ipynb
+      - 04_pipelines.summarizer.ipynb
+      - 04_pipelines.extractor.ipynb
+      - 04_pipelines.classifier.ipynb
       - section: Examples
         contents:
         - 99a_examples.ipynb
@@ -16,5 +19,6 @@ website:
         - 99e_examples_guided_prompts.ipynb
         - 99f_examples_summarization.ipynb
         - 99g_examples_information_extraction.ipynb
+        - 99h_examples_classification.pynb
         - 99x_examples_openai.ipynb
         - 99z_webapp.ipynb
