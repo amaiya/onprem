@@ -11,7 +11,7 @@ from setfit import SetFitModel, TrainingArguments, Trainer, sample_dataset, SetF
 # %% ../../nbs/04_pipelines.classifier.ipynb 4
 import warnings
 from abc import ABC, abstractmethod
-DEFAULT_SETFIT_MODEL = 'BAAI/bge-small-en-v1.5'
+DEFAULT_SETFIT_MODEL = "sentence-transformers/paraphrase-mpnet-base-v2"
 SMALL_SETFIT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DATASET_TEXT = "text"
 DATASET_LABEL = "label"
