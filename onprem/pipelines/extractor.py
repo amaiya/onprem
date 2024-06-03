@@ -41,6 +41,7 @@ class Extractor:
               content: Optional[str] = None,
               unit:str='paragraph',
               filter_fn: Optional[Callable] = None,
+              clean_fn: Optional[Callable] = None,
               pdf_pages:List[int]=[],
               maxchars = 2048,
               stop:list=[]
@@ -59,6 +60,8 @@ class Extractor:
         - *unit*: One of {'sentence', 'paragraph'}. 
         - *filter_fn*: A function that accepts a sentence or paragraph and returns `True` if prompt should be applied to it.
                        If `filter_fn` returns False, the text is ignored and excluded from results.
+        - *clean_fn*: A function that accepts a sentence or paragraph and returns "cleaned" version of the text.
+                      If `filter_fn` exists, only applied to texts for which `filter_fn` returns True.
         - *pdf_pages*: If `fpath` is a PDF document, only apply prompt to text on page numbers listed in `pdf_pages`.
                        Page numbers start with 1, not 0 (e.g., `pdf_pages=[1,2,3]` for first three pages).
                        If list is empty, prompt is applied to every page.
@@ -94,6 +97,7 @@ class Extractor:
         texts = []
         for chunk in chunks:
             if filter_fn and not filter_fn(chunk): continue
+            if clean_fn: chunk = clean_fn(chunk)
             prompt = extraction_prompt.format(text=chunk)
             extractions.append(self.llm.prompt(prompt, stop=stop))
             texts.append(chunk)
