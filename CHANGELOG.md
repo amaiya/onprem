@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Remove BOS token from default prompt (#67)
+- Remove call to `db.persist` (#68)
 
 
 ## 0.1.0 (2024-06-01)

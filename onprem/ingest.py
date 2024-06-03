@@ -336,7 +336,6 @@ class Ingester:
                     else:
                         db.add_documents(lst)
         if texts:
-            db.persist()
             print(
                 f"Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
             )
