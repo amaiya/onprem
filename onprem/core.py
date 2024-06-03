@@ -32,7 +32,7 @@ from . import utils as U
 
 MIN_MODEL_SIZE = 250000000
 DEFAULT_MODEL_URL = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
-DEFAULT_MODEL_PROMPT_TEMPLATE = "<s>[INST] {prompt} [/INST]"
+DEFAULT_MODEL_PROMPT_TEMPLATE = "[INST] {prompt} [/INST]"
 DEFAULT_LARGER_URL = "https://huggingface.co/TheBloke/WizardLM-13B-V1.2-GGUF/resolve/main/wizardlm-13b-v1.2.Q4_K_M.gguf"
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DEFAULT_QA_PROMPT = """"Use the following pieces of context delimited by three backticks to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
