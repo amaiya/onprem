@@ -92,7 +92,7 @@ class Extractor:
             content = '\n\n'.join([doc.page_content for doc in docs])
         
         # segment
-        chunks = segment(content)
+        chunks = segment(content, maxchars=maxchars, unit=unit)
         extractions = []
         texts = []
         for chunk in chunks:
