@@ -127,7 +127,7 @@ notebook](https://amaiya.github.io/onprem/examples_rag.html).
 ``` python
 from onprem import LLM
 
-llm = LLM(n_gpu_layers=35)
+llm = LLM(n_gpu_layers=-1)
 ```
 
 #### Step 1: Ingest the Documents into a Vector Database
@@ -205,7 +205,7 @@ Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
 
 ``` python
 from onprem import LLM
-llm = LLM(n_gpu_layers=35, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
+llm = LLM(n_gpu_layers=-1, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
 ```
 
 ``` python
@@ -293,7 +293,7 @@ particular prompt format this model expects.
 from onprem import LLM
 
 url = "https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf"
-llm = LLM(url, n_gpu_layers=43)  # see below for GPU information
+llm = LLM(url, n_gpu_layers=-1)  # see below for GPU information
 ```
 
 Setup the prompt based on what [this model
@@ -449,7 +449,7 @@ for more information.
 ``` python
 from onprem import LLM
 
-llm = LLM(n_gpu_layers=35, verbose=False)
+llm = LLM(n_gpu_layers=-1, verbose=False)
 from onprem.guider import Guider
 guider = Guider(llm)
 ```
@@ -525,10 +525,12 @@ llm = LLM(n_gpu_layers=35)
 ```
 
 The value for `n_gpu_layers` depends on your GPU memory and the model
-you’re using (e.g., max of 35 for default 7B model). You can reduce the
-value if you get an error (e.g., `CUDA error: out-of-memory`). For
-instance, using two old NVDIDIA TITAN V GPUs each with 12GB of VRAM, 59
-out 83 layers in a [quantized Llama-2 70B
+you’re using (e.g., max of 33 for default 7B model). Set
+`n_gpu_layers=-1` to offload all layers to the GPU (this will offload
+all 33 layers to the default model). You can reduce the value if you get
+an error (e.g., `CUDA error: out-of-memory`). For instance, using two
+old NVDIDIA TITAN V GPUs each with 12GB of VRAM, 59 out 83 layers in a
+[quantized Llama-2 70B
 model](https://huggingface.co/TheBloke/Llama-2-70B-chat-GGUF/resolve/main/llama-2-70b-chat.Q3_K_S.gguf)
 can be offloaded to the GPUs (i.e., 60 layers or more results in a “CUDA
 out of memory” error).
