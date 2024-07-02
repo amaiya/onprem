@@ -266,24 +266,17 @@ class Ingester:
 
     def ingest(
         self,
-        source_directory: str,
-        chunk_size: int = DEFAULT_CHUNK_SIZE,
-        chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
-        ignore_fn:Optional[Callable] = None
-    ):
+        source_directory: str, # path to folder containing document store
+        chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
+        chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        ignore_fn:Optional[Callable] = None # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
+    ) -> None:
         """
-        Ingests all documents in `source_directory` (previously-ingested documents are ignored).
-
-        **Args**:
-
-          - *source_directory*: path to folder containing document store
-          - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
-          - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
-          - *ignore_fn*: Optional function that accepts the file path (including file name) as input and returns True
-                         if file path should not be ingested.
-
-
-        **Returns**: `None`
+        Ingests all documents in `source_directory` (previously-ingested documents are
+        ignored). When retrieved, the
+        [Document](https://api.python.langchain.com/en/latest/documents/langchain_core.documents.base.Document.html)
+        objects will each have a `metadata` dict with the absolute path to the file
+        in `metadata["source"]`.
         """
 
         if not os.path.exists(source_directory):
