@@ -17,7 +17,7 @@ Sentence:
 I like Cillian Murphy's acting. Florence Pugh is great, too.
 People:"""
     saved_output = llm.prompt(prompt)
-    assert saved_output.strip() == "Cillian Murphy, Florence Pugh", "bad response"
+    assert saved_output.strip().startswith("Cillian Murphy, Florence Pugh"), "bad response"
     print()
     print()
     return
@@ -26,13 +26,20 @@ People:"""
 def test_rag(llm, **kwargs):
     llm.vectordb_path = tempfile.mkdtemp()
 
+    # make source folder
     source_folder = tempfile.mkdtemp()
+
+    # download ktrain paper
     U.download(
         "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/1/ktrain_paper.pdf",
         os.path.join(source_folder, "ktrain.pdf"),
     )
+
+    # ingest ktrain paper
     llm.ingest(source_folder)
     assert os.path.exists(source_folder)
+
+    # QA on ktrain paper
     print()
     print("LLM.ask test")
     print()
@@ -41,17 +48,26 @@ def test_rag(llm, **kwargs):
     assert len(result["source_documents"]) == 4
     assert "question" in result
     print()
+
+
+    # download SOTU
     U.download(
         "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/3/state_of_the_union.txt",
         os.path.join(source_folder, "sotu.txt"),
     )
+
+    # ingest SOTU
     llm.ingest(source_folder)
+
+    # QA on SOTU
     print()
     result = llm.ask("Who is Ketanji? Brown Jackson")
     assert len(result["answer"]) > 8
     assert "question" in result
     assert "source_documents" in result
     print()
+
+    # QA chat test
     print()
     print("LLM.chat test")
     print()
@@ -66,6 +82,22 @@ def test_rag(llm, **kwargs):
     assert len(result["answer"]) > 8
     print()
     print()
+
+    # download MS financial statement
+    U.download(
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/2/ms-financial-statement.pdf",
+        os.path.join(source_folder, "ms-financial-statement.pdf"),
+    )
+
+    # ingest but ignore MS financial statement
+    llm.ingest(source_folder, ignore_fn=lambda x: os.path.basename(x) == 'ms-financial-statement.pdf')
+    ingested_files = llm.ingester.get_ingested_files()
+    print([os.path.basename(x) for x in ingested_files])
+    assert(len(ingested_files) == 2)
+    assert('ms-inancial-statement.pdf' not in [os.path.basename(x) for x in ingested_files])
+
+
+    # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
     return
@@ -98,6 +130,60 @@ def test_summarization(llm, **kwargs):
     assert('output_text' in text)
     print(text['output_text'])
     assert(len(text['output_text']) > 0)
+
+
+
+def test_extraction(llm, **kwargs):
+    from onprem.pipelines import Extractor
+    extractor = Extractor(llm)
+    prompt = """The following text is delimited by ### and is from the first page of a research paper.  Extract the author of the research paper.
+    If the author is listed, begin the response with "Author:" and then output the name and nothing else.
+    If there is no author mentioned in the text, output NA.
+    ###{text}###
+    """
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
+    df = extractor.apply(prompt, fpath=fpath, pdf_pages=[1], stop=[])
+    print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
+    assert 'Arun S. Maiya' in df.loc[df['Extractions'] != 'NA'].Extractions[0]
+
+
+def test_classifier(**kwargs):
+    from onprem.pipelines import FewShotClassifier
+    clf = FewShotClassifier(use_smaller=True)
+
+
+    from sklearn.datasets import fetch_20newsgroups
+    import pandas as pd
+    import numpy as np
+
+
+    # Fetching data
+    classes = ["soc.religion.christian", "sci.space"]
+    newsgroups = fetch_20newsgroups(subset="all", categories=classes)
+    corpus = np.array(newsgroups.data)
+    group_labels = np.array(newsgroups.target_names)[newsgroups.target]
+
+    # Wrangling data into a dataframe and selecting training examples
+    data = pd.DataFrame({"text": corpus, "label": group_labels})
+    train_df = data.groupby("label").sample(5)
+    test_df = data.drop(index=train_df.index)
+
+    # small sample of entire dataset set (and much smaller than the test set)
+    X_sample = train_df['text'].values
+    y_sample = train_df['label'].values
+
+    # test set
+    X_test = test_df['text'].values
+    y_test = test_df['label'].values
+
+    #clf.train(X_sample,  y_sample, num_epochs=1, batch_size=16, num_iterations=20)
+    clf.train(X_sample,  y_sample, max_steps=20)
+    
+    acc =  clf.evaluate(X_test, y_test, labels=clf.model.labels)['accuracy'] 
+    print(acc)
+    assert acc > 0.9
+
+    assert clf.predict(['Elon Musk likes launching satellites.']).tolist()[0] == 'sci.space'
 
 
 
@@ -167,11 +253,17 @@ def run(**kwargs):
     # guided prompt test
     test_guider(llm, **kwargs)
 
+    # rag test
+    test_rag(llm, **kwargs)
+
     # summarization test
     test_summarization(llm, **kwargs)
 
-    # rag test
-    test_rag(llm, **kwargs)
+    # extraction test
+    test_extraction(llm, **kwargs)
+
+    # classifier test
+    test_classifier(**kwargs)
 
     # semantic simlarity test
     test_semantic(**kwargs)
@@ -199,8 +291,8 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGUF/resolve/main/Wizard-Vicuna-7B-Uncensored.Q4_K_M.gguf",
-        help=("URL of model. Default is a URL to Wizard-Vicuna-7B-Uncensored."),
+        default="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+        help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
     )
 
     args = parser.parse_args()

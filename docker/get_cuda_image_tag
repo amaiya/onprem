@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+from sys import argv, exit, stderr
+from typing import Dict, Tuple
+
+# Supported devel-ubuntu22.04 image CUDA versions
+HUB_IMAGE_VERSIONS = ["11.7.1", "11.8.0", "12.0.1", "12.1.1", "12.2.2", "12.3.0"]
+
+
+def get_major_minor(version: str) -> Tuple[int, int]:
+    if "." not in version:
+        return int(version), 0
+    components = tuple(map(int, version.split(".")))
+    return int(components[0]), int(components[1])
+
+
+def main(cuda_version: str):
+    supported_major_versions = set(
+        mm[0] for mm in map(get_major_minor, HUB_IMAGE_VERSIONS)
+    )
+    major, minor = get_major_minor(cuda_version)
+    if major not in supported_major_versions:
+        print(
+            f"Your CUDA major version must be one of: {supported_major_versions}",
+            file=stderr,
+        )
+        print(
+            "The supported versions change over time. Search nvidia-cuda\n"
+            "tags for devel-ubuntu22 to see if the latest matches those stored\n"
+            "in this script. Feel free to submit a pull request with what you find!",
+            file=stderr,
+        )
+        exit(1)
+    selected_image_minor = None
+    selected_image_version = None
+    for hub_version in HUB_IMAGE_VERSIONS:
+        image_major, image_minor = get_major_minor(hub_version)
+        if image_major != major:
+            continue
+        if minor >= image_minor and (
+            selected_image_minor is None or selected_image_minor <= image_minor
+        ):
+            selected_image_minor = image_minor
+            selected_image_version = hub_version
+    if selected_image_minor is None:
+        print("Something went wrong. I couldn't find a supported image version to use.\n"
+              "You likely need to update your NVIDIA Device driver.",
+              file=stderr)
+        exit(1)
+    print(selected_image_version)
+
+if __name__ == "__main__":
+    if len(argv) != 2:
+        print("Usage: get_cuda_image_tag [CUDA-version-string]", file=stderr)
+    else:
+        main(argv[1])
+else:
+    print("This is meant to be a runnable script.", file=stderr)

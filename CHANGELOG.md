@@ -6,6 +6,52 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.1.2 (2024-06-05)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Segment needs to accept arguments in extractor pipeline (#70)
+
+
+## 0.1.1 (2024-06-03)
+
+### new:
+- N/A
+
+### changed
+- Add clean function to `Extractor.apply` (#69)
+
+### fixed:
+- Remove BOS token from default prompt (#67)
+- Remove call to `db.persist` (#68)
+
+
+## 0.1.0 (2024-06-01)
+
+### new:
+- Use OnPrem.LLM with OpenAI-compatible REST APIs (#61)
+- information extraction pipeline (#64)
+- experimental support for Azure OpenAI (#63)
+- Docker support
+- Few-Shot classification pipeline (#66)
+
+### changed
+- change default model to Mistral (#65)
+- allow installation of onprem without llama-cpp-python for easier use with LLMs served through 
+  REST APIs (#62)
+- Added `ignore_fn` argument to `LLM.ingest` to allow more control over ignoring certain files (#58)
+- Added `Ingester.get_ingested_files` to show files ingested into vector database (#59)
+
+### fixed:
+- If encountering a loading error when processing a file, skip and continue instead of halting (#60)
+- Add check for partially download files (#49)
+
+
 ## 0.0.36 (2024-01-16)
 
 ### new:
