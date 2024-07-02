@@ -290,7 +290,7 @@ class Ingester:
 
             if texts:
                 chunk_batches, total_chunks = batchify_chunks(texts)
-                print(f"Creating embeddings. May take some minutes...")
+                print("Creating embeddings. May take some minutes...")
                 db = None
 
                 for lst in tqdm(chunk_batches, total=total_chunks):
@@ -307,9 +307,8 @@ class Ingester:
                     else:
                         db.add_documents(lst)
         if texts:
-            db.persist()
             print(
-                f"Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
+                "Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
             )
         db = None
         return
