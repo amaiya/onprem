@@ -40,6 +40,7 @@ class Extractor:
               fpath: Optional[str] = None,
               content: Optional[str] = None,
               unit:str='paragraph',
+              preproc_fn: Optional[Callable] = None,
               filter_fn: Optional[Callable] = None,
               clean_fn: Optional[Callable] = None,
               pdf_pages:List[int]=[],
@@ -58,6 +59,8 @@ class Extractor:
         - *fpath*: A path to to a single file of interest (e.g., a PDF or MS Word document). Mutually-exclusive with `content`.
         - *content*: Text content of a document of interest.  Mutually-exclusive with `fpath`.
         - *unit*: One of {'sentence', 'paragraph'}. 
+        - *preproc_fn*: A function that is applied to the original extracted text (or each page of text in a PDF).
+                        Function should accept a text string and returns a new text string.
         - *filter_fn*: A function that accepts a sentence or paragraph and returns `True` if prompt should be applied to it.
                        If `filter_fn` returns False, the text is ignored and excluded from results.
         - *clean_fn*: A function that accepts a sentence or paragraph and returns "cleaned" version of the text.
@@ -89,7 +92,7 @@ class Extractor:
             ext = "." + fpath.rsplit(".", 1)[-1].lower()
             if ext == '.pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
-            content = '\n\n'.join([doc.page_content for doc in docs])
+            content = '\n\n'.join([preproc_fn(doc.page_content) if preproc_fn else doc.page_content for doc in docs])
         
         # segment
         chunks = segment(content, maxchars=maxchars, unit=unit)
