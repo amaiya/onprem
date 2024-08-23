@@ -1,8 +1,8 @@
 How to Run Onprem in a Docker Container
 =======================================
 
-Ignore these steps if you don't have an NVIDIA GPU, and skip to the
-[next section]().
+Build the Image(s)
+------------------
 
 1. (Optional) Confirm that your host has an Nvidia device and driver installed, supporting
    CUDA. On a Linux host, the `nvidia-smi` command-line utility can verify this.
@@ -16,21 +16,24 @@ Ignore these steps if you don't have an NVIDIA GPU, and skip to the
 4. (Optional) Test that the NVIDIA Container Toolkit is passing through the NVIDIA Driver
    to properly run containers by following the post-installation instructions
    titled *Running a Sample Workload*.
-5. Build the Docker image(s) by running `docker/docker_build.sh`
+5. Build the Docker image(s) by running `docker/docker_build.sh`. If you wish to just
+   build the cpu-only image (as in the case of using Docker Desktop on Windows), `cd` to
+   the folder containing this from this folder, issue this command:
+   `docker build -t onprem:cpu -f Dockerfile-cpu ..`
 
-Run OnPrem in a Containerized Python REPL
------------------------------------------
+The last step above can be performed inside the "Terminal" feature of Docker Desktop
+on Windows as well.
 
-The following shell commands will launch the image's python interpreter in a
-container, mapping the host's persistent *~/onprem_data/* folder to the correct
+In the following sections, the shell commands will launch the image's python interpreter
+in a container, mapping the host's persistent *~/onprem_data/* folder to the correct
 location inside the container.
 
-You may use additional `-v` options to specify mapping a host folder to a folder
-on the container if, e.g., you have a script utilizing *onprem* that you want
-to execute. The *onprem_cuda* image does not include any facility for running
-Jupyter notebooks.
+You may use additional `-v` options to specify mapping a host folder to a folder on the
+container if, e.g., you have a script utilizing *onprem* that you want to execute. The
+*onprem_cuda* image does not include any facility for running Jupyter notebooks.
 
-### CUDA-Enabled REPL
+CUDA-Enabled REPL
+-----------------
 
 The `11.7.1` container tag may be different in your case.
 
@@ -42,7 +45,8 @@ $ sudo docker run --rm -it --gpus=all --cap-add SYS_RESOURCE -e USE_MLOCK=0 \
 … et cetera …
 ```
 
-### CPU-only REPL
+CPU-only REPL
+-------------
 
 ```shell
 $ sudo docker run --rm -it -v ~/onprem_data:/root/onprem_data onprem:cpu
@@ -50,6 +54,11 @@ $ sudo docker run --rm -it -v ~/onprem_data:/root/onprem_data onprem:cpu
 >>> llm = LLM()
 … et cetera …
 ```
+
+If using Docker Desktop in Windows, it is recommended that you have it configured to use
+WSL 2 for Docker hosting. In order for data volumes to take advantage of Windows'
+available local storage, you should first generate a volume using the Docker Desktop
+GUI, and in place of `~/onprem_data`, use the name of the volume you created.
 
 Run the Onprem Streamlit App from a Container
 ---------------------------------------------
@@ -68,7 +77,8 @@ llm:
   model_download_path: /root/onprem_data
 ```
 
-### CUDA-Enabled Web App
+CUDA-Enabled Web App
+--------------------
 
 ```shell
 $ sudo docker run --gpus=all --cap-add SYS_RESOURCE -e USE_MLOCK=0 \
@@ -112,7 +122,8 @@ If you omit the *rag_texts* volume mapping, you will still be able to query the
 ingested knowledge from your documents, but any displayed hyperlinks to your
 documents will not work.
 
-### CPU-Only Web App
+CPU-Only Web App
+----------------
 
 This is very similar to running the CUDA image. The GPU and system resource
 options are not needed for running the  CPU-only image.
