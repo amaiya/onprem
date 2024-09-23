@@ -264,6 +264,38 @@ class Ingester:
         return set([d['source'] for d in self.get_db().get()['metadatas']])
 
 
+    def store_documents(self, documents):
+        """
+        Stores instances of langchain_core.documents.base.Document in vectordb
+        """
+        if not documents: return
+        db = self.get_db()
+        if db:
+            print(f"Creating embeddings. May take some minutes...")
+            chunk_batches, total_chunks = batchify_chunks(documents)
+            for lst in tqdm(chunk_batches, total=total_chunks):
+                db.add_documents(lst)
+        else:
+            chunk_batches, total_chunks = batchify_chunks(documents)
+            print(f"Creating embeddings. May take some minutes...")
+            db = None
+
+            for lst in tqdm(chunk_batches, total=total_chunks):
+                if not db:
+                    db = Chroma.from_documents(
+                        lst,
+                        self.embeddings,
+                        persist_directory=self.persist_directory,
+                        client_settings=self.chroma_settings,
+                        client=self.chroma_client,
+                        collection_metadata={"hnsw:space": "cosine"},
+                        collection_name=COLLECTION_NAME,
+                    )
+                else:
+                    db.add_documents(lst)
+        return
+
+
     def ingest(
         self,
         source_directory: str, # path to folder containing document store
@@ -291,43 +323,21 @@ class Ingester:
             # Update and store locally vectorstore
             print(f"Appending to existing vectorstore at {self.persist_directory}")
             collection = db.get()
-            texts = process_documents(
-                source_directory,
-                ignored_files=[
-                    metadata["source"] for metadata in collection["metadatas"]],
-                ignore_fn=ignore_fn
-
-            )
-            if texts:
-                print(f"Creating embeddings. May take some minutes...")
-                chunk_batches, total_chunks = batchify_chunks(texts)
-                for lst in tqdm(chunk_batches, total=total_chunks):
-                    db.add_documents(lst)
+            ignored_files=[ metadata["source"] for metadata in collection["metadatas"]]
         else:
-            # Create and store locally vectorstore
             print(f"Creating new vectorstore at {self.persist_directory}")
-            texts = process_documents(
-                source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn
-            )
+            ignored_files = []
 
-            if texts:
-                chunk_batches, total_chunks = batchify_chunks(texts)
-                print(f"Creating embeddings. May take some minutes...")
-                db = None
+        texts = process_documents(
+            source_directory,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            ignored_files=ignored_files,
+            ignore_fn=ignore_fn
 
-                for lst in tqdm(chunk_batches, total=total_chunks):
-                    if not db:
-                        db = Chroma.from_documents(
-                            lst,
-                            self.embeddings,
-                            persist_directory=self.persist_directory,
-                            client_settings=self.chroma_settings,
-                            client=self.chroma_client,
-                            collection_metadata={"hnsw:space": "cosine"},
-                            collection_name=COLLECTION_NAME,
-                        )
-                    else:
-                        db.add_documents(lst)
+        )
+        self.store_documents(texts)
+
         if texts:
             print(
                 f"Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
