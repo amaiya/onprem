@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- Added `Ingester.store_documents` method (#77)
+- Added `Ingester.store_documents` method (#36,#77)
 
 ### fixed:
 - N/A
