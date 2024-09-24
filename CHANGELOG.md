@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.1.4 (TBD)
 
 ### new:
-- N/A
+- OCR support (#75)
 
 ### changed
 - Added `Ingester.store_documents` method (#36,#77)

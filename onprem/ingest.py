@@ -21,8 +21,9 @@ from langchain.docstore.document import Document
 from langchain_community.document_loaders import (
     CSVLoader,
     EverNoteLoader,
-    PyMuPDFLoader,
     TextLoader,
+    PyMuPDFLoader,
+    UnstructuredPDFLoader,
     UnstructuredEmailLoader,
     UnstructuredEPubLoader,
     UnstructuredHTMLLoader,
@@ -83,6 +84,7 @@ LOADER_MAPPING = {
     ".md": (UnstructuredMarkdownLoader, {}),
     ".odt": (UnstructuredODTLoader, {}),
     ".pdf": (PyMuPDFLoader, {}),
+    ".pdfOCR": (UnstructuredPDFLoader, {"strategy":"hi_res"}),
     ".ppt": (UnstructuredPowerPointLoader, {}),
     ".pptx": (UnstructuredPowerPointLoader, {}),
     ".txt": (TextLoader, {"encoding": "utf8"}),
@@ -90,23 +92,38 @@ LOADER_MAPPING = {
 }
 
 
-def load_single_document(file_path: str) -> List[Document]:
+def load_single_document(file_path: str, # path to file
+                         use_pdf_unstructured:bool=False, # use unstructured for PDF extraction if True
+                         **kwargs, # If kwargs include `loader_args` (a dictionary), it is passed directly  to langchain loader.
+                         ) -> List[Document]:
     """
-    Load a single document (invoked by `load_documents`).
+    Load a single document. Will attempt to OCR PDFs, if necessary.
     """
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
         try:
-            loader_class, loader_args = LOADER_MAPPING[ext]
+            loader_class, loader_args = LOADER_MAPPING[ext+f'{"OCR" if use_pdf_unstructured else ""}']
+            loader_args = kwargs.get('loader_args', loader_args)
             loader = loader_class(file_path, **loader_args)
-            return loader.load()
+            if ext == '.pdf' and not use_pdf_unstructured:
+                docs = loader.load()
+                if not docs or len(docs[0].page_content) < 32:
+                    loader_class, loader_args = LOADER_MAPPING[ext+'OCR']
+                    loader = loader_class(file_path, **loader_args)
+                    return loader.load()
+                return loader.load()
+            else:
+                return loader.load()
+
         except Exception as e:
             logger.warning(f'Skipping {file_path} due to error: {str(e)}')
     else:
         logger.warning(f"Skipping {file_path} due to unsupported file extension: '{ext}'")
 
 
-def load_documents(source_dir: str, ignored_files: List[str] = [], ignore_fn:Optional[Callable] = None
+def load_documents(source_dir: str, # path to folder containing documents
+                   ignored_files: List[str] = [], # list of filepaths to ignore
+                   ignore_fn:Optional[Callable] = None, # callable that accepts file path and returns True for ignored files
 ) -> List[Document]:
     """
     Loads all documents from the source documents directory, ignoring specified files
@@ -142,9 +159,9 @@ def load_documents(source_dir: str, ignored_files: List[str] = [], ignore_fn:Opt
 
 def process_documents(
     source_directory: str,
-    ignored_files: List[str] = [],
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
+    ignored_files: List[str] = [],
     ignore_fn:Optional[Callable] = None
 
 
@@ -157,6 +174,7 @@ def process_documents(
       - *source_directory*: path to folder containing document store
       - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
       - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+      - *ignored_files*: list of files to ignore
       - *ignore_fn*: Optional function that accepts the file path (including file name) as input and returns True
                      if file path should not be ingested.
 
@@ -268,7 +286,7 @@ class Ingester:
 
     def store_documents(self, documents):
         """
-        Stores instances of langchain_core.documents.base.Document in vectordb
+        Stores instances of `langchain_core.documents.base.Document` in vectordb
         """
         if not documents: return
         db = self.get_db()
