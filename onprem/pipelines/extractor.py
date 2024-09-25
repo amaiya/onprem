@@ -45,6 +45,7 @@ class Extractor:
              ):
         """
         Apply the prompt to each `unit` (where a "unit" is either a paragraph or sentence) optionally filtered by `filter_fn`.
+        Extra kwargs fed directly to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True.
         Results are stored in a `pandas.Dataframe`.
         """
         if not(bool(fpath) != bool(content)):
