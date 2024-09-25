@@ -143,8 +143,10 @@ def test_extraction(llm, **kwargs):
     """
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
     df = extractor.apply(prompt, fpath=fpath, pdf_pages=[1], stop=[])
-    print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
-    assert 'Arun S. Maiya' in df.loc[df['Extractions'] != 'NA'].Extractions[0]
+    #print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
+    author = df.loc[~df['Extractions'].isin(['NA', 'Author: NA'])].Extractions.values.tolist()[0]
+    print(author)
+    assert 'Arun S. Maiya' in author
 
 
 def test_classifier(**kwargs):

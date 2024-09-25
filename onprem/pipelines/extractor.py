@@ -17,20 +17,12 @@ from ..ingest import load_single_document
 class Extractor:
     def __init__(
         self,
-        llm,
-        prompt_template: Optional[str] = None,              
+        llm, # An `onprem.LLM` object
+        prompt_template: Optional[str] = None, # A model specific prompt_template with a single placeholder named "{prompt}". If supplied, overrides the `prompt_template` supplied to the `LLM` constructor.
         **kwargs,
     ):
         """
         `Extractor` applies a given prompt to each sentence or paragraph in a document and returns the results.
-
-        **Args:**
-
-        - *llm*: An `onprem.LLM` object
-        - *prompt_template*: A model specific prompt_template with a single placeholder named "{prompt}".
-                             All prompts (e.g., Map-Reduce prompts) are wrapped within this prompt.
-                             If supplied, overrides the `prompt_template` supplied to the `LLM` constructor.
-
         """
         self.llm = llm
         self.prompt_template = prompt_template if prompt_template is not None else llm.prompt_template
@@ -38,47 +30,22 @@ class Extractor:
 
 
     def apply(self,
-              ex_prompt_template:str, 
-              fpath: Optional[str] = None,
-              content: Optional[str] = None,
-              unit:str='paragraph',
-              preproc_fn: Optional[Callable] = None,
-              filter_fn: Optional[Callable] = None,
-              clean_fn: Optional[Callable] = None,
-              pdf_pages:List[int]=[],
-              maxchars = 2048,
-              stop:list=[]
+              ex_prompt_template:str, # A prompt to apply to each `unit` in document. Should have a single variable, `{text}`
+              fpath: Optional[str] = None, # A path to to a single file of interest (e.g., a PDF or MS Word document). Mutually-exclusive with `content`.
+              content: Optional[str] = None, # Text content of a document of interest.  Mutually-exclusive with `fpath`.
+              unit:str='paragraph', # One of {'sentence', 'paragraph'}. 
+              preproc_fn: Optional[Callable] = None, # Function should accept a text string and returns a new preprocessed input.
+              filter_fn: Optional[Callable] = None, # A function that accepts a sentence or paragraph and returns `True` if prompt should be applied to it.
+              clean_fn: Optional[Callable] = None, # A function that accepts a sentence or paragraph and returns "cleaned" version of the text. (applied after `filter_fn`)
+              pdf_pages:List[int]=[], # If `fpath` is a PDF document, only apply prompt to text on page numbers listed in `pdf_pages` (starts at 1).
+              maxchars = 2048, # units (i.e., paragraphs or sentences) larger than `maxchars` split.
+              stop:list=[], # list of characters to trigger the LLM to stop generating.
+              use_pdf_unstructured:bool=False, # If True, use unstructured package to extract text from PDF.
+              **kwargs, # N/A
              ):
         """
         Apply the prompt to each `unit` (where a "unit" is either a paragraph or sentence) optionally filtered by `filter_fn`.
         Results are stored in a `pandas.Dataframe`.
-
-
-        **Args:**
-
-        - *ex_prompt_template*: A prompt to apply to each `unit` in document. Should have a single variable, `{text}`.
-                               Example: `"Extract universities from the following text delimited by ###:\n\n###{text}###"`
-        - *fpath*: A path to to a single file of interest (e.g., a PDF or MS Word document). Mutually-exclusive with `content`.
-        - *content*: Text content of a document of interest.  Mutually-exclusive with `fpath`.
-        - *unit*: One of {'sentence', 'paragraph'}. 
-        - *preproc_fn*: A function that is applied to the original extracted text (or each page of text in a PDF).
-                        Function should accept a text string and returns a new text string.
-        - *filter_fn*: A function that accepts a sentence or paragraph and returns `True` if prompt should be applied to it.
-                       If `filter_fn` returns False, the text is ignored and excluded from results.
-        - *clean_fn*: A function that accepts a sentence or paragraph and returns "cleaned" version of the text.
-                      If `filter_fn` exists, only applied to texts for which `filter_fn` returns True.
-        - *pdf_pages*: If `fpath` is a PDF document, only apply prompt to text on page numbers listed in `pdf_pages`.
-                       Page numbers start with 1, not 0 (e.g., `pdf_pages=[1,2,3]` for first three pages).
-                       If list is empty, prompt is applied to every page.
-        - *maxchars*: units (i.e., paragraphs or sentences) larger than `maxhcars` split.
-        - *stop*: list of characters to trigger the LLM to stop generating.
-
-
-
-
-        **Returns:**
-
-        - pd.Dataframe: a Dataframe with results
         """
         if not(bool(fpath) != bool(content)):
             raise ValueError('Either fpath argument or content argument must be supplied but not both.')
@@ -90,7 +57,7 @@ class Extractor:
         if not content:
             if not os.path.isfile(fpath):
                 raise ValueError(f'{fpath} is not a file')
-            docs = load_single_document(fpath)
+            docs = load_single_document(fpath, use_pdf_unstructured=use_pdf_unstructured, **kwargs)
             ext = "." + fpath.rsplit(".", 1)[-1].lower()
             if ext == '.pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
