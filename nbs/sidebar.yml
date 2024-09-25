@@ -2,13 +2,6 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - 00_core.ipynb
-      - 01_ingest.ipynb
-      - 02_utils.ipynb
-      - 03_guider.ipynb
-      - 04_pipelines.summarizer.ipynb
-      - 04_pipelines.extractor.ipynb
-      - 04_pipelines.classifier.ipynb
       - section: Examples
         contents:
         - 99a_examples.ipynb
@@ -21,3 +14,12 @@ website:
         - 99h_examples_classification.ipynb
         - 99x_examples_openai.ipynb
         - 99z_webapp.ipynb
+      - section: Source
+        contents:
+        - 00_core.ipynb
+        - 01_ingest.ipynb
+        - 02_utils.ipynb
+        - 03_guider.ipynb
+        - 04_pipelines.summarizer.ipynb
+        - 04_pipelines.extractor.ipynb
+        - 04_pipelines.classifier.ipynb
