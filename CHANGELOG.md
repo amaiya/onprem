@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - add `pdf_use_unstructured` argument to `LLM.ingest` (#79)
+- Allow configuration of unstructured for PDFs from `LLM.ingest` (#80)
 
 ### fixed:
 - N/A

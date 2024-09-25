@@ -82,15 +82,12 @@ class MyPDFLoader(UnstructuredPDFLoader):
             #raise ValueError('MyPDFLoader needs to be called with mode="elements"')
         try:
             docs = UnstructuredPDFLoader.load(self)
-            page_content = '\n'.join([d.page_content for d in docs if d.metadata['category'] != 'Table'])
+            if not docs: raise Exception('Document had no content. ')
+            page_content = '\n'.join([d.metadata.get('text_as_html', d.page_content)
+                           if d.metadata.get('category', None) == 'Table' else d.page_content for d in docs])
             source = docs[0].metadata['source']
-            main_doc = Document(page_content=page_content, metadata={'source':source})
-            tables = [d.metadata['text_as_html'] for d in docs if d.metadata['category'] == 'Table']
-            table_docs = []
-            for table in tables:
-                table_docs.append(Document(page_content=table, metadata={'source':source}))
-            docs = [main_doc] + table_docs
-            return docs
+            doc = Document(page_content=page_content, metadata={'source':source})
+            return [doc]
         except Exception as e:
             # Add file_path to exception message
             raise type(e)(f"{self.file_path}: {e}") from e
@@ -110,7 +107,7 @@ LOADER_MAPPING = {
     ".odt": (UnstructuredODTLoader, {}),
     ".pdf": (PyMuPDFLoader, {}),
     #".pdfOCR": (UnstructuredPDFLoader, {"strategy":"hi_res"}),
-    ".pdfOCR": (MyPDFLoader, {"infer_table_structure":True, "mode":"elements", "strategy":"hi_res"}),
+    ".pdfOCR": (MyPDFLoader, {"infer_table_structure":False, "mode":"elements", "strategy":"hi_res"}),
     ".ppt": (UnstructuredPowerPointLoader, {}),
     ".pptx": (UnstructuredPowerPointLoader, {}),
     ".txt": (TextLoader, {"encoding": "utf8"}),
@@ -120,16 +117,17 @@ LOADER_MAPPING = {
 
 def load_single_document(file_path: str, # path to file
                          pdf_use_unstructured:bool=False, # use unstructured for PDF extraction if True
-                         **kwargs, # If kwargs include `loader_args` (a dictionary), it is passed directly  to langchain loader.
+                         **kwargs,
                          ) -> List[Document]:
     """
     Load a single document. Will attempt to OCR PDFs, if necessary.
+    Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True.
     """
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
         try:
             loader_class, loader_args = LOADER_MAPPING[ext+f'{"OCR" if pdf_use_unstructured and ext==".pdf" else ""}']
-            loader_args = kwargs.get('loader_args', loader_args)
+            if pdf_use_unstructured and ext=='.pdf': loader_args.update(kwargs)
             loader = loader_class(file_path, **loader_args)
             if ext == '.pdf' and not pdf_use_unstructured:
                 docs = loader.load()
@@ -142,18 +140,20 @@ def load_single_document(file_path: str, # path to file
                 return loader.load()
 
         except Exception as e:
-            logger.warning(f'Skipping {file_path} due to error: {str(e)}')
+            logger.warning(f'\nSkipping {file_path} due to error: {str(e)}')
     else:
-        logger.warning(f"Skipping {file_path} due to unsupported file extension: '{ext}'")
+        logger.warning(f"\nSkipping {file_path} due to unsupported file extension: '{ext}'")
 
 
 def load_documents(source_dir: str, # path to folder containing documents
                    ignored_files: List[str] = [], # list of filepaths to ignore
                    ignore_fn:Optional[Callable] = None, # callable that accepts file path and returns True for ignored files
                    pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+                   **kwargs
 ) -> List[Document]:
     """
-    Loads all documents from the source documents directory, ignoring specified files
+    Loads all documents from the source documents directory, ignoring specified files.
+    Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True.
     """
     source_dir = os.path.abspath(source_dir)
     all_files = []
@@ -177,7 +177,7 @@ def load_documents(source_dir: str, # path to folder containing documents
         ) as pbar:
             for i, docs in enumerate(
                 pool.imap_unordered(functools.partial(load_single_document,
-                                                      pdf_use_unstructured=pdf_use_unstructured),
+                                                      pdf_use_unstructured=pdf_use_unstructured, **kwargs),
                                     filtered_files)
             ):
                 if docs is not None: results.extend(docs)
@@ -192,17 +192,19 @@ def process_documents(
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
     ignored_files: List[str] = [], # list of files to ignore
     ignore_fn:Optional[Callable] = None, # Callable that accepts the file path (including file name) as input and ignores if returns True
-    pdf_use_unstructured:bool=False # If True, use unstructured for PDF extraction
+    pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+    **kwargs
 
 
 ) -> List[Document]:
     """
-    Load documents and split in chunks
+    Load documents and split in chunks.
+    Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True
     """
     print(f"Loading documents from {source_directory}")
     documents = load_documents(source_directory,
                               ignored_files, ignore_fn=ignore_fn,
-                              pdf_use_unstructured=pdf_use_unstructured)
+                              pdf_use_unstructured=pdf_use_unstructured, **kwargs)
     if not documents:
         print("No new documents to load")
         return
@@ -345,7 +347,8 @@ class Ingester:
         chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
         chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
-        pdf_use_unstructured:bool=False # If True, use unstructured for PDF extraction
+        pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+        **kwargs
     ) -> None:
         """
         Ingests all documents in `source_directory` (previously-ingested documents are
@@ -353,6 +356,7 @@ class Ingester:
         [Document](https://api.python.langchain.com/en/latest/documents/langchain_core.documents.base.Document.html)
         objects will each have a `metadata` dict with the absolute path to the file
         in `metadata["source"]`.
+        Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True
         """
 
         if not os.path.exists(source_directory):
@@ -378,7 +382,8 @@ class Ingester:
             chunk_overlap=chunk_overlap,
             ignored_files=ignored_files,
             ignore_fn=ignore_fn,
-            pdf_use_unstructured=pdf_use_unstructured
+            pdf_use_unstructured=pdf_use_unstructured,
+            **kwargs
 
         )
         self.store_documents(texts)

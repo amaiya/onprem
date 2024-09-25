@@ -49,6 +49,8 @@ class Extractor:
         """
         if not(bool(fpath) != bool(content)):
             raise ValueError('Either fpath argument or content argument must be supplied but not both.')
+        if pdf_pages and pdf_use_unstructured:
+            raise ValueError('The parameters pdf_pages and pdf_use_unstructured are mutually exclusive.')
             
         # setup extraction prompt
         extraction_prompt = ex_prompt_template if self.prompt_template is None else self.prompt_template.format(**{'prompt': ex_prompt_template})   
