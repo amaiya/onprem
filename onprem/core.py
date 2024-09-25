@@ -259,25 +259,22 @@ class LLM:
         return db
 
     def ingest(
-        self, source_directory: str, chunk_size: int = 500, chunk_overlap: int = 50, ignore_fn:Optional[Callable] = None
+        self,
+        source_directory: str, # path to folder containing documents
+        chunk_size: int = 500, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        chunk_overlap: int = 50, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        ignore_fn:Optional[Callable] = None, # callable that accepts the file path and returns True for ignored files
+        pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
     ):
         """
         Ingests all documents in `source_folder` into vector database.
         Previously-ingested documents are ignored.
-
-        **Args:**
-
-        - *source_directory*: path to folder containing document store
-        - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
-        - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
-        - *ignore_fn*: Optional function that accepts the file path (including file name) as input and returns True
-                       if file path should not be ingested.
-
-        **Returns:** `None`
         """
         ingester = self.load_ingester()
         return ingester.ingest(
-            source_directory, chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn
+            source_directory,
+            chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn,
+            pdf_use_unstructured=pdf_use_unstructured
         )
 
     def check_model(self):

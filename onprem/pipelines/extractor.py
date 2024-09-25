@@ -40,7 +40,7 @@ class Extractor:
               pdf_pages:List[int]=[], # If `fpath` is a PDF document, only apply prompt to text on page numbers listed in `pdf_pages` (starts at 1).
               maxchars = 2048, # units (i.e., paragraphs or sentences) larger than `maxchars` split.
               stop:list=[], # list of characters to trigger the LLM to stop generating.
-              use_pdf_unstructured:bool=False, # If True, use unstructured package to extract text from PDF.
+              pdf_use_unstructured:bool=False, # If True, use unstructured package to extract text from PDF.
               **kwargs, # N/A
              ):
         """
@@ -57,7 +57,7 @@ class Extractor:
         if not content:
             if not os.path.isfile(fpath):
                 raise ValueError(f'{fpath} is not a file')
-            docs = load_single_document(fpath, use_pdf_unstructured=use_pdf_unstructured, **kwargs)
+            docs = load_single_document(fpath, pdf_use_unstructured=pdf_use_unstructured, **kwargs)
             ext = "." + fpath.rsplit(".", 1)[-1].lower()
             if ext == '.pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
