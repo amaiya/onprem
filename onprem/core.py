@@ -12,8 +12,8 @@ from langchain.memory import ConversationBufferMemory
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks.manager import CallbackManager
 from langchain.prompts import PromptTemplate
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
 from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 import chromadb
@@ -233,7 +233,7 @@ class LLM:
     def load_ingester(self):
         """
         Get `Ingester` instance.
-        You can access the `langchain.vectorstores.Chroma` instance with `load_ingester().get_db()`.
+        You can access the `langchain_chroma.Chroma` instance with `load_ingester().get_db()`.
         """
         if not self.ingester:
             from onprem.ingest import Ingester

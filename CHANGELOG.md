@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.1.4 (TBD)
+## 0.1.4 (2024-09-25)
 
 ### new:
 - OCR support (#75)
@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added `Ingester.store_documents` method (#36,#77)
 
 ### fixed:
-- N/A
+- switch to `langchain_huggingface` and `langchain_chroma` (#78)
 
 
 ## 0.1.3 (2024-08-16)

@@ -32,8 +32,8 @@ from langchain_community.document_loaders import (
     UnstructuredPowerPointLoader,
     UnstructuredWordDocumentLoader,
 )
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 import chromadb
 from chromadb.config import Settings
 from . import utils as U
@@ -258,7 +258,7 @@ class Ingester:
 
     def get_db(self):
         """
-        Returns an instance to the `langchain.vectorstores.Chroma` instance
+        Returns an instance to the `langchain_chroma.Chroma` instance
         """
         db = Chroma(
             persist_directory=self.persist_directory,
@@ -272,7 +272,7 @@ class Ingester:
 
     def get_embedding_model(self):
         """
-        Returns an instance to the `langchain.embeddings.huggingface.HuggingFaceEmbeddings` instance
+        Returns an instance to the `langchain_huggingface.HuggingFaceEmbeddings` instance
         """
         return self.embeddings
 
