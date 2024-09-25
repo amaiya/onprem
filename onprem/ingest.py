@@ -158,28 +158,16 @@ def load_documents(source_dir: str, # path to folder containing documents
 
 
 def process_documents(
-    source_directory: str,
-    chunk_size: int = DEFAULT_CHUNK_SIZE,
-    chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
-    ignored_files: List[str] = [],
-    ignore_fn:Optional[Callable] = None
+    source_directory: str, # path to folder containing document store
+    chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
+    chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+    ignored_files: List[str] = [], # list of files to ignore
+    ignore_fn:Optional[Callable] = None # Callable that accepts the file path (including file name) as input and ignores if returns True
 
 
 ) -> List[Document]:
     """
     Load documents and split in chunks
-
-    **Args**:
-
-      - *source_directory*: path to folder containing document store
-      - *chunk_size*: text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
-      - *chunk_overlap*: character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
-      - *ignored_files*: list of files to ignore
-      - *ignore_fn*: Optional function that accepts the file path (including file name) as input and returns True
-                     if file path should not be ingested.
-
-    **Returns:** list of `langchain.docstore.document.Document` objects
-
     """
     print(f"Loading documents from {source_directory}")
     documents = load_documents(source_directory, ignored_files, ignore_fn=ignore_fn)
@@ -205,6 +193,9 @@ def does_vectorstore_exist(db) -> bool:
 
 
 def batchify_chunks(texts):
+    """
+    split texts into batches specifically for Chroma
+    """
     split_docs_chunked = U.split_list(texts, CHROMA_MAX)
     total_chunks = sum(1 for _ in U.split_list(texts, CHROMA_MAX))
     return split_docs_chunked, total_chunks
