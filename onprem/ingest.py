@@ -107,7 +107,7 @@ def load_single_document(file_path: str, # path to file
             loader = loader_class(file_path, **loader_args)
             if ext == '.pdf' and not use_pdf_unstructured:
                 docs = loader.load()
-                if not docs or len(docs[0].page_content) < 32:
+                if not docs or len(docs[0].page_content.strip()) < 32:
                     loader_class, loader_args = LOADER_MAPPING[ext+'OCR']
                     loader = loader_class(file_path, **loader_args)
                     return loader.load()
