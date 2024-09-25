@@ -23,6 +23,9 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2024/09\] v0.2.0 released and now includes PDF OCR support and
+  better PDF table handling.
+
 - \[2024/06\] v0.1.0 of **OnPrem.LLM** has been released. Lots of new
   updates!
 

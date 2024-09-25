@@ -6,13 +6,14 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.1.5 (2024-09-25)
+## 0.2.0 (2024-09-25)
 
 ### new:
-- N/A
+- Better PDF OCR support and table-handling (#75, #80)
 
 ### changed
-- add `pdf_use_unstructured` argument to `LLM.ingest` (#79)
+- add `pdf_use_unstructured` argument to `LLM.ingest` for
+  PDF OCR and better table-handling (#79)
 - Allow configuration of unstructured for PDFs from `LLM.ingest` (#80)
 
 ### fixed:
