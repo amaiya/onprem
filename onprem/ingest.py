@@ -4,8 +4,8 @@
 
 # %% auto 0
 __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'COLLECTION_NAME', 'CHROMA_MAX', 'LOADER_MAPPING',
-           'DEFAULT_DB', 'MyElmLoader', 'MyPDFLoader', 'load_single_document', 'load_documents', 'process_documents',
-           'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
+           'DEFAULT_DB', 'MyElmLoader', 'MyPDFLoader', 'extract_files', 'load_single_document', 'load_documents',
+           'process_documents', 'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
 
 # %% ../nbs/01_ingest.ipynb 3
 import os
@@ -116,6 +116,22 @@ LOADER_MAPPING = {
 }
 
 
+def extract_files(source_dir:str):
+    """
+    Extract files of supported file types from folder.
+    """
+    source_dir = os.path.abspath(source_dir)
+    all_files = []
+    for ext in LOADER_MAPPING:
+        all_files.extend(
+            glob.glob(os.path.join(source_dir, f"**/*{ext.lower()}"), recursive=True)
+        )
+        all_files.extend(
+            glob.glob(os.path.join(source_dir, f"**/*{ext.upper()}"), recursive=True)
+        )
+    return all_files
+
+
 def load_single_document(file_path: str, # path to file
                          pdf_use_unstructured:bool=False, # use unstructured for PDF extraction if True
                          **kwargs,
@@ -136,12 +152,14 @@ def load_single_document(file_path: str, # path to file
             if pdf_use_unstructured and ext=='.pdf': loader_args.update(kwargs)
             loader = loader_class(file_path, **loader_args)
             if ext == '.pdf' and not pdf_use_unstructured:
-                docs = loader.load()
-                if not docs or len(docs[0].page_content.strip()) < 32:
+                with warnings.catch_warnings():
+                    warnings.simplefilter(action='ignore', category=UserWarning)
+                    docs = loader.load()
+                if not docs or len('\n'.join([d.page_content.strip() for d in docs]).strip()) < 32:
                     loader_class, loader_args = LOADER_MAPPING[ext+'OCR']
                     loader = loader_class(file_path, **loader_args)
                     return loader.load()
-                return loader.load()
+                return docs
             else:
                 return loader.load()
 
@@ -161,15 +179,7 @@ def load_documents(source_dir: str, # path to folder containing documents
     Loads all documents from the source documents directory, ignoring specified files.
     Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True.
     """
-    source_dir = os.path.abspath(source_dir)
-    all_files = []
-    for ext in LOADER_MAPPING:
-        all_files.extend(
-            glob.glob(os.path.join(source_dir, f"**/*{ext.lower()}"), recursive=True)
-        )
-        all_files.extend(
-            glob.glob(os.path.join(source_dir, f"**/*{ext.upper()}"), recursive=True)
-        )
+    all_files = extract_files(source_dir)
 
     filtered_files = [
         file_path for file_path in all_files if file_path not in ignored_files and not os.path.basename(file_path).startswith('~$')

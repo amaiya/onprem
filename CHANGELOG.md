@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.2.2 (2024-09-26)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Resolve issues with PDFs that mix OCR/not-OCR (#83)
+
+
 ## 0.2.1 (2024-09-26)
 
 ### new:

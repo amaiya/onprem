@@ -146,7 +146,7 @@ def test_extraction(llm, **kwargs):
     #print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
     author = df.loc[~df['Extractions'].isin(['NA', 'Author: NA'])].Extractions.values.tolist()[0]
     print(author)
-    assert 'Arun S. Maiya' in author
+    assert 'Arun S. Maiya' in author or 'Maiya, Arun S.' in author
 
 
 def test_classifier(**kwargs):
