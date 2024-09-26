@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from multiprocessing import Pool
 import functools
 from tqdm import tqdm
+import warnings
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
@@ -126,7 +127,12 @@ def load_single_document(file_path: str, # path to file
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
         try:
+            if 'strategy' in kwargs or 'infer_table_structure' in kwargs:
+                # auto-set pdf_use_unstructured if above key config vars are supplied
+                pdf_use_unstructured = True
+
             loader_class, loader_args = LOADER_MAPPING[ext+f'{"OCR" if pdf_use_unstructured and ext==".pdf" else ""}']
+            loader_args = loader_args.copy() # copy so any supplied kwargs do not persist across calls
             if pdf_use_unstructured and ext=='.pdf': loader_args.update(kwargs)
             loader = loader_class(file_path, **loader_args)
             if ext == '.pdf' and not pdf_use_unstructured:
