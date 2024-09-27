@@ -68,8 +68,7 @@ class MyElmLoader(UnstructuredEmailLoader):
                 else:
                     raise
         except Exception as e:
-            # Add file_path to exception message
-            raise type(e)(f"{self.file_path}: {e}") from e
+            raise Exception(f'{self.file_path} : {e}')
 
         return doc
 
@@ -91,7 +90,7 @@ class MyPDFLoader(UnstructuredPDFLoader):
             return [doc]
         except Exception as e:
             # Add file_path to exception message
-            raise type(e)(f"{self.file_path}: {e}") from e
+            raise Exception(f'{self.file_path} : {e}')
 
 
 # %% ../nbs/01_ingest.ipynb 5
