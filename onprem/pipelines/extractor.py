@@ -61,6 +61,7 @@ class Extractor:
             if not os.path.isfile(fpath):
                 raise ValueError(f'{fpath} is not a file')
             docs = load_single_document(fpath, pdf_use_unstructured=pdf_use_unstructured, **kwargs)
+            if not docs: return
             ext = "." + fpath.rsplit(".", 1)[-1].lower()
             if ext == '.pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
