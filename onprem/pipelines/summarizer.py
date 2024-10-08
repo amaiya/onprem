@@ -257,6 +257,9 @@ class Summarizer:
         """
         Summarize document with respect to concept described by `concept_description`. Returns a tuple of the form (summary, sources).
         """
+
+        if similarity_method not in ['tfidf', 'senttransform']:
+            raise ValueError('similarity_method must be one of {"tifidf", "senttransform"}')
         
         # Read in text
         if not os.path.isfile(fpath):
