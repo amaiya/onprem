@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- Replace deprecated `CallbackManager` (#86)
 
 
 ## 0.2.4 (2024-09-30)

@@ -3,9 +3,7 @@ import numpy as np
 from pathlib import Path
 import mimetypes
 import streamlit as st
-from langchain.callbacks import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.callbacks.manager import CallbackManager
 from sentence_transformers import SentenceTransformer, util
 from onprem import LLM, utils as U
 

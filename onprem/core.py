@@ -10,7 +10,6 @@ __all__ = ['MIN_MODEL_SIZE', 'DEFAULT_MODEL_URL', 'DEFAULT_MODEL_PROMPT_TEMPLATE
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.callbacks.manager import CallbackManager
 from langchain.prompts import PromptTemplate
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
@@ -302,13 +301,13 @@ class LLM:
 
         if not self.llm and self.is_openai_model():
             self.llm = ChatOpenAI(model_name=self.model_name, 
-                                  callback_manager=CallbackManager(self.callbacks), 
+                                  callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
         elif not self.llm and self.is_azure():
             self.llm = AzureChatOpenAI(azure_deployment=self.model_name, 
-                                  callback_manager=CallbackManager(self.callbacks), 
+                                  callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
@@ -316,7 +315,7 @@ class LLM:
         elif not self.llm and self.is_local_api():
             self.llm = ChatOpenAI(base_url=self.model_url,
                                   #model_name=self.model_name, 
-                                  callback_manager=CallbackManager(self.callbacks), 
+                                  callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
@@ -328,7 +327,7 @@ class LLM:
                 model_path=model_path,
                 max_tokens=self.max_tokens,
                 n_batch=self.n_batch,
-                callback_manager=CallbackManager(self.callbacks),
+                callbacks=self.callbacks,
                 verbose=self.verbose,
                 n_gpu_layers=self.n_gpu_layers,
                 n_ctx=self.n_ctx,
