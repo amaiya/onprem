@@ -48,7 +48,7 @@ DEFAULT_REFINE_PROMPT = (
     "If the context isn't useful, return the original summary."
 )
 
-TARGET_PROMPT= """What does the context say with respect '{query}'? \n\nCONTEXT:\n{text}"""
+TARGET_PROMPT= """What does the context say with respect "{concept_description}"? \n\nCONTEXT:\n{text}"""
 
 # %% ../../nbs/04_pipelines.summarizer.ipynb 5
 class Summarizer:
@@ -252,7 +252,7 @@ class Summarizer:
                             max_chunks:int=4, # Only this many snippets above similarity_threshold are considered.
                             similarity_method:str="tfidf", # One of "senttransform" (sentence-transformer embeddings) or "tfidf" (TF-IDF)
                             include_surrounding:bool=False, # If True, consider surrounding text.
-                            summary_prompt:str = TARGET_PROMPT, # The prompt used for summarization. Should have a single variable, {text}.
+                            summary_prompt:str = TARGET_PROMPT, # The prompt used for summarization. Should have exactly two variables, {concept_description} and {text}.
                             ):
         """
         Summarize document with respect to concept described by `concept_description`. Returns a tuple of the form (summary, sources).
@@ -371,7 +371,7 @@ class Summarizer:
             response = self.llm.prompt(summary_prompt.format(**{"text": target_text, 
                                                                 "concept_description":concept_description}))
         else:
-            response = f'No text relevant to "{query}" in document.'
+            response = f'No text relevant to "{concept_description}" in document.'
         return response, sorted_chunks
 
 
