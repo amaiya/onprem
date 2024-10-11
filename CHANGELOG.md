@@ -6,13 +6,13 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.3.0 (TBD - not yet released)
+## 0.3.0 (2024-10-11)
 
 ### new:
 - Support for concept-focused summarizations (#87)
 
 ### changed
-- N/A
+- Replace `use_larger` parameter with `use_zephyr`
 
 ### fixed:
 - Replace deprecated `CallbackManager` (#86)

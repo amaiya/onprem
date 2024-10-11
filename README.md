@@ -23,6 +23,10 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2024/10\] v0.3.0 released and now includes support for
+  [concept-focused
+  summarization](https://amaiya.github.io/onprem/examples_summarization.html#concept-focused-summarization)
+
 - \[2024/09\] v0.2.0 released and now includes PDF OCR support and
   better PDF table handling.
 
@@ -84,15 +88,18 @@ from onprem import LLM
 llm = LLM()
 ```
 
-By default, a 7B-parameter model is downloaded and used. However, you
-can easily supply the URL to an LLM of your choosing to
+By default, a 7B-parameter model (**Mistral-7B-Instruct-v0.2**) is
+downloaded and used. If `use_zephyr=True` is supplied, a
+**Zephyr-7B-beta** model is automatically used (which is useful if the
+default Mistral model struggles with a particular task). Of course, you
+can also easily supply the URL to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
 generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
-example). Any extra parameters supplied to
+example or the [FAQ](https://amaiya.github.io/onprem/#faq)). Any extra
+parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
-directly to `llama-cpp-python`. As of v0.0.20, **OnPrem.LLM** supports
-the newer GGUF format.
+directly to `llama-cpp-python`.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -206,6 +213,11 @@ for i, document in enumerate(result["source_documents"]):
 
 Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
 
+#### Map-Reduce Summarization
+
+Summarize each chunk in a document and then generate a single summary
+from the individual summaries.
+
 ``` python
 from onprem import LLM
 llm = LLM(n_gpu_layers=-1, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
@@ -220,6 +232,25 @@ print(resp['output_text'])
 ```
 
      Ktrain is an open-source machine learning library that offers a unified interface for various machine learning tasks. The library supports both supervised and non-supervised machine learning, and includes methods for training models, evaluating models, making predictions on new data, and providing explanations for model decisions. Additionally, the library integrates with various explainable AI libraries such as shap, eli5 with lime, and others to provide more interpretable models.
+
+#### Concept-Focused Summarization
+
+Summarize a large document with respect to a particular concept of
+interest.
+
+``` python
+from onprem import LLM
+from onprem.pipelines import Summarizer
+```
+
+``` python
+llm = LLM(use_zephyr=True, n_gpu_layers=-1, verbose=False)
+summ = Summarizer(llm)
+summary, sources = summ.summarize_by_concept('sample_data/1/ktrain_paper.pdf', concept_description="question answering")
+```
+
+
+    The context provided describes the implementation of an open-domain question-answering system using ktrain, a low-code library for augmented machine learning. The system follows three main steps: indexing documents into a search engine, locating documents containing words in the question, and extracting candidate answers from those documents using a BERT model pretrained on the SQuAD dataset. Confidence scores are used to sort and prune candidate answers before returning results. The entire workflow can be implemented with only three lines of code using ktrain's SimpleQA module. This system allows for the submission of natural language questions and receives exact answers, as demonstrated in the provided example. Overall, the context highlights the ease and accessibility of building sophisticated machine learning models, including open-domain question-answering systems, through ktrain's low-code interface.
 
 ### Information Extraction Pipeline
 

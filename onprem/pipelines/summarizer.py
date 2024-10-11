@@ -281,7 +281,7 @@ class Summarizer:
                             ngram_range=(1,5),
                             stop_words="english",
                             max_features=10000,
-                            min_df=0.01,
+                            min_df=0.,
                             max_df=0.95,
                         )
         
@@ -359,7 +359,7 @@ class Summarizer:
                                                                 "concept_description":concept_description}))
         else:
             response = f'No text relevant to "{concept_description}" in document.'
-        return response, sorted_chunks
+        return response, sorted_chunks[:max_chunks]
 
 
 def get_surrounding_chunks(selected_ids, chunks, context_size=1, check_energy=False): 
