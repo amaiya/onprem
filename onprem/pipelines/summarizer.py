@@ -83,31 +83,18 @@ class Summarizer:
 
 
     def summarize(self, 
-                  fpath:str, 
-                  strategy:str='map_reduce',
-                  chunk_size:int=1000, 
-                  chunk_overlap:int=0, 
-                  token_max:int=2000,
-                  max_chunks_to_use: Optional[int] = None,
+                  fpath:str, #  path to either a folder of documents or a single file
+                  strategy:str='map_reduce', # One of {'map_reduce', 'refine'}
+                  chunk_size:int=1000, # Number of characters of each chunk to summarize
+                  chunk_overlap:int=0, # Number of characters that overlap between chunks
+                  token_max:int=2000, # Maximum number of tokens to group documents into
+                  max_chunks_to_use: Optional[int] = None, # Maximum number of chunks (starting from beginning) to use
                  ):
         """
         Summarize one or more documents (e.g., PDFs, MS Word, MS Powerpoint, plain text)
         using either Langchain's Map-Reduce strategy or Refine strategy.
-
-        **Args:**
-
-        - *fpath*: A path to either a folder of documents or a single file.
-        - *strategy*: One of {'map_reduce', 'refine'}. 
-        - *chunk_size*: Number of characters of each chunk to summarize
-        - *chunk_overlap*: Number of characters that overlap between chunks
-        - *token_max*: Maximum number of tokens to group documents into
-        - *max_chunks_to_use*: Maximum number of chunks (starting from beginning) to use.
-                               Useful for documents that have abstracts or informative introductions.
-                               If None, all chunks are considered for summarizer.
-
-        **Returns:**
-
-        - str: a summary of your documents
+        The `max_chunks` parameter may be useful for documents that have abstracts or informative introductions. 
+        If `max_chunks=None`, all chunks are considered for summarizer.
         """
           
         if os.path.isfile(fpath):
@@ -354,7 +341,7 @@ class Summarizer:
             ids_in_context = get_surrounding_chunks(
                 selected_ids, 
                 chunks, 
-                context_size=3, 
+                context_size=1, 
                 check_energy=False
             )
         else:

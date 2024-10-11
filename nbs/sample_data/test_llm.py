@@ -131,6 +131,11 @@ def test_summarization(llm, **kwargs):
     print(text['output_text'])
     assert(len(text['output_text']) > 0)
 
+    text,_ = summ.summarize_by_concept(os.path.join( os.path.dirname(os.path.realpath(__file__)),
+                                       '1/ktrain_paper.pdf'),
+                                        concept_description="automl")
+    print(text)
+    assert(len(text) > 0)
 
 
 def test_extraction(llm, **kwargs):
