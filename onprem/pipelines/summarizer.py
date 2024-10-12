@@ -48,7 +48,7 @@ DEFAULT_REFINE_PROMPT = (
     "If the context isn't useful, return the original summary."
 )
 
-TARGET_PROMPT= """What does the following text say with respect "{concept_description}"? \n\nTEXT:\n{text}"""
+TARGET_PROMPT= """What does the following context say with respect "{concept_description}"? \n\nCONTEXT:\n{text}"""
 
 # %% ../../nbs/04_pipelines.summarizer.ipynb 5
 class Summarizer:
