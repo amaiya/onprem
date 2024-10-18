@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['DEFAULT_MAP_PROMPT', 'DEFAULT_REDUCE_PROMPT', 'DEFAULT_BASE_REFINE_PROMPT', 'DEFAULT_REFINE_PROMPT', 'TARGET_PROMPT',
-           'Summarizer', 'get_surrounding_chunks']
+           'Summarizer']
 
 # %% ../../nbs/04_pipelines.summarizer.ipynb 3
 import os
@@ -243,7 +243,6 @@ class Summarizer:
         """
         Summarize document with respect to concept described by `concept_description`. Returns a tuple of the form (summary, sources).
         """
-        include_surrounding=False # not used
         if similarity_method not in ['tfidf', 'senttransform']:
             raise ValueError('similarity_method must be one of {"tifidf", "senttransform"}')
         
@@ -336,19 +335,10 @@ class Summarizer:
 
         # Select the chunks (with relevant surrounding chunks)    
         selected_ids = [s[0] for s in sorted_chunks[0:max_chunks]]
-        if include_surrounding:
-            ids_in_context = get_surrounding_chunks(
-                selected_ids, 
-                chunks, 
-                context_size=1, 
-                check_energy=False
-            )
-        else:
-            ids_in_context = selected_ids
         
         # Get the text to use
         target_text = ""
-        for ids in ids_in_context: 
+        for ids in selected_ids: 
             target_text += f"{chunks[ids].strip()}\n"
             
         # prompt the LLM to summarize energy parts 
@@ -360,17 +350,3 @@ class Summarizer:
             response = f'No text relevant to "{concept_description}" in document.'
         return response, sorted_chunks[:max_chunks]
 
-
-def get_surrounding_chunks(selected_ids, chunks, context_size=1, check_energy=False): 
-    ids_to_use = []
-    for ids in selected_ids:
-        id_range = list(np.arange(
-            max(ids-context_size,0), 
-            min(ids+context_size+1,len(chunks))
-        ))
-        if check_energy:
-            updated_ids = [i for i in id_range if "energy" in chunks[i].lower() or i==ids]
-        else:
-            updated_ids = id_range
-        ids_to_use.extend(updated_ids)
-    return sorted(list(set(ids_to_use)))
