@@ -535,21 +535,21 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 
 The above example employed the use of a CPU. If you have a GPU (even an
 older one with less VRAM), you can speed up responses. See [the
-LangChain docs on
-LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
+llama-cpp-python
+documentation](https://llama-cpp-python.readthedocs.io/en/latest/#installation)
 for installing `llama-cpp-python` with GPU support for your system.
 
 The steps below describe installing and using `llama-cpp-python` with
-`cuBLAS` support and can be employed for GPU acceleration on systems
-with NVIDIA GPUs (e.g., Linux, WSL2, Google Colab).
+`CUDA` support and can be employed for GPU acceleration on systems with
+NVIDIA GPUs (e.g., Linux, WSL2, Google Colab).
 
-#### Step 1: Install `llama-cpp-python` with cuBLAS support
+#### Step 1: Install `llama-cpp-python` with GPU support
 
 ``` shell
-CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 
 # For Mac users replace above with:
-# CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+# CMAKE_ARGS="-DGGML_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 ```
 
 #### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
