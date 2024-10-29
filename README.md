@@ -676,12 +676,20 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > For **Macs**, try following [these
     > tips](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1563333950).
 
-    > If you still have problems, there are various other tips for each
-    > of the above OSes in [this privateGPT repo
+    > There are also various other tips for each of the above OSes in
+    > [this privateGPT repo
     > thread](https://github.com/imartinez/privateGPT/issues/445). Of
     > course, you can also [easily
     > use](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing)
     > **OnPrem.LLM** on Google Colab.
+
+    > Finally, if you still can’t overcome issues with building
+    > `llama-cpp-python`, you can try [installing the pre-built wheel
+    > file](https://abetlen.github.io/llama-cpp-python/whl/cpu/llama-cpp-python/)
+    > for your system:
+
+    > **Example:**
+    > `pip install llama-cpp-python==0.2.90 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu`
 
 5.  **`llama-cpp-python` is failing to load my model from the model path
     on Google Colab.**
@@ -703,7 +711,7 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
 
     > ``` sh
     > # example
-    > CMAKE_ARGS="-DLLAMA_CUBLAS=ON -DLLAMA_AVX2=OFF -DLLAMA_AVX=OFF -DLLAMA_F16C=OFF -DLLAMA_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
+    > CMAKE_ARGS="-DGGML_CUDA=ON -DGGML_AVX2=OFF -DGGML_AVX=OFF -DGGML_F16C=OFF -DGGML_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
     > ```
 
 7.  **How can I speed up
