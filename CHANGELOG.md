@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Added key-value pair, `ocr:True`, to `Document.metadata` when PDF is OCR'ed (#91)
 
 ### fixed:
 - removed dead code in `pipelines.summarizer` (#88)

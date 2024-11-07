@@ -157,7 +157,8 @@ def load_single_document(file_path: str, # path to file
                 if not docs or len('\n'.join([d.page_content.strip() for d in docs]).strip()) < 32:
                     loader_class, loader_args = LOADER_MAPPING[ext+'OCR']
                     loader = loader_class(file_path, **loader_args)
-                    return loader.load()
+                    docs = loader.load()
+                    for doc in docs: doc.metadata = dict(doc.metadata, ocr=True)
                 return docs
             else:
                 return loader.load()
