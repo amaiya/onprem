@@ -89,10 +89,19 @@ llm = LLM()
 ```
 
 By default, a 7B-parameter model (**Mistral-7B-Instruct-v0.2**) is
-downloaded and used. If `use_zephyr=True` is supplied, a
-**Zephyr-7B-beta** model is automatically used (which is useful if the
-default Mistral model struggles with a particular task). Of course, you
-can also easily supply the URL to an LLM of your choosing to
+downloaded and used. If `default_model='llama'` is supplied, then a
+**Llama-3.1-8B-Instsruct** model is automatically downloaded and used
+(which is useful if the default Mistral model struggles with a
+particular task):
+
+``` python
+# Llama 3.1 is downloaded here and the correct prompt template for Llama-3.1 is automatically configured and used
+llm = LLM(default_model='llama')
+```
+
+Similarly, suppyling `default_model='zephyr`, will use
+**Zephyr-7B-beta**. Of course, you can also easily supply the URL to an
+LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
 generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
@@ -244,7 +253,7 @@ from onprem.pipelines import Summarizer
 ```
 
 ``` python
-llm = LLM(use_zephyr=True, n_gpu_layers=-1, verbose=False)
+llm = LLM(default_model='zephyr', n_gpu_layers=-1, verbose=False, temperature=0)
 summ = Summarizer(llm)
 summary, sources = summ.summarize_by_concept('sample_data/1/ktrain_paper.pdf', concept_description="question answering")
 ```
@@ -671,7 +680,10 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > tools](https://visualstudio.microsoft.com/vs/older-downloads/) and
     > ensure the selections shown in [this
     > post](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1561343405)
-    > are installed. WSL is recommended.
+    > are installed. WSL is recommended. But, if you need to use Windows
+    > directly (not WSL) and still have issues, try also installing the
+    > [latest Microsoft Visual C++
+    > Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 
     > For **Macs**, try following [these
     > tips](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1563333950).
