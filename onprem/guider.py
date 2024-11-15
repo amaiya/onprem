@@ -6,8 +6,7 @@
 __all__ = ['Guider']
 
 # %% ../nbs/03_guider.ipynb 3
-from . import LLM
-from guidance import select, gen, models, substring
+from guidance import models
 
 # %% ../nbs/03_guider.ipynb 4
 class Guider:

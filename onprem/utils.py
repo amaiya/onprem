@@ -165,7 +165,7 @@ def df_to_md(df, title=None):
 		table_md += f"{col_name}|"
 	table_md += "\n|"
 	for col_name, col in df.items():
-		table_md += f"---|"
+		table_md += "---|"
 	table_md += "\n"
 	for row in df.itertuples():
 		table_md += "|"
@@ -180,7 +180,7 @@ def df_to_md(df, title=None):
 			+ "includes this list of columns:\n"
 		)
 	elif title == "":
-		table_summary = f"The following table in markdown format includes this list of columns:\n"
+		table_summary = "The following table in markdown format includes this list of columns:\n"
 
 	if title is not None:
 		for col in df.columns:

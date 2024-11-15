@@ -8,18 +8,18 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'COLLECTION_
            'process_documents', 'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
 
 # %% ../nbs/01_ingest.ipynb 3
+from .utils import get_datadir
 import os
 import os.path
 import glob
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union, Callable
-from dotenv import load_dotenv
+from typing import List, Optional, Callable
 from multiprocessing import Pool
 import functools
 from tqdm import tqdm
 import warnings
 
+from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
 from langchain_community.document_loaders import (
     CSVLoader,
     EverNoteLoader,
@@ -72,7 +72,6 @@ class MyElmLoader(UnstructuredEmailLoader):
 
         return doc
 
-from langchain_core.documents import Document
 class MyPDFLoader(UnstructuredPDFLoader):
     """Custom Unstructured-based PDF Loader"""
 
@@ -82,7 +81,8 @@ class MyPDFLoader(UnstructuredPDFLoader):
             #raise ValueError('MyPDFLoader needs to be called with mode="elements"')
         try:
             docs = UnstructuredPDFLoader.load(self)
-            if not docs: raise Exception('Document had no content. ')
+            if not docs:
+                raise Exception('Document had no content. ')
             page_content = '\n'.join([d.metadata.get('text_as_html', d.page_content)
                            if d.metadata.get('category', None) == 'Table' else d.page_content for d in docs])
             source = docs[0].metadata['source']
@@ -148,7 +148,8 @@ def load_single_document(file_path: str, # path to file
 
             loader_class, loader_args = LOADER_MAPPING[ext+f'{"OCR" if pdf_use_unstructured and ext==".pdf" else ""}']
             loader_args = loader_args.copy() # copy so any supplied kwargs do not persist across calls
-            if pdf_use_unstructured and ext=='.pdf': loader_args.update(kwargs)
+            if pdf_use_unstructured and ext=='.pdf':
+                loader_args.update(kwargs)
             loader = loader_class(file_path, **loader_args)
             if ext == '.pdf' and not pdf_use_unstructured:
                 with warnings.catch_warnings():
@@ -158,7 +159,8 @@ def load_single_document(file_path: str, # path to file
                     loader_class, loader_args = LOADER_MAPPING[ext+'OCR']
                     loader = loader_class(file_path, **loader_args)
                     docs = loader.load()
-                    for doc in docs: doc.metadata = dict(doc.metadata, ocr=True)
+                    for doc in docs:
+                        doc.metadata = dict(doc.metadata, ocr=True)
                 return docs
             else:
                 return loader.load()
@@ -196,7 +198,8 @@ def load_documents(source_dir: str, # path to folder containing documents
                                                       pdf_use_unstructured=pdf_use_unstructured, **kwargs),
                                     filtered_files)
             ):
-                if docs is not None: results.extend(docs)
+                if docs is not None:
+                    results.extend(docs)
                 pbar.update()
 
     return results
@@ -250,6 +253,165 @@ def batchify_chunks(texts):
     total_chunks = sum(1 for _ in U.split_list(texts, CHROMA_MAX))
     return split_docs_chunked, total_chunks
 
+
+
+os.environ["TOKENIZERS_PARALLELISM"] = "0"
+DEFAULT_DB = "vectordb"
+
+
+class Ingester:
+    def __init__(
+        self,
+        embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+        embedding_model_kwargs: dict = {"device": "cpu"},
+        embedding_encode_kwargs: dict = {"normalize_embeddings": False},
+        persist_directory: Optional[str] = None,
+    ):
+        """
+        Ingests all documents in `source_folder` (previously-ingested documents are ignored)
+
+        **Args**:
+
+          - *embedding_model*: name of sentence-transformers model
+          - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
+          - *embedding_encode_kwargs*: arguments to encode method of
+                                       embedding model (e.g., `{'normalize_embeddings': False}`).
+          - *persist_directory*: Path to vector database (created if it doesn't exist).
+                                 Default is `onprem_data/vectordb` in user's home directory.
+
+
+        **Returns**: `None`
+        """
+        self.persist_directory = persist_directory or os.path.join(
+            get_datadir(), DEFAULT_DB
+        )
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name=embedding_model_name,
+            model_kwargs=embedding_model_kwargs,
+            encode_kwargs=embedding_encode_kwargs,
+        )
+        self.chroma_settings = Settings(
+            persist_directory=self.persist_directory, anonymized_telemetry=False
+        )
+        self.chroma_client = chromadb.PersistentClient(
+            settings=self.chroma_settings, path=self.persist_directory
+        )
+        return
+
+    def get_db(self):
+        """
+        Returns an instance to the `langchain_chroma.Chroma` instance
+        """
+        db = Chroma(
+            persist_directory=self.persist_directory,
+            embedding_function=self.embeddings,
+            client_settings=self.chroma_settings,
+            client=self.chroma_client,
+            collection_metadata={"hnsw:space": "cosine"},
+            collection_name=COLLECTION_NAME,
+        )
+        return db if does_vectorstore_exist(db) else None
+
+    def get_embedding_model(self):
+        """
+        Returns an instance to the `langchain_huggingface.HuggingFaceEmbeddings` instance
+        """
+        return self.embeddings
+
+
+    def get_ingested_files(self):
+        """
+        Returns a list of files previously added to vector database (typically via `LLM.ingest`)
+        """
+        return set([d['source'] for d in self.get_db().get()['metadatas']])
+
+
+    def store_documents(self, documents):
+        """
+        Stores instances of `langchain_core.documents.base.Document` in vectordb
+        """
+        if not documents:
+            return
+        db = self.get_db()
+        if db:
+            print("Creating embeddings. May take some minutes...")
+            chunk_batches, total_chunks = batchify_chunks(documents)
+            for lst in tqdm(chunk_batches, total=total_chunks):
+                db.add_documents(lst)
+        else:
+            chunk_batches, total_chunks = batchify_chunks(documents)
+            print("Creating embeddings. May take some minutes...")
+            db = None
+
+            for lst in tqdm(chunk_batches, total=total_chunks):
+                if not db:
+                    db = Chroma.from_documents(
+                        lst,
+                        self.embeddings,
+                        persist_directory=self.persist_directory,
+                        client_settings=self.chroma_settings,
+                        client=self.chroma_client,
+                        collection_metadata={"hnsw:space": "cosine"},
+                        collection_name=COLLECTION_NAME,
+                    )
+                else:
+                    db.add_documents(lst)
+        return
+
+
+    def ingest(
+        self,
+        source_directory: str, # path to folder containing document store
+        chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
+        chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        ignore_fn:Optional[Callable] = None, # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
+        pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+        **kwargs
+    ) -> None:
+        """
+        Ingests all documents in `source_directory` (previously-ingested documents are
+        ignored). When retrieved, the
+        [Document](https://api.python.langchain.com/en/latest/documents/langchain_core.documents.base.Document.html)
+        objects will each have a `metadata` dict with the absolute path to the file
+        in `metadata["source"]`.
+        Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True
+        """
+
+        if not os.path.exists(source_directory):
+            raise ValueError("The source_directory does not exist.")
+        elif os.path.isfile(source_directory):
+            raise ValueError(
+                "The source_directory argument must be a folder, not a file."
+            )
+        texts = None
+        db = self.get_db()
+        if db:
+            # Update and store locally vectorstore
+            print(f"Appending to existing vectorstore at {self.persist_directory}")
+            collection = db.get()
+            ignored_files=[ metadata["source"] for metadata in collection["metadatas"]]
+        else:
+            print(f"Creating new vectorstore at {self.persist_directory}")
+            ignored_files = []
+
+        texts = process_documents(
+            source_directory,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            ignored_files=ignored_files,
+            ignore_fn=ignore_fn,
+            pdf_use_unstructured=pdf_use_unstructured,
+            **kwargs
+
+        )
+        self.store_documents(texts)
+
+        if texts:
+            print(
+                "Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
+            )
+        db = None
+        return
 
 # %% ../nbs/01_ingest.ipynb 6
 from .utils import get_datadir

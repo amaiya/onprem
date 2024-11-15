@@ -7,7 +7,7 @@ __all__ = ['Extractor']
 
 # %% ../../nbs/04_pipelines.extractor.ipynb 3
 import os
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union, Callable
+from typing import List, Optional, Callable
 import pandas as pd
 from ..utils import segment
 

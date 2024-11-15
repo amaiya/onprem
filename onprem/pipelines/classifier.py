@@ -6,9 +6,8 @@
 __all__ = ['DEFAULT_SETFIT_MODEL', 'SMALL_SETFIT_MODEL', 'DATASET_TEXT', 'DATASET_LABEL', 'ClassifierBase', 'FewShotClassifier']
 
 # %% ../../nbs/04_pipelines.classifier.ipynb 3
-import os
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union, Callable
-from setfit import SetFitModel, TrainingArguments, Trainer, sample_dataset, SetFitTrainer
+from typing import List, Union
+from setfit import SetFitModel, TrainingArguments, Trainer, sample_dataset
 
 # %% ../../nbs/04_pipelines.classifier.ipynb 4
 import warnings

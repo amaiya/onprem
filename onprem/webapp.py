@@ -1,5 +1,5 @@
-import os, yaml
-import numpy as np
+import os
+import yaml
 from pathlib import Path
 import mimetypes
 import streamlit as st
@@ -134,7 +134,7 @@ def check_create_symlink(source_path, base_url):
     # attempt creation
     try:
         os.symlink(new_source_path, os.path.join(staticdir, symlink_name))
-    except Exception as e:
+    except Exception:
         return source_path, base_url
     return new_source_path, base_url
 
@@ -192,7 +192,7 @@ def main():
     screen = st.sidebar.radio(
         "Choose a Screen:", ("Talk to Your Documents", "Use Prompts to Solve Problems")
     )
-    st.sidebar.markdown(f"**Curent Model:**")
+    st.sidebar.markdown("**Curent Model:**")
     st.sidebar.markdown(f"*{os.path.basename(cfg['llm']['model_url'])}*")
     if screen == "Talk to Your Documents":
         st.sidebar.markdown(

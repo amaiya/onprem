@@ -8,7 +8,7 @@ __all__ = ['DEFAULT_MAP_PROMPT', 'DEFAULT_REDUCE_PROMPT', 'DEFAULT_BASE_REFINE_P
 
 # %% ../../nbs/04_pipelines.summarizer.ipynb 3
 import os
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union, Callable
+from typing import Optional
 import numpy as np
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
