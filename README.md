@@ -661,8 +661,8 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > Copy the `some/folder` folder to the air-gapped machine and supply
     > the path to `LLM` via the `embedding_model_name` parameter.
 
-4.  **When installing `onprem`, I’m getting errors related to
-    `llama-cpp-python` on Windows/Mac/Linux?**
+4.  **When installing `onprem`, I’m getting “build” errors related to
+    `llama-cpp-python` (or `chroma-hnswlib`) on Windows/Mac/Linux?**
 
     > See [this LangChain documentation on
     > LLama.cpp](https://python.langchain.com/docs/integrations/llms/llamacpp)
@@ -674,15 +674,15 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > `sudo apt-get install build-essential g++ clang`. Other tips are
     > [here](https://github.com/oobabooga/text-generation-webui/issues/1534).
 
-    > For **Windows** systems, either use [Windows Subsystem for Linux
-    > (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) or
-    > install [Microsoft Visual Studio build
-    > tools](https://visualstudio.microsoft.com/vs/older-downloads/) and
-    > ensure the selections shown in [this
-    > post](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1561343405)
-    > are installed. WSL is recommended. But, if you need to use Windows
-    > directly (not WSL) and still have issues, try also installing the
-    > [latest Microsoft Visual C++
+    > For **Windows** systems, we recommend you use [Windows Subsystem
+    > for Linux
+    > (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install)
+    > instead of using Microsoft Windows directly. If you do need to use
+    > OnPrem.LLM on Microsoft Window directly, please install the
+    > [Microsoft C++ Build
+    > Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+    > and make sure the **Desktop development with C++** is selected.
+    > You should also install the [Microsoft Visual C++
     > Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 
     > For **Macs**, try following [these
@@ -702,6 +702,13 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
 
     > **Example:**
     > `pip install llama-cpp-python==0.2.90 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu`
+    >
+    > **Tip:** There are [pre-built wheel files for
+    > `chroma-hnswlib`](https://pypi.org/project/chroma-hnswlib/#files),
+    > as well. If running `pip install onprem` fails on building
+    > `chroma-hnswlib`, it may be because a pre-built wheel doesn’t yet
+    > exist for the version of Python you’re using (in which case you
+    > can try downgrading Python).
 
 5.  **`llama-cpp-python` is failing to load my model from the model path
     on Google Colab.**
