@@ -33,7 +33,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), Windows Subsystem
      llm = LLM()
      llm.prompt('List three cute names for a cat.')
 
-     # On a multi-core 2.5 GHz laptop CPU (e.g., *13th Gen Intel(R) Core(TM) i7-13800H 2.50 GHz*), you should get speeds of around 12 tokens per second.
+     # On a multi-core 2.5 GHz laptop CPU (e.g., *13th Gen Intel(R) Core(TM) i7-13800H 2.50 GHz*), you should get speeds of around 12 tokens per second. If enabling GPU support as described above, speeds are much faster.
      ```
 
 ## Using WSL2 (with GPU Acceleration)
