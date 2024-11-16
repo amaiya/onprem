@@ -674,16 +674,15 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > `sudo apt-get install build-essential g++ clang`. Other tips are
     > [here](https://github.com/oobabooga/text-generation-webui/issues/1534).
 
-    > For **Windows** systems, we recommend you use [Windows Subsystem
-    > for Linux
+    > For **Windows** systems, please try following [these
+    > instructions](https://github.com/amaiya/onprem/blob/master/MSWindows.md).
+    > We recommend you use [Windows Subsystem for Linux
     > (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install)
     > instead of using Microsoft Windows directly. If you do need to use
-    > OnPrem.LLM on Microsoft Window directly, please install the
-    > [Microsoft C++ Build
+    > Microsoft Window directly, be sure to install the [Microsoft C++
+    > Build
     > Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
     > and make sure the **Desktop development with C++** is selected.
-    > You should also install the [Microsoft Visual C++
-    > Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 
     > For **Macs**, try following [these
     > tips](https://github.com/imartinez/privateGPT/issues/445#issuecomment-1563333950).
