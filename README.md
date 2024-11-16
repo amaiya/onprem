@@ -623,45 +623,7 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > llm.prompt("List three cute names for a cat.")
     > ```
 
-2.  **I’m behind a corporate firewall and am receiving an SSL error when
-    trying to download the model?**
-
-    > Try this:
-    >
-    > ``` python
-    > from onprem import LLM
-    > LLM.download_model(url, ssl_verify=False)
-    > ```
-
-    > You can download the embedding model (used by `LLM.ingest` and
-    > `LLM.ask`) as follows:
-    >
-    > ``` sh
-    > wget --no-check-certificate https://public.ukp.informatik.tu-darmstadt.de/reimers/sentence-transformers/v0.2/all-MiniLM-L6-v2.zip
-    > ```
-
-    > Supply the unzipped folder name as the `embedding_model_name`
-    > argument to `LLM`.
-
-3.  **How do I use this on a machine with no internet access?**
-
-    > Use the `LLM.download_model` method to download the model files to
-    > `<your_home_directory>/onprem_data` and transfer them to the same
-    > location on the air-gapped machine.
-
-    > For the `ingest` and `ask` methods, you will need to also download
-    > and transfer the embedding model files:
-    >
-    > ``` python
-    > from sentence_transformers import SentenceTransformer
-    > model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-    > model.save('/some/folder')
-    > ```
-
-    > Copy the `some/folder` folder to the air-gapped machine and supply
-    > the path to `LLM` via the `embedding_model_name` parameter.
-
-4.  **When installing `onprem`, I’m getting “build” errors related to
+2.  **When installing `onprem`, I’m getting “build” errors related to
     `llama-cpp-python` (or `chroma-hnswlib`) on Windows/Mac/Linux?**
 
     > See [this LangChain documentation on
@@ -709,14 +671,57 @@ command](https://lambdalabs.com/lambda-stack-deep-learning-software).
     > exist for the version of Python you’re using (in which case you
     > can try downgrading Python).
 
-5.  **`llama-cpp-python` is failing to load my model from the model path
-    on Google Colab.**
+3.  **I’m behind a corporate firewall and am receiving an SSL error when
+    trying to download the model?**
 
-    > For reasons that are unclear, newer versions of `llama-cpp-python`
-    > fail to load models on Google Colab unless you supply
-    > `verbose=True` to the `LLM` constructor (which is passed directly
-    > to `llama-cpp-python`). If you experience this problem locally,
-    > try supplying `verbose=True` to `LLM`.
+    > Try this:
+    >
+    > ``` python
+    > from onprem import LLM
+    > LLM.download_model(url, ssl_verify=False)
+    > ```
+
+    > You can download the embedding model (used by `LLM.ingest` and
+    > `LLM.ask`) as follows:
+    >
+    > ``` sh
+    > wget --no-check-certificate https://public.ukp.informatik.tu-darmstadt.de/reimers/sentence-transformers/v0.2/all-MiniLM-L6-v2.zip
+    > ```
+
+    > Supply the unzipped folder name as the `embedding_model_name`
+    > argument to `LLM`.
+
+    > If you’re getting SSL errors when even running `pip install`, try
+    > this:
+    >
+    > ``` sh
+    > pip install –-trusted-host pypi.org –-trusted-host files.pythonhosted.org pip_system_certs
+    > ```
+
+4.  **How do I use this on a machine with no internet access?**
+
+    > Use the `LLM.download_model` method to download the model files to
+    > `<your_home_directory>/onprem_data` and transfer them to the same
+    > location on the air-gapped machine.
+
+    > For the `ingest` and `ask` methods, you will need to also download
+    > and transfer the embedding model files:
+    >
+    > ``` python
+    > from sentence_transformers import SentenceTransformer
+    > model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    > model.save('/some/folder')
+    > ```
+
+    > Copy the `some/folder` folder to the air-gapped machine and supply
+    > the path to `LLM` via the `embedding_model_name` parameter.
+
+5.  **My model is not loading when I call `llm = LLM(...)`?**
+
+    > This can happen if the model file is corrupt (in which case you
+    > should delete from `<home directory>/onprem_data` and
+    > re-download). It can also happen if the version of
+    > `llama-cpp-python` needs to be upgraded to the latest.
 
 6.  **I’m getting an `“Illegal instruction (core dumped)` error when
     instantiating a `langchain.llms.Llamacpp` or `onprem.LLM` object?**
