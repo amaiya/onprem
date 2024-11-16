@@ -49,7 +49,7 @@ This has been on two Windows Home 11 systems:
    VRAM)
 2. An HP Victus laptop PC with a GeForce RTX 3050 Ti (4 GiB VRAM)
 
-### First, Install Ubuntu 22.04 WSL Instance
+### Install Ubuntu 22.04 WSL Instance
 
 This is quite simple to do. At a command prompt: `wsl --install -d Ubuntu-22.04`
 
@@ -61,7 +61,7 @@ Once the environment started for the first time, WSL works just like a native
 Ubuntu installation. If you have an NVIDIA device supporting CUDA, you can even
 use it to run models faster.
 
-###Setting Up CUDA for Onprem on Your WSL Instance
+### Setting Up CUDA for Onprem on Your WSL Instance
 
 1. Install NVIDIA drivers. Instructions are [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl), but I used [Nvidia GeForce Experience](https://www.nvidia.com/en-us/geforce/geforce-experience/) to accomplish this.
 2. Check `nvidia-smi` output in Ubuntu. Verify that it shows a device with Nvidia
