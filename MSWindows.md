@@ -1,9 +1,9 @@
 # How to Install and Run OnPrem.LLM on Microsoft Windows
 
-When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), Windows Subsystem for Linux (WSL2) is recommended over using Windows directly. However, this guide provides instructions for both.
+When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either use  Windows Subsystem for Linux (WSL2) or Windows directly. This guide provides instructions for both.
 
 
-## Using System Python in Windows 11
+## Using the System Python in Windows 11
 
 1. Download and install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and make sure **Desktop development with C++** workload is selected and installed. This is needed to build `chroma-hnswlib` (as of this writing a pre-built wheel only exists for Python 3.11 and below). It is also needed if you need to build `llama-cpp-python` instead of installing a prebuilt wheel (as we do below).
 2. Install Python 3.12:  Open "cmd" as administrator and type python to trigger *Microsoft Store* installation in Windows 11.
