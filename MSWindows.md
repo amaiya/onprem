@@ -23,7 +23,12 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 	   Out[3]: 'NVIDIA RTX A1000 6GB Laptop GPU'
 	   ```
 6. Install **llama-cpp-python** (CPU only) using pre-built wheel: `pip install llama-cpp-python==0.2.90 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu`
-  - If you want the LLM to generate faster answers using your GPU, then you'll need to install the CUDA Toolkit from [here](https://developer.nvidia.com/cuda-12-6-0-download-archive?target_os=Windows). If you have issues, see [this guide](https://medium.com/@piyushbatra1999/installing-llama-cpp-python-with-nvidia-gpu-acceleration-on-windows-a-short-guide-0dfac475002d) for tips. You will also need to re-install `llama-cpp-python` with CUDA support, as described [here](https://python.langchain.com/docs/integrations/llms/llamacpp/#installation-with-windows).
+  - If you want the LLM to generate faster answers using your GPU, then you'll need to install the CUDA Toolkit from [here](https://developer.nvidia.com/cuda-12-6-0-download-archive?target_os=Windows). If you have issues, see [this guide](https://medium.com/@piyushbatra1999/installing-llama-cpp-python-with-nvidia-gpu-acceleration-on-windows-a-short-guide-0dfac475002d) for tips. You will also need to re-install `llama-cpp-python` with CUDA support, as described [here](https://python.langchain.com/docs/integrations/llms/llamacpp/#installation-with-windows):
+      ```sh
+	  set FORCE_CMAKE=1
+      set CMAKE_ARGS=-DGGML_CUDA=ON
+	  pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+	  ```
 7. Install OnPrem.LLM: `pip install onprem `
 8. [OPTIONAL] If you're behind a corporate firewall and  have SSL certificate issues, you can try adding `REQUESTS_CA_BUNDLE` `SSL_CERT_DIR`, and `SSL_CERT_FILE` as environment variables and point them to the location of the certificate file for your organization, so hugging face models can be downloaded, etc.
 9. [OPTIONAL] Enable long paths if you get an error indicating you do:  https://stackoverflow.com/questions/72352528/how-to-fix-winerror-206-the-filename-or-extension-is-too-long-error/76452218#76452218
