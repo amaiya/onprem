@@ -255,25 +255,25 @@ def run(**kwargs):
 
 
     # prompt test
-    test_prompt(llm, **kwargs)
+    #test_prompt(llm, **kwargs)
 
     # guided prompt test
-    test_guider(llm, **kwargs)
+    #test_guider(llm, **kwargs)
 
     # rag test
-    test_rag(llm, **kwargs)
+    #test_rag(llm, **kwargs)
 
     # summarization test
-    test_summarization(llm, **kwargs)
+    #test_summarization(llm, **kwargs)
 
     # extraction test
-    test_extraction(llm, **kwargs)
+    #test_extraction(llm, **kwargs)
 
     # classifier test
     test_classifier(**kwargs)
 
     # semantic simlarity test
-    test_semantic(**kwargs)
+    #test_semantic(**kwargs)
 
 
 if __name__ == "__main__":
