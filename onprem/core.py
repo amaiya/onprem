@@ -135,6 +135,7 @@ class LLM:
             self.model_url = MODEL_DICT[default_model] if not model_url else model_url
         else: # neither supplied so use defaults
             url_or_id = ENGINE_DICT[default_engine][default_model]
+            self.model_name = os.path.basename(url_or_id)
             if default_engine == LLAMA_CPP:
                 self.model_url = url_or_id
                 self.model_id = None
