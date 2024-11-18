@@ -103,7 +103,7 @@ class LLM:
         - *default_model*: One of {'mistral', 'zephyr', 'llama'}, where mistral is Mistral-Instruct-7B-v0.2, zephyr is Zephyr-7B-beta, and llama is Llama-3.1-8B.
         - *default_engine*: The engine used to run the `default_model`. One of {'llama.cpp', 'transformers'}.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
-        - *prompt_template*: Optional prompt template (must have a variable named "prompt").
+        - *prompt_template*: Optional prompt template (must have a variable named "prompt"). Prompt templates are not typically needed when using the `model_id` parameter, as transformers sets it automatically.
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *vectordb_path*: Path to vector database (created if it doesn't exist).
                            Default is `onprem_data/vectordb` in user's home directory.
@@ -375,7 +375,7 @@ class LLM:
                 bnb_4bit_compute_dtype="float16",
                 bnb_4bit_use_double_quant=True,
             )
-            tokenizer = AutoTokenizer.from_pretrained('HuggingFaceH4/zephyr-7b-beta')
+            tokenizer = AutoTokenizer.from_pretrained(self.model_id)
             streamer = TextStreamer(tokenizer)
     
             hfpipe = HuggingFacePipeline.from_model_id(
@@ -437,7 +437,7 @@ class LLM:
             prompt = prompt_template.format(**{"prompt": prompt})
         stop = stop if stop else self.stop
         res = llm.invoke(prompt, stop=stop, **kwargs)
-        return res.content if self.is_openai_model() else res
+        return res.content if self.is_openai_model() or self.is_hf() else res
 
 
 
