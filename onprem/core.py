@@ -371,8 +371,10 @@ class LLM:
                 raise ImportError('Please install bitsandbytes if using '+
                                   'transformers as LLM engine: pip install bitsandbytes')
             # Hugging Face model
-            from transformers import BitsAndBytesConfig, TextStreamer, AutoTokenizer
+            from transformers import BitsAndBytesConfig, TextStreamer
+            from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
+            from transformers import AutoModelForVision2Seq
             import torch
             quantization_config = BitsAndBytesConfig(
                 load_in_4bit=True,
@@ -382,23 +384,83 @@ class LLM:
             )
             tokenizer = AutoTokenizer.from_pretrained(self.model_id)
             streamer = TextStreamer(tokenizer)
+            def load_hf_model(cls, qconfig=None):
+                try:
+                    model = cls.from_pretrained(
+                        self.model_id,
+                        quantization_config=qconfig,
+                        device_map="auto",
+                        torch_dtype=torch.bfloat16,
+                    )
+                    return model
+                except Exception as e:
+                    return None
+
+            model = load_hf_model(AutoModelForCausalLM, qconfig=quantization_config)
+            used_quant = True
+            if not model:
+                model = load_hf_model(AutoModelForVision2Seq, qconfig=quantization_config)
+                if not model:
+                    model = load_hf_model(AutoModelForCausalLM)
+                    used_quant = False
+                    if not model:
+                        model = load_hf_model(AutoModelForVision2Seq)
+                        if not model:
+                            raise Exception('Unable to load model using either '+\
+                                            'AutoModelForCausalLM or AutoModelForVision2Seq')
+            if not used_quant:
+                warnings.warn('We were unable to load model with quantization.')
+
+                #model = AutoModelForCausalLM.from_pretrained(
+                    #self.model_id,
+                    #quantization_config=quantization_config,
+                    #device_map="auto",
+                    #torch_dtype=torch.bfloat16,
+                #)
+            #except Exception as e:
+                #warnings.warn('Loading model via AutoModelForCausalLM failed trying another way...')
+                #from transformers import AutoModelForVision2Seq
+                #model = AutoModelForVision2Seq.from_pretrained(
+                    #self.model_id,
+                    #quantization_config=quantization_config,
+                    #device_map="auto",
+                    #torch_dtype=torch.bfloat16,
+                #)
+                #warnings.warn('Success')
+                #try:
+
+
+
+            pipe = pipeline("text-generation",
+                            model=model,
+                            tokenizer=tokenizer,
+                            max_new_tokens=self.max_tokens,
+                            do_sample=True if\
+                            self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
+                             repetition_penalty=1.03,
+                             return_full_text=False,
+                            streamer=streamer,
+                            **self.extra_kwargs,
+                           )
+            hfpipe = HuggingFacePipeline(pipeline=pipe)
     
-            hfpipe = HuggingFacePipeline.from_model_id(
-                model_id=self.model_id,
-                task="text-generation",
-                pipeline_kwargs=dict(
-                     max_new_tokens=self.max_tokens,
-                     #max_length = self.n_ctx, # cannot supply both
-                     do_sample=True if self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
-                     repetition_penalty=1.03,
-                     return_full_text=False,
-                    streamer=streamer,
-                    **self.extra_kwargs,
-                     #max_memory={0: "5GiB", "cpu": "30GiB"},
-                ),
-                model_kwargs={"quantization_config": quantization_config,
-                              "torch_dtype": torch.bfloat16}
-                )
+            #hfpipe = HuggingFacePipeline.from_model_id(
+                #model_id=self.model_id,
+                #task="text-generation",
+                #pipeline_kwargs=dict(
+                     #max_new_tokens=self.max_tokens,
+                     ##max_length = self.n_ctx, # cannot supply both
+                     #do_sample=True if self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
+                     #repetition_penalty=1.03,
+                     #return_full_text=False,
+                    #streamer=streamer,
+                    #**self.extra_kwargs,
+                     ##max_memory={0: "5GiB", "cpu": "30GiB"},
+                #),
+                #model_kwargs={"quantization_config": quantization_config,
+                              #"torch_dtype": torch.bfloat16}
+                #)
+
             self.llm = ChatHuggingFace(llm=hfpipe)
 
         elif not self.llm:
