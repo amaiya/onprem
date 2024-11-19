@@ -411,26 +411,6 @@ class LLM:
             if not used_quant:
                 warnings.warn('We were unable to load model with quantization.')
 
-                #model = AutoModelForCausalLM.from_pretrained(
-                    #self.model_id,
-                    #quantization_config=quantization_config,
-                    #device_map="auto",
-                    #torch_dtype=torch.bfloat16,
-                #)
-            #except Exception as e:
-                #warnings.warn('Loading model via AutoModelForCausalLM failed trying another way...')
-                #from transformers import AutoModelForVision2Seq
-                #model = AutoModelForVision2Seq.from_pretrained(
-                    #self.model_id,
-                    #quantization_config=quantization_config,
-                    #device_map="auto",
-                    #torch_dtype=torch.bfloat16,
-                #)
-                #warnings.warn('Success')
-                #try:
-
-
-
             pipe = pipeline("text-generation",
                             model=model,
                             tokenizer=tokenizer,
