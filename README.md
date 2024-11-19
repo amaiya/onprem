@@ -25,12 +25,13 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 - \[2024/11\] v0.5.0 released and now includes support for running LLMs
   with Hugging Face
-  [transformers](https://github.com/huggingface/transformers) instead of
+  [transformers](https://github.com/huggingface/transformers) as the
+  backend instead of
   [llama.cpp](https://github.com/abetlen/llama-cpp-python). See [this
   example](https://amaiya.github.io/onprem/#Using-Hugging-Face-Transformers-Instead-of-Llama.cpp).
 
 - \[2024/11\] v0.4.0 released and now includes a `default_model`
-  parameter to more easily use models like **Llama-3.x** and
+  parameter to more easily use models like **Llama-3.1** and
   **Zephyr-7B-beta**.
 
 - \[2024/10\] v0.3.0 released and now includes support for
@@ -85,7 +86,8 @@ installation.
 **Note:** Installing **llama-cpp-python** is optional if either the
 following is true:
 
-- You supply the `model_id` parameter when calling LLM, as [shown
+- You supply the `model_id` parameter when instantiating an LLM, as
+  [shown
   here](https://amaiya.github.io/onprem/#Using-Hugging-Face-Transformers-Instead-of-Llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
   [external REST
@@ -429,12 +431,12 @@ out-of-the-box.
 
 ### Using Hugging Face Transformers Instead of Llama.cpp
 
-By default, the LLM engine employed by \*\*OnPrem.LLM\* is
+By default, the LLM backend employed by **OnPrem.LLM** is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), which
 requires models in [GGUF format](https://huggingface.co/docs/hub/gguf).
 As of v0.5.0, it is not possible to use [Hugging Face
 transformers](https://github.com/huggingface/transformers) as the LLM
-engine instead. This is accomplished using the `model_id` parameter
+backend instead. This is accomplished by using the `model_id` parameter
 (instead of supplying a `model_url` argument). In the example below, we
 run the
 [Zephyr-7B-beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)
@@ -447,9 +449,19 @@ llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")
 
 This allows you to easily use any model on the Hugging Face hub in
 [SafeTensors format](https://huggingface.co/docs/safetensors/index).
-
 Note that, when using the `model_id` parameter, the `prompt_template` is
 set automatically by `transformers`.
+
+Using the `transformers` backend requires the
+[bitsandbytes](https://huggingface.co/docs/bitsandbytes/main/en/installation)
+library, lightweight Python wrapper around CUDA custom functions, in
+particular 8-bit optimizers, matrix multiplication (LLM.int8()), and 8 &
+4-bit quantization functions. There are ongoing efforts by the
+bitsandbytes team to support multiple backends in addition to CUDA.
+However, we have only tested with a CUDA backend (CUDA 12.x). If you
+receive errors related to bitsandbytes, please refer to the
+[bitsandbytes
+documentation](https://huggingface.co/docs/bitsandbytes/main/en/installation).
 
 ### Connecting to LLMs Served Through REST APIs
 
