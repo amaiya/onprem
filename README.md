@@ -23,6 +23,19 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2024/11\] v0.5.0 released and now includes support for running LLMs
+  with Hugging Face
+  [transformers](https://github.com/huggingface/transformers) instead of
+  [llama.cpp](https://github.com/abetlen/llama-cpp-python):
+
+``` python
+llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")` # Uses transformers, not llama-cpp-python
+```
+
+- \[2024/11\] v0.4.0 released and now includes a `default_model`
+  parameter to more easily use models like **Llama-3.x** and
+  **Zephyr-7B-beta**.
+
 - \[2024/10\] v0.3.0 released and now includes support for
   [concept-focused
   summarization](https://amaiya.github.io/onprem/examples_summarization.html#concept-focused-summarization)
@@ -56,7 +69,8 @@ Once you have [installed
 PyTorch](https://pytorch.org/get-started/locally/), you can install
 **OnPrem.LLM** with the following steps:
 
-1.  Install **llama-cpp-python** by [visiting this
+1.  \[*optional but recommended*\] Install **llama-cpp-python** by
+    [visiting this
     site](https://python.langchain.com/docs/integrations/llms/llamacpp#installation)
     and following instructions for your operating system and machine.
     For CPU-based installations (i.e., no GPU acceleration), you can
@@ -71,12 +85,14 @@ issues with
 [llama-cpp-python](https://pypi.org/project/llama-cpp-python/)
 installation.
 
-**Note:** If using **OnPrem.LLM** with an LLM being served through an
+**Note:** Installing **llama-cpp-python** is optional if either the
+following is true: - You supply the `model_id` parameter when calling
+LLM, as [shown
+here](https://amaiya.github.io/onprem/#Using-Hugging-Transformers-Instead-of-Llama.cpp). -
+You are using **OnPrem.LLM** with an LLM being served through an
 [external REST
 API](https://amaiya.github.io/onprem/#Connecting-to-LLMs-Served-Through-REST-APIs)
-(e.g., vLLM, OpenLLM, Ollama), installation of `llama-cpp-python` is
-optional. You will only be asked to install it if attempting to use a
-locally installed model directly.
+(e.g., vLLM, OpenLLM, Ollama).
 
 ## How to Use
 
@@ -412,6 +428,26 @@ print(validate_email("sam@openai.com"))  # good email address
 
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
+
+### Using Hugging Transformers Instead of Llama.cpp
+
+By default, the LLM engine employed by \*\*OnPrem.LLM\* is
+[llama-cpp-python](https://github.com/abetlen/llama-cpp-python), which
+requires models in GGUF format. As of v0.5.0, it is not possible to use
+[Hugging Face transformers](https://github.com/huggingface/transformers)
+as the LLM engine instead. This is accomplished using the `model_id`
+parameter (instead of supplying a `model_url` argument).
+
+``` python
+# Run LLama-3.1-Instruct with Hugging Face Transformers
+llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta") # llama-cpp-python does NOT  need to be installed
+```
+
+This allows you to easily use any model on the Hugging Face hub in
+[SafeTensors format](https://huggingface.co/docs/safetensors/index).
+
+Note that, when using the `model_id` parameter, the `prompt_template` is
+set automatically by `transformers`.
 
 ### Connecting to LLMs Served Through REST APIs
 
