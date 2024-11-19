@@ -463,7 +463,10 @@ class LLM:
         return self.llm
 
 
-    def prompt(self, prompt, prompt_template: Optional[str] = None, stop:list=[], **kwargs):
+    def prompt(self,
+               prompt:str,
+               image_path_or_url:Optional[str] = None,
+               prompt_template: Optional[str] = None, stop:list=[], **kwargs):
         """
         Send prompt to LLM to generate a response.
         Extra keyword arguments are sent directly to the model invocation.
@@ -471,6 +474,7 @@ class LLM:
         **Args:**
 
         - *prompt*: The prompt to supply to the model
+        - *image_path_or_url*: Path or URL to an image file
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
                              This value will override any `prompt_template` value supplied 
                              to `LLM` constructor.
@@ -478,12 +482,32 @@ class LLM:
                   This value will override the `stop` parameter supplied to `LLM` constructor.
 
         """
+        from langchain_core.messages import HumanMessage
+        import base64
         llm = self.load_llm()
         prompt_template = self.prompt_template if prompt_template is None else prompt_template
         if prompt_template:
             prompt = prompt_template.format(**{"prompt": prompt})
         stop = stop if stop else self.stop
-        res = llm.invoke(prompt, stop=stop, **kwargs)
+        if image_path_or_url:
+            if not image_path_or_url.startswith('http'):
+                with open(image_path_or_url, "rb") as f:
+                    image_data = base64.b64encode(f.read()).decode('utf-8')
+                image_path_or_url = f"data:image/jpeg;base64,{image_data}"
+
+            message = HumanMessage(
+                content=[
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_path_or_url},
+                    },
+                ],
+            )
+            prompt = [message]
+            res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
+        else:
+            res = llm.invoke(prompt, stop=stop, **kwargs)
         return res.content if self.is_openai_model() or self.is_hf() else res
 
 
