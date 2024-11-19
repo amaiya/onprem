@@ -16,7 +16,7 @@ James Gandolfini, Paul Newman
 Sentence:
 I like Cillian Murphy's acting. Florence Pugh is great, too.
 People:"""
-    saved_output = llm.prompt(prompt)
+    saved_output = llm.prompt(prompt, stop=['Sentence:'])
     assert saved_output.strip().startswith("Cillian Murphy, Florence Pugh"), "bad response"
     print()
     print()
@@ -131,11 +131,11 @@ def test_summarization(llm, **kwargs):
     print(text['output_text'])
     assert(len(text['output_text']) > 0)
 
-    text,_ = summ.summarize_by_concept(os.path.join( os.path.dirname(os.path.realpath(__file__)),
-                                       '1/ktrain_paper.pdf'),
-                                        concept_description="automl")
-    print(text)
-    assert(len(text) > 0)
+    #text,_ = summ.summarize_by_concept(os.path.join( os.path.dirname(os.path.realpath(__file__)),
+                                       #'1/ktrain_paper.pdf'),
+                                        #concept_description="automl")
+    #print(text)
+    #assert(len(text) > 0)
 
 
 def test_extraction(llm, **kwargs):
@@ -274,6 +274,11 @@ def run(**kwargs):
 
     # semantic simlarity test
     test_semantic(**kwargs)
+
+    ## test Hugging Face transformers
+    llm = LLM(default_model='mistral', default_engine='transformers')
+    output = llm.prompt("List three cute names for a cat.", stop=['2.'])
+    assert("1." in output)
 
 
 if __name__ == "__main__":

@@ -26,11 +26,8 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 - \[2024/11\] v0.5.0 released and now includes support for running LLMs
   with Hugging Face
   [transformers](https://github.com/huggingface/transformers) instead of
-  [llama.cpp](https://github.com/abetlen/llama-cpp-python):
-
-``` python
-llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")` # Uses transformers, not llama-cpp-python
-```
+  [llama.cpp](https://github.com/abetlen/llama-cpp-python). See [this
+  example](https://amaiya.github.io/onprem/#Using-Hugging-Face-Transformers-Instead-of-Llama.cpp).
 
 - \[2024/11\] v0.4.0 released and now includes a `default_model`
   parameter to more easily use models like **Llama-3.x** and
@@ -86,13 +83,14 @@ issues with
 installation.
 
 **Note:** Installing **llama-cpp-python** is optional if either the
-following is true: - You supply the `model_id` parameter when calling
-LLM, as [shown
-here](https://amaiya.github.io/onprem/#Using-Hugging-Transformers-Instead-of-Llama.cpp). -
-You are using **OnPrem.LLM** with an LLM being served through an
-[external REST
-API](https://amaiya.github.io/onprem/#Connecting-to-LLMs-Served-Through-REST-APIs)
-(e.g., vLLM, OpenLLM, Ollama).
+following is true:
+
+- You supply the `model_id` parameter when calling LLM, as [shown
+  here](https://amaiya.github.io/onprem/#Using-Hugging-Face-Transformers-Instead-of-Llama.cpp).
+- You are using **OnPrem.LLM** with an LLM being served through an
+  [external REST
+  API](https://amaiya.github.io/onprem/#Connecting-to-LLMs-Served-Through-REST-APIs)
+  (e.g., vLLM, OpenLLM, Ollama).
 
 ## How to Use
 
@@ -429,18 +427,22 @@ print(validate_email("sam@openai.com"))  # good email address
 The generated code may sometimes need editing, but this one worked
 out-of-the-box.
 
-### Using Hugging Transformers Instead of Llama.cpp
+### Using Hugging Face Transformers Instead of Llama.cpp
 
 By default, the LLM engine employed by \*\*OnPrem.LLM\* is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), which
-requires models in GGUF format. As of v0.5.0, it is not possible to use
-[Hugging Face transformers](https://github.com/huggingface/transformers)
-as the LLM engine instead. This is accomplished using the `model_id`
-parameter (instead of supplying a `model_url` argument).
+requires models in [GGUF format](https://huggingface.co/docs/hub/gguf).
+As of v0.5.0, it is not possible to use [Hugging Face
+transformers](https://github.com/huggingface/transformers) as the LLM
+engine instead. This is accomplished using the `model_id` parameter
+(instead of supplying a `model_url` argument). In the example below, we
+run the
+[Zephyr-7B-beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)
+model.
 
 ``` python
-# Run LLama-3.1-Instruct with Hugging Face Transformers
-llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta") # llama-cpp-python does NOT  need to be installed
+# llama-cpp-python does NOT need to be installed when using model_id parameter
+llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")
 ```
 
 This allows you to easily use any model on the Hugging Face hub in

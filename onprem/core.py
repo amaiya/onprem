@@ -365,6 +365,11 @@ class LLM:
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
         elif not self.llm and self.is_hf():
+            try:
+                import bitsandbytes
+            except ImportError:
+                raise ImportError('Please install bitsandbytes if using '+
+                                  'transformers as LLM engine: pip install bitsandbytes')
             # Hugging Face model
             from transformers import BitsAndBytesConfig, TextStreamer, AutoTokenizer
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
