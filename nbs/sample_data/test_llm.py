@@ -245,8 +245,17 @@ def test_semantic(**kwargs):
     shutil.rmtree(vectordb_path)
     return
 
+def test_transformers(**kwargs):
+    llm = LLM(default_engine='transformers')
+    output = llm.prompt("List one cute name for a cat and number it with 1.")
+    assert("1." in output)
 
 def run(**kwargs):
+
+    if kwargs.get('transformers_only', False):
+        test_transformers(**kwargs)
+        return
+
     # setup
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
@@ -275,10 +284,6 @@ def run(**kwargs):
     # semantic simlarity test
     test_semantic(**kwargs)
 
-    ## test Hugging Face transformers
-    llm = LLM(default_model='mistral', default_engine='transformers')
-    output = llm.prompt("List three cute names for a cat.", stop=['2.'])
-    assert("1." in output)
 
 
 if __name__ == "__main__":
@@ -306,10 +311,17 @@ if __name__ == "__main__":
         default="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
         help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
     )
+    optional_args.add_argument(
+        "-t",
+        "--transformers-only",
+        action="store_true",
+        help=("Only test transformers."),
+    )
 
     args = parser.parse_args()
 
     kwargs = {}
     kwargs["gpu"] = args.gpu
     kwargs["url"] = args.url
+    kwargs['transformers_only'] = args.transformers_only
     run(**kwargs)
