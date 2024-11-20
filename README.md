@@ -504,21 +504,30 @@ examples for fine-tuning. For these reasons, in spite of the name,
 
 ``` python
 from onprem import LLM
-llm = LLM(model_url='openai://gpt-3.5-turbo', temperature=0) # ChatGPT
+llm = LLM(model_url='openai://gpt-4o', temperature=0)
 ```
 
-    /home/amaiya/projects/ghub/onprem/onprem/core.py:138: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+    /home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
 ``` python
 saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
 ```
 
-    1. Whiskers: Whiskers is a cute name for a cat because it perfectly describes one of the most adorable features of a feline - their long, delicate whiskers. It's a playful and endearing name that captures the essence of a cat's charm.
+    Certainly! Here are three cute names for a cat, along with explanations for why each is adorable:
 
-    2. Pudding: Pudding is an incredibly cute name for a cat because it evokes a sense of softness and sweetness. Just like a bowl of creamy pudding, this name brings to mind a cat's cuddly and lovable nature. It's a name that instantly makes you want to snuggle up with your furry friend.
+    1. **Whiskers**: This name is cute because it highlights one of the most distinctive and charming features of a cat—their whiskers. It's playful and endearing, evoking the image of a curious cat twitching its whiskers as it explores its surroundings.
 
-    3. Muffin: Muffin is an adorable name for a cat because it conjures up images of something small, round, and irresistibly cute - just like a cat! This name is playful and charming, and it perfectly captures the delightful and lovable nature of our feline companions.
+    2. **Mittens**: This name is cute because it conjures up the image of a cat with little white paws that look like they are wearing mittens. It's a cozy and affectionate name that suggests warmth and cuddliness, much like a pair of soft mittens.
+
+    3. **Pumpkin**: This name is cute because it brings to mind the warm, orange hues of a pumpkin, which can be reminiscent of certain cat fur colors. It's also associated with the fall season, which is often linked to comfort and coziness. Plus, the name "Pumpkin" has a sweet and affectionate ring to it, making it perfect for a beloved pet.
+
+``` python
+image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
+saved_result = llm.prompt('Describe the weather in this image.', image_path_or_url=image_url)
+```
+
+    The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, illuminating the green grass and landscape.
 
 **Azure OpenAI**
 
