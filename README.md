@@ -28,7 +28,7 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
   [transformers](https://github.com/huggingface/transformers) as the
   backend instead of
   [llama.cpp](https://github.com/abetlen/llama-cpp-python). See [this
-  example](https://amaiya.github.io/onprem/#Using-Hugging-Face-Transformers-Instead-of-Llama.cpp).
+  example](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 
 - \[2024/11\] v0.4.0 released and now includes a `default_model`
   parameter to more easily use models like **Llama-3.1** and
@@ -67,8 +67,7 @@ Once you have [installed
 PyTorch](https://pytorch.org/get-started/locally/), you can install
 **OnPrem.LLM** with the following steps:
 
-1.  \[*optional but recommended*\] Install **llama-cpp-python** by
-    [visiting this
+1.  Install **llama-cpp-python** by [visiting this
     site](https://python.langchain.com/docs/integrations/llms/llamacpp#installation)
     and following instructions for your operating system and machine.
     For CPU-based installations (i.e., no GPU acceleration), you can
@@ -88,7 +87,7 @@ following is true:
 
 - You supply the `model_id` parameter when instantiating an LLM, as
   [shown
-  here](https://amaiya.github.io/onprem/#Using-Hugging-Face-Transformers-Instead-of-Llama.cpp).
+  here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
   [external REST
   API](https://amaiya.github.io/onprem/#Connecting-to-LLMs-Served-Through-REST-APIs)
@@ -448,9 +447,11 @@ llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")
 ```
 
 This allows you to easily use any model on the Hugging Face hub in
-[SafeTensors format](https://huggingface.co/docs/safetensors/index).
-Note that, when using the `model_id` parameter, the `prompt_template` is
-set automatically by `transformers`.
+[SafeTensors format](https://huggingface.co/docs/safetensors/index)
+provided it can be loaded with `transformers.AutoModelForCausalLM` (or
+`transformers.AutoModelForVision2Seq`). Note that, when using the
+`model_id` parameter, the `prompt_template` is set automatically by
+`transformers`.
 
 Using the `transformers` backend requires the
 [bitsandbytes](https://huggingface.co/docs/bitsandbytes/main/en/installation)
