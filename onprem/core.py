@@ -19,7 +19,7 @@ from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 import os
 import warnings
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Optional, Callable, Union, List
 
 # %% ../nbs/00_core.ipynb 4
 # reference: https://github.com/langchain-ai/langchain/issues/5630#issuecomment-1574222564
@@ -464,7 +464,7 @@ class LLM:
 
 
     def prompt(self,
-               prompt:str,
+               prompt:Union[str, List[Dict]],
                image_path_or_url:Optional[str] = None,
                prompt_template: Optional[str] = None, stop:list=[], **kwargs):
         """
@@ -473,7 +473,9 @@ class LLM:
 
         **Args:**
 
-        - *prompt*: The prompt to supply to the model
+        - *prompt*: The prompt to supply to the model.
+                    Either a string or OpenAI-style list of dictionaries
+                    representing messages (e.g., "human", "system").
         - *image_path_or_url*: Path or URL to an image file
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
                              This value will override any `prompt_template` value supplied 
@@ -482,32 +484,38 @@ class LLM:
                   This value will override the `stop` parameter supplied to `LLM` constructor.
 
         """
-        from langchain_core.messages import HumanMessage
-        import base64
-        llm = self.load_llm()
-        prompt_template = self.prompt_template if prompt_template is None else prompt_template
-        if prompt_template:
-            prompt = prompt_template.format(**{"prompt": prompt})
-        stop = stop if stop else self.stop
-        if image_path_or_url:
-            if not image_path_or_url.startswith('http'):
-                with open(image_path_or_url, "rb") as f:
-                    image_data = base64.b64encode(f.read()).decode('utf-8')
-                image_path_or_url = f"data:image/jpeg;base64,{image_data}"
-
-            message = HumanMessage(
-                content=[
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": image_path_or_url},
-                    },
-                ],
-            )
-            prompt = [message]
-            res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
+        if isinstance(prompt, list): # list of dictionaries representing messages
+            try:
+                res = self.llm.invoke(prompt, stop=stop, **kwargs)
+            except Exception as e: # stop param fails with GPT-4o vision prompts
+                res = self.llm.invoke(prompt, **kwargs)
         else:
-            res = llm.invoke(prompt, stop=stop, **kwargs)
+            from langchain_core.messages import HumanMessage
+            import base64
+            llm = self.load_llm()
+            prompt_template = self.prompt_template if prompt_template is None else prompt_template
+            if prompt_template:
+                prompt = prompt_template.format(**{"prompt": prompt})
+            stop = stop if stop else self.stop
+            if image_path_or_url:
+                if not image_path_or_url.startswith('http'):
+                    with open(image_path_or_url, "rb") as f:
+                        image_data = base64.b64encode(f.read()).decode('utf-8')
+                    image_path_or_url = f"data:image/jpeg;base64,{image_data}"
+
+                message = HumanMessage(
+                    content=[
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image_path_or_url},
+                        },
+                    ],
+                )
+                prompt = [message]
+                res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
+            else:
+                res = llm.invoke(prompt, stop=stop, **kwargs)
         return res.content if self.is_openai_model() or self.is_hf() else res
 
 

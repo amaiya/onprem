@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - Support for Hugging Face transformers as LLM engine instead of Llama.cpp
 
 ### changed
-- N/A
+- `LLM.prompt` now accepts OpenAI-style messages in form of list of dictionaries
 
 ### fixed:
 - Remove unused imports (#92)
