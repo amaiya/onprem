@@ -511,6 +511,11 @@ llm = LLM(model_url='openai://gpt-4o', temperature=0)
     /home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
+This OpenAI [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
+instance can now be used with as the engine for most features in
+OnPrem.LLM (e.g., RAG, information extraction, summarization, etc.).
+Here we simply use it for general prompting:
+
 ``` python
 saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
 ```
@@ -523,12 +528,28 @@ saved_result = llm.prompt('List three cute  names for a cat and explain why each
 
     3. **Pumpkin**: This name is cute because it brings to mind the warm, orange hues of a pumpkin, which can be reminiscent of certain cat fur colors. It's also associated with the fall season, which is often linked to comfort and coziness. Plus, the name "Pumpkin" has a sweet and affectionate ring to it, making it perfect for a beloved pet.
 
+**Using Vision Capabilities in GPT-4o**
+
 ``` python
 image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
 saved_result = llm.prompt('Describe the weather in this image.', image_path_or_url=image_url)
 ```
 
     The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, illuminating the green grass and landscape.
+
+**Using OpenAI-Style Message Dictionaries**
+
+``` python
+messages = [
+    {'content': [{'text': 'describe the weather in this image', 
+                  'type': 'text'},
+                 {'image_url': {'url': image_url},
+                  'type': 'image_url'}],
+     'role': 'user'}]
+saved_result = llm.prompt(messages)
+```
+
+    The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, casting clear shadows and illuminating the green landscape.
 
 **Azure OpenAI**
 
