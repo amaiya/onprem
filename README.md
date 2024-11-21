@@ -433,7 +433,7 @@ out-of-the-box.
 By default, the LLM backend employed by **OnPrem.LLM** is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), which
 requires models in [GGUF format](https://huggingface.co/docs/hub/gguf).
-As of v0.5.0, it is not possible to use [Hugging Face
+As of v0.5.0, it is now possible to use [Hugging Face
 transformers](https://github.com/huggingface/transformers) as the LLM
 backend instead. This is accomplished by using the `model_id` parameter
 (instead of supplying a `model_url` argument). In the example below, we
@@ -446,7 +446,7 @@ model.
 llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")
 ```
 
-This allows you to easily use any model on the Hugging Face hub in
+This allows you to more easily use any model on the Hugging Face hub in
 [SafeTensors format](https://huggingface.co/docs/safetensors/index)
 provided it can be loaded with `transformers.AutoModelForCausalLM` (or
 `transformers.AutoModelForVision2Seq`). Note that, when using the
@@ -455,7 +455,7 @@ provided it can be loaded with `transformers.AutoModelForCausalLM` (or
 
 Using the `transformers` backend requires the
 [bitsandbytes](https://huggingface.co/docs/bitsandbytes/main/en/installation)
-library, lightweight Python wrapper around CUDA custom functions, in
+library, a lightweight Python wrapper around CUDA custom functions, in
 particular 8-bit optimizers, matrix multiplication (LLM.int8()), and 8 &
 4-bit quantization functions. There are ongoing efforts by the
 bitsandbytes team to support multiple backends in addition to CUDA.
