@@ -101,6 +101,8 @@ class Summarizer:
             docs = load_single_document(fpath)
         else:
             docs = load_documents(fpath)
+        if not docs:
+            raise Exception(f'Could not load text from document: {fpath}')
 
         if strategy == 'map_reduce':
             summary = self._map_reduce(docs, 
@@ -250,6 +252,8 @@ class Summarizer:
         if not os.path.isfile(fpath):
             raise ValueError(f"{fpath} is not a file.")
         docs = load_single_document(fpath)
+        if not docs:
+            raise Exception(f'Could not load text from document: {fpath}')
         ext = "." + fpath.rsplit(".", 1)[-1].lower()
         content = '\n\n'.join([doc.page_content for doc in docs])
         

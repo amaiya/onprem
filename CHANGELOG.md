@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Suppress swig deprecation warning (#93)
+- Raise error if summarizers encounter bad document (#94)
 
 
 ## 0.5.0 (2024-11-20)
