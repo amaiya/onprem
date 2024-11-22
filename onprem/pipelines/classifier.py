@@ -7,7 +7,12 @@ __all__ = ['DEFAULT_SETFIT_MODEL', 'SMALL_SETFIT_MODEL', 'DATASET_TEXT', 'DATASE
 
 # %% ../../nbs/04_pipelines.classifier.ipynb 3
 from typing import List, Union
-from setfit import SetFitModel, TrainingArguments, Trainer, sample_dataset
+
+import warnings
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    from setfit import SetFitModel, TrainingArguments, Trainer, sample_dataset
 
 # %% ../../nbs/04_pipelines.classifier.ipynb 4
 import warnings
