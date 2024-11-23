@@ -31,13 +31,13 @@ class AnswerConversationBufferMemory(ConversationBufferMemory):
 
 MIN_MODEL_SIZE = 250000000
 MISTRAL_MODEL_URL = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
-MISTRAL_MODEL_ID = "unsloth/mistral-7b-instruct-v0.2-bnb-4bit"
+MISTRAL_MODEL_ID = "TheBloke/Mistral-7B-Instruct-v0.2-AWQ"
 MISTRAL_PROMPT_TEMPLATE = "[INST] {prompt} [/INST]"
 ZEPHYR_MODEL_URL = "https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf"
-ZEPHYR_MODEL_ID = "HuggingFaceH4/zephyr-7b-beta"
+ZEPHYR_MODEL_ID = "TheBloke/zephyr-7B-beta-AWQ"
 ZEPHYR_PROMPT_TEMPLATE = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>"
 LLAMA_MODEL_URL = "https://huggingface.co/lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
-LLAMA_MODEL_ID = "unsloth/Meta-Llama-3.1-8B-Instruct"
+LLAMA_MODEL_ID = "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"
 LLAMA_PROMPT_TEMPLATE = """<|start_header_id|>system<|end_header_id|>
 
 You are a super-intelligent helpful assistant that executes instructions.<|eot_id|><|start_header_id|>user<|end_header_id|>
@@ -89,8 +89,9 @@ class LLM:
         **kwargs,
     ):
         """
-        LLM Constructor.  Extra `kwargs` (e.g., temperature) are fed directly to `langchain.llms.LlamaCpp` 
-        or `langchain.hugging_face.HuggingFacePipeline`.
+        LLM Constructor.  Extra `kwargs` (e.g., temperature) are fed directly
+        to `langchain.llms.LlamaCpp`  (if `model_url` is supplied) or
+        `transformers.pipeline` (if `model_id` is supplied).
 
         **Args:**
 
@@ -365,82 +366,18 @@ class LLM:
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
         elif not self.llm and self.is_hf():
-            try:
-                import bitsandbytes
-            except ImportError:
-                raise ImportError('Please install bitsandbytes if using '+
-                                  'transformers as LLM engine: pip install bitsandbytes')
-            # Hugging Face model
-            from transformers import BitsAndBytesConfig, TextStreamer
-            from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+            from onprem.hf import LLM
+            from transformers import TextStreamer, AutoTokenizer
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
-            from transformers import AutoModelForVision2Seq
-            import torch
-            quantization_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype="float16",
-                bnb_4bit_use_double_quant=True,
-            )
             tokenizer = AutoTokenizer.from_pretrained(self.model_id)
             streamer = TextStreamer(tokenizer)
-            def load_hf_model(cls, qconfig=None):
-                try:
-                    model = cls.from_pretrained(
-                        self.model_id,
-                        quantization_config=qconfig,
-                        device_map="auto",
-                        torch_dtype=torch.bfloat16,
-                    )
-                    return model
-                except Exception as e:
-                    return None
-
-            model = load_hf_model(AutoModelForCausalLM, qconfig=quantization_config)
-            used_quant = True
-            if not model:
-                model = load_hf_model(AutoModelForVision2Seq, qconfig=quantization_config)
-                if not model:
-                    model = load_hf_model(AutoModelForCausalLM)
-                    used_quant = False
-                    if not model:
-                        model = load_hf_model(AutoModelForVision2Seq)
-                        if not model:
-                            raise Exception('Unable to load model using either '+\
-                                            'AutoModelForCausalLM or AutoModelForVision2Seq')
-            if not used_quant:
-                warnings.warn('We were unable to load model with quantization.')
-
-            pipe = pipeline("text-generation",
-                            model=model,
-                            tokenizer=tokenizer,
-                            max_new_tokens=self.max_tokens,
-                            do_sample=True if\
-                            self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
-                             repetition_penalty=1.03,
-                             return_full_text=False,
-                            streamer=streamer,
-                            **self.extra_kwargs,
-                           )
-            hfpipe = HuggingFacePipeline(pipeline=pipe)
-    
-            #hfpipe = HuggingFacePipeline.from_model_id(
-                #model_id=self.model_id,
-                #task="text-generation",
-                #pipeline_kwargs=dict(
-                     #max_new_tokens=self.max_tokens,
-                     ##max_length = self.n_ctx, # cannot supply both
-                     #do_sample=True if self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
-                     #repetition_penalty=1.03,
-                     #return_full_text=False,
-                    #streamer=streamer,
-                    #**self.extra_kwargs,
-                     ##max_memory={0: "5GiB", "cpu": "30GiB"},
-                #),
-                #model_kwargs={"quantization_config": quantization_config,
-                              #"torch_dtype": torch.bfloat16}
-                #)
-
+            llmpipe = LLM(self.model_id,
+                          streamer=streamer,
+                          max_new_tokens = self.max_tokens,
+                          do_sample=True if\
+                                    self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
+                          **self.extra_kwargs)
+            hfpipe = HuggingFacePipeline(pipeline=llmpipe.generator.llm.pipeline)
             self.llm = ChatHuggingFace(llm=hfpipe)
 
         elif not self.llm:

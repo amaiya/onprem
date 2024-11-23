@@ -117,13 +117,13 @@ llm = LLM(default_model='llama')
 Similarly, suppyling `default_model='zephyr`, will use
 **Zephyr-7B-beta**. Of course, you can also easily supply the URL to an
 LLM of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
-generation section
+[`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm) (see the
+[code generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
 example or the [FAQ](https://amaiya.github.io/onprem/#faq)). Any extra
 parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
-directly to `llama-cpp-python`.
+[`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm) are
+forwarded directly to `llama-cpp-python`.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -369,7 +369,7 @@ Below is an instruction that describes a task. Write a response that appropriate
 ```
 
 You can supply the `prompte_template` to either the
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) constructor
+[`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm) constructor
 (above) or the
 [`LLM.prompt`](https://amaiya.github.io/onprem/core.html#llm.prompt)
 method. We will do the latter here:
@@ -438,29 +438,47 @@ transformers](https://github.com/huggingface/transformers) as the LLM
 backend instead. This is accomplished by using the `model_id` parameter
 (instead of supplying a `model_url` argument). In the example below, we
 run the
-[Zephyr-7B-beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)
+[Llama-3.1-8B](https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4)
 model.
 
 ``` python
 # llama-cpp-python does NOT need to be installed when using model_id parameter
-llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta")
+llm = LLM(model_id="hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", device_map='cuda')
 ```
 
 This allows you to more easily use any model on the Hugging Face hub in
 [SafeTensors format](https://huggingface.co/docs/safetensors/index)
-provided it can be loaded with `transformers.AutoModelForCausalLM` (or
-`transformers.AutoModelForVision2Seq`). Note that, when using the
-`model_id` parameter, the `prompt_template` is set automatically by
-`transformers`.
+provided it can be loaded with the Hugging Face `transformers.pipeline`.
+Note that, when using the `model_id` parameter, the `prompt_template` is
+set automatically by `transformers`.
 
-Using the `transformers` backend requires the
+The Llama-3.1 model loaded above was quantized using
+[AWQ](https://huggingface.co/docs/transformers/main/en/quantization/awq),
+which allows the model to fit onto smaller GPUs (e.g., laptop GPUs with
+6GB of VRAM) similar to the default GGUF format. AWQ models will require
+the [autoawq](https://pypi.org/project/autoawq/) package to be
+installed: `pip install autoawq`. If you do need to load a model that is
+not quantized, you can supply a quantization configuration at load time
+as follows:
+
+``` python
+from transformers import BitsAndBytesConfig
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype="float16",
+    bnb_4bit_use_double_quant=True,
+)
+llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta", device_map='cuda', quantization_config=quantization_config)
+```
+
+When supplying a `quantization_config`, the
 [bitsandbytes](https://huggingface.co/docs/bitsandbytes/main/en/installation)
 library, a lightweight Python wrapper around CUDA custom functions, in
 particular 8-bit optimizers, matrix multiplication (LLM.int8()), and 8 &
 4-bit quantization functions. There are ongoing efforts by the
-bitsandbytes team to support multiple backends in addition to CUDA.
-However, we have only tested with a CUDA backend (CUDA 12.x). If you
-receive errors related to bitsandbytes, please refer to the
+bitsandbytes team to support multiple backends in addition to CUDA. If
+you receive errors related to bitsandbytes, please refer to the
 [bitsandbytes
 documentation](https://huggingface.co/docs/bitsandbytes/main/en/installation).
 
@@ -511,7 +529,7 @@ llm = LLM(model_url='openai://gpt-4o', temperature=0)
     /home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
-This OpenAI [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
+This OpenAI [`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm)
 instance can now be used with as the engine for most features in
 OnPrem.LLM (e.g., RAG, information extraction, summarization, etc.).
 Here we simply use it for general prompting:
@@ -642,7 +660,7 @@ CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstal
 # CMAKE_ARGS="-DGGML_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 ```
 
-#### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
+#### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm)
 
 ``` python
 llm = LLM(n_gpu_layers=35)

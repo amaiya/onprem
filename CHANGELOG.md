@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Refactored Hugging Face transformers backend (#95)
 
 ### fixed:
 - Suppress swig deprecation warning (#93)
