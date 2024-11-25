@@ -246,7 +246,7 @@ def test_semantic(**kwargs):
     return
 
 def test_transformers(**kwargs):
-    llm = LLM(default_engine='transformers')
+    llm = LLM(default_engine='transformers', device_map='cuda')
     output = llm.prompt("List one cute name for a cat and number it with 1.")
     assert("1." in output)
 

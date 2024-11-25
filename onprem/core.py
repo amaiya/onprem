@@ -366,18 +366,24 @@ class LLM:
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
         elif not self.llm and self.is_hf():
-            from onprem.hf import LLM
-            from transformers import TextStreamer, AutoTokenizer
+            from transformers import pipeline, TextStreamer, AutoTokenizer
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
-            tokenizer = AutoTokenizer.from_pretrained(self.model_id)
+            tokenizer = self.extra_kwargs['tokenizer'] if 'tokenizer' in self.extra_kwargs\
+                        else AutoTokenizer.from_pretrained(self.model_id)
+            if 'tokenizer' in self.extra_kwargs:
+                del self.extra_kwargs['tokenizer']
             streamer = TextStreamer(tokenizer)
-            llmpipe = LLM(self.model_id,
-                          streamer=streamer,
-                          max_new_tokens = self.max_tokens,
-                          do_sample=True if\
-                                    self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
-                          **self.extra_kwargs)
-            hfpipe = HuggingFacePipeline(pipeline=llmpipe.generator.llm.pipeline)
+
+
+            pipe = pipeline('text-generation',
+                              self.model_id,
+                              tokenizer=tokenizer,
+                              streamer=streamer,
+                              max_new_tokens = self.max_tokens,
+                              do_sample=True if\
+                                     self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
+                              **self.extra_kwargs)
+            hfpipe = HuggingFacePipeline(pipeline=pipe)
             self.llm = ChatHuggingFace(llm=hfpipe)
 
         elif not self.llm:
