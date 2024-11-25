@@ -458,7 +458,7 @@ which allows the model to fit onto smaller GPUs (e.g., laptop GPUs with
 6GB of VRAM) similar to the default GGUF format. AWQ models will require
 the [autoawq](https://pypi.org/project/autoawq/) package to be
 installed: `pip install autoawq` (AWQ only supports Linux system,
-including Windows Subsystem for Linx). If you do need to load a model
+including Windows Subsystem for Linux). If you do need to load a model
 that is not quantized, you can supply a quantization configuration at
 load time (known as “inflight quantization”). In the following example,
 we load an unquantized [Zephyr-7B-beta

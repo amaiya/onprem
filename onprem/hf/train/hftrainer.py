@@ -69,7 +69,7 @@ class HFTrainer(Tensors):
         **args
     ):
         """
-        Builds a new model using arguments.
+        Builds a new Hugging Face transformers model using arguments.
 
         Args:
             base: path to base model, accepts Hugging Face model hub id, local path or (model, tokenizer) tuple
