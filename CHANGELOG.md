@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.5.2 (TBD)
+## 0.5.2 (2024-011-25)
 
 ### new:
 - N/A
@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- Allow all Hugging Face pipeline/model arguments to be supplied (#96)
 
 
 ## 0.5.1 (2024-11-22)
