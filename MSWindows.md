@@ -89,7 +89,12 @@ use it to run models faster.
 7. Activate your new venv.
 8. Install llama-cpp-python with cuBLAS support:
    `CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python`
-9. `pip install onprem`
-10. Run an onprem prompt with `n_gpu_layers=-1`. This may be too much for a 4
+9.If the previous command results in errors when loading models or executing prompts (e.g., *"CUDA error: the provided PTX was compiled with an unsupported toolchain."*), try re-installing `llama-cpp-python` with this command:
+```sh
+CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
+
+```
+10. `pip install onprem`
+11. Run an onprem prompt with `n_gpu_layers=-1`. This may be too much for a 4
     GiB GPU. I found `n_gpu_layers=31` fits in memory, and didn't go any higher.
 
