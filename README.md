@@ -117,13 +117,13 @@ llm = LLM(default_model='llama')
 Similarly, suppyling `default_model='zephyr`, will use
 **Zephyr-7B-beta**. Of course, you can also easily supply the URL to an
 LLM of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm) (see the
-[code generation section
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
+generation section
 below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
 example or the [FAQ](https://amaiya.github.io/onprem/#faq)). Any extra
 parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm) are
-forwarded directly to `llama-cpp-python`.
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
+directly to `llama-cpp-python`.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -369,7 +369,7 @@ Below is an instruction that describes a task. Write a response that appropriate
 ```
 
 You can supply the `prompte_template` to either the
-[`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm) constructor
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) constructor
 (above) or the
 [`LLM.prompt`](https://amaiya.github.io/onprem/core.html#llm.prompt)
 method. We will do the latter here:
@@ -457,9 +457,13 @@ The Llama-3.1 model loaded above was quantized using
 which allows the model to fit onto smaller GPUs (e.g., laptop GPUs with
 6GB of VRAM) similar to the default GGUF format. AWQ models will require
 the [autoawq](https://pypi.org/project/autoawq/) package to be
-installed: `pip install autoawq`. If you do need to load a model that is
-not quantized, you can supply a quantization configuration at load time
-as follows:
+installed: `pip install autoawq` (AWQ only supports Linux system,
+including Windows Subsystem for Linx). If you do need to load a model
+that is not quantized, you can supply a quantization configuration at
+load time (known as “inflight quantization”). In the following example,
+we load an unquantized [Zephyr-7B-beta
+model](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta) that will be
+quantized during loading to fit on GPUs with as little as 6GB of VRAM:
 
 ``` python
 from transformers import BitsAndBytesConfig
@@ -469,7 +473,7 @@ quantization_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype="float16",
     bnb_4bit_use_double_quant=True,
 )
-llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta", device_map='cuda', quantization_config=quantization_config)
+llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta", device_map='cuda', model_kwargs={"quantization_config":quantization_config})
 ```
 
 When supplying a `quantization_config`, the
@@ -529,7 +533,7 @@ llm = LLM(model_url='openai://gpt-4o', temperature=0)
     /home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
-This OpenAI [`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm)
+This OpenAI [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
 instance can now be used with as the engine for most features in
 OnPrem.LLM (e.g., RAG, information extraction, summarization, etc.).
 Here we simply use it for general prompting:
@@ -660,7 +664,7 @@ CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstal
 # CMAKE_ARGS="-DGGML_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 ```
 
-#### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/hf.llm.llm.html#llm)
+#### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
 
 ``` python
 llm = LLM(n_gpu_layers=35)
