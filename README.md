@@ -75,7 +75,8 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
 
 2.  Install **OnPrem.LLM**: `pip install onprem`
 
-For fast GPU-accelerated inference, see [additional instructions
+For more information on fast GPU-accelerated inference, see [these
+instructions
 below](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu).
 See [the FAQ](https://amaiya.github.io/onprem/#faq), if you experience
 issues with
