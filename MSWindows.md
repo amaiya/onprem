@@ -45,28 +45,17 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 
 ## Using WSL2 (with GPU Acceleration)
 
-(These steps for WSL2 were contributed by @dvisser.)
 
+### Install Ubuntu WSL2 Instance
 
-This has been on two Windows Home 11 systems:
+This is quite simple to do. Example: At a command prompt: `wsl --install -d Ubuntu-24.04`
 
-1. A custom-built minitower PC with ASUS motherboard a GeForce RTX 3060 (12 GiB
-   VRAM)
-2. An HP Victus laptop PC with a GeForce RTX 3050 Ti (4 GiB VRAM)
-
-### Install Ubuntu 22.04 WSL Instance
-
-This is quite simple to do. At a command prompt: `wsl --install -d Ubuntu-22.04`
-
-Ubuntu 22.04 is a preference of the author, not a requirement. Almost any instance
-type with a modern enough Python version will work just fine. However, the
-NVIDIA GPU section below has only been tested on Ubuntu 22.04 instances.
 
 Once the environment started for the first time, WSL works just like a native
 Ubuntu installation. If you have an NVIDIA device supporting CUDA, you can even
 use it to run models faster.
 
-### Setting Up CUDA for Onprem on Your WSL Instance
+### Installing OnPrem.LLM on WSL2
 
 1. Install up-to-date NVIDIA drivers. Instructions are [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl).
 2. Run these commands:
