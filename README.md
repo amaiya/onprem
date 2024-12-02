@@ -506,7 +506,8 @@ quantization_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype="float16",
     bnb_4bit_use_double_quant=True,
 )
-llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta", device_map='cuda', model_kwargs={"quantization_config":quantization_config})
+llm = LLM(model_id="HuggingFaceH4/zephyr-7b-beta", device_map='cuda', 
+          model_kwargs={"quantization_config":quantization_config})
 ```
 
 When supplying a `quantization_config`, the
