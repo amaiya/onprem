@@ -190,7 +190,7 @@ def main():
         )
 
     screen = st.sidebar.radio(
-        "Choose a Screen:", ("Talk to Your Documents", "Use Prompts to Solve Problems")
+        "Choose a Screen:", ("Use Prompts to Solve Problems", "Talk to Your Documents")
     )
     st.sidebar.markdown("**Curent Model:**")
     st.sidebar.markdown(f"*{os.path.basename(cfg['llm']['model_url'])}*")

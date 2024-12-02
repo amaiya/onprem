@@ -30,8 +30,8 @@ def cli():
         "-a",
         "--address",
         type=str,
-        default="0.0.0.0",
-        help=("Address to bind; default is 0.0.0.0"),
+        default="localhost",
+        help=("Address to bind; default is localhost; Set to 0.0.0.0 if hosting on server."),
     )
     parser.add_argument(
         "-v",

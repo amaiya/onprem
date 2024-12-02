@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Add support for HF training (#98)
+- Default to localhost in Web app (#99)
 
 
 ## 0.5.2 (2024-011-25)
