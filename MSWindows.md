@@ -11,7 +11,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 4. Activate virtual environment: `.venv\Scripts\activate`. You can optionally append `C:\Users\<username\.venv\Scripts` to `Path` environment variable, so that you only need to type `activate` to enter virtual environment in the future.
 5. Install PyTorch:
    - For CPU: `pip install torch torchvision torchaudio`
-   - For GPU (if you do happen to have a GPU and have installed an NVIDIA driver ): `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124`
+   - For GPU (if you do happen to have a GPU and have installed an [up-to-date NVIDIA driver](https://www.nvidia.com/en-us/drivers/) ): `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124`
      - Run the following at Python prompt to verify things are working. (The PyTorch binaries ship with all CUDA runtime dependencies and you don't need to locally install a CUDA toolkit or cuDNN, as long as NVIDIA driver is installed.)
 	   ```python
 	   In [1]: import torch
@@ -88,7 +88,7 @@ use it to run models faster.
    been necessary.
 7. Activate your new venv.
 8. Install llama-cpp-python with cuBLAS support:
-   `CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python`
+   `CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install llama-cpp-python`
 9.If the previous command results in errors when loading models or executing prompts (e.g., *"CUDA error: the provided PTX was compiled with an unsupported toolchain."*), try re-installing `llama-cpp-python` with this command:
 ```sh
 CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
