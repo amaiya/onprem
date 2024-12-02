@@ -68,33 +68,36 @@ use it to run models faster.
 
 ### Setting Up CUDA for Onprem on Your WSL Instance
 
-1. Install NVIDIA drivers. Instructions are [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl), but I used [Nvidia GeForce Experience](https://www.nvidia.com/en-us/geforce/geforce-experience/) to accomplish this.
-2. Check `nvidia-smi` output in Ubuntu. Verify that it shows a device with Nvidia
-   driver supporting CUDA 12.x. You can skip the rest of the step and follow the
-   [Docker instructions](#how-to-run-onprem-in-a-docker-container) if you intend to
-   use this WSL2 environment as a Docker host for *onprem* containers.
-3. `apt install build-essential`
-4. Do all [runfile (local) installation](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=runfile_local)
-   of the Official CUDA 12.x toolkit install for WSL2. Ensure the following
-   warnings from the final summary output get addressed (If not done, you may
-   see a "No CUDA-capable device detected" when attempting to run onprem with
-   GPU layers.):
-   * PATH includes `/usr/local/cuda-12.3/bin`
-   * `LD_LIBRARY_PATH` includes `/usr/local/cuda-12.3/lib64`, or, add
-     `/usr/local/cuda-12.3/lib64` to `/etc/ld.so.conf` and run `ldconfig` as root
-5. `apt install python3.10-dev python3.10-venv`
-6. Make your venv using the python 3.10 executable (should be `python3` on your
-   *PATH*). I used the `--system-site-packages` option, though this may not have
-   been necessary.
-7. Activate your new venv.
-8. Install llama-cpp-python with cuBLAS support:
-   `CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install llama-cpp-python`
-9.If the previous command results in errors when loading models or executing prompts (e.g., *"CUDA error: the provided PTX was compiled with an unsupported toolchain."*), try re-installing `llama-cpp-python` with this command:
+1. Install up-to-date NVIDIA drivers. Instructions are [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl).
+2. Run these commands:
 ```sh
+# Might be needed from a fresh install
+sudo apt update
+sudo apt upgrade
+
+sudo apt install gcc
+
+# Might be needed, per: https://docs.nvidia.com/cuda/wsl-user-guide/index.html#cuda-support-for-wsl-2
+sudo apt-key del 7fa2af80
+
+# From https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_local
+wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-wsl-ubuntu.pin
+sudo mv cuda-wsl-ubuntu.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/12.5.1/local_installers/cuda-repo-wsl-ubuntu-12-5-local_12.5.1-1_amd64.deb
+sudo dpkg -i cuda-repo-wsl-ubuntu-12-5-local_12.5.1-1_amd64.deb
+sudo cp /var/cuda-repo-wsl-ubuntu-12-5-local/cuda-*-keyring.gpg /usr/share/keyrings/
+
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-12-5
+
+# If needed
+sudo apt install python3.12-venv
+python3 -m venv ./ai_env
+source ./ai_env/bin/activate
+
+# Install and build llamapa-cpp-python
 CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
 
+# Install OnPrem.LLM
+pip install onprem
 ```
-10. `pip install onprem`
-11. Run an onprem prompt with `n_gpu_layers=-1`. This may be too much for a 4
-    GiB GPU. I found `n_gpu_layers=31` fits in memory, and didn't go any higher.
-
