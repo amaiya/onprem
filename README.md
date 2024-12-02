@@ -75,19 +75,51 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
 
 2.  Install **OnPrem.LLM**: `pip install onprem`
 
-For more information on fast GPU-accelerated inference, see [these
-instructions
-below](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu).
-See [the FAQ](https://amaiya.github.io/onprem/#faq), if you experience
-issues with
+### On GPU-Accelerated Inference
+
+When installing **llama-cpp-python** with
+`pip install llama-cpp-python`, the LLM will run on your **CPU**. To
+generate answers much faster, you can run the LLM on your **GPU** by
+building **llama-cpp-python** based on your operating system.
+
+- **Linux**:
+  `CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir`
+- **Mac**: `CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python`
+- **Windows 11**: Follow the instructions
+  [here](https://github.com/amaiya/onprem/blob/master/MSWindows.md#using-the-system-python-in-windows-11s).
+- **Windows Subsystem for Linux (WSL2)**: Follow the instructions
+  [here](https://github.com/amaiya/onprem/blob/master/MSWindows.md#using-wsl2-with-gpu-acceleration).
+
+For Linux and Windows, you will need [an up-to-date NVIDIA
+driver](https://www.nvidia.com/en-us/drivers/) along with the [CUDA
+toolkit](https://developer.nvidia.com/cuda-downloads) installed before
+running the installation commands above.
+
+After following the instructions above, supply the `n_gpu_layers=-1`
+parameter when instantiating an LLM to use your GPU for fast inference:
+
+``` python
+llm = LLM(n_gpu_layers=-1, ...)
+```
+
+Quantized models with 8B parameters and below can typically run on GPUs
+with as little as 6GB of VRAM. If a model does not fit on your GPU
+(e.g., you get a “CUDA Error: Out-of-Memory” error), you can offload a
+subset of layers to the GPU by experimenting with different values for
+the `n_gpu_layers` parameter (e.g., `n_gpu_layers=20`). Setting
+`n_gpu_layers=-1`, as shown above, offloads all layers to the GPU.
+
+See [the FAQ](https://amaiya.github.io/onprem/#faq) for extra tips, if
+you experience issues with
 [llama-cpp-python](https://pypi.org/project/llama-cpp-python/)
 installation.
 
 **Note:** Installing **llama-cpp-python** is optional if either the
 following is true:
 
-- You supply the `model_id` parameter when instantiating an LLM, as
-  [shown
+- You use Hugging Face Transformers (instead of llama-cpp-python) as the
+  LLM backend by supplying the `model_id` parameter when instantiating
+  an LLM, as [shown
   here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
   [external REST
@@ -643,52 +675,6 @@ remote server) in a Web browser to access the application:
 
 For more information, [see the corresponding
 documentation](https://amaiya.github.io/onprem/webapp.html).
-
-## Speeding Up Inference Using a GPU
-
-The above example employed the use of a CPU. If you have a GPU (even an
-older one with less VRAM), you can speed up responses. See [the
-llama-cpp-python
-documentation](https://llama-cpp-python.readthedocs.io/en/latest/#installation)
-for installing `llama-cpp-python` with GPU support for your system.
-
-The steps below describe installing and using `llama-cpp-python` with
-`CUDA` support and can be employed for GPU acceleration on systems with
-NVIDIA GPUs (e.g., Linux, WSL2, Google Colab).
-
-#### Step 1: Install `llama-cpp-python` with GPU support
-
-``` shell
-CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
-
-# For Mac users replace above with:
-# CMAKE_ARGS="-DGGML_METAL=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
-```
-
-#### Step 2: Use the `n_gpu_layers` argument with [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
-
-``` python
-llm = LLM(n_gpu_layers=35)
-```
-
-The value for `n_gpu_layers` depends on your GPU memory and the model
-you’re using (e.g., max of 33 for default 7B model). Set
-`n_gpu_layers=-1` to offload all layers to the GPU (this will offload
-all 33 layers to the default model). You can reduce the value if you get
-an error (e.g., `CUDA error: out-of-memory`). For instance, using two
-old NVDIDIA TITAN V GPUs each with 12GB of VRAM, 59 out 83 layers in a
-[quantized Llama-2 70B
-model](https://huggingface.co/TheBloke/Llama-2-70B-chat-GGUF/resolve/main/llama-2-70b-chat.Q3_K_S.gguf)
-can be offloaded to the GPUs (i.e., 60 layers or more results in a “CUDA
-out of memory” error).
-
-With the steps above, calls to methods like `llm.prompt` will offload
-computation to your GPU and speed up responses from the LLM.
-
-The above assumes that NVIDIA drivers and the CUDA toolkit are already
-installed. On Ubuntu Linux systems, this can be accomplished [with a
-single
-command](https://lambdalabs.com/lambda-stack-deep-learning-software).
 
 ## FAQ
 
