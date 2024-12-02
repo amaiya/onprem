@@ -57,6 +57,7 @@ use it to run models faster.
 
 ### Installing OnPrem.LLM on WSL2
 
+
 1. Install up-to-date NVIDIA drivers. Instructions are [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl).
 2. Run these commands:
 ```sh
@@ -90,3 +91,6 @@ CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCH
 # Install OnPrem.LLM
 pip install onprem
 ```
+
+
+Reference: [Getting Started With CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl)
