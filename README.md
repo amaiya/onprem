@@ -274,9 +274,11 @@ for i, document in enumerate(result["source_documents"]):
 
 The `ingest.load_single_document` function can extract text from a range
 of different document formats (e.g., PDFs, Microsoft PowerPoint,
-Microsoft Word, etc.). Extracted text is represented as LangChain
-`Document` objects, where `Document.page_content` stores the extracted
-text and `Document.metadata` stores any extracted document metadata.
+Microsoft Word, etc.). It is automatically invoked when calling
+[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest).
+Extracted text is represented as LangChain `Document` objects, where
+`Document.page_content` stores the extracted text and
+`Document.metadata` stores any extracted document metadata.
 
 For PDFs, in particular, a number of different options are available
 depending on your use case. Any of the parameters described below can be
