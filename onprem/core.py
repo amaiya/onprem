@@ -315,7 +315,7 @@ class LLM:
         """
         Ingests all documents in `source_folder` into vector database.
         Previously-ingested documents are ignored.
-        Extra kwargs fed directly to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True.
+        Extra kwargs fed to `ingest.load_single_document`.
         """
         ingester = self.load_ingester()
         return ingester.ingest(

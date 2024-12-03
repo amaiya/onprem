@@ -9,7 +9,8 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.6.0 (TBD)
 
 ### new:
-- N/A
+- Improved PDF text extraction including optional markdown
+  conversion, table inference, and OCR (#100)
 
 ### changed
 - N/A
