@@ -272,20 +272,18 @@ for i, document in enumerate(result["source_documents"]):
 
 ### Extract Text from Documents
 
-The `ingest.load_single_document` function can extract text from a range
-of different document formats (e.g., PDFs, Microsoft PowerPoint,
-Microsoft Word, etc.). It is automatically invoked when calling
+The
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
+function can extract text from a range of different document formats
+(e.g., PDFs, Microsoft PowerPoint, Microsoft Word, etc.). It is
+automatically invoked when calling
 [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest).
 Extracted text is represented as LangChain `Document` objects, where
 `Document.page_content` stores the extracted text and
 `Document.metadata` stores any extracted document metadata.
 
 For PDFs, in particular, a number of different options are available
-depending on your use case. Any of the parameters described below can be
-supplied to
-[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
-which will automatically pass them along to
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document).
+depending on your use case.
 
 **Fast PDF Extraction**
 
@@ -366,6 +364,11 @@ docs = load_single_document('your_pdf_document.pdf',
 
 When using `pdf_use_unstrucured=True`, PDFs will be automatically OCR’ed
 (at the expense of slower extraction).
+
+Any of the parameters described above can be supplied directly to
+[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
+which will automatically pass them along to
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document).
 
 ### Summarization Pipeline
 
