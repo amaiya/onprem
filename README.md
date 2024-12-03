@@ -23,6 +23,11 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2024/12\] v0.6.0 released and now includes support for PDF to
+  Markdown conversion (which includes Markdown representations of
+  tables), as shown
+  [here](https://amaiya.github.io/onprem/#extract-text-from-documents).
+
 - \[2024/11\] v0.5.0 released and now includes support for running LLMs
   with Hugging Face
   [transformers](https://github.com/huggingface/transformers) as the
@@ -326,9 +331,11 @@ docs[0].metadata
     {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/4/lynn1975.pdf',
      'ocr': True}
 
-**Retaining Table Structure in PDFs** - **Pro**: Retains structure of
-tables within PDFs as either Markdown or HTML; Support for OCR -
-**Con**: Slower than default PDF extraction
+**Retaining Table Structure in PDFs**
+
+- **Pro**: Retains structure of tables within PDFs as either Markdown or
+  HTML; Support for OCR
+- **Con**: Slower than default PDF extraction
 
 The
 [`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
