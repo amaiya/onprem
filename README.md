@@ -122,8 +122,7 @@ following is true:
   an LLM, as [shown
   here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
-  [external REST
-  API](https://amaiya.github.io/onprem/#Connecting-to-LLMs-Served-Through-REST-APIs)
+  [external REST API](#connecting-to-llms-served-through-rest-apis)
   (e.g., vLLM, OpenLLM, Ollama).
 
 ## How to Use
@@ -150,10 +149,10 @@ llm = LLM(default_model='llama')
 Similarly, suppyling `default_model='zephyr`, will use
 **Zephyr-7B-beta**. Of course, you can also easily supply the URL to an
 LLM of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the [code
-generation section
-below](https://amaiya.github.io/onprem/#text-to-code-generation) for an
-example or the [FAQ](https://amaiya.github.io/onprem/#faq)). Any extra
+[`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the the
+[code generation
+example](https://amaiya.github.io/onprem/examples_code.html) or the
+[FAQ](https://amaiya.github.io/onprem/#faq) for examples). Any extra
 parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
 directly to `llama-cpp-python`.
@@ -266,6 +265,99 @@ for i, document in enumerate(result["source_documents"]):
     tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
     experts who may have less experience with machine learning and software coding. Where
 
+### Extract Text from Documents
+
+The `ingest.load_single_document` function can extract text from a range
+of different document formats (e.g., PDFs, Microsoft PowerPoint,
+Microsoft Word, etc.). Extracted text is represented as LangChain
+`Document` objects, where `Document.page_content` stores the extracted
+text and `Document.metadata` stores any extracted document metadata.
+
+For PDFs, in particular, a number of different options are available
+depending on your use case. Any of the parameters described below can be
+supplied to
+[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
+which will automatically pass them along to
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document).
+
+**Fast PDF Extraction**
+
+- **Pro:** Fast
+- **Con:** Does not infer/retain structure of tables in PDF documents
+
+``` python
+from onprem.ingest import load_single_document
+
+docs = load_single_document('sample_data/1/ktrain_paper.pdf')
+docs[0].metadata
+```
+
+    {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf',
+     'file_path': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf',
+     'page': 0,
+     'total_pages': 9,
+     'format': 'PDF 1.4',
+     'title': '',
+     'author': '',
+     'subject': '',
+     'keywords': '',
+     'creator': 'LaTeX with hyperref',
+     'producer': 'dvips + GPL Ghostscript GIT PRERELEASE 9.22',
+     'creationDate': "D:20220406214054-04'00'",
+     'modDate': "D:20220406214054-04'00'",
+     'trapped': ''}
+
+**Automatic OCR of PDFs**
+
+- **Pro:** Automatically extracts text from scanned PDFs
+- **Con:** Slow
+
+The
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
+function will automatically OCR PDFs that require it (i.e., PDFs that
+are scanned hard-copies of documents). If a document is OCR’ed during
+extraction, the `metadata['ocr']` field will be populated with `True`.
+
+``` python
+docs = load_single_document('sample_data/4/lynn1975.pdf')
+docs[0].metadata
+```
+
+    {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/4/lynn1975.pdf',
+     'ocr': True}
+
+**Retaining Table Structure in PDFs** - **Pro**: Retains structure of
+tables within PDFs as either Markdown or HTML; Support for OCR -
+**Con**: Slower than default PDF extraction
+
+The
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
+function can retain the structure of tables within documents, which can
+help LLMs answer questions about information contained within these
+tables. There are, in fact, two ways to do this in **OnPrem.LLM**.
+
+The first is to supply `pdf2md=True`to convert the PDF to Markdown text
+(via PyMuPDF4LLM), in which case the tables are represented within your
+document as **Markdown tables**:
+
+``` python
+docs = load_single_document('your_pdf_document.pdf', 
+                            pdf2md=True)
+```
+
+The second is to supply `pdf_use_unstructured=True` and
+`infer_table_structure=True`, which uses a TableTransformer model to
+infer tables and represents them as **HTML** within the extracted text
+(via Unstructured):
+
+``` python
+docs = load_single_document('your_pdf_document.pdf', 
+                            pdf_use_unstructured=True, infer_table_structure=True)
+```
+
+When using `pdf_use_unstrucured=True`, PDFs will be automatically OCR’ed
+(at the expense of slower extraction).
+
 ### Summarization Pipeline
 
 Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
@@ -374,92 +466,6 @@ print(clf.evaluate(X_test, y_test)['accuracy'])
 clf.predict(['Elon Musk likes launching satellites.']).tolist()[0]
 #output: sci.space
 ```
-
-### Text to Code Generation
-
-We’ll use the CodeUp LLM by supplying the URL and employing the
-particular prompt format this model expects.
-
-``` python
-from onprem import LLM
-
-url = "https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF/resolve/main/codeup-llama-2-13b-chat-hf.Q4_K_M.gguf"
-llm = LLM(url, n_gpu_layers=-1)  # see below for GPU information
-```
-
-Setup the prompt based on what [this model
-expects](https://huggingface.co/TheBloke/CodeUp-Llama-2-13B-Chat-HF-GGUF#prompt-template-alpaca)
-(this is important):
-
-``` python
-template = """
-Below is an instruction that describes a task. Write a response that appropriately completes the request.
-
-### Instruction:
-{prompt}
-
-### Response:"""
-```
-
-You can supply the `prompte_template` to either the
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) constructor
-(above) or the
-[`LLM.prompt`](https://amaiya.github.io/onprem/core.html#llm.prompt)
-method. We will do the latter here:
-
-``` python
-answer = llm.prompt(
-    "Write Python code to validate an email address.", prompt_template=template
-)
-```
-
-
-    Here is an example of Python code that can be used to validate an email address:
-    ```
-    import re
-
-    def validate_email(email):
-        # Use a regular expression to check if the email address is in the correct format
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if re.match(pattern, email):
-            return True
-        else:
-            return False
-
-    # Test the validate_email function with different inputs
-    print("Email address is valid:", validate_email("example@example.com"))  # Should print "True"
-    print("Email address is invalid:", validate_email("example@"))  # Should print "False"
-    print("Email address is invalid:", validate_email("example.com"))  # Should print "False"
-    ```
-    The code defines a function `validate_email` that takes an email address as input and uses a regular expression to check if the email address is in the correct format. The regular expression checks for an email address that consists of one or more letters, numbers, periods, hyphens, or underscores followed by the `@` symbol, followed by one or more letters, periods, hyphens, or underscores followed by a `.` and two to three letters.
-    The function returns `True` if the email address is valid, and `False` otherwise. The code also includes some test examples to demonstrate how to use the function.
-
-Let’s try out the code generated above.
-
-``` python
-import re
-
-
-def validate_email(email):
-    # Use a regular expression to check if the email address is in the correct format
-    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    if re.match(pattern, email):
-        return True
-    else:
-        return False
-
-
-print(validate_email("sam@@openai.com"))  # bad email address
-print(validate_email("sam@openai"))  # bad email address
-print(validate_email("sam@openai.com"))  # good email address
-```
-
-    False
-    False
-    True
-
-The generated code may sometimes need editing, but this one worked
-out-of-the-box.
 
 ### Using Hugging Face Transformers Instead of Llama.cpp
 

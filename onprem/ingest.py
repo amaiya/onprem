@@ -162,6 +162,7 @@ def load_single_document(file_path: str, # path to file
     Load a single document. Will attempt to OCR PDFs, if necessary.
     Extra kwargs fed to `ingest.load_single_document`.
     """
+    file_path = os.path.abspath(file_path)
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
         try:
