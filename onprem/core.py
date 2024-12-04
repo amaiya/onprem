@@ -309,19 +309,17 @@ class LLM:
         chunk_size: int = 500, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
         chunk_overlap: int = 50, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # callable that accepts the file path and returns True for ignored files
-        pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
-        **kwargs, # Extra kwargs fed to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True
+        **kwargs, # Extra kwargs fed to `load_single_document`
     ):
         """
         Ingests all documents in `source_folder` into vector database.
         Previously-ingested documents are ignored.
-        Extra kwargs fed to `ingest.load_single_document`.
+        Extra kwargs fed to `load_single_document`.
         """
         ingester = self.load_ingester()
         return ingester.ingest(
             source_directory,
             chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn,
-            pdf_use_unstructured=pdf_use_unstructured,
             **kwargs
         )
 

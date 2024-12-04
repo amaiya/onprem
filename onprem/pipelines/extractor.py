@@ -40,18 +40,19 @@ class Extractor:
               pdf_pages:List[int]=[], # If `fpath` is a PDF document, only apply prompt to text on page numbers listed in `pdf_pages` (starts at 1).
               maxchars = 2048, # units (i.e., paragraphs or sentences) larger than `maxchars` split.
               stop:list=[], # list of characters to trigger the LLM to stop generating.
-              pdf_use_unstructured:bool=False, # If True, use unstructured package to extract text from PDF.
-              **kwargs, # N/A
+              **kwargs, # Extra kwargs are fed to `load_single_document`
              ):
         """
         Apply the prompt to each `unit` (where a "unit" is either a paragraph or sentence) optionally filtered by `filter_fn`.
-        Extra kwargs fed directly to `langchain_community.document_loaders.pdf.UnstructuredPDFLoader` when pdf_use_unstructured is True.
+        Extra kwargs fed directly to `load_single_document`.
         Results are stored in a `pandas.Dataframe`.
         """
         if not(bool(fpath) != bool(content)):
             raise ValueError('Either fpath argument or content argument must be supplied but not both.')
-        if pdf_pages and pdf_use_unstructured:
-            raise ValueError('The parameters pdf_pages and pdf_use_unstructured are mutually exclusive.')
+        if pdf_pages and kwargs.get('pdf_unstructured', False):
+            raise ValueError('The parameters pdf_pages and pdf_unstructured are mutually exclusive.')
+        if pdf_pages and kwargs.get('pdf_markdown', False):
+            raise ValueError('The parameters pdf_pages and pdf_markdown are mutually exclusive.')
             
         # setup extraction prompt
         extraction_prompt = ex_prompt_template if self.prompt_template is None else self.prompt_template.format(**{'prompt': ex_prompt_template})   
@@ -60,7 +61,7 @@ class Extractor:
         if not content:
             if not os.path.isfile(fpath):
                 raise ValueError(f'{fpath} is not a file')
-            docs = load_single_document(fpath, pdf_use_unstructured=pdf_use_unstructured, **kwargs)
+            docs = load_single_document(fpath, **kwargs)
             if not docs: return
             ext = "." + fpath.rsplit(".", 1)[-1].lower()
             if ext == '.pdf' and pdf_pages:

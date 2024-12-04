@@ -343,18 +343,18 @@ function can retain the structure of tables within documents, which can
 help LLMs answer questions about information contained within these
 tables. There are, in fact, two ways to do this in **OnPrem.LLM**.
 
-The first is to supply `pdf2md=True`to convert the PDF to Markdown text
-(via PyMuPDF4LLM), in which case the tables are represented within your
-document as **Markdown tables**:
+The first is to supply `pdf_markdown=True`to convert the PDF to Markdown
+text (via PyMuPDF4LLM), in which case the tables are represented within
+your document as **Markdown tables**:
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
-                            pdf2md=True)
+                            pdf_markdown=True)
 ```
 
 In addition to facilitating table understanding, converting to Markdown
 can also facilitate question-answering in general. For instance, when
-supplying `pdf2md=True` to
+supplying `pdf_markdown=True` to
 [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
 documents are chunked in a Markdown-aware fashion (e.g., the abstract of
 a research paper tends to be kept together into a single chunk instead
@@ -362,18 +362,18 @@ of being split up). Note that Markdown will not be extracted if the
 document requires OCR.
 
 The second way to retain table structure is to supply
-`pdf_use_unstructured=True` and `infer_table_structure=True`, which uses
-a TableTransformer model to infer tables and represents them as **HTML**
+`pdf_unstructured=True` and `infer_table_structure=True`, which uses a
+TableTransformer model to infer tables and represents them as **HTML**
 within the extracted text (via Unstructured):
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
-                            pdf_use_unstructured=True, infer_table_structure=True)
+                            pdf_unstructured=True, infer_table_structure=True)
 ```
 
-Unlike the`pdf2md=True` argument, table structure is retained even if
-the PDF is OCR’ed when using `pdf_use_unstrucured=True`. (Note that
-`pdf2md` and `pdf_use_unstructured` cannot both be set to `True`.)
+Unlike the`pdf_markdown=True` argument, table structure is retained even
+if the PDF is OCR’ed when using `pdf_unstrucured=True`. (Note that
+`pdf_markdown` and `pdf_unstructured` cannot both be set to `True`.)
 
 Any of the parameters described above can be supplied directly to
 [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),

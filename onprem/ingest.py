@@ -154,23 +154,25 @@ def extract_files(source_dir:str):
 
 
 def load_single_document(file_path: str, # path to file
-                         pdf_use_unstructured:bool=False, # use unstructured for PDF extraction if True
-                         pdf2md:bool = False, # Convert PDFs to Markdown instead of plain text if True.
+                         pdf_unstructured:bool=False, # use unstructured for PDF extraction if True (will also OCR if necessary)
+                         pdf_markdown:bool = False, # Convert PDFs to Markdown instead of plain text if True.
                          **kwargs,
                          ) -> List[Document]:
     """
     Load a single document. Will attempt to OCR PDFs, if necessary.
+    To supply Unstructured with extra arguments (e.g., `infer_table_structure`) when
+    `pdf_unstructured` is True, supply as extra kwargs.
     """
-    if pdf_use_unstructured and pdf2md:
-        raise ValueError('pdf_use_unstructured and pdf2md cannot both be True.')
+    if pdf_unstructured and pdf_markdown:
+        raise ValueError('pdf_unstructured and pdf_markdown cannot both be True.')
     file_path = os.path.abspath(file_path)
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
         try:
             if ext == PDF:
-                if pdf_use_unstructured:
+                if pdf_unstructured:
                     ext = PDFOCR
-                elif pdf2md:
+                elif pdf_markdown:
                     ext = PDFMD
             loader_class, loader_args = LOADER_MAPPING[ext]
             loader_args = loader_args.copy() # copy so any supplied kwargs do not persist across calls
@@ -200,7 +202,7 @@ def load_single_document(file_path: str, # path to file
 def load_documents(source_dir: str, # path to folder containing documents
                    ignored_files: List[str] = [], # list of filepaths to ignore
                    ignore_fn:Optional[Callable] = None, # callable that accepts file path and returns True for ignored files
-                   pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+                   pdf_unstructured:bool=False, # If True, use unstructured for PDF extraction
                    **kwargs
 ) -> List[Document]:
     """
@@ -221,7 +223,7 @@ def load_documents(source_dir: str, # path to folder containing documents
         ) as pbar:
             for i, docs in enumerate(
                 pool.imap_unordered(functools.partial(load_single_document,
-                                                      pdf_use_unstructured=pdf_use_unstructured, **kwargs),
+                                                      pdf_unstructured=pdf_unstructured, **kwargs),
                                     filtered_files)
             ):
                 if docs is not None:
@@ -237,7 +239,7 @@ def process_documents(
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
     ignored_files: List[str] = [], # list of files to ignore
     ignore_fn:Optional[Callable] = None, # Callable that accepts the file path (including file name) as input and ignores if returns True
-    pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+    pdf_unstructured:bool=False, # If True, use unstructured for PDF extraction
     **kwargs
 
 
@@ -249,7 +251,7 @@ def process_documents(
     print(f"Loading documents from {source_directory}")
     documents = load_documents(source_directory,
                               ignored_files, ignore_fn=ignore_fn,
-                              pdf_use_unstructured=pdf_use_unstructured, **kwargs)
+                              pdf_unstructured=pdf_unstructured, **kwargs)
     if not documents:
         print("No new documents to load")
         return
@@ -404,7 +406,7 @@ class Ingester:
         chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
         chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
-        pdf_use_unstructured:bool=False, # If True, use unstructured for PDF extraction
+        pdf_unstructured:bool=False, # If True, use unstructured for PDF extraction
         **kwargs
     ) -> None:
         """
@@ -439,7 +441,7 @@ class Ingester:
             chunk_overlap=chunk_overlap,
             ignored_files=ignored_files,
             ignore_fn=ignore_fn,
-            pdf_use_unstructured=pdf_use_unstructured,
+            pdf_unstructured=pdf_unstructured,
             **kwargs
 
         )

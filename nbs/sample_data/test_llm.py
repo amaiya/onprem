@@ -245,6 +245,14 @@ def test_semantic(**kwargs):
     shutil.rmtree(vectordb_path)
     return
 
+def test_md(**kwargs):
+    from onprem.ingest import load_single_document
+    from onprem.utils import segment
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
+    md_text = load_single_document(fpath, pdf_markdown=True)[0].page_content
+    assert segment(md_text, unit='paragraph')[0].startswith('##')
+
+
 def test_transformers(**kwargs):
     llm = LLM(default_engine='transformers', device_map='cuda')
     output = llm.prompt("List one cute name for a cat and number it with 1.")
@@ -283,6 +291,9 @@ def run(**kwargs):
 
     # semantic simlarity test
     test_semantic(**kwargs)
+
+    # text markdown test
+    test_md(**kwargs)
 
 
 
