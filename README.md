@@ -568,7 +568,7 @@ When supplying a `quantization_config`, the
 [bitsandbytes](https://huggingface.co/docs/bitsandbytes/main/en/installation)
 library, a lightweight Python wrapper around CUDA custom functions, in
 particular 8-bit optimizers, matrix multiplication (LLM.int8()), and 8 &
-4-bit quantization functions. There are ongoing efforts by the
+4-bit quantization functions, is used. There are ongoing efforts by the
 bitsandbytes team to support multiple backends in addition to CUDA. If
 you receive errors related to bitsandbytes, please refer to the
 [bitsandbytes
