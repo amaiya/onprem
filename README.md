@@ -353,7 +353,7 @@ docs = load_single_document('your_pdf_document.pdf',
 ```
 
 In addition to facilitating table understanding, converting to Markdown
-can also faciliate question-answering in general. For instance, when
+can also facilitate question-answering in general. For instance, when
 supplying `pdf2md=True` to
 [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
 documents are chunked in a Markdown-aware fashion (e.g., the abstract of
