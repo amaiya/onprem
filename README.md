@@ -72,12 +72,12 @@ Once you have [installed
 PyTorch](https://pytorch.org/get-started/locally/), you can install
 **OnPrem.LLM** with the following steps:
 
-1.  Install **llama-cpp-python** by [visiting this
-    site](https://python.langchain.com/docs/integrations/llms/llamacpp#installation)
-    and following instructions for your operating system and machine.
-    For CPU-based installations (i.e., no GPU acceleration), you can
-    simply do: `pip install llama-cpp-python`.
-
+1.  Install **llama-cpp-python**:
+    - **CPU:** `pip install llama-cpp-python` ([extra
+      steps](https://github.com/amaiya/onprem/blob/master/MSWindows.md)
+      required for Microsoft Windows)
+    - **GPU**: Follow [instructions
+      below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference).
 2.  Install **OnPrem.LLM**: `pip install onprem`
 
 ### On GPU-Accelerated Inference
