@@ -370,6 +370,32 @@ Any of the parameters described above can be supplied directly to
 which will automatically pass them along to
 [`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document).
 
+**Parsing Extracted Text Into Sentences or Paragraphs**
+
+For some analyses (e.g., using prompts for information extraction), it
+may be useful to parse the text extracted from documents into individual
+sentences or paragraphs. This can be accomplished using the
+[`segment`](https://amaiya.github.io/onprem/utils.html#segment)
+function:
+
+``` python
+from onprem.ingest import load_single_document
+from onprem.utils import segment
+text = load_single_document('sample_data/3/state_of_the_union.txt')[0].page_content
+```
+
+``` python
+segment(text, unit='paragraph')[0]
+```
+
+    'Madam Speaker, Madam Vice President, our First Lady and Second Gentleman.  Members of Congress and the Cabinet.  Justices of the Supreme Court.  My fellow Americans.'
+
+``` python
+segment(text, unit='sentence')[0]
+```
+
+    'Madam Speaker, Madam Vice President, our First Lady and Second Gentleman.'
+
 ### Summarization Pipeline
 
 Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
