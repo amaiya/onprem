@@ -155,13 +155,14 @@ def extract_files(source_dir:str):
 
 def load_single_document(file_path: str, # path to file
                          pdf_use_unstructured:bool=False, # use unstructured for PDF extraction if True
-                         pdf2md:bool = False, # Convert PDFs to Markdown instead of plain text if True
+                         pdf2md:bool = False, # Convert PDFs to Markdown instead of plain text if True.
                          **kwargs,
                          ) -> List[Document]:
     """
     Load a single document. Will attempt to OCR PDFs, if necessary.
-    Extra kwargs fed to `ingest.load_single_document`.
     """
+    if pdf_use_unstructured and pdf2md:
+        raise ValueError('pdf_use_unstructured and pdf2md cannot both be True.')
     file_path = os.path.abspath(file_path)
     ext = "." + file_path.rsplit(".", 1)[-1].lower()
     if ext in LOADER_MAPPING:
