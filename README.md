@@ -331,10 +331,10 @@ docs[0].metadata
     {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/4/lynn1975.pdf',
      'ocr': True}
 
-**Retaining Table Structure in PDFs**
+**Markdown Conversion and Retaining Table Structure in PDFs**
 
 - **Pro**: Retains structure of tables within PDFs as either Markdown or
-  HTML; Support for OCR
+  HTML; Better chunking for QA; Support for OCR
 - **Con**: Slower than default PDF extraction
 
 The
@@ -352,18 +352,28 @@ docs = load_single_document('your_pdf_document.pdf',
                             pdf2md=True)
 ```
 
-The second is to supply `pdf_use_unstructured=True` and
-`infer_table_structure=True`, which uses a TableTransformer model to
-infer tables and represents them as **HTML** within the extracted text
-(via Unstructured):
+In addition to facilitating table understanding, converting to Markdown
+can also faciliate question-answering in general. For instance, when
+supplying `pdf2md=True` to
+[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
+documents are chunked in a Markdown-aware fashion (e.g., the abstract of
+a research paper tends to be kept together into a single chunk instead
+of being split up). Note that Markdown will not be extracted if the
+document requires OCR.
+
+The second way to retain table structure is to supply
+`pdf_use_unstructured=True` and `infer_table_structure=True`, which uses
+a TableTransformer model to infer tables and represents them as **HTML**
+within the extracted text (via Unstructured):
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
                             pdf_use_unstructured=True, infer_table_structure=True)
 ```
 
-When using `pdf_use_unstrucured=True`, PDFs will be automatically OCR’ed
-(at the expense of slower extraction).
+Unlike the`pdf2md=True` argument, table structure is retained even if
+the PDF is OCR’ed when using `pdf_use_unstrucured=True`. (Note that
+`pdf2md` and `pdf_use_unstructured` cannot both be set to `True`.)
 
 Any of the parameters described above can be supplied directly to
 [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
