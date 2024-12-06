@@ -162,6 +162,11 @@ parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
 directly to `llama-cpp-python`.
 
+**Note:** The default context window size (`n_ctx`) is set to 3900 and
+the default output size (`max_tokens`) is set 512. Both are configurable
+parameters to [`LLM`](https://amaiya.github.io/onprem/core.html#llm).
+Increase if you have larger prompts or need longer outputs.
+
 ### Send Prompts to the LLM to Solve Problems
 
 This is an example of few-shot prompting, where we provide an example of
