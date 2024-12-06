@@ -42,6 +42,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
      # you should get speeds of around 12 tokens per second.
      # If enabling GPU support as described above, speeds are much faster.
      ```
+11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html) by running `onprem --port 8000` at a command prompt and clicking on the hyperlink.
 
 ## Using WSL2 (with GPU Acceleration)
 
