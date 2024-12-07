@@ -46,11 +46,9 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 
 ## Using WSL2 (with GPU Acceleration)
 
-
 ### Install Ubuntu WSL2 Instance
 
 This is quite simple to do. Example: At a command prompt: `wsl --install -d Ubuntu-24.04`
-
 
 Once the environment started for the first time, WSL works just like a native
 Ubuntu installation. If you have an NVIDIA device supporting CUDA, you can even
@@ -58,15 +56,15 @@ use it to run models faster.
 
 ### Installing OnPrem.LLM on WSL2
 
-
 1. Install up-to-date NVIDIA drivers. Instructions are [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl).
 2. Run these commands:
+
 ```sh
 # Might be needed from a fresh install
 sudo apt update
 sudo apt upgrade
 
-sudo apt install gcc
+sudo apt install gcc python3-dev
 
 # Might be needed, per: https://docs.nvidia.com/cuda/wsl-user-guide/index.html#cuda-support-for-wsl-2
 sudo apt-key del 7fa2af80
