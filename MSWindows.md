@@ -2,7 +2,6 @@
 
 When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either use  Windows Subsystem for Linux (WSL2) or Windows directly. This guide provides instructions for both.
 
-
 ## Using the System Python in Windows 11
 
 1. Download and install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and make sure **Desktop development with C++** workload is selected and installed. This is needed to build `chroma-hnswlib` (as of this writing a pre-built wheel only exists for Python 3.11 and below). It is also needed if you need to build `llama-cpp-python` instead of installing a prebuilt wheel (as we do below).
@@ -13,36 +12,61 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
    - For CPU: `pip install torch torchvision torchaudio`
    - For GPU (if you do happen to have a GPU and have installed an [up-to-date NVIDIA driver](https://www.nvidia.com/en-us/drivers/) ): `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124`
      - Run the following at Python prompt to verify things are working. (The PyTorch binaries ship with all CUDA runtime dependencies and you don't need to locally install a CUDA toolkit or cuDNN, as long as NVIDIA driver is installed.)
-	   ```python
-	   In [1]: import torch
-	
-	   In [2]: torch.cuda.is_available()
-	   Out[2]: True
-	
-	   In [3]: torch.cuda.get_device_name()
-	   Out[3]: 'NVIDIA RTX A1000 6GB Laptop GPU'
-	   ```
-6. Install **llama-cpp-python** (CPU only) using pre-built wheel: `pip install llama-cpp-python==0.2.90 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu`
-  - If you want the LLM to generate faster answers using your GPU, then you'll need to install the CUDA Toolkit from [here](https://developer.nvidia.com/cuda-12-6-0-download-archive?target_os=Windows). If you have issues, see [this guide](https://medium.com/@piyushbatra1999/installing-llama-cpp-python-with-nvidia-gpu-acceleration-on-windows-a-short-guide-0dfac475002d) for tips. You will also need to re-install `llama-cpp-python` with CUDA support, as described [here](https://python.langchain.com/docs/integrations/llms/llamacpp/#installation-with-windows):
-      ```sh
-	  set FORCE_CMAKE=1
-      set CMAKE_ARGS=-DGGML_CUDA=ON
-	  pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
-	  ```
-7. Install OnPrem.LLM: `pip install onprem `
-8. [OPTIONAL] If you're behind a corporate firewall and  have SSL certificate issues, you can try adding `REQUESTS_CA_BUNDLE` `SSL_CERT_DIR`, and `SSL_CERT_FILE` as environment variables and point them to the location of the certificate file for your organization, so hugging face models can be downloaded, etc.
-9. [OPTIONAL] Enable long paths if you get an error indicating you do:  https://stackoverflow.com/questions/72352528/how-to-fix-winerror-206-the-filename-or-extension-is-too-long-error/76452218#76452218
-10. Try onprem at a Python prompt to make sure it works. Run the `python` command and type the following:
-     ```python
-     from onprem import LLM
-     llm = LLM()
-     llm.prompt('List three cute names for a cat.')
 
-     # On a multi-core 2.5 GHz laptop CPU (e.g., 13th Gen Intel(R) Core(TM) i7-13800H 2.50 GHz),
-     # you should get speeds of around 12 tokens per second.
-     # If enabling GPU support as described above, speeds are much faster.
+     ```python
+     In [1]: import torch
+
+     In [2]: torch.cuda.is_available()
+     Out[2]: True
+
+     In [3]: torch.cuda.get_device_name()
+     Out[3]: 'NVIDIA RTX A1000 6GB Laptop GPU'
      ```
-11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html) by running `onprem --port 8000` at a command prompt and clicking on the hyperlink.
+
+6. Install **llama-cpp-python** (CPU only) using pre-built wheel:
+
+   ```shell
+   pip install llama-cpp-python==0.2.90 \
+     --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+   ```
+
+   If you want the LLM to generate faster answers using your GPU, then you'll
+   need to install the CUDA Toolkit from
+   [here](https://developer.nvidia.com/cuda-12-6-0-download-archive?target_os=Windows).
+   If you have issues, see
+   [this guide](https://medium.com/@piyushbatra1999/installing-llama-cpp-python-with-nvidia-gpu-acceleration-on-windows-a-short-guide-0dfac475002d)
+   for tips. You will also need to re-install `llama-cpp-python` with CUDA
+   support, as described
+   [here](https://python.langchain.com/docs/integrations/llms/llamacpp/#installation-with-windows):
+
+   ```shell
+   set FORCE_CMAKE=1
+   set CMAKE_ARGS=-DGGML_CUDA=ON
+   pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+   ```
+
+7. Install OnPrem.LLM: `pip install onprem`
+8. [OPTIONAL] If you're behind a corporate firewall and  have SSL certificate
+   issues, you can try adding `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` as
+   environment variables and point them to the location of the certificate file
+   for your organization, so hugging face models can be downloaded, etc.
+9. [OPTIONAL] Enable long paths if you get an error indicating you do:
+   [Stack Overflow](https://stackoverflow.com/questions/72352528/how-to-fix-winerror-206-the-filename-or-extension-is-too-long-error/76452218#76452218)
+10. Try onprem at a Python prompt to make sure it works. Run the `python`
+    command and type the following:
+
+    ```python
+    from onprem import LLM
+    llm = LLM()
+    llm.prompt('List three cute names for a cat.')
+
+    # On a multi-core 2.5 GHz laptop CPU (e.g., 13th Gen Intel(R) Core(TM)
+    # i7-13800H 2.50 GHz), you should get speeds of around 12 tokens per second.
+    # If enabling GPU support as described above, speeds are much faster.
+    ```
+
+11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html) by running
+    `onprem --port 8000` at a command prompt and clicking on the hyperlink.
 
 ## Using WSL2 (with GPU Acceleration)
 
