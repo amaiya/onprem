@@ -150,7 +150,9 @@ def test_extraction(llm, **kwargs):
     df = extractor.apply(prompt, fpath=fpath, pdf_pages=[1], stop=[])
     #print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
     author = df.loc[~df['Extractions'].isin(['NA', 'Author: NA'])].Extractions.values.tolist()[0]
+    print('-----')
     print(author)
+    print('-----')
     assert 'Arun S. Maiya' in author or 'Maiya, Arun S.' in author
 
 
@@ -245,13 +247,29 @@ def test_semantic(**kwargs):
     shutil.rmtree(vectordb_path)
     return
 
-def test_md(**kwargs):
+def test_pdf(**kwargs):
     from onprem.ingest import load_single_document
     from onprem.utils import segment
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
-    md_text = load_single_document(fpath, pdf_markdown=True)[0].page_content
-    assert segment(md_text, unit='paragraph')[0].startswith('##')
+    docs = load_single_document(fpath, pdf_markdown=True)
+    assert len(docs) == 1
+    assert segment(docs[0].page_content, unit='paragraph')[0].startswith('#')
+    docs = load_single_document(fpath, infer_table_structure=True)
+    assert len(docs) == 7
+    assert docs[-1].page_content.startswith("The following table in markdown format has the caption: Table 1")
 
+
+def test_pdftables(**kwargs):
+    """
+    Not currently run as test_pdf also tests tables
+    """
+    from onprem.ingest.pdftables import PDFTables
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '5/The_Worlds_Billionaires.pdf')
+    pdftab = PDFTables.from_file(fpath, verbose=True)
+    assert len(pdftab.dfs) > 30 
+    assert len(pdftab.captions) > 30
+    assert len(pdftab.dfs) == len(pdftab.captions)
+    assert pdftab.captions[-6] == "Number and combined net worth of billionaires by year [66] See also"
 
 def test_transformers(**kwargs):
     llm = LLM(default_engine='transformers', device_map='cuda')
@@ -289,12 +307,11 @@ def run(**kwargs):
     # classifier test
     test_classifier(**kwargs)
 
+    # text PDF extraction
+    test_pdf(**kwargs)
+
     # semantic simlarity test
     test_semantic(**kwargs)
-
-    # text markdown test
-    test_md(**kwargs)
-
 
 
 if __name__ == "__main__":
