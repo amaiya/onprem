@@ -6,10 +6,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.6.2 (TBD)
+## 0.7.0 (TBD)
 
 ### new:
-- N/A
+- Support for table extraction (#106)
 
 ### changed
 - N/A
