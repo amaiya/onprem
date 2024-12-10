@@ -17,7 +17,7 @@ website:
       - section: Source
         contents:
         - 00_core.ipynb
-        - 01_ingest.ipynb
+        - 01_ingest.base.ipynb
         - 02_utils.ipynb
         - 03_guider.ipynb
         - 04_pipelines.summarizer.ipynb
