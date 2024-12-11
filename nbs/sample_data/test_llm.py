@@ -8,7 +8,9 @@ from onprem import LLM, utils as U
 import os, tempfile, shutil, argparse
 
 
-def test_prompt(llm, **kwargs):
+def test_prompt(**kwargs):
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
     prompt = """Extract the names of people in the supplied sentences. Here is an example:
 Sentence: James Gandolfini and Paul Newman were great actors.
 People:
@@ -23,7 +25,10 @@ People:"""
     return
 
 
-def test_rag(llm, **kwargs):
+def test_rag(**kwargs):
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
+
     llm.vectordb_path = tempfile.mkdtemp()
 
     # make source folder
@@ -102,7 +107,10 @@ def test_rag(llm, **kwargs):
     shutil.rmtree(llm.vectordb_path)
     return
 
-def test_guider(llm, **kwargs):
+def test_guider(**kwargs):
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
+ 
     if llm.is_openai_model(): return
 
     from onprem.guider import Guider
@@ -116,7 +124,10 @@ def test_guider(llm, **kwargs):
     assert(int(result['answer']) == 7)
 
 
-def test_summarization(llm, **kwargs):
+def test_summarization(**kwargs):
+ 
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
 
     from onprem.pipelines import Summarizer
     summ = Summarizer(llm)
@@ -138,7 +149,10 @@ def test_summarization(llm, **kwargs):
     #assert(len(text) > 0)
 
 
-def test_extraction(llm, **kwargs):
+def test_extraction(**kwargs):
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
+
     from onprem.pipelines import Extractor
     extractor = Extractor(llm)
     prompt = """The following text is delimited by ### and is from the first page of a research paper.  Extract the author of the research paper.
@@ -282,36 +296,59 @@ def run(**kwargs):
         test_transformers(**kwargs)
         return
 
+
+    test_dict = { 'test_prompt' : test_prompt,
+                  'test_guider' : test_guider,
+                  'test_rag'    : test_rag,
+                  'test_summarization' : test_summarization,
+                  'test_extraction' : test_extraction,
+                  'test_classifier' : test_classifier,
+                  'test_pdf' : test_pdf,
+                  'test_semantic' : test_semantic,}
+    tests = kwargs['tests']
+    to_run = tests if tests else list(test_dict.keys())
+    print(f'Running the following tests: {", ".join(to_run)}')
+    print()
+
     # setup
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
     print(url)
     llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers)
+    kwargs['llm'] = llm
 
+    for test in to_run:
+        fn = test_dict.get(test, None)
+        if not fn:
+            print(f'{test} is invalid - skipping')
+        print('----------------------------------------')
+        print(f'Running {test}:')
+        print('----------------------------------------')
+        fn(**kwargs)
 
-    # prompt test
-    test_prompt(llm, **kwargs)
+    ## prompt test
+    #test_prompt(llm, **kwargs)
 
-    # guided prompt test
-    test_guider(llm, **kwargs)
+    ## guided prompt test
+    #test_guider(llm, **kwargs)
 
-    # rag test
-    test_rag(llm, **kwargs)
+    ## rag test
+    #test_rag(llm, **kwargs)
 
-    # summarization test
-    test_summarization(llm, **kwargs)
+    ## summarization test
+    #test_summarization(llm, **kwargs)
 
-    # extraction test
-    test_extraction(llm, **kwargs)
+    ## extraction test
+    #test_extraction(llm, **kwargs)
 
-    # classifier test
-    test_classifier(**kwargs)
+    ## classifier test
+    #test_classifier(**kwargs)
 
-    # text PDF extraction
-    test_pdf(**kwargs)
+    ## text PDF extraction
+    #test_pdf(**kwargs)
 
-    # semantic simlarity test
-    test_semantic(**kwargs)
+    ## semantic simlarity test
+    #test_semantic(**kwargs)
 
 
 if __name__ == "__main__":
@@ -340,11 +377,13 @@ if __name__ == "__main__":
         help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
     )
     optional_args.add_argument(
-        "-t",
+        "-o",
         "--transformers-only",
         action="store_true",
         help=("Only test transformers."),
     )
+
+    optional_args.add_argument('-t', '--tests', nargs='+', help='Names of specific tests to run')
 
     args = parser.parse_args()
 
@@ -352,4 +391,5 @@ if __name__ == "__main__":
     kwargs["gpu"] = args.gpu
     kwargs["url"] = args.url
     kwargs['transformers_only'] = args.transformers_only
+    kwargs['tests'] = args.tests
     run(**kwargs)
