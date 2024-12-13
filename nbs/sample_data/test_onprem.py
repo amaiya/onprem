@@ -8,6 +8,7 @@ from onprem import LLM, utils as U
 import os, tempfile, shutil, argparse
 
 
+
 def test_prompt(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
@@ -290,23 +291,35 @@ def test_transformers(**kwargs):
     output = llm.prompt("List one cute name for a cat and number it with 1.")
     assert("1." in output)
 
+
+
+
+TESTS = { 'test_prompt' : test_prompt,
+          'test_guider' : test_guider,
+          'test_rag'    : test_rag,
+          'test_summarization' : test_summarization,
+          'test_extraction' : test_extraction,
+          'test_classifier' : test_classifier,
+          'test_pdf' : test_pdf,
+          'test_semantic' : test_semantic,}
 def run(**kwargs):
 
     if kwargs.get('transformers_only', False):
         test_transformers(**kwargs)
         return
 
+    if kwargs.get('list_tests', False):
+        print('List of possible tests:')
+        for k in TESTS:
+            print(f'\t{k}')
+        print()
+        print('To run a subset of tests, use --test option')
+        return
 
-    test_dict = { 'test_prompt' : test_prompt,
-                  'test_guider' : test_guider,
-                  'test_rag'    : test_rag,
-                  'test_summarization' : test_summarization,
-                  'test_extraction' : test_extraction,
-                  'test_classifier' : test_classifier,
-                  'test_pdf' : test_pdf,
-                  'test_semantic' : test_semantic,}
-    tests = kwargs['tests']
-    to_run = tests if tests else list(test_dict.keys())
+
+
+    tests = kwargs['test']
+    to_run = tests if tests else list(TESTS.keys())
     print(f'Running the following tests: {", ".join(to_run)}')
     print()
 
@@ -314,41 +327,17 @@ def run(**kwargs):
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
     print(url)
-    llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers)
+    llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128)
     kwargs['llm'] = llm
 
     for test in to_run:
-        fn = test_dict.get(test, None)
+        fn = TESTS.get(test, None)
         if not fn:
             print(f'{test} is invalid - skipping')
         print('----------------------------------------')
         print(f'Running {test}:')
         print('----------------------------------------')
         fn(**kwargs)
-
-    ## prompt test
-    #test_prompt(llm, **kwargs)
-
-    ## guided prompt test
-    #test_guider(llm, **kwargs)
-
-    ## rag test
-    #test_rag(llm, **kwargs)
-
-    ## summarization test
-    #test_summarization(llm, **kwargs)
-
-    ## extraction test
-    #test_extraction(llm, **kwargs)
-
-    ## classifier test
-    #test_classifier(**kwargs)
-
-    ## text PDF extraction
-    #test_pdf(**kwargs)
-
-    ## semantic simlarity test
-    #test_semantic(**kwargs)
 
 
 if __name__ == "__main__":
@@ -383,7 +372,15 @@ if __name__ == "__main__":
         help=("Only test transformers."),
     )
 
-    optional_args.add_argument('-t', '--tests', nargs='+', help='Names of specific tests to run')
+    optional_args.add_argument(
+        "-l",
+        "--list-tests",
+        action="store_true",
+        help=("List all registered tests."),
+    )
+
+    optional_args.add_argument('-t', '--test', nargs='+',
+                               help='Names of specific tests to run. Use --list to see all possible tests')
 
     args = parser.parse_args()
 
@@ -391,5 +388,6 @@ if __name__ == "__main__":
     kwargs["gpu"] = args.gpu
     kwargs["url"] = args.url
     kwargs['transformers_only'] = args.transformers_only
-    kwargs['tests'] = args.tests
+    kwargs['test'] = args.test
+    kwargs['list_tests'] = args.list_tests
     run(**kwargs)
