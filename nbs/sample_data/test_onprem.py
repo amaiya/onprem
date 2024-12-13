@@ -114,7 +114,7 @@ def test_guider(**kwargs):
  
     if llm.is_openai_model(): return
 
-    from onprem.guider import Guider
+    from onprem.pipelines.guider import Guider
     guider = Guider(llm)
 
     from guidance import select, gen

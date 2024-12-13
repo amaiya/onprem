@@ -11,6 +11,9 @@ import os.path
 import requests
 import sys
 
+#--------------------------------------
+# App Utilities
+#--------------------------------------
 
 def download(url, filename, verify=False):
     with open(filename, "wb") as f:
@@ -41,7 +44,16 @@ def get_datadir():
     return datadir
 
 
+
+
+# %% ../nbs/02_utils.ipynb 4
+#--------------------------------------
+# Data Utilities
+#--------------------------------------
 def split_list(input_list, chunk_size):
+    """
+    Split list into chunks
+    """
     for i in range(0, len(input_list), chunk_size):
         yield input_list[i : i + chunk_size]
 
@@ -189,9 +201,13 @@ def df_to_md(df, title=None):
 
 	return table_summary + "\n" + table_md if title is not None else table_md
 
-# %% ../nbs/02_utils.ipynb 4
+# %% ../nbs/02_utils.ipynb 5
 from typing import Dict, List, Optional
 import re
+
+#--------------------------------------
+# Prompt Utilities
+#--------------------------------------
 
 class SafeFormatter:
     """
@@ -214,7 +230,7 @@ class SafeFormatter:
 
 
 def format_string(string_to_format: str, **kwargs: str) -> str:
-    """Format a string with kwargs."""
+    """Format a string with kwargs"""
     formatter = SafeFormatter(format_dict=kwargs)
     return formatter.format(string_to_format)
 
@@ -225,8 +241,7 @@ def get_template_vars(template_str: str) -> List[str]:
     formatter = SafeFormatter()
 
     for variable_name in formatter.parse(template_str):
-        if variable_name and not any(char.isspace() for char in variable_name):
+        if variable_name:
             variables.append(variable_name)
 
-    return variables
-
+    return [v for v in variables if " " not in v and "\n" not in v]

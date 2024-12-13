@@ -13,6 +13,8 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Remove dependnency on deprecated RetrievalQA (#108)
+- Refactored code base (#109)
+- Use new JSON-safe formatting of prompt templates (#109)
 
 ### fixed:
 - Added `utils.format_string` function to help format template strings

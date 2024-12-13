@@ -154,18 +154,19 @@ llm = LLM(default_model='llama')
 Similarly, suppyling `default_model='zephyr`, will use
 **Zephyr-7B-beta**. Of course, you can also easily supply the URL to an
 LLM of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) (see the the
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the the
 [code generation
 example](https://amaiya.github.io/onprem/examples_code.html) or the
 [FAQ](https://amaiya.github.io/onprem/#faq) for examples). Any extra
 parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/core.html#llm) are forwarded
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
 directly to `llama-cpp-python`.
 
 **Note:** The default context window size (`n_ctx`) is set to 3900 and
 the default output size (`max_tokens`) is set 512. Both are configurable
-parameters to [`LLM`](https://amaiya.github.io/onprem/core.html#llm).
-Increase if you have larger prompts or need longer outputs.
+parameters to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase if
+you have larger prompts or need longer outputs.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -278,11 +279,11 @@ for i, document in enumerate(result["source_documents"]):
 ### Extract Text from Documents
 
 The
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
 function can extract text from a range of different document formats
 (e.g., PDFs, Microsoft PowerPoint, Microsoft Word, etc.). It is
 automatically invoked when calling
-[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest).
+[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest).
 Extracted text is represented as LangChain `Document` objects, where
 `Document.page_content` stores the extracted text and
 `Document.metadata` stores any extracted document metadata.
@@ -323,7 +324,7 @@ docs[0].metadata
 - **Con:** Slow
 
 The
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
 function will automatically OCR PDFs that require it (i.e., PDFs that
 are scanned hard-copies of documents). If a document is OCR’ed during
 extraction, the `metadata['ocr']` field will be populated with `True`.
@@ -343,7 +344,7 @@ docs[0].metadata
 - **Con**: Slower than default PDF extraction
 
 The
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document)
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
 function can retain the structure of tables within documents, which can
 help LLMs answer questions about information contained within these
 tables. There are, in fact, two ways to do this in **OnPrem.LLM**.
@@ -360,7 +361,7 @@ docs = load_single_document('your_pdf_document.pdf',
 In addition to facilitating table understanding, converting to Markdown
 can also facilitate question-answering in general. For instance, when
 supplying `pdf_markdown=True` to
-[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
+[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
 documents are chunked in a Markdown-aware fashion (e.g., the abstract of
 a research paper tends to be kept together into a single chunk instead
 of being split up). Note that Markdown will not be extracted if the
@@ -381,9 +382,9 @@ if the PDF is OCR’ed when using `pdf_unstrucured=True`. (Note that
 `pdf_markdown` and `pdf_unstructured` cannot both be set to `True`.)
 
 Any of the parameters described above can be supplied directly to
-[`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest),
+[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
 which will automatically pass them along to
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.html#load_single_document).
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document).
 
 **Parsing Extracted Text Into Sentences or Paragraphs**
 
@@ -626,7 +627,7 @@ llm = LLM(model_url='openai://gpt-4o', temperature=0)
     /home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
-This OpenAI [`LLM`](https://amaiya.github.io/onprem/core.html#llm)
+This OpenAI [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)
 instance can now be used with as the engine for most features in
 OnPrem.LLM (e.g., RAG, information extraction, summarization, etc.).
 Here we simply use it for general prompting:
@@ -689,7 +690,7 @@ for more information.
 from onprem import LLM
 
 llm = LLM(n_gpu_layers=-1, verbose=False)
-from onprem.guider import Guider
+from onprem.pipelines.guider import Guider
 guider = Guider(llm)
 ```
 
@@ -888,7 +889,7 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
     > ```
 
 7.  **How can I speed up
-    [`LLM.ingest`](https://amaiya.github.io/onprem/core.html#llm.ingest)
+    [`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest)
     using my GPU?**
 
     > Try using the `embedding_model_kwargs` argument:

@@ -1,4 +1,4 @@
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 # reference: https://stackoverflow.com/questions/74918614/error-importing-seaborn-module-attributeerror/76760670#76760670
 import numpy as np
@@ -22,4 +22,4 @@ if sqlite3.sqlite_version_info < (3, 35, 0):
     from sys import modules
     modules["sqlite3"] = modules.pop("pysqlite3")
 
-from .core import LLM
+from onprem.llm import LLM
