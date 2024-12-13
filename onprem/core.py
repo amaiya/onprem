@@ -118,8 +118,8 @@ class LLM:
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
         - *embedding_encode_kwargs*: arguments to encode method of
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
-        - *rag_num_source_docs*: The maximum number of documents retrieved and fed to `LLM.ask` and `LLM.chat` to generate answers
-        - *rag_score_threshold*: Minimum similarity score for source to be considered by `LLM.ask` and `LLM.chat`
+        - *rag_num_source_docs*: The maximum number of documents retrieved and fed to `LLM.ask` and `LLM.chat` to generate answers.
+        - *rag_score_threshold*: Minimum similarity score for source to be considered by `LLM.ask` and `LLM.chat`.
         - *confirm*: whether or not to confirm with user before downloading a model
         - *verbose*: Verbosity
         """
@@ -461,36 +461,6 @@ class LLM:
 
 
 
-    def load_qa(self, prompt_template: str = DEFAULT_QA_PROMPT):
-        """
-        Prepares and loads the `langchain.chains.RetrievalQA` object
-
-        **Args:**
-
-        - *prompt_template*: A string representing the prompt with variables "context" and "question"
-        """
-        if self.qa is None:
-            db = self.load_vectordb()
-            retriever = db.as_retriever(
-                search_type="similarity_score_threshold",
-                search_kwargs={
-                    "k": self.rag_num_source_docs,
-                    "score_threshold": self.rag_score_threshold,
-                },
-            )
-            llm = self.load_llm()
-            PROMPT = PromptTemplate(
-                template=prompt_template, input_variables=["context", "question"]
-            )
-            self.qa = RetrievalQA.from_chain_type(
-                llm=llm,
-                chain_type="stuff",
-                retriever=retriever,
-                return_source_documents=True,
-                chain_type_kwargs={"prompt": PROMPT},
-            )
-        return self.qa
-
     def load_chatqa(self):
         """
         Prepares and loads a `langchain.chains.ConversationalRetrievalChain` instance
@@ -498,7 +468,7 @@ class LLM:
         if self.chatqa is None:
             db = self.load_vectordb()
             retriever = db.as_retriever(
-                search_type="similarity_score_threshold",  # see note in constructor
+                search_type="similarity_score_threshold",
                 search_kwargs={
                     "k": self.rag_num_source_docs,
                     "score_threshold": self.rag_score_threshold,
@@ -513,32 +483,61 @@ class LLM:
             )
         return self.chatqa
 
-    def ask(self, question: str, qa_template=DEFAULT_QA_PROMPT, prompt_template=None, **kwargs):
+
+
+    def query(self,
+              query:str, # query string
+              k:int = 4, # max number of results to return
+              score_threshold:float=0.0, # minimum score for document to be considered as answer source
+              filters:Optional[Dict[str, str]] = None, # metadata filters (e.g., page=3)
+              where_document:Optional[Dict[str, str]] = None, # selections on document content in Chroma syntax (e.g., {"$contains": "Canada"})
+              **kwargs):
         """
-        Answer a question based on source documents fed to the `ingest` method.
-        Extra keyword arguments are sent directly to the model invocation.
-
-        **Args:**
-
-        - *question*: a question you want to ask
-        - *qa_template*: A string representing the prompt with variables "context" and "question"
-        - *prompt_template*: the model-specific template in which everything (including QA template) should be wrapped.
-                            Should have a single variable "{prompt}". Overrides the `prompt_template` parameter supplied to 
-                            `LLM` constructor.
-
-        **Returns:**
-
-        - A dictionary with keys: `answer`, `source_documents`, `question`
+        Perform a semantic search of the vector DB
         """
-        prompt_template = self.prompt_template if prompt_template is None else prompt_template
-        prompt_template = qa_template if prompt_template is None else prompt_template.format(**{'prompt': qa_template})
-        qa = self.load_qa(prompt_template=prompt_template)
-        res = qa.invoke(question, **kwargs)
-        res["question"] = res["query"]
-        del res["query"]
-        res["answer"] = res["result"]
-        del res["result"]
+        db = self.load_ingester().get_db()
+        docs, scores = zip(*db.similarity_search_with_score(query, 
+                                                            filter=filters,
+                                                            where_document=where_document,
+                                                            k = k, **kwargs))
+        for doc, score in zip(docs, scores):
+            simscore = 1 - score
+            doc.metadata["score"] = 1-score
+
+        return [d for d in docs if d.metadata['score'] >= score_threshold]
+
+
+    def ask(self,
+            question: str, # question as sting
+            qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
+            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
+            where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+             **kwargs):
+        """
+        Answer a question based on source documents fed to the `LLM.ingest` method.
+        Extra keyword arguments are sent directly to `LLM.prompt`.
+        Returns a dictionary with keys: `answer`, `source_documents`, `question`
+        """
+
+        # query the vector db
+        docs = self.query(question, filters=filters, where_document=where_document,
+                          k=self.rag_num_source_docs,
+                          score_threshold=self.rag_score_threshold)
+
+        # setup prompt
+        prompt = qa_template.format(**{'question':question,
+                                       'context':'\n\n'.join([d.page_content for d in docs])})
+
+        # prompt LLM
+        answer = self.prompt(prompt,**kwargs)
+
+        # return answer
+        res = {}
+        res['question'] = question
+        res['answer'] = answer
+        res['source_documents'] = docs
         return res
+
 
     def chat(self, question: str, **kwargs):
         """

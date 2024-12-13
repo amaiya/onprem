@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - Support for table extraction (#106, #107)
 
 ### changed
-- N/A
+- Remove dependnency on deprecated RetrievalQA (#108)
 
 ### fixed:
 - Added `utils.format_string` function to help format template strings
