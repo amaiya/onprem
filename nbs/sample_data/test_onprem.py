@@ -304,6 +304,13 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_semantic' : test_semantic,}
 def run(**kwargs):
 
+    prompt_template = kwargs.get('prompt_template', None)
+    if prompt_template:
+        prompt_template = prompt_template.replace('\\n', '\n')
+        print(f'Using prompt_template:{prompt_template}')
+        print()
+        print()
+
     if kwargs.get('transformers_only', False):
         test_transformers(**kwargs)
         return
@@ -327,7 +334,7 @@ def run(**kwargs):
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
     print(url)
-    llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128)
+    llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128, prompt_template=prompt_template)
     kwargs['llm'] = llm
 
     for test in to_run:
@@ -366,6 +373,12 @@ if __name__ == "__main__":
         help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
     )
     optional_args.add_argument(
+        "-p",
+        "--prompt-template",
+        type=str,
+        help=("Prompt template to use. Should have a single variable {prompt}."),
+    )
+    optional_args.add_argument(
         "-o",
         "--transformers-only",
         action="store_true",
@@ -387,6 +400,7 @@ if __name__ == "__main__":
     kwargs = {}
     kwargs["gpu"] = args.gpu
     kwargs["url"] = args.url
+    kwargs['prompt_template'] = args.prompt_template
     kwargs['transformers_only'] = args.transformers_only
     kwargs['test'] = args.test
     kwargs['list_tests'] = args.list_tests
