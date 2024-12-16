@@ -23,6 +23,9 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2024/12\] v0.7.0 released and now includes support for [structured
+  outputs](https://amaiya.github.io/onprem/#structured-and-guided-outputs).
+
 - \[2024/12\] v0.6.0 released and now includes support for PDF to
   Markdown conversion (which includes Markdown representations of
   tables), as shown
@@ -291,7 +294,7 @@ Extracted text is represented as LangChain `Document` objects, where
 For PDFs, in particular, a number of different options are available
 depending on your use case.
 
-**Fast PDF Extraction**
+**Fast PDF Extraction (default)**
 
 - **Pro:** Fast
 - **Con:** Does not infer/retain structure of tables in PDF documents
@@ -337,54 +340,46 @@ docs[0].metadata
     {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/4/lynn1975.pdf',
      'ocr': True}
 
-**Markdown Conversion and Retaining Table Structure in PDFs**
+**Markdown Conversion in PDFs**
 
-- **Pro**: Retains structure of tables within PDFs as either Markdown or
-  HTML; Better chunking for QA; Support for OCR
+- **Pro**: Better chunking for QA
 - **Con**: Slower than default PDF extraction
 
 The
 [`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
-function can retain the structure of tables within documents, which can
-help LLMs answer questions about information contained within these
-tables. There are, in fact, two ways to do this in **OnPrem.LLM**.
-
-The first is to supply `pdf_markdown=True`to convert the PDF to Markdown
-text (via PyMuPDF4LLM), in which case the tables are represented within
-your document as **Markdown tables**:
+function can convert PDFs to Markdown instead of plain text by supplying
+the `pdf_markdown=True` as an argument:
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
                             pdf_markdown=True)
 ```
 
-In addition to facilitating table understanding, converting to Markdown
-can also facilitate question-answering in general. For instance, when
-supplying `pdf_markdown=True` to
+Converting to Markdown can facilitate downstream tasks like
+question-answering. For instance, when supplying `pdf_markdown=True` to
 [`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
 documents are chunked in a Markdown-aware fashion (e.g., the abstract of
 a research paper tends to be kept together into a single chunk instead
 of being split up). Note that Markdown will not be extracted if the
 document requires OCR.
 
-The second way to retain table structure is to supply
-`pdf_unstructured=True` and `infer_table_structure=True`, which uses a
-TableTransformer model to infer tables and represents them as **HTML**
-within the extracted text (via Unstructured):
+**Inferring Table Structure in PDFs**
+
+- **Pro**: Makes it easier for LLMs to analyze information in tables
+- **Con**: Slower than default PDF extraction
+
+When supplying `infer_table_structure=True` to either
+[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
+or
+[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
+tables are inferred and extracted from PDFs using a TableTransformer
+model. Tables are represented as **Markdown** (or **HTML** if Markdown
+conversion is not possible).
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
-                            pdf_unstructured=True, infer_table_structure=True)
+                            infer_table_structure=True)
 ```
-
-Unlike the`pdf_markdown=True` argument, table structure is retained even
-if the PDF is OCR’ed when using `pdf_unstrucured=True`. (Note that
-`pdf_markdown` and `pdf_unstructured` cannot both be set to `True`.)
-
-Any of the parameters described above can be supplied directly to
-[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
-which will automatically pass them along to
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document).
 
 **Parsing Extracted Text Into Sentences or Paragraphs**
 

@@ -1,1 +1,1 @@
-from onprem.llm.base import LLM
+from .base import LLM

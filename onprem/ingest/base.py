@@ -84,11 +84,16 @@ class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
             docs = UnstructuredPDFLoader.load(self)
             if not docs:
                 raise Exception('Document had no content. ')
-            page_content = '\n'.join([d.metadata.get('text_as_html', d.page_content)
-                           if d.metadata.get('category', None) == 'Table' else d.page_content for d in docs])
+            tables = [d.metadata['text_as_html'] for d in docs if d.metadata.get('text_as_html', None) is not None]
+            texts = [d.page_content for d in docs if d.metadata.get('text_as_html', None) is None]
+
+            page_content = '\n'.join(texts)
             source = docs[0].metadata['source']
-            doc = Document(page_content=page_content, metadata={'source':source})
-            return [doc]
+            docs = [Document(page_content=page_content, metadata={'source':source})]
+            table_docs = [Document(page_content=t,
+                                   metadata={'source':source, 'table':True}) for t in tables]
+            docs.extend(table_docs)
+            return docs
         except Exception as e:
             # Add file_path to exception message
             raise Exception(f'{self.file_path} : {e}')

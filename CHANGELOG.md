@@ -11,6 +11,7 @@ Most recent releases are shown at the top. Each release shows:
 ### new:
 - Support for structured outputs (#110)
 - Support for table extraction (#106, #107)
+- Facilitate identifying tables extracted as HTML (#112)
 
 ### changed
 - Remove dependnency on deprecated RetrievalQA (#108)
