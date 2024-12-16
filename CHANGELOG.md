@@ -9,6 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.7.0 (TBD)
 
 ### new:
+- Support for structured outputs (#110)
 - Support for table extraction (#106, #107)
 
 ### changed

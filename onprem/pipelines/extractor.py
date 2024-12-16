@@ -34,6 +34,9 @@ class Extractor:
               fpath: Optional[str] = None, # A path to to a single file of interest (e.g., a PDF or MS Word document). Mutually-exclusive with `content`.
               content: Optional[str] = None, # Text content of a document of interest.  Mutually-exclusive with `fpath`.
               unit:str='paragraph', # One of {'sentence', 'paragraph'}. 
+              pydantic_model=None, # If a Pydantic model is supplied, `LLM.pydantic_prompt` is used instead of `LLM.prompt`.
+              attempt_fix:bool=False, # If True and `pydantic_model` is supplied, attempt to fix malformed/incomplete outputs.
+              fix_llm=None, # LLM used to attempt fix when `attempt_fix=True`. If None, then use `self.llm.llm`.
               preproc_fn: Optional[Callable] = None, # Function should accept a text string and returns a new preprocessed input.
               filter_fn: Optional[Callable] = None, # A function that accepts a sentence or paragraph and returns `True` if prompt should be applied to it.
               clean_fn: Optional[Callable] = None, # A function that accepts a sentence or paragraph and returns "cleaned" version of the text. (applied after `filter_fn`)
@@ -76,7 +79,16 @@ class Extractor:
             if filter_fn and not filter_fn(chunk): continue
             if clean_fn: chunk = clean_fn(chunk)
             prompt = extraction_prompt.format(text=chunk)
-            extractions.append(self.llm.prompt(prompt, stop=stop))
+            if pydantic_model:
+                fix_llm = fix_llm if fix_llm else self.llm.llm
+                output = self.llm.pydantic_prompt(prompt, pydantic_model,
+                                                  attempt_fix=attempt_fix,
+                                                  fix_llm=fix_llm,
+                                                  stop=stop)
+                output = output if isinstance(output, str) else output.model_dump_json()
+                extractions.append(output)
+            else:
+                extractions.append(self.llm.prompt(prompt, stop=stop))
             texts.append(chunk)
         df = pd.DataFrame({'Extractions':extractions, 'Texts':texts})
         return df

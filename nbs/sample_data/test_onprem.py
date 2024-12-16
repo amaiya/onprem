@@ -301,7 +301,8 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_extraction' : test_extraction,
           'test_classifier' : test_classifier,
           'test_pdf' : test_pdf,
-          'test_semantic' : test_semantic,}
+          'test_semantic' : test_semantic,
+          'test_transformers' : test_transformers}
 def run(**kwargs):
 
     prompt_template = kwargs.get('prompt_template', None)
@@ -320,7 +321,7 @@ def run(**kwargs):
         for k in TESTS:
             print(f'\t{k}')
         print()
-        print('To run a subset of tests, use --test option')
+        print('To run a subset of tests, use --test option. By default, all tests except test_transformers are run.')
         return
 
 
@@ -376,7 +377,7 @@ if __name__ == "__main__":
         "-p",
         "--prompt-template",
         type=str,
-        help=("Prompt template to use. Should have a single variable {prompt}."),
+        help=("Prompt template to use. Should have a single variable {prompt}. Not required if default model url is used."),
     )
     optional_args.add_argument(
         "-o",

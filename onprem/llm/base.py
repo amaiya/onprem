@@ -15,6 +15,8 @@ from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain.output_parsers import OutputFixingParser
 from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 import os
@@ -404,8 +406,99 @@ class LLM:
         return self.llm
 
 
+    def _format_image_prompt(self, prompt:str, image_path_or_url:str):
+        """
+        Correctly format image prompt
+        """
+        from langchain_core.messages import HumanMessage
+        import base64
+        if not image_path_or_url.startswith('http'):
+            with open(image_path_or_url, "rb") as f:
+                image_data = base64.b64encode(f.read()).decode('utf-8')
+            image_path_or_url = f"data:image/jpeg;base64,{image_data}"
+
+        message = HumanMessage(
+            content=[
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": image_path_or_url},
+                },
+            ],
+        )
+        prompt = [message]
+        return prompt
+
+
+    def _format_pydantic_prompt(self, prompt, pydantic_model):
+        """
+        Correctly format prompt for Pydantic model
+        """
+        parser = PydanticOutputParser(pydantic_object=pydantic_model)
+        prompt_obj = PromptTemplate(
+                     template="Answer the user query.\n{format_instructions}\n{prompt}\n",
+                     input_variables=["prompt"],
+                     partial_variables={"format_instructions": parser.get_format_instructions()},)
+        return (prompt_obj.invoke({'prompt': prompt}).text, parser)
+
+
+    def pydantic_prompt(self, 
+                        prompt:str,
+                        pydantic_model=None,
+                        attempt_fix:bool= False,
+                        fix_llm=None,
+                        stop:list=[],
+                        **kwargs):
+        """
+        Accept a prompt as string and Pydantic model describing the desired output.
+        Output will be a Pydantic object in the requested format.
+
+
+        **Args:**
+
+        - *prompt*: The prompt to supply to the model.
+                    Either a string or OpenAI-style list of dictionaries
+                    representing messages (e.g., "human", "system").
+        - *pydantic_model*: A Pydanatic model (sublass of `pydantic.BaseModel` that describes the desired output format.
+                             Example:
+                             ```python
+                             from pydantic import BaseModel, Field
+                             class Joke(BaseModel):
+                                 setup: str = Field(description="question to set up a joke")
+                                 punchline: str = Field(description="answer to resolve the joke")
+                             ```
+                           Output will be a desired Pydantic object.
+                           If `put_format=None`, then output is a string.
+        - *attempt_fix*: Use an LLM call in attempt to correct malformed or incomplete outputs
+        - *fix_llm*:  LLM to use for fixing (e.g., `ChatOpenAI()`). If `None`, then existing `LLM.llm` used.
+        - *stop*: a list of strings to stop generation when encountered. 
+                  This value will override the `stop` parameter supplied to `LLM` constructor.
+        """
+        # setup up prompt for output parsing
+        prompt, output_parser = self._format_pydantic_prompt(prompt, pydantic_model)
+
+        # generate output
+        output = self.prompt(prompt, stop=stop, **kwargs)
+
+        # set parser
+        fix_llm = fix_llm if fix_llm else self.llm
+        parser = OutputFixingParser.from_llm(parser=output_parser, llm=fix_llm)\
+                if attempt_fix else output_parser
+
+        # parse output into Pydantic class
+        try:
+            return parser.parse(output)
+        except:
+            print()
+            print()
+            warnings.warn('LLM output was malformed or incomplete, so returning raw string output.')
+            print()
+            return output
+
+
     def prompt(self,
                prompt:Union[str, List[Dict]],
+               output_parser:Optional[Any]=None,
                image_path_or_url:Optional[str] = None,
                prompt_template: Optional[str] = None, stop:list=[], **kwargs):
         """
@@ -425,37 +518,25 @@ class LLM:
                   This value will override the `stop` parameter supplied to `LLM` constructor.
 
         """
-        if isinstance(prompt, list): # list of dictionaries representing messages
-            try:
-                res = self.llm.invoke(prompt, stop=stop, **kwargs)
-            except Exception as e: # stop param fails with GPT-4o vision prompts
-                res = self.llm.invoke(prompt, **kwargs)
-        else:
-            from langchain_core.messages import HumanMessage
-            import base64
-            llm = self.load_llm()
-            prompt_template = self.prompt_template if prompt_template is None else prompt_template
-            if prompt_template:
-                prompt = U.format_string(prompt_template, prompt=prompt)
-            stop = stop if stop else self.stop
-            if image_path_or_url:
-                if not image_path_or_url.startswith('http'):
-                    with open(image_path_or_url, "rb") as f:
-                        image_data = base64.b64encode(f.read()).decode('utf-8')
-                    image_path_or_url = f"data:image/jpeg;base64,{image_data}"
+        # load llm
+        llm = self.load_llm()
 
-                message = HumanMessage(
-                    content=[
-                        {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_path_or_url},
-                        },
-                    ],
-                )
-                prompt = [message]
+        # prompt is a list of dictionaries reprsenting messages
+        if isinstance(prompt, list):
+            try:
+                res = llm.invoke(prompt, stop=stop, **kwargs)
+            except Exception as e: # stop param fails with GPT-4o vision prompts
+                res = llm.invoke(prompt, **kwargs)
+        # prompt is string
+        else:
+            if image_path_or_url:
+                prompt = self._format_image_prompt(prompt, image_path_or_url)
                 res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
             else:
+                prompt_template = self.prompt_template if prompt_template is None else prompt_template
+                if prompt_template:
+                    prompt = U.format_string(prompt_template, prompt=prompt)
+                stop = stop if stop else self.stop
                 res = llm.invoke(prompt, stop=stop, **kwargs)
         return res.content if self.is_openai_model() or self.is_hf() else res
 
