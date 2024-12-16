@@ -203,7 +203,7 @@ def load_single_document(file_path: str, # path to file
                          **kwargs,
                          ) -> List[Document]:
     """
-    Load a single document. Will attempt to OCR PDFs, if necessary.
+    Extract text from a single document. Will attempt to OCR PDFs, if necessary.
 
 
     Note that extra kwargs can be supplied to configure the behavior of PDF loaders.

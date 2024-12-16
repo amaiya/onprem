@@ -287,7 +287,7 @@ def test_pdftables(**kwargs):
     assert pdftab.captions[-6] == "Number and combined net worth of billionaires by year [66] See also"
 
 def test_transformers(**kwargs):
-    llm = LLM(default_engine='transformers', device_map='cuda')
+    llm = LLM(model_id='Qwen/Qwen1.5-0.5B', device_map='cpu')
     output = llm.prompt("List one cute name for a cat and number it with 1.")
     assert("1." in output)
 

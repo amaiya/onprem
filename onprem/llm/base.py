@@ -470,7 +470,7 @@ class LLM:
                            Output will be a desired Pydantic object.
                            If `put_format=None`, then output is a string.
         - *attempt_fix*: Use an LLM call in attempt to correct malformed or incomplete outputs
-        - *fix_llm*:  LLM to use for fixing (e.g., `ChatOpenAI()`). If `None`, then existing `LLM.llm` used.
+        - *fix_llm*:  LLM to use for fixing (e.g., `langchain_openai.ChatOpenAI()`). If `None`, then existing `LLM.llm` used.
         - *stop*: a list of strings to stop generation when encountered. 
                   This value will override the `stop` parameter supplied to `LLM` constructor.
         """

@@ -677,9 +677,51 @@ llm = LLM(model_url='azure://<deployment_name>', ...)
 # can be supplied as extra arguments to LLM (or set as environment variables)
 ```
 
-### Guided Prompts
+### Structured and Guided Outputs
 
-You can use **OnPrem.LLM** with the
+The
+[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
+method allows you to specify the desired structure of the LLM’s output
+as a Pydantic model.
+
+``` python
+from pydantic import BaseModel, Field
+
+class Joke(BaseModel):
+    setup: str = Field(description="question to set up a joke")
+    punchline: str = Field(description="answer to resolve the joke")
+
+from onprem import LLM
+llm = LLM(default_model='llama', verbose=False)
+structured_output = llm.pydantic_prompt('Tell me a joke.', pydantic_model=Joke)
+```
+
+    llama_new_context_with_model: n_ctx_per_seq (3904) < n_ctx_train (131072) -- the full capacity of the model will not be utilized
+
+    {
+      "setup": "Why couldn't the bicycle stand alone?",
+      "punchline": "Because it was two-tired!"
+    }
+
+The output is a Pydantic object instead of a string:
+
+``` python
+structured_output
+```
+
+    Joke(setup="Why couldn't the bicycle stand alone?", punchline='Because it was two-tired!')
+
+``` python
+print(structured_output.setup)
+print()
+print(structured_output.punchline)
+```
+
+    Why couldn't the bicycle stand alone?
+
+    Because it was two-tired!
+
+You can also use **OnPrem.LLM** with the
 [Guidance](https://github.com/guidance-ai/guidance) package to guide the
 LLM to generate outputs based on your conditions and constraints. We’ll
 show a couple of examples here, but see [our documentation on guided
