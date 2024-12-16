@@ -19,6 +19,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain.output_parsers import OutputFixingParser
 from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
+from langchain_core.messages.ai import AIMessage
 import os
 import warnings
 from typing import Any, Dict, Optional, Callable, Union, List
@@ -380,6 +381,7 @@ class LLM:
                               tokenizer=tokenizer,
                               streamer=streamer,
                               max_new_tokens = self.max_tokens,
+                              return_full_text=False,
                               do_sample=True if\
                                      self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
                               **self.extra_kwargs)
@@ -537,9 +539,17 @@ class LLM:
                 if prompt_template:
                     prompt = U.format_string(prompt_template, prompt=prompt)
                 stop = stop if stop else self.stop
-                res = llm.invoke(prompt, stop=stop, **kwargs)
-        return res.content if self.is_openai_model() or self.is_hf() else res
-
+                if self.is_hf():
+                    # Call HF pipeline directly instead of `invoke`
+                    # since LangChain is not passing along stop_strings
+                    # parameter to pipeline
+                    res = llm.llm.pipeline(prompt,
+                                           stop_strings=stop if stop else None,
+                                           tokenizer=llm.llm.pipeline.tokenizer,
+                                           **kwargs)[0]['generated_text']
+                else:
+                    res = llm.invoke(prompt, stop=stop, **kwargs)
+        return res.content if isinstance(res, AIMessage) else res
 
 
     def load_chatqa(self):

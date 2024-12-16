@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.7.0 (TBD)
+## 0.7.0 (2024-12-16)
 
 ### new:
 - Support for structured outputs (#110)
@@ -20,6 +20,7 @@ Most recent releases are shown at the top. Each release shows:
 ### fixed:
 - Added `utils.format_string` function to help format template strings
   with embedded JSON (#105)
+- support stop strings with transformers (#111)
 
 
 ## 0.6.1 (2024-12-04)

@@ -286,10 +286,35 @@ def test_pdftables(**kwargs):
     assert len(pdftab.dfs) == len(pdftab.captions)
     assert pdftab.captions[-6] == "Number and combined net worth of billionaires by year [66] See also"
 
+def test_pydantic(**kwargs):
+    """
+    Test Structured Output
+    """
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
+    from pydantic import BaseModel, Field
+
+    class Joke(BaseModel):
+        setup: str = Field(description="question to set up a joke")
+        punchline: str = Field(description="answer to resolve the joke")
+    structured_output = llm.pydantic_prompt('Tell me a joke.', pydantic_model=Joke)
+    try:
+        assert issubclass(type(structured_output), BaseModel)
+    except:
+        print('Malformed/incomplete output - attepmting fix with OpenAI model...')
+        from langchain_openai import ChatOpenAI
+        structured_output = llm.pydantic_prompt('Tell me a joke.', pydantic_model=Joke,
+                                                attempt_fix=True, fix_llm=ChatOpenAI())
+        assert issubclass(type(structured_output), BaseModel)
+    print(structured_output.setup)
+    print(structured_output.punchline)
+
+
 def test_transformers(**kwargs):
-    llm = LLM(model_id='Qwen/Qwen1.5-0.5B', device_map='cpu', max_tokens=8)
-    output = llm.prompt('The capital of France is')
-    assert("paris" in output.lower())
+    llm = LLM(model_id='gpt2', device_map='cpu')
+    output = llm.prompt('How can the net amount of entropy of the universe be massively decreased?',
+                        stop=['entropy'])
+    assert("entropy" in output.lower())
 
 
 TESTS = { 'test_prompt' : test_prompt,
@@ -299,6 +324,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_extraction' : test_extraction,
           'test_classifier' : test_classifier,
           'test_pdf' : test_pdf,
+          'test_pydantic' : test_pydantic,
           'test_semantic' : test_semantic,
           'test_transformers' : test_transformers}
 def run(**kwargs):
