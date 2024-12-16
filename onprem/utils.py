@@ -169,37 +169,33 @@ def html_to_df(html_str: str) -> Any:
         return pd.DataFrame(data[1:], columns=data[0])
 
 
-def df_to_md(df, title=None):
-	"""
-	Converts pd.Dataframe to markdown
-	"""
-	table_md = "|"
-	for col_name, col in df.items():
-		table_md += f"{col_name}|"
-	table_md += "\n|"
-	for col_name, col in df.items():
-		table_md += "---|"
-	table_md += "\n"
-	for row in df.itertuples():
-		table_md += "|"
-		for col in row[1:]:
-			table_md += f"{col}|"
-		table_md += "\n"
+def df_to_md(df, caption=None):
+    """
+    Converts pd.Dataframe to markdown
+    """
+    table_md = "|"
+    for col_name, col in df.items():
+        table_md += f"{col_name}|"
+    table_md += "\n|"
+    for col_name, col in df.items():
+        table_md += f"---|"
+    table_md += "\n"
+    for row in df.itertuples():
+        table_md += "|"
+        for col in row[1:]:
+            table_md += f"{col}|"
+        table_md += "\n"
+    if caption:
+        table_summary = (
+            f"The following table in markdown format has the caption: {caption}."
+        )
+    else:
+        table_summary = f"The following table in markdown format includes this list of columns:\n"
+        for col in df.columns:
+            table_summary += f"- {col}\n"
 
-	table_summary = ""
-	if title:
-		table_summary = (
-			f'The title of the following table in markdown format is "{title}" and '
-			+ "includes this list of columns:\n"
-		)
-	elif title == "":
-		table_summary = "The following table in markdown format includes this list of columns:\n"
+    return table_summary + "\n" + table_md
 
-	if title is not None:
-		for col in df.columns:
-			table_summary += f"- {col}\n"
-
-	return table_summary + "\n" + table_md if title is not None else table_md
 
 # %% ../nbs/02_utils.ipynb 5
 from typing import Dict, List, Optional

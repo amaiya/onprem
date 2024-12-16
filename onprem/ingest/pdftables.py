@@ -11,6 +11,7 @@ import os
 import warnings
 from pathlib import Path
 from typing import List, Optional
+from .. import utils as U
 
 try:
     from gmft.auto import AutoTableFormatter, CroppedTable, TableDetector
@@ -83,32 +84,6 @@ class PDFTables:
         doc.close()
         return obj
 
-    def table_to_markdown(self, table_df, caption=None):
-        """
-        Converts pd.Dataframe to markdown
-        """
-        table_md = "|"
-        for col_name, col in table_df.items():
-            table_md += f"{col_name}|"
-        table_md += "\n|"
-        for col_name, col in table_df.items():
-            table_md += f"---|"
-        table_md += "\n"
-        for row in table_df.itertuples():
-            table_md += "|"
-            for col in row[1:]:
-                table_md += f"{col}|"
-            table_md += "\n"
-        if caption:
-            table_summary = (
-                f"The following table in markdown format has the caption: {caption}."
-            )
-        else:
-            table_summary = f"The following table in markdown format includes this list of columns:\n"
-            for col in table_df.columns:
-                table_summary += f"- {col}\n"
-
-        return table_summary + "\n" + table_md
 
     def get_tables(self, as_markdown=False):
         return self.dfs
@@ -124,7 +99,7 @@ class PDFTables:
         results = []
         for i, df in enumerate(self.dfs):
             caption = self.captions[i]
-            md = self.table_to_markdown(df, caption=caption)
+            md = U.df_tomd(df, caption=caption)
             results.append(md)
         return results
 
@@ -135,7 +110,7 @@ class PDFTables:
         md_tables = []
         for i, df in enumerate(self.dfs):
             caption = self.captions[i]
-            md_table = self.table_to_markdown(df, caption)        
+            md_table = U.df_to_md(df, caption)        
             md_tables.append(md_table)
         return md_tables
 
