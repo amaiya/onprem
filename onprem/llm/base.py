@@ -540,6 +540,8 @@ class LLM:
                     prompt = U.format_string(prompt_template, prompt=prompt)
                 stop = stop if stop else self.stop
                 if self.is_hf():
+                    # Temporary fix for ISSUE #113
+                    prompt = [{'role':'user', 'content':prompt}] if self.model_id != 'gpt2' else prompt
                     # Call HF pipeline directly instead of `invoke`
                     # since LangChain is not passing along stop_strings
                     # parameter to pipeline
