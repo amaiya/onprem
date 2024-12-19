@@ -540,8 +540,8 @@ class LLM:
                     prompt = U.format_string(prompt_template, prompt=prompt)
                 stop = stop if stop else self.stop
                 if self.is_hf():
-                    # Temporary fix for ISSUE #113
                     tokenizer = llm.llm.pipeline.tokenizer
+                    # FIX for #113/#114
                     prompt = [{'role':'user', 'content':prompt}] if tokenizer.chat_template else prompt
                     # Call HF pipeline directly instead of `invoke`
                     # since LangChain is not passing along stop_strings

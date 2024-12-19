@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- Temporary fix for chat template issue (#113)
+- Fix for HF chat template issue (#113/#114)
 
 
 ## 0.7.0 (2024-12-16)
