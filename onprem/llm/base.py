@@ -541,13 +541,14 @@ class LLM:
                 stop = stop if stop else self.stop
                 if self.is_hf():
                     # Temporary fix for ISSUE #113
-                    prompt = [{'role':'user', 'content':prompt}] if self.model_id != 'gpt2' else prompt
+                    tokenizer = llm.llm.pipeline.tokenizer
+                    prompt = [{'role':'user', 'content':prompt}] if tokenizer.chat_template else prompt
                     # Call HF pipeline directly instead of `invoke`
                     # since LangChain is not passing along stop_strings
                     # parameter to pipeline
                     res = llm.llm.pipeline(prompt,
                                            stop_strings=stop if stop else None,
-                                           tokenizer=llm.llm.pipeline.tokenizer,
+                                           tokenizer=tokenizer,
                                            **kwargs)[0]['generated_text']
                 else:
                     res = llm.invoke(prompt, stop=stop, **kwargs)
