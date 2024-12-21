@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>OnPrem.LLM – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-7c6d40aa23c779922b80e0578a9e8972.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="OnPrem.LLM – onprem">
+<meta property="og:description" content="A tool for running on-premises large language models on non-public data">
+<meta property="og:site_name" content="onprem">
+<meta name="twitter:title" content="OnPrem.LLM – onprem">
+<meta name="twitter:description" content="A tool for running on-premises large language models on non-public data">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">OnPrem.LLM</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Talk to Your Documents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_code.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Code Generation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guided Prompts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#install" id="toc-install" class="nav-link active" data-scroll-target="#install">Install</a>
+  <ul class="collapse">
+  <li><a href="#on-gpu-accelerated-inference" id="toc-on-gpu-accelerated-inference" class="nav-link" data-scroll-target="#on-gpu-accelerated-inference">On GPU-Accelerated Inference</a></li>
+  </ul></li>
+  <li><a href="#how-to-use" id="toc-how-to-use" class="nav-link" data-scroll-target="#how-to-use">How to Use</a>
+  <ul class="collapse">
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#send-prompts-to-the-llm-to-solve-problems" id="toc-send-prompts-to-the-llm-to-solve-problems" class="nav-link" data-scroll-target="#send-prompts-to-the-llm-to-solve-problems">Send Prompts to the LLM to Solve Problems</a></li>
+  <li><a href="#talk-to-your-documents" id="toc-talk-to-your-documents" class="nav-link" data-scroll-target="#talk-to-your-documents">Talk to Your Documents</a></li>
+  <li><a href="#extract-text-from-documents" id="toc-extract-text-from-documents" class="nav-link" data-scroll-target="#extract-text-from-documents">Extract Text from Documents</a></li>
+  <li><a href="#summarization-pipeline" id="toc-summarization-pipeline" class="nav-link" data-scroll-target="#summarization-pipeline">Summarization Pipeline</a></li>
+  <li><a href="#information-extraction-pipeline" id="toc-information-extraction-pipeline" class="nav-link" data-scroll-target="#information-extraction-pipeline">Information Extraction Pipeline</a></li>
+  <li><a href="#few-shot-classification" id="toc-few-shot-classification" class="nav-link" data-scroll-target="#few-shot-classification">Few-Shot Classification</a></li>
+  <li><a href="#using-hugging-face-transformers-instead-of-llama.cpp" id="toc-using-hugging-face-transformers-instead-of-llama.cpp" class="nav-link" data-scroll-target="#using-hugging-face-transformers-instead-of-llama.cpp">Using Hugging Face Transformers Instead of Llama.cpp</a></li>
+  <li><a href="#connecting-to-llms-served-through-rest-apis" id="toc-connecting-to-llms-served-through-rest-apis" class="nav-link" data-scroll-target="#connecting-to-llms-served-through-rest-apis">Connecting to LLMs Served Through REST APIs</a></li>
+  <li><a href="#using-openai-models-with-onprem.llm" id="toc-using-openai-models-with-onprem.llm" class="nav-link" data-scroll-target="#using-openai-models-with-onprem.llm">Using OpenAI Models with OnPrem.LLM</a></li>
+  <li><a href="#structured-and-guided-outputs" id="toc-structured-and-guided-outputs" class="nav-link" data-scroll-target="#structured-and-guided-outputs">Structured and Guided Outputs</a></li>
+  </ul></li>
+  <li><a href="#built-in-web-app" id="toc-built-in-web-app" class="nav-link" data-scroll-target="#built-in-web-app">Built-In Web App</a></li>
+  <li><a href="#faq" id="toc-faq" class="nav-link" data-scroll-target="#faq">FAQ</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">OnPrem.LLM</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<blockquote class="blockquote">
+<p>A toolkit for running large language models on-premises using non-public data</p>
+</blockquote>
+<p><strong><a href="https://github.com/amaiya/onprem">OnPrem.LLM</a></strong> is a simple Python package that makes it easier to apply large language models (LLMs) to non-public data on your own machines (possibly behind corporate firewalls). Inspired largely by the <a href="https://github.com/imartinez/privateGPT">privateGPT</a> GitHub repo, <strong>OnPrem.LLM</strong> is intended to help integrate local LLMs into practical applications.</p>
+<p>The full documentation is <a href="https://amaiya.github.io/onprem/">here</a>.</p>
+<p>A Google Colab demo of installing and using <strong>OnPrem.LLM</strong> is <a href="https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing">here</a>.</p>
+<hr>
+<p><em>Latest News</em> 🔥</p>
+<ul>
+<li><p>[2024/12] v0.7.0 released and now includes support for <a href="https://amaiya.github.io/onprem/#structured-and-guided-outputs">structured outputs</a>.</p></li>
+<li><p>[2024/12] v0.6.0 released and now includes support for PDF to Markdown conversion (which includes Markdown representations of tables), as shown <a href="https://amaiya.github.io/onprem/#extract-text-from-documents">here</a>.</p></li>
+<li><p>[2024/11] v0.5.0 released and now includes support for running LLMs with Hugging Face <a href="https://github.com/huggingface/transformers">transformers</a> as the backend instead of <a href="https://github.com/abetlen/llama-cpp-python">llama.cpp</a>. See <a href="https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp">this example</a>.</p></li>
+<li><p>[2024/11] v0.4.0 released and now includes a <code>default_model</code> parameter to more easily use models like <strong>Llama-3.1</strong> and <strong>Zephyr-7B-beta</strong>.</p></li>
+<li><p>[2024/10] v0.3.0 released and now includes support for <a href="https://amaiya.github.io/onprem/examples_summarization.html#concept-focused-summarization">concept-focused summarization</a></p></li>
+<li><p>[2024/09] v0.2.0 released and now includes PDF OCR support and better PDF table handling.</p></li>
+<li><p>[2024/06] v0.1.0 of <strong>OnPrem.LLM</strong> has been released. Lots of new updates!</p>
+<ul>
+<li><a href="https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis">Ability to use with any OpenAI-compatible API</a> (e.g., vLLM, Ollama, OpenLLM, etc.).</li>
+<li>Pipeline for <a href="https://amaiya.github.io/onprem/examples_information_extraction.html">information extraction</a> from raw documents.</li>
+<li>Pipeline for <a href="https://amaiya.github.io/onprem/examples_classification.html">few-shot text classification</a> (i.e., training a classifier on a tiny number of labeled examples) along with the ability to explain few-shot predictions.</li>
+<li>Default model changed to <a href="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF">Mistral-7B-Instruct-v0.2</a></li>
+<li><a href="https://github.com/amaiya/onprem/blob/master/CHANGELOG.md">API augmentations and bug fixes</a></li>
+</ul></li>
+</ul>
+<hr>
+<section id="install" class="level2">
+<h2 class="anchored" data-anchor-id="install">Install</h2>
+<p>Once you have <a href="https://pytorch.org/get-started/locally/">installed PyTorch</a>, you can install <strong>OnPrem.LLM</strong> with the following steps:</p>
+<ol type="1">
+<li>Install <strong>llama-cpp-python</strong>:
+<ul>
+<li><strong>CPU:</strong> <code>pip install llama-cpp-python</code> (<a href="https://github.com/amaiya/onprem/blob/master/MSWindows.md">extra steps</a> required for Microsoft Windows)</li>
+<li><strong>GPU</strong>: Follow <a href="https://amaiya.github.io/onprem/#on-gpu-accelerated-inference">instructions below</a>.</li>
+</ul></li>
+<li>Install <strong>OnPrem.LLM</strong>: <code>pip install onprem</code></li>
+</ol>
+<section id="on-gpu-accelerated-inference" class="level3">
+<h3 class="anchored" data-anchor-id="on-gpu-accelerated-inference">On GPU-Accelerated Inference</h3>
+<p>When installing <strong>llama-cpp-python</strong> with <code>pip install llama-cpp-python</code>, the LLM will run on your <strong>CPU</strong>. To generate answers much faster, you can run the LLM on your <strong>GPU</strong> by building <strong>llama-cpp-python</strong> based on your operating system.</p>
+<ul>
+<li><strong>Linux</strong>: <code>CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir</code></li>
+<li><strong>Mac</strong>: <code>CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python</code></li>
+<li><strong>Windows 11</strong>: Follow the instructions <a href="https://github.com/amaiya/onprem/blob/master/MSWindows.md#using-the-system-python-in-windows-11s">here</a>.</li>
+<li><strong>Windows Subsystem for Linux (WSL2)</strong>: Follow the instructions <a href="https://github.com/amaiya/onprem/blob/master/MSWindows.md#using-wsl2-with-gpu-acceleration">here</a>.</li>
+</ul>
+<p>For Linux and Windows, you will need <a href="https://www.nvidia.com/en-us/drivers/">an up-to-date NVIDIA driver</a> along with the <a href="https://developer.nvidia.com/cuda-downloads">CUDA toolkit</a> installed before running the installation commands above.</p>
+<p>After following the instructions above, supply the <code>n_gpu_layers=-1</code> parameter when instantiating an LLM to use your GPU for fast inference:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(n_gpu_layers<span class="op">=-</span><span class="dv">1</span>, ...)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Quantized models with 8B parameters and below can typically run on GPUs with as little as 6GB of VRAM. If a model does not fit on your GPU (e.g., you get a “CUDA Error: Out-of-Memory” error), you can offload a subset of layers to the GPU by experimenting with different values for the <code>n_gpu_layers</code> parameter (e.g., <code>n_gpu_layers=20</code>). Setting <code>n_gpu_layers=-1</code>, as shown above, offloads all layers to the GPU.</p>
+<p>See <a href="https://amaiya.github.io/onprem/#faq">the FAQ</a> for extra tips, if you experience issues with <a href="https://pypi.org/project/llama-cpp-python/">llama-cpp-python</a> installation.</p>
+<p><strong>Note:</strong> Installing <strong>llama-cpp-python</strong> is optional if either the following is true:</p>
+<ul>
+<li>You use Hugging Face Transformers (instead of llama-cpp-python) as the LLM backend by supplying the <code>model_id</code> parameter when instantiating an LLM, as <a href="https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp">shown here</a>.</li>
+<li>You are using <strong>OnPrem.LLM</strong> with an LLM being served through an <a href="#connecting-to-llms-served-through-rest-apis">external REST API</a> (e.g., vLLM, OpenLLM, Ollama).</li>
+</ul>
+</section>
+</section>
+<section id="how-to-use" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-use">How to Use</h2>
+<section id="setup" class="level3">
+<h3 class="anchored" data-anchor-id="setup">Setup</h3>
+<div id="cell-8" class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>By default, a 7B-parameter model (<strong>Mistral-7B-Instruct-v0.2</strong>) is downloaded and used. If <code>default_model='llama'</code> is supplied, then a <strong>Llama-3.1-8B-Instsruct</strong> model is automatically downloaded and used (which is useful if the default Mistral model struggles with a particular task):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Llama 3.1 is downloaded here and the correct prompt template for Llama-3.1 is automatically configured and used</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(default_model<span class="op">=</span><span class="st">'llama'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Similarly, suppyling <code>default_model='zephyr</code>, will use <strong>Zephyr-7B-beta</strong>. Of course, you can also easily supply the URL to an LLM of your choosing to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> (see the the <a href="https://amaiya.github.io/onprem/examples_code.html">code generation example</a> or the <a href="https://amaiya.github.io/onprem/#faq">FAQ</a> for examples). Any extra parameters supplied to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> are forwarded directly to <code>llama-cpp-python</code>.</p>
+<p><strong>Note:</strong> The default context window size (<code>n_ctx</code>) is set to 3900 and the default output size (<code>max_tokens</code>) is set 512. Both are configurable parameters to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a>. Increase if you have larger prompts or need longer outputs.</p>
+</section>
+<section id="send-prompts-to-the-llm-to-solve-problems" class="level3">
+<h3 class="anchored" data-anchor-id="send-prompts-to-the-llm-to-solve-problems">Send Prompts to the LLM to Solve Problems</h3>
+<p>This is an example of few-shot prompting, where we provide an example of what we want the LLM to do.</p>
+<div id="cell-11" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""Extract the names of people in the supplied sentences. Here is an example:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">Sentence: James Gandolfini and Paul Newman were great actors.</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">People:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">James Gandolfini, Paul Newman</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">Sentence:</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">I like Cillian Murphy's acting. Florence Pugh is great, too.</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="st">People:"""</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>saved_output <span class="op">=</span> llm.prompt(prompt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Cillian Murphy, Florence Pugh.</code></pre>
+</div>
+</div>
+<p>Additional prompt examples are <a href="https://amaiya.github.io/onprem/examples.html">shown here</a>.</p>
+</section>
+<section id="talk-to-your-documents" class="level3">
+<h3 class="anchored" data-anchor-id="talk-to-your-documents">Talk to Your Documents</h3>
+<p>Answers are generated from the content of your documents (i.e., <a href="https://arxiv.org/abs/2005.11401">retrieval augmented generation</a> or RAG). Here, we will use <a href="https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu">GPU offloading</a> to speed up answer generation using the default model. However, the Zephyr-7B model may perform even better, responds faster, and is used in our <a href="https://amaiya.github.io/onprem/examples_rag.html">example notebook</a>.</p>
+<div id="cell-14" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(n_gpu_layers<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="step-1-ingest-the-documents-into-a-vector-database" class="level4">
+<h4 class="anchored" data-anchor-id="step-1-ingest-the-documents-into-a-vector-database">Step 1: Ingest the Documents into a Vector Database</h4>
+<div id="cell-16" class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>llm.ingest(<span class="st">"./tests/sample_data"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Creating new vectorstore at /home/amaiya/onprem_data/vectordb
+Loading documents from ./sample_data</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading new documents: 100%|██████████████████████| 3/3 [00:00&lt;00:00, 13.71it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loaded 12 new documents from ./sample_data
+Split into 153 chunks of text (max. 500 chars each)
+Creating embeddings. May take some minutes...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:02&lt;00:00,  2.49s/it]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+</div>
+</section>
+<section id="step-2-answer-questions-about-the-documents" class="level4">
+<h4 class="anchored" data-anchor-id="step-2-answer-questions-about-the-documents">Step 2: Answer Questions About the Documents</h4>
+<div id="cell-18" class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>question <span class="op">=</span> <span class="st">"""What is  ktrain?"""</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> llm.ask(question)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Ktrain is a low-code machine learning library designed to facilitate the full machine learning workflow from curating and preprocessing inputs to training, tuning, troubleshooting, and applying models. Ktrain is well-suited for domain experts who may have less experience with machine learning and software coding.</code></pre>
+</div>
+</div>
+<p>The sources used by the model to generate the answer are stored in <code>result['source_documents']</code>:</p>
+<div id="cell-20" class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Sources:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, document <span class="kw">in</span> <span class="bu">enumerate</span>(result[<span class="st">"source_documents"</span>]):</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">.&gt; "</span> <span class="op">+</span> document.metadata[<span class="st">"source"</span>] <span class="op">+</span> <span class="st">":"</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(document.page_content)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Sources:
+
+
+1.&gt; /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
+lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
+tomation and instead focuses on either partially or fully automating other aspects of the
+machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
+2
+
+2.&gt; /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
+possible, ktrain automates (either algorithmically or through setting well-performing de-
+faults), but also allows users to make choices that best ﬁt their unique application require-
+ments. In this way, ktrain uses automation to augment and complement human engineers
+rather than attempting to entirely replace them. In doing so, the strengths of both are
+better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
+
+3.&gt; /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
+with custom models and data formats, as well.
+Inspired by other low-code (and no-
+code) open-source ML libraries such as fastai (Howard and Gugger, 2020) and ludwig
+(Molino et al., 2019), ktrain is intended to help further democratize machine learning by
+enabling beginners and domain experts with minimal programming or data science experi-
+4. http://archive.ics.uci.edu/ml/datasets/Twenty+Newsgroups
+6
+
+4.&gt; /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
+ktrain: A Low-Code Library for Augmented Machine Learning
+toML platform and more of what might be called a “low-code” ML platform. Through
+automation or semi-automation, ktrain facilitates the full machine learning workﬂow from
+curating and preprocessing inputs (i.e., ground-truth-labeled training data) to training,
+tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
+experts who may have less experience with machine learning and software coding. Where</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="extract-text-from-documents" class="level3">
+<h3 class="anchored" data-anchor-id="extract-text-from-documents">Extract Text from Documents</h3>
+<p>The <a href="https://amaiya.github.io/onprem/ingest.base.html#load_single_document"><code>load_single_document</code></a> function can extract text from a range of different document formats (e.g., PDFs, Microsoft PowerPoint, Microsoft Word, etc.). It is automatically invoked when calling <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a>. Extracted text is represented as LangChain <code>Document</code> objects, where <code>Document.page_content</code> stores the extracted text and <code>Document.metadata</code> stores any extracted document metadata.</p>
+<p>For PDFs, in particular, a number of different options are available depending on your use case.</p>
+<p><strong>Fast PDF Extraction (default)</strong></p>
+<ul>
+<li><strong>Pro:</strong> Fast</li>
+<li><strong>Con:</strong> Does not infer/retain structure of tables in PDF documents</li>
+</ul>
+<div id="cell-22" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest <span class="im">import</span> load_single_document</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> load_single_document(<span class="st">'tests/sample_data/ktrain_paper/ktrain_paper.pdf'</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>docs[<span class="dv">0</span>].metadata</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf',
+ 'file_path': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf',
+ 'page': 0,
+ 'total_pages': 9,
+ 'format': 'PDF 1.4',
+ 'title': '',
+ 'author': '',
+ 'subject': '',
+ 'keywords': '',
+ 'creator': 'LaTeX with hyperref',
+ 'producer': 'dvips + GPL Ghostscript GIT PRERELEASE 9.22',
+ 'creationDate': "D:20220406214054-04'00'",
+ 'modDate': "D:20220406214054-04'00'",
+ 'trapped': ''}</code></pre>
+</div>
+</div>
+<p><strong>Automatic OCR of PDFs</strong></p>
+<ul>
+<li><strong>Pro:</strong> Automatically extracts text from scanned PDFs</li>
+<li><strong>Con:</strong> Slow</li>
+</ul>
+<p>The <a href="https://amaiya.github.io/onprem/ingest.base.html#load_single_document"><code>load_single_document</code></a> function will automatically OCR PDFs that require it (i.e., PDFs that are scanned hard-copies of documents). If a document is OCR’ed during extraction, the <code>metadata['ocr']</code> field will be populated with <code>True</code>.</p>
+<div id="cell-24" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> load_single_document(<span class="st">'tests/sample_data/ocr_document/lynn1975.pdf'</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>docs[<span class="dv">0</span>].metadata</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/4/lynn1975.pdf',
+ 'ocr': True}</code></pre>
+</div>
+</div>
+<p><strong>Markdown Conversion in PDFs</strong></p>
+<ul>
+<li><strong>Pro</strong>: Better chunking for QA</li>
+<li><strong>Con</strong>: Slower than default PDF extraction</li>
+</ul>
+<p>The <a href="https://amaiya.github.io/onprem/ingest.base.html#load_single_document"><code>load_single_document</code></a> function can convert PDFs to Markdown instead of plain text by supplying the <code>pdf_markdown=True</code> as an argument:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> load_single_document(<span class="st">'your_pdf_document.pdf'</span>, </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>                            pdf_markdown<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Converting to Markdown can facilitate downstream tasks like question-answering. For instance, when supplying <code>pdf_markdown=True</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a>, documents are chunked in a Markdown-aware fashion (e.g., the abstract of a research paper tends to be kept together into a single chunk instead of being split up). Note that Markdown will not be extracted if the document requires OCR.</p>
+<p><strong>Inferring Table Structure in PDFs</strong></p>
+<ul>
+<li><strong>Pro</strong>: Makes it easier for LLMs to analyze information in tables</li>
+<li><strong>Con</strong>: Slower than default PDF extraction</li>
+</ul>
+<p>When supplying <code>infer_table_structure=True</code> to either <a href="https://amaiya.github.io/onprem/ingest.base.html#load_single_document"><code>load_single_document</code></a> or <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a>, tables are inferred and extracted from PDFs using a TableTransformer model. Tables are represented as <strong>Markdown</strong> (or <strong>HTML</strong> if Markdown conversion is not possible).</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> load_single_document(<span class="st">'your_pdf_document.pdf'</span>, </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                            infer_table_structure<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><strong>Parsing Extracted Text Into Sentences or Paragraphs</strong></p>
+<p>For some analyses (e.g., using prompts for information extraction), it may be useful to parse the text extracted from documents into individual sentences or paragraphs. This can be accomplished using the <a href="https://amaiya.github.io/onprem/utils.html#segment"><code>segment</code></a> function:</p>
+<div id="cell-26" class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest <span class="im">import</span> load_single_document</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.utils <span class="im">import</span> segment</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>text <span class="op">=</span> load_single_document(<span class="st">'tests/sample_data/sotu/state_of_the_union.txt'</span>)[<span class="dv">0</span>].page_content</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-27" class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>segment(text, unit<span class="op">=</span><span class="st">'paragraph'</span>)[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>'Madam Speaker, Madam Vice President, our First Lady and Second Gentleman.  Members of Congress and the Cabinet.  Justices of the Supreme Court.  My fellow Americans.'</code></pre>
+</div>
+</div>
+<div id="cell-28" class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>segment(text, unit<span class="op">=</span><span class="st">'sentence'</span>)[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>'Madam Speaker, Madam Vice President, our First Lady and Second Gentleman.'</code></pre>
+</div>
+</div>
+</section>
+<section id="summarization-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="summarization-pipeline">Summarization Pipeline</h3>
+<p>Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.</p>
+<section id="map-reduce-summarization" class="level4">
+<h4 class="anchored" data-anchor-id="map-reduce-summarization">Map-Reduce Summarization</h4>
+<p>Summarize each chunk in a document and then generate a single summary from the individual summaries.</p>
+<div id="cell-30" class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(n_gpu_layers<span class="op">=-</span><span class="dv">1</span>, verbose<span class="op">=</span><span class="va">False</span>, mute_stream<span class="op">=</span><span class="va">True</span>) <span class="co"># disabling viewing of intermediate summarization prompts/inferences</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-31" class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> Summarizer</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>summ <span class="op">=</span> Summarizer(llm)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>resp <span class="op">=</span> summ.summarize(<span class="st">'tests/sample_data/ktrain_paper/ktrain_paper.pdf'</span>, max_chunks_to_use<span class="op">=</span><span class="dv">5</span>) <span class="co"># omit max_chunks_to_use parameter to consider entire document</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(resp[<span class="st">'output_text'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Ktrain is an open-source machine learning library that offers a unified interface for various machine learning tasks. The library supports both supervised and non-supervised machine learning, and includes methods for training models, evaluating models, making predictions on new data, and providing explanations for model decisions. Additionally, the library integrates with various explainable AI libraries such as shap, eli5 with lime, and others to provide more interpretable models.</code></pre>
+</div>
+</div>
+</section>
+<section id="concept-focused-summarization" class="level4">
+<h4 class="anchored" data-anchor-id="concept-focused-summarization">Concept-Focused Summarization</h4>
+<p>Summarize a large document with respect to a particular concept of interest.</p>
+<div id="cell-33" class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> Summarizer</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-34" class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(default_model<span class="op">=</span><span class="st">'zephyr'</span>, n_gpu_layers<span class="op">=-</span><span class="dv">1</span>, verbose<span class="op">=</span><span class="va">False</span>, temperature<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>summ <span class="op">=</span> Summarizer(llm)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>summary, sources <span class="op">=</span> summ.summarize_by_concept(<span class="st">'tests/sample_data/ktrain_paper/ktrain_paper.pdf'</span>, concept_description<span class="op">=</span><span class="st">"question answering"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+The context provided describes the implementation of an open-domain question-answering system using ktrain, a low-code library for augmented machine learning. The system follows three main steps: indexing documents into a search engine, locating documents containing words in the question, and extracting candidate answers from those documents using a BERT model pretrained on the SQuAD dataset. Confidence scores are used to sort and prune candidate answers before returning results. The entire workflow can be implemented with only three lines of code using ktrain's SimpleQA module. This system allows for the submission of natural language questions and receives exact answers, as demonstrated in the provided example. Overall, the context highlights the ease and accessibility of building sophisticated machine learning models, including open-domain question-answering systems, through ktrain's low-code interface.</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="information-extraction-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="information-extraction-pipeline">Information Extraction Pipeline</h3>
+<p>Extract information from raw documents (e.g., PDFs, MS Word documents) with an LLM.</p>
+<div id="cell-36" class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> Extractor</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Notice that we're using a cloud-based, off-premises model here! See "OpenAI" section below.</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_url<span class="op">=</span><span class="st">'openai://gpt-3.5-turbo'</span>, verbose<span class="op">=</span><span class="va">False</span>, mute_stream<span class="op">=</span><span class="va">True</span>, temperature<span class="op">=</span><span class="dv">0</span>) </span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>extractor <span class="op">=</span> Extractor(llm)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""Extract the names of research institutions (e.g., universities, research labs, corporations, etc.) </span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="st">from the following sentence delimited by three backticks. If there are no organizations, return NA.  </span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="st">If there are multiple organizations, separate them with commas.</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="st">```</span><span class="sc">{text}</span><span class="st">```</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> extractor.<span class="bu">apply</span>(prompt, fpath<span class="op">=</span><span class="st">'tests/sample_data/ktrain_paper/ktrain_paper.pdf'</span>, pdf_pages<span class="op">=</span>[<span class="dv">1</span>], stop<span class="op">=</span>[<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>])</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>df.loc[df[<span class="st">'Extractions'</span>] <span class="op">!=</span> <span class="st">'NA'</span>].Extractions[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/home/amaiya/projects/ghub/onprem/onprem/core.py:159: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+  warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre><code>'Institute for Defense Analyses'</code></pre>
+</div>
+</div>
+</section>
+<section id="few-shot-classification" class="level3">
+<h3 class="anchored" data-anchor-id="few-shot-classification">Few-Shot Classification</h3>
+<p>Make accurate text classification predictions using only a tiny number of labeled examples.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create classifier</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> FewShotClassifier</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>clf <span class="op">=</span> FewShotClassifier(use_smaller<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fetching data</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> fetch_20newsgroups</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>classes <span class="op">=</span> [<span class="st">"soc.religion.christian"</span>, <span class="st">"sci.space"</span>]</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>newsgroups <span class="op">=</span> fetch_20newsgroups(subset<span class="op">=</span><span class="st">"all"</span>, categories<span class="op">=</span>classes)</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>corpus, group_labels <span class="op">=</span> np.array(newsgroups.data), np.array(newsgroups.target_names)[newsgroups.target]</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Wrangling data into a dataframe and selecting training examples</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.DataFrame({<span class="st">"text"</span>: corpus, <span class="st">"label"</span>: group_labels})</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>train_df <span class="op">=</span> data.groupby(<span class="st">"label"</span>).sample(<span class="dv">5</span>)</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>test_df <span class="op">=</span> data.drop(index<span class="op">=</span>train_df.index)</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="co"># X_sample only contains 5 examples of each class!</span></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>X_sample, y_sample <span class="op">=</span> train_df[<span class="st">'text'</span>].values, train_df[<span class="st">'label'</span>].values</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a><span class="co"># test set</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>X_test, y_test <span class="op">=</span> test_df[<span class="st">'text'</span>].values, test_df[<span class="st">'label'</span>].values</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="co"># train</span></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>clf.train(X_sample,  y_sample, max_steps<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a><span class="co"># evaluate</span></span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(clf.evaluate(X_test, y_test)[<span class="st">'accuracy'</span>])</span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a><span class="co">#output: 0.98</span></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a><span class="co"># make predictions</span></span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a>clf.predict([<span class="st">'Elon Musk likes launching satellites.'</span>]).tolist()[<span class="dv">0</span>]</span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a><span class="co">#output: sci.space</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="using-hugging-face-transformers-instead-of-llama.cpp" class="level3">
+<h3 class="anchored" data-anchor-id="using-hugging-face-transformers-instead-of-llama.cpp">Using Hugging Face Transformers Instead of Llama.cpp</h3>
+<p>By default, the LLM backend employed by <strong>OnPrem.LLM</strong> is <a href="https://github.com/abetlen/llama-cpp-python">llama-cpp-python</a>, which requires models in <a href="https://huggingface.co/docs/hub/gguf">GGUF format</a>. As of v0.5.0, it is now possible to use <a href="https://github.com/huggingface/transformers">Hugging Face transformers</a> as the LLM backend instead. This is accomplished by using the <code>model_id</code> parameter (instead of supplying a <code>model_url</code> argument). In the example below, we run the <a href="https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4">Llama-3.1-8B</a> model.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># llama-cpp-python does NOT need to be installed when using model_id parameter</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_id<span class="op">=</span><span class="st">"hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4"</span>, device_map<span class="op">=</span><span class="st">'cuda'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This allows you to more easily use any model on the Hugging Face hub in <a href="https://huggingface.co/docs/safetensors/index">SafeTensors format</a> provided it can be loaded with the Hugging Face <code>transformers.pipeline</code>. Note that, when using the <code>model_id</code> parameter, the <code>prompt_template</code> is set automatically by <code>transformers</code>.</p>
+<p>The Llama-3.1 model loaded above was quantized using <a href="https://huggingface.co/docs/transformers/main/en/quantization/awq">AWQ</a>, which allows the model to fit onto smaller GPUs (e.g., laptop GPUs with 6GB of VRAM) similar to the default GGUF format. AWQ models will require the <a href="https://pypi.org/project/autoawq/">autoawq</a> package to be installed: <code>pip install autoawq</code> (AWQ only supports Linux system, including Windows Subsystem for Linux). If you do need to load a model that is not quantized, you can supply a quantization configuration at load time (known as “inflight quantization”). In the following example, we load an unquantized <a href="https://huggingface.co/HuggingFaceH4/zephyr-7b-beta">Zephyr-7B-beta model</a> that will be quantized during loading to fit on GPUs with as little as 6GB of VRAM:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> BitsAndBytesConfig</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>quantization_config <span class="op">=</span> BitsAndBytesConfig(</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    load_in_4bit<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    bnb_4bit_quant_type<span class="op">=</span><span class="st">"nf4"</span>,</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    bnb_4bit_compute_dtype<span class="op">=</span><span class="st">"float16"</span>,</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    bnb_4bit_use_double_quant<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_id<span class="op">=</span><span class="st">"HuggingFaceH4/zephyr-7b-beta"</span>, device_map<span class="op">=</span><span class="st">'cuda'</span>, </span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>          model_kwargs<span class="op">=</span>{<span class="st">"quantization_config"</span>:quantization_config})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>When supplying a <code>quantization_config</code>, the <a href="https://huggingface.co/docs/bitsandbytes/main/en/installation">bitsandbytes</a> library, a lightweight Python wrapper around CUDA custom functions, in particular 8-bit optimizers, matrix multiplication (LLM.int8()), and 8 &amp; 4-bit quantization functions, is used. There are ongoing efforts by the bitsandbytes team to support multiple backends in addition to CUDA. If you receive errors related to bitsandbytes, please refer to the <a href="https://huggingface.co/docs/bitsandbytes/main/en/installation">bitsandbytes documentation</a>.</p>
+</section>
+<section id="connecting-to-llms-served-through-rest-apis" class="level3">
+<h3 class="anchored" data-anchor-id="connecting-to-llms-served-through-rest-apis">Connecting to LLMs Served Through REST APIs</h3>
+<p><strong>OnPrem.LLM</strong> can be used with LLMs being served through any OpenAI-compatible REST API. This means you can easily use <strong>OnPrem.LLM</strong> with tools like <a href="https://github.com/vllm-project/vllm">vLLM</a>, <a href="https://github.com/bentoml/OpenLLM">OpenLLM</a>, <a href="https://ollama.com/blog/openai-compatibility">Ollama</a>, and the <a href="https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md">llama.cpp server</a>.</p>
+<p>For instance, using <a href="https://github.com/vllm-project/vllm">vLLM</a>, you can serve a LLaMA 3 model as follows:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> vllm.entrypoints.openai.api_server <span class="at">--model</span> NousResearch/Meta-Llama-3-8B-Instruct <span class="at">--dtype</span> auto <span class="at">--api-key</span> token-abc123</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>You can then connect OnPrem.LLM to the LLM by supplying the URL of the server you just started:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_url<span class="op">=</span><span class="st">'http://localhost:8000/v1'</span>, api_key<span class="op">=</span><span class="st">'token-abc123'</span>) </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Note: The API key can either be supplied directly or stored in the OPENAI_API_KEY environment variable.</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co">#       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>That’s it! Solve problems with <strong>OnPrem.LLM</strong> as you normally would (e.g., RAG question-answering, summarization, few-shot prompting, code generation, etc.).</p>
+</section>
+<section id="using-openai-models-with-onprem.llm" class="level3">
+<h3 class="anchored" data-anchor-id="using-openai-models-with-onprem.llm">Using OpenAI Models with OnPrem.LLM</h3>
+<p>Even when using on-premises language models, it can sometimes be useful to have easy access to non-local, cloud-based models (e.g., OpenAI) for testing, producing baselines for comparison, and generating synthetic examples for fine-tuning. For these reasons, in spite of the name, <strong>OnPrem.LLM</strong> now includes support for OpenAI chat models:</p>
+<div id="cell-41" class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_url<span class="op">=</span><span class="st">'openai://gpt-4o'</span>, temperature<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
+  warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\</code></pre>
+</div>
+</div>
+<p>This OpenAI <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> instance can now be used with as the engine for most features in OnPrem.LLM (e.g., RAG, information extraction, summarization, etc.). Here we simply use it for general prompting:</p>
+<div id="cell-43" class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>saved_result <span class="op">=</span> llm.prompt(<span class="st">'List three cute  names for a cat and explain why each is cute.'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Certainly! Here are three cute names for a cat, along with explanations for why each is adorable:
+
+1. **Whiskers**: This name is cute because it highlights one of the most distinctive and charming features of a cat—their whiskers. It's playful and endearing, evoking the image of a curious cat twitching its whiskers as it explores its surroundings.
+
+2. **Mittens**: This name is cute because it conjures up the image of a cat with little white paws that look like they are wearing mittens. It's a cozy and affectionate name that suggests warmth and cuddliness, much like a pair of soft mittens.
+
+3. **Pumpkin**: This name is cute because it brings to mind the warm, orange hues of a pumpkin, which can be reminiscent of certain cat fur colors. It's also associated with the fall season, which is often linked to comfort and coziness. Plus, the name "Pumpkin" has a sweet and affectionate ring to it, making it perfect for a beloved pet.</code></pre>
+</div>
+</div>
+<p><strong>Using Vision Capabilities in GPT-4o</strong></p>
+<div id="cell-45" class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>image_url <span class="op">=</span> <span class="st">"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>saved_result <span class="op">=</span> llm.prompt(<span class="st">'Describe the weather in this image.'</span>, image_path_or_url<span class="op">=</span>image_url)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, illuminating the green grass and landscape.</code></pre>
+</div>
+</div>
+<p><strong>Using OpenAI-Style Message Dictionaries</strong></p>
+<div id="cell-47" class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>messages <span class="op">=</span> [</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    {<span class="st">'content'</span>: [{<span class="st">'text'</span>: <span class="st">'describe the weather in this image'</span>, </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'type'</span>: <span class="st">'text'</span>},</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>                 {<span class="st">'image_url'</span>: {<span class="st">'url'</span>: image_url},</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'type'</span>: <span class="st">'image_url'</span>}],</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>     <span class="st">'role'</span>: <span class="st">'user'</span>}]</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>saved_result <span class="op">=</span> llm.prompt(messages)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, casting clear shadows and illuminating the green landscape.</code></pre>
+</div>
+</div>
+<p><strong>Azure OpenAI</strong></p>
+<p>For Azure OpenAI models, use the following URL format:</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_url<span class="op">=</span><span class="st">'azure://&lt;deployment_name&gt;'</span>, ...) </span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="co"># &lt;deployment_name&gt; is the Azure deployment name and additional Azure-specific parameters </span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="co"># can be supplied as extra arguments to LLM (or set as environment variables)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="structured-and-guided-outputs" class="level3">
+<h3 class="anchored" data-anchor-id="structured-and-guided-outputs">Structured and Guided Outputs</h3>
+<p>The <a href="https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt"><code>LLM.pydantic_prompt</code></a> method allows you to specify the desired structure of the LLM’s output as a Pydantic model.</p>
+<div id="cell-50" class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pydantic <span class="im">import</span> BaseModel, Field</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Joke(BaseModel):</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>    setup: <span class="bu">str</span> <span class="op">=</span> Field(description<span class="op">=</span><span class="st">"question to set up a joke"</span>)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>    punchline: <span class="bu">str</span> <span class="op">=</span> Field(description<span class="op">=</span><span class="st">"answer to resolve the joke"</span>)</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(default_model<span class="op">=</span><span class="st">'llama'</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>structured_output <span class="op">=</span> llm.pydantic_prompt(<span class="st">'Tell me a joke.'</span>, pydantic_model<span class="op">=</span>Joke)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>llama_new_context_with_model: n_ctx_per_seq (3904) &lt; n_ctx_train (131072) -- the full capacity of the model will not be utilized</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>{
+  "setup": "Why couldn't the bicycle stand alone?",
+  "punchline": "Because it was two-tired!"
+}</code></pre>
+</div>
+</div>
+<p>The output is a Pydantic object instead of a string:</p>
+<div id="cell-52" class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>structured_output</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Joke(setup="Why couldn't the bicycle stand alone?", punchline='Because it was two-tired!')</code></pre>
+</div>
+</div>
+<div id="cell-53" class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(structured_output.setup)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(structured_output.punchline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Why couldn't the bicycle stand alone?
+
+Because it was two-tired!</code></pre>
+</div>
+</div>
+<p>You can also use <strong>OnPrem.LLM</strong> with the <a href="https://github.com/guidance-ai/guidance">Guidance</a> package to guide the LLM to generate outputs based on your conditions and constraints. We’ll show a couple of examples here, but see <a href="https://amaiya.github.io/onprem/examples_guided_prompts.html">our documentation on guided prompts</a> for more information.</p>
+<div id="cell-55" class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(n_gpu_layers<span class="op">=-</span><span class="dv">1</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines.guider <span class="im">import</span> Guider</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>guider <span class="op">=</span> Guider(llm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>With the Guider, you can use use Regular Expressions to control LLM generation:</p>
+<div id="cell-57" class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="ss">f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="ss">Answer: """</span> <span class="op">+</span> gen(name<span class="op">=</span><span class="st">'answer'</span>, regex<span class="op">=</span><span class="st">'\d+'</span>)</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>guider.prompt(prompt, echo<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'answer': '7'}</code></pre>
+</div>
+</div>
+<div id="cell-58" class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">'19, 18,'</span> <span class="op">+</span> gen(name<span class="op">=</span><span class="st">'output'</span>, max_tokens<span class="op">=</span><span class="dv">50</span>, stop_regex<span class="op">=</span><span class="st">'[^\d]7[^\d]'</span>)</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>guider.prompt(prompt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;">19, 18<span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">7</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">6</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">5</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">4</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">3</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">2</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 1</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">0</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 9</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0"> 8</span><span style="background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;" title="0.0">,</span></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre><code>{'output': ' 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,'}</code></pre>
+</div>
+</div>
+<p>See <a href="https://amaiya.github.io/onprem/examples_guided_prompts.html">the documentation</a> for more examples of how to use <a href="https://github.com/guidance-ai/guidance">Guidance</a> with <strong>OnPrem.LLM</strong>.</p>
+</section>
+</section>
+<section id="built-in-web-app" class="level2">
+<h2 class="anchored" data-anchor-id="built-in-web-app">Built-In Web App</h2>
+<p><strong>OnPrem.LLM</strong> includes a built-in Web app to access the LLM. To start it, run the following command after installation:</p>
+<pre class="shell"><code>onprem --port 8000</code></pre>
+<p>Then, enter <code>localhost:8000</code> (or <code>&lt;domain_name&gt;:8000</code> if running on remote server) in a Web browser to access the application:</p>
+<p><img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/onprem_screenshot.png" border="1" alt="screenshot" width="775"></p>
+<p>For more information, <a href="https://amaiya.github.io/onprem/webapp.html">see the corresponding documentation</a>.</p>
+</section>
+<section id="faq" class="level2">
+<h2 class="anchored" data-anchor-id="faq">FAQ</h2>
+<ol type="1">
+<li><p><strong>How do I use other models with OnPrem.LLM?</strong></p>
+<blockquote class="blockquote">
+<p>You can supply the URL to other models to the <code>LLM</code> constructor, as we did above in the code generation example.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>As of v0.0.20, we support models in GGUF format, which supersedes the older GGML format. You can find llama.cpp-supported models with <code>GGUF</code> in the file name on <a href="https://huggingface.co/models?sort=trending&amp;search=gguf">huggingface.co</a>.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Make sure you are pointing to the URL of the actual GGUF model file, which is the “download” link on the model’s page. An example for <strong>Mistral-7B</strong> is shown below:</p>
+</blockquote>
+<blockquote class="blockquote">
+<p><img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/model_download_link.png" border="1" alt="screenshot" width="775"></p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Note that some models have specific prompt formats. For instance, the prompt template required for <strong>Zephyr-7B</strong>, as described on the <a href="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF">model’s page</a>, is:</p>
+<p><code>&lt;|system|&gt;\n&lt;/s&gt;\n&lt;|user|&gt;\n{prompt}&lt;/s&gt;\n&lt;|assistant|&gt;</code></p>
+<p>So, to use the <strong>Zephyr-7B</strong> model, you must supply the <code>prompt_template</code> argument to the <code>LLM</code> constructor (or specify it in the <code>webapp.yml</code> configuration for the Web app).</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how to use Zephyr-7B with OnPrem.LLM</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_url<span class="op">=</span><span class="st">'https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf'</span>,</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>          prompt_template <span class="op">=</span> <span class="st">"&lt;|system|&gt;</span><span class="ch">\n</span><span class="st">&lt;/s&gt;</span><span class="ch">\n</span><span class="st">&lt;|user|&gt;</span><span class="ch">\n</span><span class="sc">{prompt}</span><span class="st">&lt;/s&gt;</span><span class="ch">\n</span><span class="st">&lt;|assistant|&gt;"</span>,</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>          n_gpu_layers<span class="op">=</span><span class="dv">33</span>)</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>llm.prompt(<span class="st">"List three cute names for a cat."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote></li>
+<li><p><strong>When installing <code>onprem</code>, I’m getting “build” errors related to <code>llama-cpp-python</code> (or <code>chroma-hnswlib</code>) on Windows/Mac/Linux?</strong></p>
+<blockquote class="blockquote">
+<p>See <a href="https://python.langchain.com/docs/integrations/llms/llamacpp">this LangChain documentation on LLama.cpp</a> for help on installing the <code>llama-cpp-python</code> package for your system. Additional tips for different operating systems are shown below:</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>For <strong>Linux</strong> systems like Ubuntu, try this: <code>sudo apt-get install build-essential g++ clang</code>. Other tips are <a href="https://github.com/oobabooga/text-generation-webui/issues/1534">here</a>.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>For <strong>Windows</strong> systems, please try following <a href="https://github.com/amaiya/onprem/blob/master/MSWindows.md">these instructions</a>. We recommend you use <a href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux (WSL)</a> instead of using Microsoft Windows directly. If you do need to use Microsoft Window directly, be sure to install the <a href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">Microsoft C++ Build Tools</a> and make sure the <strong>Desktop development with C++</strong> is selected.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>For <strong>Macs</strong>, try following <a href="https://github.com/imartinez/privateGPT/issues/445#issuecomment-1563333950">these tips</a>.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>There are also various other tips for each of the above OSes in <a href="https://github.com/imartinez/privateGPT/issues/445">this privateGPT repo thread</a>. Of course, you can also <a href="https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing">easily use</a> <strong>OnPrem.LLM</strong> on Google Colab.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Finally, if you still can’t overcome issues with building <code>llama-cpp-python</code>, you can try <a href="https://abetlen.github.io/llama-cpp-python/whl/cpu/llama-cpp-python/">installing the pre-built wheel file</a> for your system:</p>
+</blockquote>
+<blockquote class="blockquote">
+<p><strong>Example:</strong> <code>pip install llama-cpp-python==0.2.90 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu</code></p>
+<p><strong>Tip:</strong> There are <a href="https://pypi.org/project/chroma-hnswlib/#files">pre-built wheel files for <code>chroma-hnswlib</code></a>, as well. If running <code>pip install onprem</code> fails on building <code>chroma-hnswlib</code>, it may be because a pre-built wheel doesn’t yet exist for the version of Python you’re using (in which case you can try downgrading Python).</p>
+</blockquote></li>
+<li><p><strong>I’m behind a corporate firewall and am receiving an SSL error when trying to download the model?</strong></p>
+<blockquote class="blockquote">
+<p>Try this:</p>
+<div class="sourceCode" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>LLM.download_model(url, ssl_verify<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote>
+<blockquote class="blockquote">
+<p>You can download the embedding model (used by <code>LLM.ingest</code> and <code>LLM.ask</code>) as follows:</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> <span class="at">--no-check-certificate</span> https://public.ukp.informatik.tu-darmstadt.de/reimers/sentence-transformers/v0.2/all-MiniLM-L6-v2.zip</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote>
+<blockquote class="blockquote">
+<p>Supply the unzipped folder name as the <code>embedding_model_name</code> argument to <code>LLM</code>.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>If you’re getting SSL errors when even running <code>pip install</code>, try this:</p>
+<div class="sourceCode" id="cb68"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install –-trusted-host pypi.org –-trusted-host files.pythonhosted.org pip_system_certs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote></li>
+<li><p><strong>How do I use this on a machine with no internet access?</strong></p>
+<blockquote class="blockquote">
+<p>Use the <code>LLM.download_model</code> method to download the model files to <code>&lt;your_home_directory&gt;/onprem_data</code> and transfer them to the same location on the air-gapped machine.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>For the <code>ingest</code> and <code>ask</code> methods, you will need to also download and transfer the embedding model files:</p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sentence_transformers <span class="im">import</span> SentenceTransformer</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> SentenceTransformer(<span class="st">'sentence-transformers/all-MiniLM-L6-v2'</span>)</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>model.save(<span class="st">'/some/folder'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote>
+<blockquote class="blockquote">
+<p>Copy the <code>some/folder</code> folder to the air-gapped machine and supply the path to <code>LLM</code> via the <code>embedding_model_name</code> parameter.</p>
+</blockquote></li>
+<li><p><strong>My model is not loading when I call <code>llm = LLM(...)</code>?</strong></p>
+<blockquote class="blockquote">
+<p>This can happen if the model file is corrupt (in which case you should delete from <code>&lt;home directory&gt;/onprem_data</code> and re-download). It can also happen if the version of <code>llama-cpp-python</code> needs to be upgraded to the latest.</p>
+</blockquote></li>
+<li><p><strong>I’m getting an <code>“Illegal instruction (core dumped)</code> error when instantiating a <code>langchain.llms.Llamacpp</code> or <code>onprem.LLM</code> object?</strong></p>
+<blockquote class="blockquote">
+<p>Your CPU may not support instructions that <code>cmake</code> is using for one reason or another (e.g., <a href="https://stackoverflow.com/questions/65780506/how-to-enable-avx-avx2-in-virtualbox-6-1-16-with-ubuntu-20-04-64bit">due to Hyper-V in VirtualBox settings</a>). You can try turning them off when building and installing <code>llama-cpp-python</code>:</p>
+</blockquote>
+<blockquote class="blockquote">
+<div class="sourceCode" id="cb70"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># example</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a><span class="va">CMAKE_ARGS</span><span class="op">=</span><span class="st">"-DGGML_CUDA=ON -DGGML_AVX2=OFF -DGGML_AVX=OFF -DGGML_F16C=OFF -DGGML_FMA=OFF"</span> <span class="va">FORCE_CMAKE</span><span class="op">=</span>1 <span class="ex">pip</span> install <span class="at">--force-reinstall</span> llama-cpp-python <span class="at">--no-cache-dir</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote></li>
+<li><p><strong>How can I speed up <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a> using my GPU?</strong></p>
+<blockquote class="blockquote">
+<p>Try using the <code>embedding_model_kwargs</code> argument:</p>
+<div class="sourceCode" id="cb71"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>llm  <span class="op">=</span> LLM(embedding_model_kwargs<span class="op">=</span>{<span class="st">'device'</span>:<span class="st">'cuda'</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</blockquote></li>
+</ol>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
