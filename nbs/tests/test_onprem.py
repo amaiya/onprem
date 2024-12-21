@@ -161,7 +161,7 @@ def test_extraction(**kwargs):
     If there is no author mentioned in the text, output NA.
     ###{text}###
     """
-    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ktrain_paper/ktrain_paper.pdf')
     df = extractor.apply(prompt, fpath=fpath, pdf_pages=[1], stop=[])
     #print(df.loc[df['Extractions'] != 'NA'].Extractions[0])
     author = df.loc[~df['Extractions'].isin(['NA', 'Author: NA'])].Extractions.values.tolist()[0]
@@ -265,7 +265,7 @@ def test_semantic(**kwargs):
 def test_pdf(**kwargs):
     from onprem.ingest import load_single_document
     from onprem.utils import segment
-    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '1/ktrain_paper.pdf')
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ktrain_paper/ktrain_paper.pdf')
     docs = load_single_document(fpath, pdf_markdown=True)
     assert len(docs) == 1
     assert segment(docs[0].page_content, unit='paragraph')[0].startswith('#')
@@ -279,7 +279,7 @@ def test_pdftables(**kwargs):
     Not currently run as test_pdf also tests tables
     """
     from onprem.ingest.pdftables import PDFTables
-    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), '5/The_Worlds_Billionaires.pdf')
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/billionaires/The_Worlds_Billionaires.pdf')
     pdftab = PDFTables.from_file(fpath, verbose=True)
     assert len(pdftab.dfs) > 30 
     assert len(pdftab.captions) > 30
