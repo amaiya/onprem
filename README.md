@@ -213,7 +213,7 @@ llm = LLM(n_gpu_layers=-1)
 #### Step 1: Ingest the Documents into a Vector Database
 
 ``` python
-llm.ingest("./sample_data")
+llm.ingest("./tests/sample_data")
 ```
 
     Creating new vectorstore at /home/amaiya/onprem_data/vectordb
@@ -302,7 +302,7 @@ depending on your use case.
 ``` python
 from onprem.ingest import load_single_document
 
-docs = load_single_document('sample_data/1/ktrain_paper.pdf')
+docs = load_single_document('tests/sample_data/ktrain_paper/ktrain_paper.pdf')
 docs[0].metadata
 ```
 
@@ -333,7 +333,7 @@ are scanned hard-copies of documents). If a document is OCR’ed during
 extraction, the `metadata['ocr']` field will be populated with `True`.
 
 ``` python
-docs = load_single_document('sample_data/4/lynn1975.pdf')
+docs = load_single_document('tests/sample_data/ocr_document/lynn1975.pdf')
 docs[0].metadata
 ```
 
@@ -392,7 +392,7 @@ function:
 ``` python
 from onprem.ingest import load_single_document
 from onprem.utils import segment
-text = load_single_document('sample_data/3/state_of_the_union.txt')[0].page_content
+text = load_single_document('tests/sample_data/sotu/state_of_the_union.txt')[0].page_content
 ```
 
 ``` python
@@ -425,7 +425,7 @@ llm = LLM(n_gpu_layers=-1, verbose=False, mute_stream=True) # disabling viewing 
 from onprem.pipelines import Summarizer
 summ = Summarizer(llm)
 
-resp = summ.summarize('sample_data/1/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
+resp = summ.summarize('tests/sample_data/ktrain_paper/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
 print(resp['output_text'])
 ```
 
@@ -444,7 +444,7 @@ from onprem.pipelines import Summarizer
 ``` python
 llm = LLM(default_model='zephyr', n_gpu_layers=-1, verbose=False, temperature=0)
 summ = Summarizer(llm)
-summary, sources = summ.summarize_by_concept('sample_data/1/ktrain_paper.pdf', concept_description="question answering")
+summary, sources = summ.summarize_by_concept('tests/sample_data/ktrain_paper/ktrain_paper.pdf', concept_description="question answering")
 ```
 
 
@@ -466,7 +466,7 @@ from the following sentence delimited by three backticks. If there are no organi
 If there are multiple organizations, separate them with commas.
 ```{text}```
 """
-df = extractor.apply(prompt, fpath='sample_data/1/ktrain_paper.pdf', pdf_pages=[1], stop=['\n'])
+df = extractor.apply(prompt, fpath='tests/sample_data/ktrain_paper/ktrain_paper.pdf', pdf_pages=[1], stop=['\n'])
 df.loc[df['Extractions'] != 'NA'].Extractions[0]
 ```
 

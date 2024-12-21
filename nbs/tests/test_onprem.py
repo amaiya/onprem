@@ -37,7 +37,7 @@ def test_rag(**kwargs):
 
     # download ktrain paper
     U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/1/ktrain_paper.pdf",
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf",
         os.path.join(source_folder, "ktrain.pdf"),
     )
 
@@ -58,7 +58,7 @@ def test_rag(**kwargs):
 
     # download SOTU
     U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/3/state_of_the_union.txt",
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/sotu/state_of_the_union.txt",
         os.path.join(source_folder, "sotu.txt"),
     )
 
@@ -91,7 +91,7 @@ def test_rag(**kwargs):
 
     # download MS financial statement
     U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/sample_data/2/ms-financial-statement.pdf",
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/financial_statement/ms-financial-statement.pdf",
         os.path.join(source_folder, "ms-financial-statement.pdf"),
     )
 
@@ -311,7 +311,8 @@ def test_pydantic(**kwargs):
 
 
 def test_transformers(**kwargs):
-    llm = LLM(model_id='gpt2', device_map='cpu')
+    #llm = LLM(model_id='gpt2', device_map='cpu')
+    llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct', device_map='cpu')
     output = llm.prompt('How can the net amount of entropy of the universe be massively decreased?',
                         stop=['entropy'])
     assert("entropy" in output.lower())
