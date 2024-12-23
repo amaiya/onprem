@@ -6,7 +6,7 @@
 __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK_SIZE', 'COLLECTION_NAME', 'CHROMA_MAX', 'PDFOCR',
            'PDFMD', 'PDF', 'PDF_EXTS', 'OCR_CHAR_THRESH', 'LOADER_MAPPING', 'DEFAULT_DB', 'MyElmLoader',
            'MyUnstructuredPDFLoader', 'PDF2MarkdownLoader', 'extract_files', 'load_single_document', 'load_documents',
-           'process_documents', 'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
+           'process_folder', 'process_documents', 'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from .. import utils as U
@@ -290,7 +290,7 @@ def load_documents(source_dir: str, # path to folder containing documents
     return results
 
 
-def process_documents(
+def process_folder(
     source_directory: str, # path to folder containing document store
     chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
@@ -302,7 +302,36 @@ def process_documents(
 
 ) -> List[Document]:
     """
-    Load documents and split in chunks.
+    Load documents from folder, extract text from them, split texts into chunks.
+    Extra kwargs fed to `ingest.load_single_document`.
+    """
+    print(f"Loading documents from {source_directory}")
+    documents = load_documents(source_directory,
+                              ignored_files, ignore_fn=ignore_fn,
+                              pdf_unstructured=pdf_unstructured, **kwargs)
+
+    return process_documents(documents,
+                             chunk_size = chunk_size,
+                             chunk_overlap = chunk_overlap,
+                             ignored_files = ignored_files,
+                             ignore_fn = ignore_fn,
+                             pdf_unstructured=pdf_unstructured,
+                             **kwargs)
+
+
+def process_documents(
+    documents: list, # list of LangChain Documents
+    chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
+    chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+    ignored_files: List[str] = [], # list of files to ignore
+    ignore_fn:Optional[Callable] = None, # Callable that accepts the file path (including file name) as input and ignores if returns True
+    pdf_unstructured:bool=False, # If True, use unstructured for PDF extraction
+    **kwargs
+
+
+) -> List[Document]:
+    """
+    Process list of Documents by splitting into chunks.
     Extra kwargs fed to `ingest.load_single_document`.
     """
     print(f"Loading documents from {source_directory}")
