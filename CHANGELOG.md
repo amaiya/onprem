@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added `process_documents` function
 
 ### fixed:
-- N/A
+- Pass `autodetect_encoding` argument to `TextLoader` (#116)
 
 
 ## 0.7.1 (2024-12-18)

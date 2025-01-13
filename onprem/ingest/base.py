@@ -178,7 +178,7 @@ LOADER_MAPPING = {
     ".odt": (UnstructuredODTLoader, {}),
     ".ppt": (UnstructuredPowerPointLoader, {}),
     ".pptx": (UnstructuredPowerPointLoader, {}),
-    ".txt": (TextLoader, {"encoding": "utf8"}),
+    ".txt": (TextLoader, {"autodetect_encoding": True}),
     PDF   : (_PyMuPDFLoader, {}),
     PDFMD: (PDF2MarkdownLoader, {}),
     PDFOCR: (MyUnstructuredPDFLoader, {"infer_table_structure":False, "mode":"elements", "strategy":"hi_res"}),
