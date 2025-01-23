@@ -57,7 +57,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 
     ```python
     from onprem import LLM
-    llm = LLM()
+    llm = LLM() # to use GPU instead of CPU, use n_gpu_layers parameter: LLM(n_gpu_layers=-1)
     llm.prompt('List three cute names for a cat.')
 
     # On a multi-core 2.5 GHz laptop CPU (e.g., 13th Gen Intel(R) Core(TM)
