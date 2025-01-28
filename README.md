@@ -585,6 +585,8 @@ with tools like [vLLM](https://github.com/vllm-project/vllm),
 [llama.cpp
 server](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md).
 
+#### vLLM Example
+
 For instance, using [vLLM](https://github.com/vllm-project/vllm), you
 can serve a LLaMA 3 model as follows:
 
@@ -605,6 +607,24 @@ llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123')
 That’s it! Solve problems with **OnPrem.LLM** as you normally would
 (e.g., RAG question-answering, summarization, few-shot prompting, code
 generation, etc.).
+
+#### Ollama Example
+
+After [downloading and installing Ollama](https://ollama.com/) and
+pulling a model (eg., `ollama pull llama3.2`), you can use it in
+OnPrem.LLM as follows:
+
+``` python
+from onprem import LLM
+llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
+output = llm.prompt('What is the capital of France?')
+
+# OUTPUT:
+# The capital of France is Paris.
+```
+
+If using OnPrem.LLM with Ollama or vLLM, then `llama-cpp-python` does
+**not** need to be installed.
 
 ### Using OpenAI Models with OnPrem.LLM
 
