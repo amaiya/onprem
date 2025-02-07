@@ -588,10 +588,11 @@ server](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/READM
 #### vLLM Example
 
 For instance, using [vLLM](https://github.com/vllm-project/vllm), you
-can serve a LLaMA 3 model as follows:
+can serve an LLM as follows (replace the `--model` argument with model
+you want to use):
 
 ``` sh
-python -m vllm.entrypoints.openai.api_server --model NousResearch/Meta-Llama-3-8B-Instruct --dtype auto --api-key token-abc123
+python -m vllm.entrypoints.openai.api_server --model Qwen/Qwen2.5-0.5B-Instruct --dtype auto --api-key token-abc123
 ```
 
 You can then connect OnPrem.LLM to the LLM by supplying the URL of the
@@ -599,9 +600,10 @@ server you just started:
 
 ``` python
 from onprem import LLM
-llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123') 
+llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct') 
 # Note: The API key can either be supplied directly or stored in the OPENAI_API_KEY environment variable.
 #       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
+#       The model argument must exactly match what was supplied when starting the vLLM server.
 ```
 
 That’s it! Solve problems with **OnPrem.LLM** as you normally would
