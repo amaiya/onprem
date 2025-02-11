@@ -313,9 +313,86 @@ def test_pydantic(**kwargs):
 def test_transformers(**kwargs):
     #llm = LLM(model_id='gpt2', device_map='cpu')
     llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct', device_map='cpu')
-    output = llm.prompt('How can the net amount of entropy of the universe be massively decreased?',
-                        stop=['entropy'])
-    assert("entropy" in output.lower())
+    output = llm.prompt('Repeat the word Paris three times.',
+                        stop=['Paris'])
+    assert("paris" in output.lower())
+
+def test_tm(**kwargs):
+    """
+    Test topic modeling
+    """
+    import numpy as np
+    import pandas as pd
+    from onprem.sk.tm import get_topic_model
+    from sklearn.datasets import fetch_20newsgroups
+
+    remove = ("headers", "footers", "quotes")
+    newsgroups_train = fetch_20newsgroups(subset="train", remove=remove)
+    newsgroups_test = fetch_20newsgroups(subset="test", remove=remove)
+    texts = newsgroups_train.data + newsgroups_test.data
+    MIN_WORDS = 30
+    texts = [text for text in texts if len(text.split()) > MIN_WORDS]
+    tm = get_topic_model(texts, model_type='lda', max_iter=5, n_topics=50)
+    tm.build(texts, threshold=0.25)
+    rawtext = """Elon Musk leads Space Exploration Technologies (SpaceX), where he oversees
+the development and manufacturing of advanced rockets and spacecraft for missions
+to and beyond Earth orbit."""
+    predicted_topic_id = np.argmax(tm.predict([rawtext]))
+    assert("space" in tm.topics[predicted_topic_id])
+
+    # scorer
+    tm.train_scorer(topic_ids=[predicted_topic_id])
+    other_topics = [i for i in range(tm.n_topics) if i not in [predicted_topic_id]]
+    other_texts = [d["text"].strip() for d in tm.get_docs(topic_ids=other_topics) if len(d['text'].strip().split()) > MIN_WORDS]
+    other_scores = tm.score(other_texts)
+    pd.set_option("display.max_colwidth", None)
+
+    other_preds = [int(score > 0) for score in other_scores]
+    data = sorted(
+        list(zip(other_preds, other_scores, other_texts[:250])),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+    df = pd.DataFrame(data, columns=["Prediction", "Score", "Text"])
+    assert('space' in df[df.Score>0].head()['Text'].tolist()[0])
+
+    # recommender
+    tm.train_recommender()
+    results = tm.recommend(text=rawtext, n=15)
+    assert('space' in results[0]['text'])
+
+def test_skclassifier(**kwargs):
+    """
+    Test scikit-learn classifier
+    """
+    categories = [
+				 "alt.atheism",
+				 "soc.religion.christian",
+				 "comp.graphics",
+				 "sci.med" ]
+    from sklearn.datasets import fetch_20newsgroups
+
+    train_b = fetch_20newsgroups(
+                subset="train", categories=categories, shuffle=True, random_state=42
+	)
+    test_b = fetch_20newsgroups(
+    subset="test", categories=categories, shuffle=True, random_state=42
+    )
+    print("size of training set: %s" % (len(train_b["data"])))
+    print("size of validation set: %s" % (len(test_b["data"])))
+    print("classes: %s" % (train_b.target_names))
+    x_train = train_b.data
+    y_train = train_b.target
+    x_test = test_b.data
+    y_test = test_b.target
+    classes = train_b.target_names
+
+    from onprem.sk.clf import Classifier
+    clf = Classifier()
+    clf.create_model("nbsvm", x_train, vec__ngram_range=(1, 3), vec__binary=True)
+    clf.fit(x_train, y_train)
+    test_doc = "god christ jesus mother mary church sunday lord heaven amen"
+    assert(3 == clf.predict(test_doc))
 
 
 TESTS = { 'test_prompt' : test_prompt,
@@ -327,7 +404,10 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_pdf' : test_pdf,
           'test_pydantic' : test_pydantic,
           'test_semantic' : test_semantic,
-          'test_transformers' : test_transformers}
+          'test_tm' : test_tm,
+          'test_skclassifier' : test_skclassifier,
+          'test_transformers' : test_transformers,}
+
 def run(**kwargs):
 
     prompt_template = kwargs.get('prompt_template', None)

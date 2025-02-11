@@ -6,13 +6,13 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.7.2 (TBD)
+## 0.8.0 (TBD)
 
 ### new:
-- N/A
+- `sk` "helper" module to fit simple scikit-learn text models (#117)
 
 ### changed
-- Added `process_documents` function
+- Added `process_documents` function (#117)
 
 ### fixed:
 - Pass `autodetect_encoding` argument to `TextLoader` (#116)

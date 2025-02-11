@@ -313,8 +313,6 @@ def process_folder(
     return process_documents(documents,
                              chunk_size = chunk_size,
                              chunk_overlap = chunk_overlap,
-                             ignored_files = ignored_files,
-                             ignore_fn = ignore_fn,
                              pdf_unstructured=pdf_unstructured,
                              **kwargs)
 
@@ -323,8 +321,6 @@ def process_documents(
     documents: list, # list of LangChain Documents
     chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
-    ignored_files: List[str] = [], # list of files to ignore
-    ignore_fn:Optional[Callable] = None, # Callable that accepts the file path (including file name) as input and ignores if returns True
     pdf_unstructured:bool=False, # If True, use unstructured for PDF extraction
     **kwargs
 
@@ -334,14 +330,10 @@ def process_documents(
     Process list of Documents by splitting into chunks.
     Extra kwargs fed to `ingest.load_single_document`.
     """
-    print(f"Loading documents from {source_directory}")
-    documents = load_documents(source_directory,
-                              ignored_files, ignore_fn=ignore_fn,
-                              pdf_unstructured=pdf_unstructured, **kwargs)
     if not documents:
-        print("No new documents to load")
+        print("No new documents to process")
         return
-    print(f"Loaded {len(documents)} new documents from {source_directory}")
+    print(f"Processing {len(documents)} new documents")
 
     # remove tables before chunking
     if kwargs.get('infer_table_structure', False) and not kwargs.get('pdf_unstructured', False):
@@ -536,7 +528,7 @@ class Ingester:
             print(f"Creating new vectorstore at {self.persist_directory}")
             ignored_files = []
 
-        texts = process_documents(
+        texts = process_folder(
             source_directory,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
