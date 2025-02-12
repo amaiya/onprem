@@ -9,6 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.8.0 (TBD)
 
 ### new:
+- Added `SKClassifier` to `pipelines.classifier` module (#118)
 - `sk` "helper" module to fit simple scikit-learn text models (#117)
 
 ### changed

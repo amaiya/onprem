@@ -365,34 +365,34 @@ def test_skclassifier(**kwargs):
     """
     Test scikit-learn classifier
     """
+
     categories = [
-				 "alt.atheism",
-				 "soc.religion.christian",
-				 "comp.graphics",
-				 "sci.med" ]
+                 "alt.atheism",
+                 "soc.religion.christian",
+                 "comp.graphics",
+                 "sci.med" ]
     from sklearn.datasets import fetch_20newsgroups
 
     train_b = fetch_20newsgroups(
                 subset="train", categories=categories, shuffle=True, random_state=42
-	)
+    )
     test_b = fetch_20newsgroups(
     subset="test", categories=categories, shuffle=True, random_state=42
     )
-    print("size of training set: %s" % (len(train_b["data"])))
-    print("size of validation set: %s" % (len(test_b["data"])))
-    print("classes: %s" % (train_b.target_names))
     x_train = train_b.data
     y_train = train_b.target
     x_test = test_b.data
     y_test = test_b.target
     classes = train_b.target_names
 
-    from onprem.sk.clf import Classifier
-    clf = Classifier()
-    clf.create_model("nbsvm", x_train, vec__ngram_range=(1, 3), vec__binary=True)
-    clf.fit(x_train, y_train)
+    from onprem.pipelines import SKClassifier
+    clf = SKClassifier()
+    clf.train(x_train, y_train)
     test_doc = "god christ jesus mother mary church sunday lord heaven amen"
-    assert(3 == clf.predict(test_doc))
+    acc = clf.model.evaluate(x_test, y_test)
+    assert(3 == clf.predict(test_doc))  
+    assert(acc > 0.85) # should 0.89+ for default SGDClassifier and 0.93 for NBSVM
+    print(acc)
 
 
 TESTS = { 'test_prompt' : test_prompt,

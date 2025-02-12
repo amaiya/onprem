@@ -13,6 +13,7 @@ Scikit-Learn Text Classification module
 import string
 import numpy as np
 import pandas as pd
+import warnings
 from . import base as U
 from joblib import dump, load
 from sklearn.datasets import load_files
@@ -35,18 +36,20 @@ class Classifier:
         """
         self.model = None
 
-    def create_model(self, ctype, texts, use_tfidf=False, **kwargs):
+    def create_model(self, ctype:str, texts:list=None, use_tfidf:bool=False, **kwargs):
         """
         ```
         create a model
         Args:
-          ctype(str): one of {'nbsvm', 'logreg', 'sgdclassifier'}
-          texts(list): list of texts
-          kwargs(dict):   additional parameters should have one of the following prefixes:
-                          vec__ :  hyperparameters to CountVectorizer (e.g., vec__max_features=10000)
-                          tfidf__ :  hyperparameters to TfidfTransformer
-                          clf__:   hyperparameters to classifier (specific to ctype).
-                                   If ctype='logreg', then an example is clf__solver='liblinear'.
+          - ctype(str): one of {'nbsvm', 'logreg', 'sgdclassifier'}
+          - texts(list): list of texts (optional: only used to infer token pattern)
+          - use_tfidf (bool):  If True, use TFIDFVectorizer. Otherwise, use CountVectorizer.
+          
+          - kwargs(dict):   additional parameters should have one of the following prefixes:
+                           vec__ :  hyperparameters to CountVectorizer (e.g., vec__max_features=10000)
+                           tfidf__ :  hyperparameters to TfidfTransformer
+                           clf__:   hyperparameters to classifier (specific to ctype).
+                                    If ctype='logreg', then an example is clf__solver='liblinear'.
         ```
         """
         if ctype == "nbsvm":
@@ -66,8 +69,7 @@ class Classifier:
             (k.replace("clf__", ""), kwargs[k]) for k in kwargs if k.startswith("clf__")
         )
 
-        lang = U.detect_lang(texts)
-        if U.is_chinese(lang) and not vec_kwargs.get("token_pattern", None):
+        if texts and U.is_chinese(U.detect_lang(texts)) and not vec_kwargs.get("token_pattern", None):
             vec_kwargs["token_pattern"] = r"(?u)\b\w+\b"
         elif not kwargs.get("vec__token_pattern", None):
             vec_kwargs["token_pattern"] = r"\w+|[%s]" % string.punctuation
@@ -179,22 +181,21 @@ class Classifier:
         labels = le.transform(labels)
         return (texts, labels, le.classes_)
 
-    def fit(self, x_train, y_train, ctype="logreg"):
+    def fit(self, x_train, y_train, ctype="logreg", **kwargs):
         """
-        ```
-        train a classifier
-        Args:
-          x_train(list or np.ndarray):  training texts
-          y_train(np.ndarray):  training labels
-          ctype(str):  One of {'logreg', 'nbsvm', 'sgdclassifier'}.  default:nbsvm
-        ```
+        Train a text  classifier. Extra kwargs fed diretly to `self.model.fit`.
+        
+        **Args:**
+          - x_train(list or np.ndarray):  training texts
+          - y_train(np.ndarray):  training labels
+          - ctype(str):  One of {'logreg', 'nbsvm', 'sgdclassifier'}.  default:nbsvm
         """
         lang = U.detect_lang(x_train)
         if U.is_chinese(lang):
             x_train = U.split_chinese(x_train)
         if self.model is None:
             self.create_model(ctype, x_train)
-        self.model.fit(x_train, y_train)
+        self.model.fit(x_train, y_train, **kwargs)
         return self
 
     def predict(self, x_test, return_proba=False):
