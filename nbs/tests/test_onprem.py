@@ -200,10 +200,10 @@ def test_classifier(**kwargs):
     X_test = test_df['text'].values
     y_test = test_df['label'].values
 
-    #clf.train(X_sample,  y_sample, num_epochs=1, batch_size=16, num_iterations=20)
-    clf.train(X_sample,  y_sample, max_steps=20)
+    #clf.train(X_sample,  y_sample, max_steps=20)
+    clf.train(X_sample,  y_sample, max_steps=1)
     
-    acc =  clf.evaluate(X_test, y_test, labels=clf.model.labels)['accuracy'] 
+    acc =  clf.evaluate(X_test, y_test, labels=clf.model.labels, print_report=False)['accuracy'] 
     print(acc)
     assert acc > 0.9
 
@@ -389,10 +389,45 @@ def test_skclassifier(**kwargs):
     clf = SKClassifier()
     clf.train(x_train, y_train)
     test_doc = "god christ jesus mother mary church sunday lord heaven amen"
-    acc = clf.model.evaluate(x_test, y_test)
+    acc = clf.evaluate(x_test, y_test, print_report=False)['accuracy']
     assert(3 == clf.predict(test_doc))  
     assert(acc > 0.85) # should 0.89+ for default SGDClassifier and 0.93 for NBSVM
     print(acc)
+
+
+def test_hfclassifier(**kwargs):
+    """
+    Test scikit-learn classifier
+    """
+
+    categories = [
+                 "alt.atheism",
+                 "soc.religion.christian",
+                 "comp.graphics",
+                 "sci.med" ]
+    from sklearn.datasets import fetch_20newsgroups
+
+    train_b = fetch_20newsgroups(
+                subset="train", categories=categories, shuffle=True, random_state=42
+    )
+    test_b = fetch_20newsgroups(
+    subset="test", categories=categories, shuffle=True, random_state=42
+    )
+    x_train = train_b.data
+    y_train = train_b.target
+    x_test = test_b.data
+    y_test = test_b.target
+    classes = train_b.target_names
+
+    from onprem.pipelines import HFClassifier
+    clf = HFClassifier()
+    clf.train(x_train, y_train)
+    test_doc = "god christ jesus mother mary church sunday lord heaven amen"
+    acc = clf.evaluate(x_test, y_test, print_report=False)['accuracy']
+    assert(3 == clf.predict(test_doc))  
+    assert(acc > 0.85)
+    print(acc)
+    return
 
 
 TESTS = { 'test_prompt' : test_prompt,
@@ -406,6 +441,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_semantic' : test_semantic,
           'test_tm' : test_tm,
           'test_skclassifier' : test_skclassifier,
+          'test_hfclassifier' : test_hfclassifier,
           'test_transformers' : test_transformers,}
 
 def run(**kwargs):
@@ -447,6 +483,7 @@ def run(**kwargs):
         fn = TESTS.get(test, None)
         if not fn:
             print(f'{test} is invalid - skipping')
+            continue
         print('----------------------------------------')
         print(f'Running {test}:')
         print('----------------------------------------')
