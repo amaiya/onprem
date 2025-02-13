@@ -265,7 +265,7 @@ class SKClassifier(ClassifierBase):
 
         
 
-# %% ../../nbs/04_pipelines.classifier.ipynb 20
+# %% ../../nbs/04_pipelines.classifier.ipynb 21
 from ..hf import HFTrainer
 from transformers import pipeline
 import numpy as np
@@ -419,7 +419,10 @@ class HFClassifier(ClassifierBase):
                
 
 
-# %% ../../nbs/04_pipelines.classifier.ipynb 30
+# %% ../../nbs/04_pipelines.classifier.ipynb 27
+from sklearn.datasets import fetch_20newsgroups
+
+# %% ../../nbs/04_pipelines.classifier.ipynb 32
 DEFAULT_SETFIT_MODEL = "sentence-transformers/paraphrase-mpnet-base-v2"
 SMALL_SETFIT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 

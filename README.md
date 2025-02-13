@@ -23,6 +23,10 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2025/02\] v0.8.0 released and now includes support for [training a
+  wide range of different text classification
+  models](https://amaiya.github.io/onprem/pipelines.classifier.html).
+
 - \[2024/12\] v0.7.0 released and now includes support for [structured
   outputs](https://amaiya.github.io/onprem/#structured-and-guided-outputs).
 
@@ -515,6 +519,10 @@ print(clf.evaluate(X_test, y_test)['accuracy'])
 clf.predict(['Elon Musk likes launching satellites.']).tolist()[0]
 #output: sci.space
 ```
+
+You can also train [traditional text classification
+models](https://amaiya.github.io/onprem/pipelines.classifier.html) using
+both Hugging Face transformers and scikit-learn as backends.
 
 ### Using Hugging Face Transformers Instead of Llama.cpp
 
