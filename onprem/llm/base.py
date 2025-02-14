@@ -11,6 +11,7 @@ __all__ = ['MIN_MODEL_SIZE', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_P
 
 # %% ../../nbs/00_llm.base.ipynb 3
 from .. import utils as U
+from . import helpers
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -20,6 +21,7 @@ from langchain.output_parsers import OutputFixingParser
 from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_core.messages.ai import AIMessage
+from langchain_core.documents import Document
 import os
 import warnings
 from typing import Any, Dict, Optional, Callable, Union, List
@@ -601,8 +603,9 @@ class LLM:
         return [d for d in docs if d.metadata['score'] >= score_threshold]
 
 
-    def ask(self,
+    def _ask(self,
             question: str, # question as sting
+            contexts:Optional[list]=None, # optional lists of contexts to answer question. If None, retrieve from vectordb.
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
@@ -613,15 +616,20 @@ class LLM:
         Returns a dictionary with keys: `answer`, `source_documents`, `question`
         """
 
-        # query the vector db
-        docs = self.query(question, filters=filters, where_document=where_document,
-                          k=self.rag_num_source_docs,
-                          score_threshold=self.rag_score_threshold)
-
+        if not contexts:
+            # query the vector db
+            docs = self.query(question, filters=filters, where_document=where_document,
+                              k=self.rag_num_source_docs,
+                              score_threshold=self.rag_score_threshold)
+            context = '\n\n'.join([d.page_content for d in docs])
+        else:
+            docs = [Document(page_content=c, metadata={'source':'<SUBANSWER>'}) for c in contexts]
+            context = "\n\n".join(contexts)
+    
         # setup prompt
         prompt = U.format_string(qa_template,
                                  question=question,
-                                 context = '\n\n'.join([d.page_content for d in docs]))
+                                 context = context)
 
         # prompt LLM
         answer = self.prompt(prompt,**kwargs)
@@ -633,6 +641,47 @@ class LLM:
         res['source_documents'] = docs
         return res
 
+
+    def ask(self,
+            question: str, # question as sting
+            selfask:bool=False, # If True, use an agentic Self-Ask prompting strategy.
+            qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
+            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
+            where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+             **kwargs):
+        """
+        Answer a question based on source documents fed to the `LLM.ingest` method.
+        Extra keyword arguments are sent directly to `LLM.prompt`.
+        Returns a dictionary with keys: `answer`, `source_documents`, `question`
+        """
+
+        if selfask and helpers.needs_followup(question, self):
+            subquestions = helpers.decompose_question(question, self)
+            subanswers = []
+            sources = []
+            for q in subquestions:
+                res = self._ask(q, 
+                                qa_template=qa_template, 
+                                filters=filters,
+                                where_document=where_document,
+                                **kwargs) 
+                subanswers.append(res['answer'])
+                for doc in res['source_documents']:
+                    doc.metadata = dict(doc.metadata, subquestion=q)
+                sources.extend(res['source_documents'])
+            res = self._ask(question=question,
+                            contexts=subanswers,
+                            qa_template=qa_template, 
+                            filters = filters,
+                            where_document=where_document, **kwargs) 
+            res['source_documents'] = sources
+            return res
+        else:       
+            res = self._ask(question=question,
+                            qa_template=qa_template, 
+                            filters = filters,
+                            where_document=where_document, **kwargs)
+            return res
 
     def chat(self, question: str, **kwargs):
         """

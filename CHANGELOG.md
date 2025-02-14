@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.9.0 (TBD)
+
+### new:
+- Support for using self-ask prompt strategy with RAG (#120)
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
 ## 0.8.0 (2025-02-13)
 
 ### new:
