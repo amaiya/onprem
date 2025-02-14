@@ -6,9 +6,11 @@
 > A toolkit for running large language models on-premises using
 > non-public data
 
+<p align="center">
 <center>
-<img src="https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/images/logo.png" border="1" alt="onprem.llm" width="200"/>
+<img src="https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/images/logo.png" border="0" alt="onprem.llm" width="200"/>
 </center>
+</p>
 
 **[OnPrem.LLM](https://github.com/amaiya/onprem)** is a simple Python
 package that makes it easier to apply large language models (LLMs) to
