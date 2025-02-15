@@ -421,6 +421,7 @@ class HFClassifier(ClassifierBase):
 
 # %% ../../nbs/04_pipelines.classifier.ipynb 27
 from sklearn.datasets import fetch_20newsgroups
+from .classifier import HFClassifier
 
 # %% ../../nbs/04_pipelines.classifier.ipynb 32
 DEFAULT_SETFIT_MODEL = "sentence-transformers/paraphrase-mpnet-base-v2"
