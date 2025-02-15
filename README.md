@@ -6,10 +6,10 @@
 > A toolkit for running large language models on-premises using
 > non-public data
 
-**[OnPrem.LLM](https://github.com/amaiya/onprem)** is a simple Python
-package that makes it easier to apply large language models (LLMs) to
-non-public data on your own machines (possibly behind corporate
-firewalls). Inspired largely by the
+**[OnPrem.LLM](https://github.com/amaiya/onprem)** (or “OnPrem” for
+short) is a simple Python package that makes it easier to apply large
+language models (LLMs) to non-public data on your own machines (possibly
+behind corporate firewalls). Inspired largely by the
 [privateGPT](https://github.com/imartinez/privateGPT) GitHub repo,
 **OnPrem.LLM** is intended to help integrate local LLMs into practical
 applications.
@@ -23,7 +23,7 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 <center>
 <p align="center">
-<img src="https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/images/onprem.png" border="0" alt="onprem.llm" width="200"/>
+<img src="https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/images/onprem.png" border="0" alt="onprem.llm" width="300"/>
 </p>
 </center>
 
