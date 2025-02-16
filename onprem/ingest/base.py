@@ -9,7 +9,9 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
            'process_folder', 'process_documents', 'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
+from ..llm import helpers
 from .. import utils as U
+
 
 from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -256,6 +258,9 @@ def load_documents(source_dir: str, # path to folder containing documents
                    ignored_files: List[str] = [], # list of filepaths to ignore
                    ignore_fn:Optional[Callable] = None, # callable that accepts file path and returns True for ignored files
                    pdf_unstructured:bool=False, # If True, use unstructured for PDF extraction
+                   caption_tables:bool=False,# If True, agument table text with summaries of tables if infer_table_structure is True.
+                   extract_document_titles:bool=False, # If True, infer document title and attach to individual chunks
+                   llm=None, # a reference to the LLM (used by `caption_tables` and `extract_document_titles`
                    **kwargs
 ) -> List[Document]:
     """
@@ -284,6 +289,13 @@ def load_documents(source_dir: str, # path to folder containing documents
                                     filtered_files)
             ):
                 if docs is not None:
+                    if llm and caption_tables:
+                        helpers.caption_tables(docs, llm=llm, **kwargs)
+                    if llm and extract_document_titles:
+                        title = helpers.extract_title(docs, llm=llm, **kwargs)
+                        for doc in docs:
+                            if title:
+                                doc.metadata['document_title'] = title
                     results.extend(docs)
                 pbar.update()
 
@@ -367,6 +379,12 @@ def process_documents(
         table_texts = table_splitter.split_documents(tables)
         texts.extend(table_texts)
     print(f"Split into {len(texts)} chunks of text (max. {chunk_size} chars each for text; max. {TABLE_CHUNK_SIZE} chars for tables)")
+
+    # attach document title to each chunk (where title was extracted earlier by `load_documents`)
+    if kwargs.get('extract_document_titles', False):
+        for text in texts:
+            if text.metadata.get('document_title', ''):
+                text.page_content = f'{text.page_content}\n\nThe content above is from a document titled, \"{text.metadata["document_title"]}\"'
     return texts
 
 

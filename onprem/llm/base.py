@@ -314,17 +314,18 @@ class LLM:
         chunk_size: int = 500, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
         chunk_overlap: int = 50, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # callable that accepts the file path and returns True for ignored files
-        **kwargs, # Extra kwargs fed to `load_single_document`
+        **kwargs, # Extra kwargs fed to downstream functions, `load_single_document` and/or `load_documents`
     ):
         """
         Ingests all documents in `source_folder` into vector database.
         Previously-ingested documents are ignored.
-        Extra kwargs fed to `load_single_document`.
+        Extra kwargs fed to `load_single_document` and/or `load_docments`.
         """
         ingester = self.load_ingester()
         return ingester.ingest(
             source_directory,
             chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn,
+            llm=kwargs['llm'] if 'llm' in kwargs else self,
             **kwargs
         )
 

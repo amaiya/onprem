@@ -10,6 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - Support for using self-ask prompt strategy with RAG (#120)
+- helpers for document metadata (#121)
 
 ### changed
 - N/A
