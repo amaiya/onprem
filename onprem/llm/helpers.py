@@ -8,7 +8,7 @@ __all__ = ['SUBQUESTION_PROMPT', 'FOLLOWUP_PROMPT', 'TITLE_PROMPT', 'TABLE_PROMP
            'caption_table_text', 'caption_tables']
 
 # %% ../../nbs/00_llm.helpers.ipynb 3
-from .. import utils as U
+from ..utils import SafeFormatter
 import json
 import yaml
 from typing import List, Any, Union
@@ -158,7 +158,7 @@ def decompose_question(question:str, llm, parse=True, **kwargs):
     """
     Decompose a question into subquestions
     """
-    prompt = U.SafeFormatter({'query_str': question}).format(SUBQUESTION_PROMPT)
+    prompt = SafeFormatter({'query_str': question}).format(SUBQUESTION_PROMPT)
     json_string = llm.prompt(prompt)
     json_dict = parse_json_markdown(json_string)
     subquestions = [d['sub_question'] for d in json_dict['items']]
@@ -203,13 +203,13 @@ def needs_followup(question:str, llm, parse=True, **kwargs):
     """
     Decide if follow-up questions are needed
     """
-    prompt = U.SafeFormatter({'query_str': question}).format(FOLLOWUP_PROMPT)
+    prompt = SafeFormatter({'query_str': question}).format(FOLLOWUP_PROMPT)
     output = llm.prompt(prompt)
     return "yes" in output.lower()
 
 # %% ../../nbs/00_llm.helpers.ipynb 7
 TITLE_PROMPT = """\
-Context: {context_str}. Give a title that summarizes what the context describes. \
+Context: {context_str}.\n\nGive a title that summarizes what the context describes. \
 Title: """
 
 class Title(BaseModel):
