@@ -190,10 +190,10 @@ def df_to_md(df, caption=None):
         table_summary = (
             f"{CAPTION_STR}: {caption}."
         )
-    else:
-        table_summary = f"The following table in markdown format includes this list of columns:\n"
-        for col in df.columns:
-            table_summary += f"- {col}\n"
+        print('\n\n')
+    table_summary += f"The following table in markdown format includes this list of columns:\n"
+    for col in df.columns:
+        table_summary += f"- {col}\n"
 
     return table_summary + "\n" + table_md
 
