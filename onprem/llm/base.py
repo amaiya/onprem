@@ -10,7 +10,7 @@ __all__ = ['MIN_MODEL_SIZE', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_P
            'AnswerConversationBufferMemory', 'LLM']
 
 # %% ../../nbs/00_llm.base.ipynb 3
-from .. import utils as U
+from ..utils import get_datadir, download, format_string
 from . import helpers
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
@@ -149,7 +149,7 @@ class LLM:
             else:
                 self.model_url = None
                 self.model_id = url_or_id
-        self.model_download_path = model_download_path or U.get_datadir()
+        self.model_download_path = model_download_path or get_datadir()
 
         if self.is_llamacpp():
             try:
@@ -262,7 +262,7 @@ class LLM:
         model_url = MODEL_URL_DICT[default_model] if not model_url else model_url
         if 'https://huggingface.co' in model_url and 'resolve' not in model_url:
             warnings.warn('\n\nThe supplied URL may not be pointing to the actual GGUF model file.  Please check it.\n\n')
-        datadir = model_download_path or U.get_datadir()
+        datadir = model_download_path or get_datadir()
         model_name = os.path.basename(model_url)
         filename = os.path.join(datadir, model_name)
         confirm_msg = f"\nYou are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"
@@ -273,7 +273,7 @@ class LLM:
         if confirm:
             shall = input("%s (y/N) " % confirm_msg).lower() == "y"
         if shall:
-            U.download(model_url, filename, verify=ssl_verify)
+            download(model_url, filename, verify=ssl_verify)
         else:
             warnings.warn(
                 f'{model_name} was not downloaded because "Y" was not selected.'
@@ -540,7 +540,7 @@ class LLM:
             else:
                 prompt_template = self.prompt_template if prompt_template is None else prompt_template
                 if prompt_template:
-                    prompt = U.format_string(prompt_template, prompt=prompt)
+                    prompt = format_string(prompt_template, prompt=prompt)
                 stop = stop if stop else self.stop
                 if self.is_hf():
                     tokenizer = llm.llm.pipeline.tokenizer
@@ -610,6 +610,8 @@ class LLM:
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+            k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
+            score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
              **kwargs):
         """
         Answer a question based on source documents fed to the `LLM.ingest` method.
@@ -620,15 +622,15 @@ class LLM:
         if not contexts:
             # query the vector db
             docs = self.query(question, filters=filters, where_document=where_document,
-                              k=self.rag_num_source_docs,
-                              score_threshold=self.rag_score_threshold)
+                              k=k if k else self.rag_num_source_docs,
+                              score_threshold=score_threshold if score_threshold else self.rag_score_threshold)
             context = '\n\n'.join([d.page_content for d in docs])
         else:
             docs = [Document(page_content=c, metadata={'source':'<SUBANSWER>'}) for c in contexts]
             context = "\n\n".join(contexts)
-    
+
         # setup prompt
-        prompt = U.format_string(qa_template,
+        prompt = format_string(qa_template,
                                  question=question,
                                  context = context)
 
@@ -649,6 +651,8 @@ class LLM:
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+            k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
+            score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
              **kwargs):
         """
         Answer a question based on source documents fed to the `LLM.ingest` method.
@@ -665,6 +669,7 @@ class LLM:
                                 qa_template=qa_template, 
                                 filters=filters,
                                 where_document=where_document,
+                                k=k, score_threshold=score_threshold,
                                 **kwargs) 
                 subanswers.append(res['answer'])
                 for doc in res['source_documents']:

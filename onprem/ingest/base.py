@@ -10,7 +10,7 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm import helpers
-from .. import utils as U
+from ..utils import split_list, get_datadir
 
 
 from langchain_core.documents import Document
@@ -401,8 +401,8 @@ def batchify_chunks(texts):
     """
     split texts into batches specifically for Chroma
     """
-    split_docs_chunked = U.split_list(texts, CHROMA_MAX)
-    total_chunks = sum(1 for _ in U.split_list(texts, CHROMA_MAX))
+    split_docs_chunked = split_list(texts, CHROMA_MAX)
+    total_chunks = sum(1 for _ in split_list(texts, CHROMA_MAX))
     return split_docs_chunked, total_chunks
 
 
@@ -435,7 +435,7 @@ class Ingester:
         **Returns**: `None`
         """
         self.persist_directory = persist_directory or os.path.join(
-            U.get_datadir(), DEFAULT_DB
+            get_datadir(), DEFAULT_DB
         )
         self.embeddings = HuggingFaceEmbeddings(
             model_name=embedding_model_name,

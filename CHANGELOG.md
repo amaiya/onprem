@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - helpers for document metadata (#121)
 
 ### changed
-- N/A
+- Added `k` and `score_threshold` arguments to `LLM.ask` (#122)
 
 ### fixed:
 - N/A
