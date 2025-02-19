@@ -29,7 +29,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
    pip install llama-cpp-python==0.2.90 \
      --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
    ```
-   If you want to the newest version of `llama-cpp-python`, running `pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+   If you want the newest version of `llama-cpp-python`, running `pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
 ` will build and install the latest version of the package.
    
    If you want the LLM to generate faster answers using your GPU, then you'll
