@@ -29,7 +29,9 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
    pip install llama-cpp-python==0.2.90 \
      --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
    ```
-
+   If you want the newest version of `llama-cpp-python`, running `pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
+` will build and install the latest version of the package.
+   
    If you want the LLM to generate faster answers using your GPU, then you'll
    need to install the CUDA Toolkit from
    [here](https://developer.nvidia.com/cuda-12-6-0-download-archive?target_os=Windows).
@@ -50,9 +52,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
    issues, you can try adding `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` as
    environment variables and point them to the location of the certificate file
    for your organization, so hugging face models can be downloaded, etc.
-9. [OPTIONAL] Enable long paths if you get an error indicating you do:
-   [Stack Overflow](https://stackoverflow.com/questions/72352528/how-to-fix-winerror-206-the-filename-or-extension-is-too-long-error/76452218#76452218)
-10. Try onprem at a Python prompt to make sure it works. Run the `python`
+9. Try onprem at a Python prompt to make sure it works. Run the `python`
     command and type the following:
 
     ```python
@@ -65,7 +65,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     # If enabling GPU support as described above, speeds are much faster.
     ```
 
-11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html) by running
+10. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html) by running
     `onprem --port 8000` at a command prompt and clicking on the hyperlink.
 
 ## Using WSL2 (with GPU Acceleration)
