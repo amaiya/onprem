@@ -10,6 +10,7 @@ __all__ = ['CAPTION_STR', 'download', 'get_datadir', 'split_list', 'segment', 'm
 import os.path
 import requests
 import sys
+import re
 
 #--------------------------------------
 # App Utilities
@@ -85,6 +86,29 @@ def segment(text:str, unit:str='paragraph', maxchars:int=2048):
     return chunks
 
 
+def remove_sentence(sentence, text, remove_follow=False, flags=re.IGNORECASE):
+    """
+    Removes a sentence or phrase from text ignoring whether
+    tokens are delimited by spaces or newlines or tabs.
+
+    If  `remove_follow=True`, then subsequent text until the first newline
+    is also removed.
+    """
+    if remove_follow:
+    	pattern = r'\s*'.join(map(re.escape, sentence.split())) + r'[\s\S]*?(?:\n\s*){2,}'
+    	return re.sub(pattern, '\n\n', text, flags=flags).strip()
+    else:
+        pattern = r'\s*'.join(map(re.escape, sentence.split())) + r'\s*'
+        return re.sub(pattern, '', text, flags=flags)
+
+
+def contains_sentence(sentence, text):
+    """
+    Returns True if sentence is contained in text ignoring whether
+    tokens are delmited by spaces or newlines or tabs.
+    """
+    pattern = r'\s*'.join(map(re.escape, sentence.split())) + r'\s*'
+    return re.search(pattern, text, flags=re.IGNORECASE) is not None
 
 
 from typing import Any
@@ -187,15 +211,13 @@ def df_to_md(df, caption=None):
             table_md += f"{col}|"
         table_md += "\n"
     if caption:
-        table_summary = (
-            f"{CAPTION_STR}: {caption}."
-        )
+        table_summary = f"{CAPTION_STR}: {caption} "
         print('\n\n')
     table_summary += f"The following table in markdown format includes this list of columns:\n"
     for col in df.columns:
         table_summary += f"- {col}\n"
 
-    return table_summary + "\n" + table_md
+    return f'{caption}\n\n{table_summary}\n{table_md}' if caption else f'{table_summary}\n{table_md}'
 
 
 # %% ../nbs/02_utils.ipynb 5

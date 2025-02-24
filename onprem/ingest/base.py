@@ -10,7 +10,7 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm import helpers
-from ..utils import split_list, get_datadir
+from ..utils import split_list, get_datadir, remove_sentence
 
 
 from langchain_core.documents import Document
@@ -123,13 +123,21 @@ class _PyMuPDFLoader(PyMuPDFLoader):
 
     def extract_tables(self, docs:List[Document]) -> List[Document]:
         """
-        Extract tables from PDF and append to end of Document list
+        Extract tables from PDF and append to end of Document list.
         """
         from onprem.ingest.pdftables import PDFTables
         filepath = None if not docs else docs[0].metadata['source']
         if not filepath: return docs
         pdftab = PDFTables.from_file(filepath, verbose=False)
         md_tables = pdftab.get_markdown_tables()
+
+        # remove original caption to penalize vectordb scores of original tables
+        captions = pdftab.get_captions()
+        for c in captions:
+            for d in docs:
+                d.page_content = remove_sentence(c, d.page_content)
+
+        # augment docs with extracted tables
         tabledocs = []
         for md_table in md_tables:
             tabledoc = Document(page_content=md_table,
@@ -384,7 +392,7 @@ def process_documents(
     if kwargs.get('extract_document_titles', False):
         for text in texts:
             if text.metadata.get('document_title', ''):
-                text.page_content = f'{text.page_content}\n\nThe content above is from a document titled, \"{text.metadata["document_title"]}\"'
+                text.page_content = f'The content below is from a document titled, \"{text.metadata["document_title"]}\"\n\n{text.page_content}'
     return texts
 
 
