@@ -275,6 +275,7 @@ def load_documents(source_dir: str, # path to folder containing documents
                    caption_tables:bool=False,# If True, agument table text with summaries of tables if infer_table_structure is True.
                    extract_document_titles:bool=False, # If True, infer document title and attach to individual chunks
                    llm=None, # a reference to the LLM (used by `caption_tables` and `extract_document_titles`
+                   n_proc=None, # number of CPU cores to use for text extraction. If None, use maximum for system.
                    **kwargs
 ) -> List[Document]:
     """
@@ -292,7 +293,7 @@ def load_documents(source_dir: str, # path to folder containing documents
     # Reference: https://github.com/pytorch/pytorch/issues/40403
     if kwargs.get('infer_table_structure', False):
         multiprocessing.set_start_method('spawn', force=True)
-    with multiprocessing.Pool(processes=os.cpu_count()) as pool:
+    with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
         results = []
         with tqdm(
             total=len(filtered_files), desc="Loading new documents", ncols=80
