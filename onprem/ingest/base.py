@@ -293,6 +293,12 @@ def load_documents(source_dir: str, # path to folder containing documents
     # Reference: https://github.com/pytorch/pytorch/issues/40403
     if kwargs.get('infer_table_structure', False):
         multiprocessing.set_start_method('spawn', force=True)
+        if not kwargs.get('n_proc', None):
+            print()
+            warnings.warn('You supplied infer_table_structure=True, which is not well-suited to '+\
+                          'multi-document parallelization. If the loading of your documents stalls, '+\
+                          'please supply n_proc=1 as argument to process document sequentially.')
+            print()
     with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
         results = []
         with tqdm(
