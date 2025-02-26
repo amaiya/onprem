@@ -5,9 +5,9 @@
 # %% auto 0
 __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK_SIZE', 'COLLECTION_NAME', 'CHROMA_MAX',
            'CAPTION_DELIMITER', 'PDFOCR', 'PDFMD', 'PDF', 'PDF_EXTS', 'OCR_CHAR_THRESH', 'LOADER_MAPPING', 'DEFAULT_DB',
-           'MyElmLoader', 'MyUnstructuredPDFLoader', 'PDF2MarkdownLoader', 'extract_files', 'load_single_document',
-           'load_documents', 'process_folder', 'process_documents', 'does_vectorstore_exist', 'batchify_chunks',
-           'Ingester']
+           'MyElmLoader', 'MyUnstructuredPDFLoader', 'PDF2MarkdownLoader', 'extract_tables', 'extract_extension',
+           'extract_files', 'load_single_document', 'load_documents', 'process_folder', 'process_documents',
+           'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm import helpers
@@ -116,42 +116,11 @@ class _PyMuPDFLoader(PyMuPDFLoader):
                 del self.text_kwargs['infer_table_structure']
             docs = PyMuPDFLoader.load(self)
             if infer_table_structure:
-                docs = self.extract_tables(docs)
+                docs = extract_tables(docs)
             return docs
         except Exception as e:
             # Add file_path to exception message
             raise Exception(f'{self.file_path} : {e}')
-
-
-    def extract_tables(self, docs:List[Document]) -> List[Document]:
-        """
-        Extract tables from PDF and append to end of Document list.
-        """
-        from onprem.ingest.pdftables import PDFTables
-        filepath = None if not docs else docs[0].metadata['source']
-        if not filepath: return docs
-        pdftab = PDFTables.from_file(filepath, verbose=False)
-        md_tables = pdftab.get_markdown_tables()
-
-        # tag document objects that contain extracted tables
-        captions = pdftab.get_captions()
-        for c in captions:
-            for d in docs:
-                if contains_sentence(c, d.page_content):
-                    table_captions = d.metadata.get('table_captions', [])
-                    if isinstance(table_captions, str):
-                        table_captions = table_captions.split(CAPTION_DELIMITER)
-                    table_captions.append(c)
-                    d.metadata['table_captions'] = CAPTION_DELIMITER.join(table_captions)
-
-        # augment docs with extracted tables
-        tabledocs = []
-        for md_table in md_tables:
-            tabledoc = Document(page_content=md_table,
-                    metadata={'source':self.file_path, 'markdown':True, 'table':True})
-            tabledocs.append(tabledoc)
-        docs.extend(tabledocs)
-        return docs
 
 
 class PDF2MarkdownLoader(_PyMuPDFLoader):
@@ -167,7 +136,7 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
             doc = Document(page_content=md_text, metadata={'source':self.file_path, 'markdown':True})
             docs = [doc]
             if self.text_kwargs.get('infer_table_structure', False):
-                docs = self.extract_tables(docs)
+                docs = extract_tables(docs)
             return docs
         except Exception as e:
             # Add file_path to exception message
@@ -201,6 +170,44 @@ LOADER_MAPPING = {
     PDFOCR: (MyUnstructuredPDFLoader, {"infer_table_structure":False, "mode":"elements", "strategy":"hi_res"}),
     # Add more mappings for other file extensions and loaders as needed
 }
+
+
+def extract_tables(docs:List[Document]) -> List[Document]:
+    """
+    Extract tables from PDF and append to end of Document list.
+    """
+    from onprem.ingest.pdftables import PDFTables
+    filepath = None if not docs else docs[0].metadata['source']
+    if not filepath: return docs
+    if extract_extension(filepath) != PDF: return docs
+    pdftab = PDFTables.from_file(filepath, verbose=False)
+    md_tables = pdftab.get_markdown_tables()
+
+    # tag document objects that contain extracted tables
+    captions = pdftab.get_captions()
+    for c in captions:
+        for d in docs:
+            if contains_sentence(c, d.page_content):
+                table_captions = d.metadata.get('table_captions', [])
+                if isinstance(table_captions, str):
+                    table_captions = table_captions.split(CAPTION_DELIMITER)
+                table_captions.append(c)
+                d.metadata['table_captions'] = CAPTION_DELIMITER.join(table_captions)
+
+    # augment docs with extracted tables
+    tabledocs = []
+    for md_table in md_tables:
+        tabledoc = Document(page_content=md_table,
+                metadata={'source':filepath, 'markdown':True, 'table':True})
+        tabledocs.append(tabledoc)
+    docs.extend(tabledocs)
+    return docs
+
+def extract_extension(file_path:str):
+    """
+    Extracts file extension (including dot) from file path
+    """
+    return "." + file_path.rsplit(".", 1)[-1].lower()
 
 
 def extract_files(source_dir:str):
@@ -237,7 +244,7 @@ def load_single_document(file_path: str, # path to file
     if pdf_unstructured and pdf_markdown:
         raise ValueError('pdf_unstructured and pdf_markdown cannot both be True.')
     file_path = os.path.abspath(file_path)
-    ext = "." + file_path.rsplit(".", 1)[-1].lower()
+    ext = extract_extension(file_path)
     if ext in LOADER_MAPPING:
         try:
             if ext == PDF:
@@ -275,7 +282,7 @@ def load_documents(source_dir: str, # path to folder containing documents
                    caption_tables:bool=False,# If True, agument table text with summaries of tables if infer_table_structure is True.
                    extract_document_titles:bool=False, # If True, infer document title and attach to individual chunks
                    llm=None, # a reference to the LLM (used by `caption_tables` and `extract_document_titles`
-                   n_proc=None, # number of CPU cores to use for text extraction. If None, use maximum for system.
+                   n_proc:Optional[int]=None, # number of CPU cores to use for text extraction. If None, use maximum for system.
                    **kwargs
 ) -> List[Document]:
     """
@@ -289,27 +296,27 @@ def load_documents(source_dir: str, # path to folder containing documents
          and (ignore_fn is None or not ignore_fn(file_path))
     ]
 
-    # Use "spawn" if using TableTransformers
-    # Reference: https://github.com/pytorch/pytorch/issues/40403
+    load_args = kwargs.copy()
     if kwargs.get('infer_table_structure', False):
+        # Use "spawn" if using TableTransformers
+        # Reference: https://github.com/pytorch/pytorch/issues/40403
         multiprocessing.set_start_method('spawn', force=True)
-        if not kwargs.get('n_proc', None):
-            print()
-            warnings.warn('You supplied infer_table_structure=True, which is not well-suited to '+\
-                          'multi-document parallelization. If the loading of your documents stalls, '+\
-                          'please supply n_proc=1 as argument to process document sequentially.')
-            print()
+        # call extract_tables sequentially below instead of in load_single_document if n_proc>1
+        # because extract_tables is not well-suited to multiprocessing even with line above
+        if not n_proc or n_proc>1:
+            load_args = {k:load_args[k] for k in load_args if k!='infer_table_structure'}
     with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
         results = []
         with tqdm(
             total=len(filtered_files), desc="Loading new documents", ncols=80
         ) as pbar:
             for i, docs in enumerate(
-                pool.imap_unordered(functools.partial(load_single_document,
-                                                      **kwargs),
-                                    filtered_files)
+                pool.imap_unordered(functools.partial(load_single_document, **load_args),
+                                                      filtered_files)
             ):
                 if docs is not None:
+                    if kwargs.get('infer_table_structure', False):
+                        docs = extract_tables(docs)
                     if llm and caption_tables:
                         helpers.caption_tables(docs, llm=llm, **kwargs)
                     if llm and extract_document_titles:

@@ -14,9 +14,11 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Added `k` and `score_threshold` arguments to `LLM.ask` (#122)
+- Added `n_proc` paramter to control the number of CPUs used 
+  by `LLM.ingest` (ee09807)
 
 ### fixed:
-- N/A
+- Ensure table-processing is sequential and not parallelized (#123)
 
 
 ## 0.8.0 (2025-02-13)
