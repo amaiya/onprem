@@ -17,7 +17,9 @@ website:
       - section: Source
         contents:
         - 00_llm.base.ipynb
+        - 00_llm.helpers.ipynb
         - 01_ingest.base.ipynb
+        - 01_ingest.helpers.ipynb
         - 02_utils.ipynb
         - 04_pipelines.extractor.ipynb
         - 04_pipelines.summarizer.ipynb

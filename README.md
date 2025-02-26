@@ -29,6 +29,11 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2025/02\] v0.9.0 released and now includes built-in support for
+  [self-ask
+  prompting](https://learnprompting.org/docs/advanced/few_shot/self_ask)
+  with RAG and better table question-answering.
+
 - \[2025/02\] v0.8.0 released and now includes support for [training a
   wide range of different text classification
   models](https://amaiya.github.io/onprem/pipelines.classifier.html#example-training-hugging-face-transformer-models).

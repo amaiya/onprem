@@ -109,9 +109,9 @@ class _PyMuPDFLoader(PyMuPDFLoader):
         try:
             # PyMuPDFLoader complains when you add custom flags to text_kwargs,
             # so delete before loading
-            infer_table_structure = self.text_kwargs.get('infer_table_structure', False)
-            if 'infer_table_structure' in self.text_kwargs:
-                del self.text_kwargs['infer_table_structure']
+            infer_table_structure = self.parser.text_kwargs.get('infer_table_structure', False)
+            if 'infer_table_structure' in self.parser.text_kwargs:
+                del self.parser.text_kwargs['infer_table_structure']
             docs = PyMuPDFLoader.load(self)
             if infer_table_structure:
                 docs = extract_tables(docs=docs)
@@ -133,7 +133,7 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
                 raise Exception('Document had no content. ')
             doc = Document(page_content=md_text, metadata={'source':self.file_path, 'markdown':True})
             docs = [doc]
-            if self.text_kwargs.get('infer_table_structure', False):
+            if self.parser.text_kwargs.get('infer_table_structure', False):
                 docs = extract_tables(docs=docs)
             return docs
         except Exception as e:

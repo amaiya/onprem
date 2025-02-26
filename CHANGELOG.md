@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.9.0 (TBD)
+## 0.9.0 (2025-02-26)
 
 ### new:
 - Support for using self-ask prompt strategy with RAG (#120)
@@ -17,9 +17,11 @@ Most recent releases are shown at the top. Each release shows:
 - Added `k` and `score_threshold` arguments to `LLM.ask` (#122)
 - Added `n_proc` paramter to control the number of CPUs used 
   by `LLM.ingest` (ee09807)
+- Upgrade version of `chromadb` (#125)
 
 ### fixed:
 - Ensure table-processing is sequential and not parallelized (#123)
+- Fixes to support newer version of `langchain_community`. (#125)
 
 
 ## 0.8.0 (2025-02-13)

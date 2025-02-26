@@ -593,6 +593,9 @@ class LLM:
         Perform a semantic search of the vector DB
         """
         db = self.load_ingester().get_db()
+        if not db:
+            raise Exception('Vector DB does not seem to exist yet. '+\
+                            'You may need to ingest some documents with LLM.ingest')
         results = db.similarity_search_with_score(query, 
                                                   filter=filters,
                                                   where_document=where_document,

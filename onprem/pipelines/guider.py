@@ -45,4 +45,4 @@ class Guider:
         """
         model = models.LlamaCpp(self.llm.llm.client, echo=echo) 
         output = model + guidance_program
-        return output._variables
+        return output.__dict__['_variables']

@@ -108,6 +108,9 @@ sudo apt install python3.12-venv
 python3 -m venv ./ai_env
 source ./ai_env/bin/activate
 
+# Install PyTorch
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
 # Install and build llama-cpp-python
 CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
 
