@@ -586,17 +586,19 @@ class LLM:
               query:str, # query string
               k:int = 4, # max number of results to return
               score_threshold:float=0.0, # minimum score for document to be considered as answer source
-              filters:Optional[Dict[str, str]] = None, # metadata filters (e.g., page=3)
-              where_document:Optional[Dict[str, str]] = None, # selections on document content in Chroma syntax (e.g., {"$contains": "Canada"})
+              filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
+              where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
               **kwargs):
         """
         Perform a semantic search of the vector DB
         """
         db = self.load_ingester().get_db()
-        docs, scores = zip(*db.similarity_search_with_score(query, 
-                                                            filter=filters,
-                                                            where_document=where_document,
-                                                            k = k, **kwargs))
+        results = db.similarity_search_with_score(query, 
+                                                  filter=filters,
+                                                  where_document=where_document,
+                                                  k = k, **kwargs)
+        if not results: return []
+        docs, scores = zip(*results)
         for doc, score in zip(docs, scores):
             simscore = 1 - score
             doc.metadata["score"] = 1-score
@@ -608,10 +610,12 @@ class LLM:
             question: str, # question as sting
             contexts:Optional[list]=None, # optional lists of contexts to answer question. If None, retrieve from vectordb.
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
-            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
+            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
             k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
+            table_k:int=1, # maximum number of tables to consider when generating answer
+            table_score_threshold:float=0.35, # minimum similarity score for table to be considered in answer
              **kwargs):
         """
         Answer a question based on source documents fed to the `LLM.ingest` method.
@@ -624,6 +628,16 @@ class LLM:
             docs = self.query(question, filters=filters, where_document=where_document,
                               k=k if k else self.rag_num_source_docs,
                               score_threshold=score_threshold if score_threshold else self.rag_score_threshold)
+            if table_k>0:
+                table_filters = filters.copy() if filters else {}
+                table_filters = dict(table_filters, table=True)
+                table_docs = self.query(f'{question} (table)', 
+                                        filters=table_filters, 
+                                        where_document=where_document,
+                                        k=table_k,
+                                        score_threshold=table_score_threshold)
+                if table_docs:
+                    docs.extend(table_docs[:k])
             context = '\n\n'.join([d.page_content for d in docs])
         else:
             docs = [Document(page_content=c, metadata={'source':'<SUBANSWER>'}) for c in contexts]
@@ -649,10 +663,12 @@ class LLM:
             question: str, # question as sting
             selfask:bool=False, # If True, use an agentic Self-Ask prompting strategy.
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
-            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (Chroma syntax)
+            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
             k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
+            table_k:int=1, # maximum number of tables to consider when generating answer
+            table_score_threshold:float=0.35, # minimum similarity score for table to be considered in answer
              **kwargs):
         """
         Answer a question based on source documents fed to the `LLM.ingest` method.
@@ -670,6 +686,7 @@ class LLM:
                                 filters=filters,
                                 where_document=where_document,
                                 k=k, score_threshold=score_threshold,
+                                table_k=table_k, table_score_threshold=table_score_threshold,
                                 **kwargs) 
                 subanswers.append(res['answer'])
                 for doc in res['source_documents']:

@@ -271,7 +271,7 @@ def test_pdf(**kwargs):
     assert segment(docs[0].page_content, unit='paragraph')[0].startswith('#')
     docs = load_single_document(fpath, infer_table_structure=True)
     assert len(docs) == 7
-    assert docs[-1].page_content.startswith("The following table in markdown format has the caption: Table 1")
+    assert docs[-1].page_content.startswith("Table 1")
 
 
 def test_pdftables(**kwargs):
