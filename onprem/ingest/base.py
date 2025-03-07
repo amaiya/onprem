@@ -10,7 +10,7 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm import helpers
-from ..utils import batch_list, get_datadir, filtered_generator
+from ..utils import batch_list, filtered_generator, get_datadir
 from .helpers import extract_files, extract_extension, extract_tables, includes_caption
 from .helpers import md5sum, extract_mimetype, extract_file_dates
 
@@ -270,7 +270,7 @@ def load_single_document(file_path: str, # path to file
                 if not docs or len('\n'.join([d.page_content.strip() for d in docs]).strip()) < OCR_CHAR_THRESH:
                     loader_class, loader_args = LOADER_MAPPING[PDFOCR]
                     loader = loader_class(file_path, **loader_args)
-                    file_metadta['ocr'] = True
+                    file_metadata['ocr'] = True
                     docs = loader.load()
                     file_metadata.update(_apply_text_callables(docs, text_callables))
                     docs = _update_metadata(docs, file_metadata)
@@ -298,6 +298,7 @@ def load_documents(source_dir: str, # path to folder containing documents
                    extract_document_titles:bool=False, # If True, infer document title and attach to individual chunks
                    llm=None, # a reference to the LLM (used by `caption_tables` and `extract_document_titles`
                    n_proc:Optional[int]=None, # number of CPU cores to use for text extraction. If None, use maximum for system.
+                   verbose:bool=True, # verbosity
                    **kwargs
 ) -> List[Document]:
     """
@@ -327,7 +328,7 @@ def load_documents(source_dir: str, # path to folder containing documents
     with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
         results = []
         with tqdm(
-            total=total, desc="Loading new documents", ncols=80
+            total=total, desc="Loading new documents", ncols=80, disable=not verbose
         ) as pbar:
             for i, docs in enumerate(
                 pool.imap_unordered(functools.partial(load_single_document, **load_args),
@@ -367,10 +368,18 @@ def process_folder(
                               **kwargs)
     documents = list(documents)
 
-    return chunk_documents(documents,
-                           chunk_size = chunk_size,
-                           chunk_overlap = chunk_overlap,
-                           **kwargs)
+    if not documents:
+        print("No new documents to process")
+        return
+
+    batches = batch_list(documents, 1000)
+    total = sum(1 for _ in batch_list(documents, 1000))
+    for docs in tqdm(batches, total=total,
+                     desc=f'Chunking documents {len(documents)} new documents'):
+        yield from chunk_documents(docs,
+                                  chunk_size = chunk_size,
+                                  chunk_overlap = chunk_overlap,
+                                  **kwargs)
 
 
 def chunk_documents(
@@ -384,11 +393,6 @@ def chunk_documents(
     """
     Process list of Documents by splitting into chunks.
     """
-    if not documents:
-        print("No new documents to process")
-        return
-    print(f"Processing {len(documents)} new documents")
-
     # remove tables before chunking
     if kwargs.get('infer_table_structure', False) and not kwargs.get('pdf_unstructured', False):
         tables = [d for d in documents if d.metadata.get('table', False)]
@@ -423,7 +427,6 @@ def chunk_documents(
             chunk_overlap=0)
         table_texts = table_splitter.split_documents(tables)
         texts.extend(table_texts)
-    print(f"Split into {len(texts)} chunks of text (max. {chunk_size} chars each for text; max. {TABLE_CHUNK_SIZE} chars for tables)")
 
     # attach document title to each chunk (where title was extracted earlier by `load_documents`)
     if kwargs.get('extract_document_titles', False):
@@ -608,6 +611,10 @@ class Ingester:
             **kwargs
 
         )
+
+        texts = list(texts)
+        print(f"Split into {len(texts)} chunks of text (max. {chunk_size} chars each for text; max. {TABLE_CHUNK_SIZE} chars for tables)")
+
         self.store_documents(texts, batch_size=batch_size)
 
         if texts:
