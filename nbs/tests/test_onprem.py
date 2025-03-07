@@ -275,7 +275,7 @@ def test_pdf(**kwargs):
     assert(docs[0].metadata['EXT'] == 'pdf')
     assert(docs[0].metadata['FIRST_PARAGRAPH'].startswith("# ktrain"))
     assert(docs[0].metadata['mimetype'] == 'application/pdf')
-    assert(docs[0].metadata['extension'] == '.pdf')
+    assert(docs[0].metadata['extension'] == 'pdf')
     assert(docs[0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
     assert(docs[0].metadata['cdate'] == '2024-12-19T12:51:00.588912')
 

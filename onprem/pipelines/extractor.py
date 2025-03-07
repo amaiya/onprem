@@ -12,6 +12,7 @@ import pandas as pd
 from ..utils import segment
 
 from ..ingest import load_single_document
+from ..ingest.helpers import extract_extension
 
 
 class Extractor:
@@ -66,8 +67,8 @@ class Extractor:
                 raise ValueError(f'{fpath} is not a file')
             docs = load_single_document(fpath, **kwargs)
             if not docs: return
-            ext = "." + fpath.rsplit(".", 1)[-1].lower()
-            if ext == '.pdf' and pdf_pages:
+            ext = extract_extension(fpath)
+            if ext == 'pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
             content = '\n\n'.join([preproc_fn(doc.page_content) if preproc_fn else doc.page_content for doc in docs])
         

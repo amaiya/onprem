@@ -147,24 +147,24 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
 
 # %% ../../nbs/01_ingest.base.ipynb 5
 # Map file extensions to document loaders and their arguments
-PDFOCR = '.pdfOCR'
-PDFMD = '.pdfMD'
-PDF = '.pdf'
+PDFOCR = 'pdfOCR'
+PDFMD = 'pdfMD'
+PDF = 'pdf'
 PDF_EXTS = [PDF, PDFOCR, PDFMD]
 OCR_CHAR_THRESH = 32
 LOADER_MAPPING = {
-    ".csv": (CSVLoader, {}),
-    ".doc": (UnstructuredWordDocumentLoader, {}),
-    ".docx": (UnstructuredWordDocumentLoader, {}),
-    ".enex": (EverNoteLoader, {}),
-    ".eml": (MyElmLoader, {}),
-    ".epub": (UnstructuredEPubLoader, {}),
-    ".html": (UnstructuredHTMLLoader, {}),
-    ".md": (UnstructuredMarkdownLoader, {}),
-    ".odt": (UnstructuredODTLoader, {}),
-    ".ppt": (UnstructuredPowerPointLoader, {}),
-    ".pptx": (UnstructuredPowerPointLoader, {}),
-    ".txt": (TextLoader, {"autodetect_encoding": True}),
+    "csv": (CSVLoader, {}),
+    "doc": (UnstructuredWordDocumentLoader, {}),
+    "docx": (UnstructuredWordDocumentLoader, {}),
+    "enex": (EverNoteLoader, {}),
+    "eml": (MyElmLoader, {}),
+    "epub": (UnstructuredEPubLoader, {}),
+    "html": (UnstructuredHTMLLoader, {}),
+    "md": (UnstructuredMarkdownLoader, {}),
+    "odt": (UnstructuredODTLoader, {}),
+    "ppt": (UnstructuredPowerPointLoader, {}),
+    "pptx": (UnstructuredPowerPointLoader, {}),
+    "txt": (TextLoader, {"autodetect_encoding": True}),
     PDF   : (_PyMuPDFLoader, {}),
     PDFMD: (PDF2MarkdownLoader, {}),
     PDFOCR: (MyUnstructuredPDFLoader, {"infer_table_structure":False, "mode":"elements", "strategy":"hi_res"}),

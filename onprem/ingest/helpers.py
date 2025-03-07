@@ -8,6 +8,7 @@ __all__ = ['CAPTION_DELIMITER', 'includes_caption', 'extract_tables', 'extract_f
 
 # %% ../../nbs/01_ingest.helpers.ipynb 3
 from typing import List, Union, Optional
+import os
 import os.path
 import glob
 from hashlib import md5
@@ -51,7 +52,7 @@ def extract_tables(filepath:Optional[str]=None, docs:Optional[List[Document]]=[]
         filepath = None if not docs else docs[0].metadata['source']
     if not filepath: return docs
         
-    if extract_extension(filepath) != ".pdf": return docs
+    if extract_extension(filepath) != "pdf": return docs
     pdftab = PDFTables.from_file(filepath, verbose=False)
     md_tables = pdftab.get_markdown_tables()
 
@@ -76,30 +77,26 @@ def extract_tables(filepath:Optional[str]=None, docs:Optional[List[Document]]=[]
     return docs
 
 
-def extract_files(source_dir:str, extensions:Union[dict,list]):
-    """
-    Extract files of all supplied extensions.
-    """
-    if not extensions:
-        raise ValueError('The extensions argument is required.')
+def extract_files(source_dir:str, follow_links=False, extensions:Optional[Union[dict,list]]=None):
     extensions = list(extensions.keys()) if isinstance(extensions, dict) else extensions
-    source_dir = os.path.abspath(source_dir)
-    all_files = []
-    for ext in extensions:
-        all_files.extend(
-            glob.glob(os.path.join(source_dir, f"**/*{ext.lower()}"), recursive=True)
-        )
-        all_files.extend(
-            glob.glob(os.path.join(source_dir, f"**/*{ext.upper()}"), recursive=True)
-        )
-    return all_files
+    if os.listdir(source_dir) == []:
+        raise ValueError("%s: path is empty" % source_dir)
+    walk = os.walk
+    for root, _, filenames in walk(source_dir, followlinks=follow_links):
+        for filename in filenames:
+            if extensions and extract_extension(filename) not in extensions:
+                continue
+            try:
+                yield os.path.join(root, filename)
+            except:
+                continue
 
-
-def extract_extension(filepath:str):
+def extract_extension(filepath:str, include_dot=False):
     """
     Extracts file extension (including dot) from file path
     """
-    return "." + filepath.rsplit(".", 1)[-1].lower()
+    dot = "." if include_dot else ""
+    return dot + filepath.rsplit(".", 1)[-1].lower()
 
 
 
