@@ -314,7 +314,7 @@ class LLM:
         chunk_size: int = 500, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
         chunk_overlap: int = 50, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # callable that accepts the file path and returns True for ignored files
-        batch_size:int=1000, # batch size used when creating embeddings and storing documents.
+        batch_size:int=1000, # batch size used when processing documents(e.g, creating embeddings).
         **kwargs, # Extra kwargs fed to downstream functions, `load_single_document` and/or `load_documents`
     ):
         """

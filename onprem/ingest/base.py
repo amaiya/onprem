@@ -354,6 +354,7 @@ def process_folder(
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
     ignored_files: List[str] = [], # list of files to ignore
     ignore_fn:Optional[Callable] = None, # Callable that accepts the file path (including file name) as input and ignores if returns True
+    batch_size:int=CHROMA_MAX, # batch size used when processing documents
     **kwargs
 
 
@@ -372,10 +373,10 @@ def process_folder(
         print("No new documents to process")
         return
 
-    batches = batch_list(documents, 1000)
-    total = sum(1 for _ in batch_list(documents, 1000))
+    batches = batch_list(documents, batch_size)
+    total = sum(1 for _ in batch_list(documents, batch_size))
     for docs in tqdm(batches, total=total,
-                     desc=f'Chunking documents {len(documents)} new documents'):
+                     desc=f'Processing and chunking {len(documents)} new documents'):
         yield from chunk_documents(docs,
                                   chunk_size = chunk_size,
                                   chunk_overlap = chunk_overlap,
@@ -573,7 +574,7 @@ class Ingester:
         chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
         chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
-        batch_size:int=CHROMA_MAX, # batch size used when creating embeddings and storing documents.
+        batch_size:int=CHROMA_MAX, # batch size used when processing documents
         **kwargs
     ) -> None:
         """
@@ -608,6 +609,7 @@ class Ingester:
             chunk_overlap=chunk_overlap,
             ignored_files=ignored_files,
             ignore_fn=ignore_fn,
+            batch_size=batch_size,
             **kwargs
 
         )
