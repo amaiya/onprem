@@ -10,7 +10,7 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm import helpers
-from ..utils import split_list, get_datadir
+from ..utils import split_list, get_datadir, filtered_generator
 from .helpers import extract_files, extract_extension, extract_tables, includes_caption
 from .helpers import md5sum, extract_mimetype, extract_file_dates
 
@@ -285,6 +285,12 @@ def load_single_document(file_path: str, # path to file
         logger.warning(f"\nSkipping {file_path} due to unsupported file extension: '{ext}'")
 
 
+def _ignore_file(file_path, ignored_files:List[str]=[], ignore_fn:Optional[Callable]=None):
+    return file_path in ignored_files or \
+            os.path.basename(file_path).startswith('~$') or \
+            (ignore_fn is not None and ignore_fn(file_path))
+
+
 def load_documents(source_dir: str, # path to folder containing documents
                    ignored_files: List[str] = [], # list of filepaths to ignore
                    ignore_fn:Optional[Callable] = None, # callable that accepts file path and returns True for ignored files
@@ -297,13 +303,17 @@ def load_documents(source_dir: str, # path to folder containing documents
     """
     Loads all documents from the source documents directory, ignoring specified files.
     Extra kwargs fed to `ingest.load_single_document`.
-    """
-    all_files = extract_files(source_dir, LOADER_MAPPING)
 
-    filtered_files = [
-        file_path for file_path in all_files if file_path not in ignored_files and not os.path.basename(file_path).startswith('~$')
-         and (ignore_fn is None or not ignore_fn(file_path))
-    ]
+    Returns a generator over documents.
+    """
+
+    def keep(file_path):
+        return not _ignore_file(file_path, ignored_files, ignore_fn)
+    def all_files():
+        for f in extract_files(source_dir, LOADER_MAPPING):
+            yield f
+    filtered_files = filtered_generator(all_files(), criteria=[keep])
+    total = sum(1 for _ in filtered_generator(all_files(), criteria=[keep]))
 
     load_args = kwargs.copy()
     if kwargs.get('infer_table_structure', False):
@@ -317,26 +327,24 @@ def load_documents(source_dir: str, # path to folder containing documents
     with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
         results = []
         with tqdm(
-            total=len(filtered_files), desc="Loading new documents", ncols=80
+            total=total, desc="Loading new documents", ncols=80
         ) as pbar:
             for i, docs in enumerate(
                 pool.imap_unordered(functools.partial(load_single_document, **load_args),
                                                       filtered_files)
             ):
-                if docs is not None:
-                    if kwargs.get('infer_table_structure', False):
-                        docs = extract_tables(docs=docs)
-                    if llm and caption_tables:
-                        helpers.caption_tables(docs, llm=llm, **kwargs)
-                    if llm and extract_document_titles:
-                        title = helpers.extract_title(docs, llm=llm, **kwargs)
-                        for doc in docs:
-                            if title:
-                                doc.metadata['document_title'] = title
-                    results.extend(docs)
                 pbar.update()
-
-    return results
+                if docs is None: continue
+                if kwargs.get('infer_table_structure', False):
+                    docs = extract_tables(docs=docs)
+                if llm and caption_tables:
+                    helpers.caption_tables(docs, llm=llm, **kwargs)
+                if llm and extract_document_titles:
+                    title = helpers.extract_title(docs, llm=llm, **kwargs)
+                    for doc in docs:
+                        if title:
+                            doc.metadata['document_title'] = title
+                yield from docs
 
 
 def process_folder(
@@ -357,6 +365,7 @@ def process_folder(
     documents = load_documents(source_directory,
                               ignored_files, ignore_fn=ignore_fn,
                               **kwargs)
+    documents = list(documents)
 
     return chunk_documents(documents,
                            chunk_size = chunk_size,
