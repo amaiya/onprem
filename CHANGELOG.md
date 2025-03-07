@@ -14,6 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - use os.walk instead of glob for extract_files and remove dot
   from extensions (#127)
+- Add `batch_size` parameter to `LLM.ingest` (#128)
 
 ### fixed:
 - N/A

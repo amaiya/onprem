@@ -433,12 +433,12 @@ def does_vectorstore_exist(db) -> bool:
     return True
 
 
-def batchify_chunks(texts):
+def batchify_chunks(texts, batch_size=CHROMA_MAX):
     """
     split texts into batches specifically for Chroma
     """
-    split_docs_chunked = split_list(texts, CHROMA_MAX)
-    total_chunks = sum(1 for _ in split_list(texts, CHROMA_MAX))
+    split_docs_chunked = split_list(texts, batch_size)
+    total_chunks = sum(1 for _ in split_list(texts, batch_size))
     return split_docs_chunked, total_chunks
 
 
@@ -489,6 +489,11 @@ class Ingester:
         )
         return
 
+
+    def _get_chroma_max(self):
+        return CHROMA_MAX
+
+
     def get_db(self):
         """
         Returns an instance to the `langchain_chroma.Chroma` instance
@@ -517,7 +522,7 @@ class Ingester:
         return set([d['source'] for d in self.get_db().get()['metadatas']])
 
 
-    def store_documents(self, documents):
+    def store_documents(self, documents, batch_size:int=CHROMA_MAX):
         """
         Stores instances of `langchain_core.documents.base.Document` in vectordb
         """
@@ -526,11 +531,11 @@ class Ingester:
         db = self.get_db()
         if db:
             print("Creating embeddings. May take some minutes...")
-            chunk_batches, total_chunks = batchify_chunks(documents)
+            chunk_batches, total_chunks = batchify_chunks(documents, batch_size=batch_size)
             for lst in tqdm(chunk_batches, total=total_chunks):
                 db.add_documents(lst)
         else:
-            chunk_batches, total_chunks = batchify_chunks(documents)
+            chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
             print("Creating embeddings. May take some minutes...")
             db = None
 
@@ -556,6 +561,7 @@ class Ingester:
         chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
         chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
         ignore_fn:Optional[Callable] = None, # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
+        batch_size:int=CHROMA_MAX, # batch size used when creating embeddings and storing documents.
         **kwargs
     ) -> None:
         """
@@ -593,7 +599,7 @@ class Ingester:
             **kwargs
 
         )
-        self.store_documents(texts)
+        self.store_documents(texts, batch_size=batch_size)
 
         if texts:
             print(
