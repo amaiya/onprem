@@ -266,9 +266,19 @@ def test_pdf(**kwargs):
     from onprem.ingest import load_single_document
     from onprem.utils import segment
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ktrain_paper/ktrain_paper.pdf')
-    docs = load_single_document(fpath, pdf_markdown=True)
+    docs = load_single_document(fpath, pdf_markdown=True,
+                                store_md5=True, store_mimetype=True, store_file_dates=True,
+                                text_callables={'FIRST_PARAGRAPH':lambda text:text.split("\n\n")[0]},
+                                file_callables={'EXT':lambda fname:fname.split(".")[-1]})
     assert len(docs) == 1
     assert segment(docs[0].page_content, unit='paragraph')[0].startswith('#')
+    assert(docs[0].metadata['EXT'] == 'pdf')
+    assert(docs[0].metadata['FIRST_PARAGRAPH'].startswith("# ktrain"))
+    assert(docs[0].metadata['mimetype'] == 'application/pdf')
+    assert(docs[0].metadata['extension'] == '.pdf')
+    assert(docs[0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
+    assert(docs[0].metadata['cdate'] == '2024-12-19T12:51:00.588912')
+
     docs = load_single_document(fpath, infer_table_structure=True)
     assert len(docs) == 7
     assert docs[-1].page_content.startswith("Table 1")

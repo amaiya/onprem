@@ -12,6 +12,8 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
 from ..llm import helpers
 from ..utils import split_list, get_datadir
 from .helpers import extract_files, extract_extension, extract_tables, includes_caption
+from .helpers import md5sum, extract_mimetype, extract_file_dates
+
 
 
 from langchain_core.documents import Document
@@ -169,9 +171,53 @@ LOADER_MAPPING = {
     # Add more mappings for other file extensions and loaders as needed
 }
 
+def _update_metadata(docs:List[Document], metadata:dict):
+    """
+    Update metadata in docs with supplied metadata dictionary
+    """
+    for doc in docs:
+        doc.metadata.update(metadata)
+    return docs
+
+def _apply_text_callables(docs:List[Document], text_callables:dict):
+    """
+    Invokes text_callables on entire text of document.
+
+    Returns a dictionary with values containing results from callables for each key
+    """
+    if not text_callables: return {}
+        
+    text = '\n\n'.join([d.page_content for d in docs])
+    results = {}
+    for k,v in text_callables.items():
+        results[k] = v(text)
+    return results
+
+def _apply_file_callables(file_path:str, file_callables:dict):
+    """
+    Invokes file_callables on file path.
+
+    Returns a dictionary with values containing results from callables for each key
+    """
+    if not file_callables: return {}
+        
+    if not os.path.exists(file_path):
+        raise ValueError('file_path does not exist: {file_path}')
+    
+    results = {}
+    for k,v in file_callables.items():
+        results[k] = v(file_path)
+    return results
+
+    
 def load_single_document(file_path: str, # path to file
                          pdf_unstructured:bool=False, # use unstructured for PDF extraction if True (will also OCR if necessary)
                          pdf_markdown:bool = False, # Convert PDFs to Markdown instead of plain text if True.
+                         store_md5:bool=False, # Extract and store MD5 of document in metadata
+                         store_mimetype:bool=False, # Guess and store mime type of document in metadata
+                         store_file_dates:bool=False, # Extract snd store file dates in metadata
+                         file_callables:Optional[dict]=None, # optional dict with  keys and functions called with filepath as argument. Results stored as metadata.
+                         text_callables:Optional[dict]=None, # optional dict with  keys and functions called with file text as argument. Results stored as metadata.
                          **kwargs,
                          ) -> List[Document]:
     """
@@ -187,7 +233,22 @@ def load_single_document(file_path: str, # path to file
     if pdf_unstructured and pdf_markdown:
         raise ValueError('pdf_unstructured and pdf_markdown cannot both be True.')
     file_path = os.path.abspath(file_path)
+
+
+    # extract metadata
+    md5, mimetype, cdate, mdate = None, None, None, None
+    file_metadata = {}
+    if store_md5:
+        file_metadata['md5'] = md5sum(file_path)
+    if store_mimetype:
+        file_metadata['mimetype'], _, _ = extract_mimetype(file_path)
+    if store_file_dates:
+        file_metadata['cdate'], file_metadata['mdate'] = extract_file_dates(file_path)
     ext = extract_extension(file_path)
+    file_metadata['extension'] = ext
+    file_metadata.update(_apply_file_callables(file_path, file_callables))
+        
+    # load file
     if ext in LOADER_MAPPING:
         try:
             if ext == PDF:
@@ -204,15 +265,20 @@ def load_single_document(file_path: str, # path to file
                 with warnings.catch_warnings():
                     warnings.simplefilter(action='ignore', category=UserWarning)
                     docs = loader.load()
+                    file_metadata.update(_apply_text_callables(docs, text_callables))
+                    docs = _update_metadata(docs, file_metadata)
                 if not docs or len('\n'.join([d.page_content.strip() for d in docs]).strip()) < OCR_CHAR_THRESH:
                     loader_class, loader_args = LOADER_MAPPING[PDFOCR]
                     loader = loader_class(file_path, **loader_args)
+                    file_metadta['ocr'] = True
                     docs = loader.load()
-                    for doc in docs:
-                        doc.metadata = dict(doc.metadata, ocr=True)
-                return docs
+                    file_metadata.update(_apply_text_callables(docs, text_callables))
+                    docs = _update_metadata(docs, file_metadata)
             else:
-                return loader.load()
+                docs = loader.load()
+                file_metadata.update(_apply_text_callables(docs, text_callables))                
+                docs = _update_metadata(docs, file_metadata)
+            return docs
         except Exception as e:
             logger.warning(f'\nSkipping {file_path} due to error: {str(e)}')
     else:
