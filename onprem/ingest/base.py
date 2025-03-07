@@ -10,7 +10,7 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm import helpers
-from ..utils import split_list, get_datadir, filtered_generator
+from ..utils import batch_list, get_datadir, filtered_generator
 from .helpers import extract_files, extract_extension, extract_tables, includes_caption
 from .helpers import md5sum, extract_mimetype, extract_file_dates
 
@@ -446,8 +446,8 @@ def batchify_chunks(texts, batch_size=CHROMA_MAX):
     """
     split texts into batches specifically for Chroma
     """
-    split_docs_chunked = split_list(texts, batch_size)
-    total_chunks = sum(1 for _ in split_list(texts, batch_size))
+    split_docs_chunked = batch_list(texts, batch_size)
+    total_chunks = sum(1 for _ in batch_list(texts, batch_size))
     return split_docs_chunked, total_chunks
 
 

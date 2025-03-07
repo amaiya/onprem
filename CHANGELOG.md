@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
   from extensions (#127)
 - Add `batch_size` parameter to `LLM.ingest` (#128)
 - use generators in `load_documents` (#129)
+- Changed `split_list` to `batch_list`
 
 ### fixed:
 - N/A
