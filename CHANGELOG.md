@@ -19,7 +19,7 @@ Most recent releases are shown at the top. Each release shows:
 - Changed `split_list` to `batch_list`
 
 ### fixed:
-- N/A
+- Use `load_vectordb` to load vector database in `LLM.query` (#130)
 
 
 ## 0.9.0 (2025-02-26)
