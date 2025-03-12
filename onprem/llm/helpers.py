@@ -5,7 +5,7 @@
 # %% auto 0
 __all__ = ['SUBQUESTION_PROMPT', 'FOLLOWUP_PROMPT', 'TITLE_PROMPT', 'TABLE_PROMPT_EXACT', 'TABLE_PROMPT', 'parse_json_markdown',
            'parse_code_markdown', 'decompose_question', 'needs_followup', 'Title', 'extract_title', 'TableSummary',
-           'caption_table_text', 'caption_tables']
+           'caption_table_text', 'summarize_tables']
 
 # %% ../../nbs/00_llm.helpers.ipynb 3
 from ..utils import SafeFormatter
@@ -266,7 +266,7 @@ def caption_table_text(table_text:str, llm, max_chars=4096, retries=1, attempt_e
             break
     return "" if isinstance(obj, str) else obj.title
     
-def caption_tables(docs:List[Document], llm, max_chars=4096, max_tables=3, retries=1, 
+def summarize_tables(docs:List[Document], llm, max_chars=4096, max_tables=3, retries=1, 
                    attempt_exact=False,
                    only_caption_missing=False, **kwargs):
     """

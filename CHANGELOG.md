@@ -12,11 +12,12 @@ Most recent releases are shown at the top. Each release shows:
 - support for custom metadata in vectorstore (#126)
 
 ### changed
-- use os.walk instead of glob for extract_files and remove dot
+- use os.walk instead of glob for `extract_files` and remove dot
   from extensions (#127)
 - Add `batch_size` parameter to `LLM.ingest` (#128)
 - use generators in `load_documents` (#129)
 - Changed `split_list` to `batch_list`
+- explicitly define available metadata types (#131)
 
 ### fixed:
 - Use `load_vectordb` to load vector database in `LLM.query` (#130)

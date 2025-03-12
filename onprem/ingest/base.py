@@ -9,12 +9,9 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
            'chunk_documents', 'does_vectorstore_exist', 'batchify_chunks', 'Ingester']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
-from ..llm import helpers
+from ..llm.helpers import summarize_tables, extract_title
 from ..utils import batch_list, filtered_generator, get_datadir
-from .helpers import extract_files, extract_extension, extract_tables, includes_caption
-from .helpers import md5sum, extract_mimetype, extract_file_dates
-
-
+from . import helpers
 
 from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -93,9 +90,8 @@ class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
 
             page_content = '\n'.join(texts)
             source = docs[0].metadata['source']
-            docs = [Document(page_content=page_content, metadata={'source':source})]
-            table_docs = [Document(page_content=t,
-                                   metadata={'source':source, 'table':True}) for t in tables]
+            docs = [helpers.create_document(page_content, source)]
+            table_docs = [helpers.create_document(t, source=source, table=True) for t in tables]
             docs.extend(table_docs)
             return docs
         except Exception as e:
@@ -116,7 +112,7 @@ class _PyMuPDFLoader(PyMuPDFLoader):
                 del self.parser.text_kwargs['infer_table_structure']
             docs = PyMuPDFLoader.load(self)
             if infer_table_structure:
-                docs = extract_tables(docs=docs)
+                docs = helpers.extract_tables(docs=docs)
             return docs
         except Exception as e:
             # Add file_path to exception message
@@ -133,10 +129,10 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
             md_text = pymupdf4llm.to_markdown(self.file_path)
             if not md_text.strip():
                 raise Exception('Document had no content. ')
-            doc = Document(page_content=md_text, metadata={'source':self.file_path, 'markdown':True})
+            doc = helpers.create_document(md_text, self.file_path, markdown=True)
             docs = [doc]
             if self.parser.text_kwargs.get('infer_table_structure', False):
-                docs = extract_tables(docs=docs)
+                docs = helpers.extract_tables(docs=docs)
             return docs
         except Exception as e:
             # Add file_path to exception message
@@ -232,6 +228,8 @@ def load_single_document(file_path: str, # path to file
     """
     if pdf_unstructured and pdf_markdown:
         raise ValueError('pdf_unstructured and pdf_markdown cannot both be True.')
+    file_callables = {} if not file_callables else file_callables
+    text_callables = {} if not text_callables else text_callables
     file_path = os.path.abspath(file_path)
 
 
@@ -239,12 +237,12 @@ def load_single_document(file_path: str, # path to file
     md5, mimetype, cdate, mdate = None, None, None, None
     file_metadata = {}
     if store_md5:
-        file_metadata['md5'] = md5sum(file_path)
+        file_metadata['md5'] = helpers.md5sum(file_path)
     if store_mimetype:
-        file_metadata['mimetype'], _, _ = extract_mimetype(file_path)
+        file_metadata['mimetype'], _, _ = helpers.extract_mimetype(file_path)
     if store_file_dates:
-        file_metadata['cdate'], file_metadata['mdate'] = extract_file_dates(file_path)
-    ext = extract_extension(file_path)
+        file_metadata['cdate'], file_metadata['mdate'] = helpers.extract_file_dates(file_path)
+    ext = helpers.extract_extension(file_path)
     file_metadata['extension'] = ext
     file_metadata.update(_apply_file_callables(file_path, file_callables))
         
@@ -278,9 +276,13 @@ def load_single_document(file_path: str, # path to file
                 docs = loader.load()
                 file_metadata.update(_apply_text_callables(docs, text_callables))                
                 docs = _update_metadata(docs, file_metadata)
-            return docs
+            extra_keys = list(file_metadata.keys() | text_callables.keys())
+            return helpers.set_metadata_defaults(docs, extra_keys=extra_keys)
         except Exception as e:
             logger.warning(f'\nSkipping {file_path} due to error: {str(e)}')
+            import traceback
+            print(traceback.format_exc())
+
     else:
         logger.warning(f"\nSkipping {file_path} due to unsupported file extension: '{ext}'")
 
@@ -311,7 +313,7 @@ def load_documents(source_dir: str, # path to folder containing documents
     def keep(file_path):
         return not _ignore_file(file_path, ignored_files, ignore_fn)
     def all_files():
-        for f in extract_files(source_dir, LOADER_MAPPING):
+        for f in helpers.extract_files(source_dir, LOADER_MAPPING):
             yield f
     filtered_files = filtered_generator(all_files(), criteria=[keep])
     total = sum(1 for _ in filtered_generator(all_files(), criteria=[keep]))
@@ -321,8 +323,8 @@ def load_documents(source_dir: str, # path to folder containing documents
         # Use "spawn" if using TableTransformers
         # Reference: https://github.com/pytorch/pytorch/issues/40403
         multiprocessing.set_start_method('spawn', force=True)
-        # call extract_tables sequentially below instead of in load_single_document if n_proc>1
-        # because extract_tables is not well-suited to multiprocessing even with line above
+        # call helpers.extract_tables sequentially below instead of in load_single_document if n_proc>1
+        # because helpers.extract_tables is not well-suited to multiprocessing even with line above
         if not n_proc or n_proc>1:
             load_args = {k:load_args[k] for k in load_args if k!='infer_table_structure'}
     with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
@@ -337,11 +339,11 @@ def load_documents(source_dir: str, # path to folder containing documents
                 pbar.update()
                 if docs is None: continue
                 if kwargs.get('infer_table_structure', False):
-                    docs = extract_tables(docs=docs)
+                    docs = helpers.extract_tables(docs=docs)
                 if llm and caption_tables:
-                    helpers.caption_tables(docs, llm=llm, **kwargs)
+                    summarize_tables(docs, llm=llm, **kwargs)
                 if llm and extract_document_titles:
-                    title = helpers.extract_title(docs, llm=llm, **kwargs)
+                    title = extract_title(docs, llm=llm, **kwargs)
                     for doc in docs:
                         if title:
                             doc.metadata['document_title'] = title
@@ -418,7 +420,7 @@ def chunk_documents(
     texts = text_splitter.split_documents(docs)
 
     # attempt to remove text chunks containing mangled tables
-    texts = [d for d in texts if not includes_caption(d)]
+    texts = [d for d in texts if not helpers.includes_caption(d)]
 
     # split table texts
     if tables:
