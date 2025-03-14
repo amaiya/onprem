@@ -444,7 +444,7 @@ def test_search(**kwargs):
     """
     Test search
     """
-    from onprem.ingest.wsearch import SearchEngine
+    from onprem.ingest.search import SearchEngine
     from onprem.ingest import load_single_document, chunk_documents
     docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
                                 store_md5=True)
@@ -486,7 +486,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_transformers' : test_transformers,
           'test_search' : test_search,}
 
-NEED_LLM = ['test_prompt', 'test_rag', 'test_summarization', 'test_extraction', 'test_transformers']
+SHARE_LLM = ['test_prompt', 'test_rag', 'test_summarization', 'test_extraction', 'test_transformers']
 
 def run(**kwargs):
 
@@ -521,7 +521,7 @@ def run(**kwargs):
     n_gpu_layers = kwargs["gpu"]
     print(url)
 
-    if len(set(to_run) & set(NEED_LLM)) > 0:
+    if len(set(to_run) & set(SHARE_LLM)) > 0:
         llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128, prompt_template=prompt_template)
         kwargs['llm'] = llm
 
