@@ -594,11 +594,11 @@ class LLM:
         """
         Perform a semantic search of the vector DB
         """
-        db = self.load_vectordb()
-        results = db.similarity_search_with_score(query, 
-                                                  filter=filters,
-                                                  where_document=where_document,
-                                                  k = k, **kwargs)
+        store = self.load_vectorstore()
+        results = store.query(query, 
+                              filters=filters,
+                              where_document=where_document,
+                              k = k, **kwargs)
         if not results: return []
         docs, scores = zip(*results)
         for doc, score in zip(docs, scores):

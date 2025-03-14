@@ -6,7 +6,7 @@
 __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK_SIZE', 'CHROMA_MAX', 'PDFOCR', 'PDFMD', 'PDF',
            'PDF_EXTS', 'OCR_CHAR_THRESH', 'LOADER_MAPPING', 'MyElmLoader', 'MyUnstructuredPDFLoader',
            'PDF2MarkdownLoader', 'load_single_document', 'load_documents', 'process_folder', 'chunk_documents',
-           'does_vectorstore_exist', 'batchify_chunks']
+           'does_vectorstore_exist', 'batchify_chunks', 'DocumentStore']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm.helpers import summarize_tables, extract_title
@@ -455,3 +455,36 @@ def batchify_chunks(texts, batch_size=CHROMA_MAX):
 
 
 
+
+# %% ../../nbs/01_ingest.base.ipynb 6
+from abc import ABC, abstractmethod
+
+class DocumentStore(ABC):
+    
+    @abstractmethod
+    def add_documents(self):
+        pass
+
+    @abstractmethod
+    def remove_document(self):
+        pass
+    
+    @abstractmethod
+    def get_all_docs(self):
+        pass
+
+    @abstractmethod
+    def get_doc(self):
+        pass
+
+    @abstractmethod
+    def get_size(self):
+        pass
+
+    @abstractmethod
+    def erase(self):
+        pass
+
+    @abstractmethod
+    def query(self):
+        pass

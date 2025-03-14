@@ -8,11 +8,11 @@ __all__ = ['DEFAULT_DB', 'COLLECTION_NAME', 'CHROMA_MAX', 'VectorStore']
 # %% ../../nbs/01_ingest.vectorstore.ipynb 3
 import os
 import os.path
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Dict
 from tqdm import tqdm
 
 from ..utils import get_datadir
-from .base import batchify_chunks, process_folder, does_vectorstore_exist
+from .base import batchify_chunks, process_folder, does_vectorstore_exist, DocumentStore
 from .base import DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP, TABLE_CHUNK_SIZE, CHROMA_MAX
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -26,7 +26,7 @@ CHROMA_MAX = 41000
 
 
 
-class VectorStore:
+class VectorStore(DocumentStore):
     def __init__(
         self,
         embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
@@ -66,35 +66,7 @@ class VectorStore:
         return
 
 
-    def get_db(self):
-        """
-        Returns an instance to the `langchain_chroma.Chroma` instance
-        """
-        db = Chroma(
-            persist_directory=self.persist_directory,
-            embedding_function=self.embeddings,
-            client_settings=self.chroma_settings,
-            client=self.chroma_client,
-            collection_metadata={"hnsw:space": "cosine"},
-            collection_name=COLLECTION_NAME,
-        )
-        return db if does_vectorstore_exist(db) else None
-
-    def get_embedding_model(self):
-        """
-        Returns an instance to the `langchain_huggingface.HuggingFaceEmbeddings` instance
-        """
-        return self.embeddings
-
-
-    def get_ingested_files(self):
-        """
-        Returns a list of files previously added to vector database (typically via `LLM.ingest`)
-        """
-        return set([d['source'] for d in self.get_db().get()['metadatas']])
-
-
-    def store_documents(self, documents, batch_size:int=CHROMA_MAX):
+    def add_documents(self, documents, batch_size:int=CHROMA_MAX):
         """
         Stores instances of `langchain_core.documents.base.Document` in vectordb
         """
@@ -125,6 +97,88 @@ class VectorStore:
                 else:
                     db.add_documents(lst)
         return
+
+
+    def remove_document(self, id_to_delete):
+        """
+        Remove a single document with ID, `id_to_delete`.
+        """
+        self.get_db().delete(ids=[id_to_delete])
+        return
+
+    def get_doc(self, id):
+        """
+        Retrieve a record by ID
+        """
+        return self.get_db().get(ids=[id])
+
+    def get_all_docs(self):
+        """
+        Returns a list of files previously added to vector database (typically via `LLM.ingest`)
+        """
+        return set([d['source'] for d in self.get_db().get()['metadatas']])
+
+
+    def get_size():
+        """
+        Get total number of records
+        """
+        return self.get_db().count()
+
+    
+    def erase(self, confirm=True):
+        """
+        Resets collection and removes and stored documents
+        """
+        shall = True
+        if confirm:
+            msg = (
+                f"You are about to remove all documents from the vector database."
+                + f"(Original documents on file system will remain.) Are you sure?"
+            )
+            shall = input("%s (Y/n) " % msg) == "Y"
+        if shall:
+            self.get_db().reset_collection()
+            return True
+        return False
+
+
+    def query(self,
+              query:str, # query string
+              k:int = 4, # max number of results to return
+              filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
+              where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+              **kwargs):
+        """
+        Perform a semantic search of the vector DB
+        """
+        db = self.get_db()
+        results = db.similarity_search_with_score(query, 
+                                                  filter=filters,
+                                                  where_document=where_document,
+                                                  k = k, **kwargs)
+        return results
+
+
+    def get_db(self):
+        """
+        Returns an instance to the `langchain_chroma.Chroma` instance
+        """
+        db = Chroma(
+            persist_directory=self.persist_directory,
+            embedding_function=self.embeddings,
+            client_settings=self.chroma_settings,
+            client=self.chroma_client,
+            collection_metadata={"hnsw:space": "cosine"},
+            collection_name=COLLECTION_NAME,
+        )
+        return db if does_vectorstore_exist(db) else None
+
+    def get_embedding_model(self):
+        """
+        Returns an instance to the `langchain_huggingface.HuggingFaceEmbeddings` instance
+        """
+        return self.embeddings
 
 
     def ingest(
@@ -176,7 +230,7 @@ class VectorStore:
         texts = list(texts)
         print(f"Split into {len(texts)} chunks of text (max. {chunk_size} chars each for text; max. {TABLE_CHUNK_SIZE} chars for tables)")
 
-        self.store_documents(texts, batch_size=batch_size)
+        self.add_documents(texts, batch_size=batch_size)
 
         if texts:
             print(

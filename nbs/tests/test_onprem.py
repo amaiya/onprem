@@ -97,7 +97,7 @@ def test_rag(**kwargs):
 
     # ingest but ignore MS financial statement
     llm.ingest(source_folder, ignore_fn=lambda x: os.path.basename(x) == 'ms-financial-statement.pdf')
-    ingested_files = llm.vectorstore.get_ingested_files()
+    ingested_files = llm.vectorstore.get_all_docs()
     print([os.path.basename(x) for x in ingested_files])
     assert(len(ingested_files) == 2)
     assert('ms-inancial-statement.pdf' not in [os.path.basename(x) for x in ingested_files])
@@ -234,7 +234,7 @@ def test_semantic(**kwargs):
         with open(filename, "w") as f:
             f.write(d)
     llm.ingest(source_folder, chunk_size=500, chunk_overlap=0)
-    db = llm.load_vectorstore().get_db()
+    store = llm.load_vectorstore()
     matches = {
         "feel good story": data[4],
         "climate change": data[1],
@@ -255,7 +255,7 @@ def test_semantic(**kwargs):
         "lucky",
         "dishonest junk",
     ):
-        docs = db.similarity_search(query)
+        docs = store.query(query)
         print(f"{query} : {docs[0].page_content}")
         assert docs[0].page_content == matches[query]
     shutil.rmtree(source_folder)
@@ -444,14 +444,14 @@ def test_search(**kwargs):
     """
     Test search
     """
-    from onprem.ingest.search import SearchEngine
+    from onprem.ingest.textstore import TextStore
     from onprem.ingest import load_single_document, chunk_documents
     docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
                                 store_md5=True)
     docs = chunk_documents(docs)
-    se = SearchEngine()
-    se.index_documents(docs)
-    assert(se.get_index_size() ==  41)
+    se = TextStore()
+    se.add_documents(docs)
+    assert(se.get_size() ==  41)
     assert(len(list(se.get_all_docs())) ==  41)
     assert(len(se.query("table")['hits']) == 2)
     assert(len(se.query("table", limit=2, page=1)['hits']) == 2)
@@ -467,6 +467,11 @@ def test_search(**kwargs):
     assert(se.query(f'id:{doc_id}')['total_hits'] == 1)
     assert(se.get_doc(doc_id)['id'] == doc_id)
     assert(se.get_doc('XXX') is None)
+    se.remove_document(doc_id)
+    print(se.get_size())
+    assert(se.get_doc(doc_id) is None)
+    assert(se.get_size() ==  40)
+    assert(len(list(se.get_all_docs())) ==  40)
 
 
 
