@@ -207,9 +207,9 @@ METADATA = {'source':None,
             'ocr':False,
             'table' : False,
             'markdown' :False,
-            'page' :None,
-            'table_captions':None,
-            'document_title' : None,
+            'page' :-1,
+            'table_captions':'',
+            'document_title' : '',
            }
 
 def create_document(page_content:str, 

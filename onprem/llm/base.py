@@ -167,7 +167,7 @@ class LLM:
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path
         self.llm = None
-        self.ingester = None
+        self.vectorstore = None
         self.qa = None
         self.chatqa = None
         self.n_gpu_layers = n_gpu_layers
@@ -280,28 +280,28 @@ class LLM:
             )
         return
 
-    def load_ingester(self):
+    def load_vectorstore(self):
         """
-        Get `Ingester` instance.
-        You can access the `langchain_chroma.Chroma` instance with `load_ingester().get_db()`.
+        Get `VectorStore` instance.
+        You can access the `langchain_chroma.Chroma` instance with `load_vectorstore().get_db()`.
         """
-        if not self.ingester:
-            from onprem.ingest import Ingester
+        if not self.vectorstore:
+            from onprem.ingest.vectorstore import VectorStore
 
-            self.ingester = Ingester(
+            self.vectorstore = VectorStore(
                 embedding_model_name=self.embedding_model_name,
                 embedding_model_kwargs=self.embedding_model_kwargs,
                 embedding_encode_kwargs=self.embedding_encode_kwargs,
                 persist_directory=self.vectordb_path,
             )
-        return self.ingester
+        return self.vectorstore
 
     def load_vectordb(self):
         """
         Get Chroma db instance
         """
-        ingester = self.load_ingester()
-        db = ingester.get_db()
+        vectorstore= self.load_vectorstore()
+        db = vectorstore.get_db()
         if not db:
             raise ValueError(
                 "A vector database has not yet been created. Please call the LLM.ingest method."
@@ -322,8 +322,8 @@ class LLM:
         Previously-ingested documents are ignored.
         Extra kwargs fed to `load_single_document` and/or `load_docments`.
         """
-        ingester = self.load_ingester()
-        return ingester.ingest(
+        vectorstore = self.load_vectorstore()
+        return vectorstore.ingest(
             source_directory,
             chunk_size=chunk_size, chunk_overlap=chunk_overlap, ignore_fn=ignore_fn,
             llm=kwargs['llm'] if 'llm' in kwargs else self,

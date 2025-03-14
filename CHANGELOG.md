@@ -19,6 +19,7 @@ Most recent releases are shown at the top. Each release shows:
 - use generators in `load_documents` (#129)
 - Changed `split_list` to `batch_list`
 - explicitly define available metadata types (#131)
+- refactor vectorstore (#133)
 
 ### fixed:
 - Use `load_vectordb` to load vector database in `LLM.query` (#130)

@@ -97,7 +97,7 @@ def test_rag(**kwargs):
 
     # ingest but ignore MS financial statement
     llm.ingest(source_folder, ignore_fn=lambda x: os.path.basename(x) == 'ms-financial-statement.pdf')
-    ingested_files = llm.ingester.get_ingested_files()
+    ingested_files = llm.vectorstore.get_ingested_files()
     print([os.path.basename(x) for x in ingested_files])
     assert(len(ingested_files) == 2)
     assert('ms-inancial-statement.pdf' not in [os.path.basename(x) for x in ingested_files])
@@ -234,7 +234,7 @@ def test_semantic(**kwargs):
         with open(filename, "w") as f:
             f.write(d)
     llm.ingest(source_folder, chunk_size=500, chunk_overlap=0)
-    db = llm.load_ingester().get_db()
+    db = llm.load_vectorstore().get_db()
     matches = {
         "feel good story": data[4],
         "climate change": data[1],
