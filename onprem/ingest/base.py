@@ -234,14 +234,13 @@ def load_single_document(file_path: str, # path to file
 
 
     # extract metadata
-    md5, mimetype, cdate, mdate = None, None, None, None
     file_metadata = {}
     if store_md5:
         file_metadata['md5'] = helpers.md5sum(file_path)
     if store_mimetype:
         file_metadata['mimetype'], _, _ = helpers.extract_mimetype(file_path)
     if store_file_dates:
-        file_metadata['cdate'], file_metadata['mdate'] = helpers.extract_file_dates(file_path)
+        file_metadata['createdate'], file_metadata['modifydate'] = helpers.extract_file_dates(file_path)
     ext = helpers.extract_extension(file_path)
     file_metadata['extension'] = ext
     file_metadata.update(_apply_file_callables(file_path, file_callables))
@@ -389,6 +388,7 @@ def chunk_documents(
     documents: list, # list of LangChain Documents
     chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+    infer_table_structure:bool = False, # This should be set to True if `documents` may contain contain tables (i.e., `doc.metadata['table']=True`).
     **kwargs
 
 
@@ -397,7 +397,7 @@ def chunk_documents(
     Process list of Documents by splitting into chunks.
     """
     # remove tables before chunking
-    if kwargs.get('infer_table_structure', False) and not kwargs.get('pdf_unstructured', False):
+    if infer_table_structure and not kwargs.get('pdf_unstructured', False):
         tables = [d for d in documents if d.metadata.get('table', False)]
         docs = [d for d in documents if not d.metadata.get('table', False)]
     else:

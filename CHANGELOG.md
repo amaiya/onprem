@@ -10,6 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - support for custom metadata in vectorstore (#126)
+- basic full-text indexing (#132)
 
 ### changed
 - use os.walk instead of glob for `extract_files` and remove dot

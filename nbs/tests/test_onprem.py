@@ -440,6 +440,37 @@ def test_hfclassifier(**kwargs):
     return
 
 
+def test_search(**kwargs):
+    """
+    Test search
+    """
+    from onprem.ingest.wsearch import SearchEngine
+    from onprem.ingest import load_single_document, chunk_documents
+    docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
+                                store_md5=True)
+    docs = chunk_documents(docs)
+    se = SearchEngine()
+    se.index_documents(docs)
+    assert(se.get_index_size() ==  41)
+    assert(len(list(se.get_all_docs())) ==  41)
+    assert(len(se.query("table")['hits']) == 2)
+    assert(len(se.query("table", limit=2, page=1)['hits']) == 2)
+    assert(len(se.query("table", limit=1, page=1)['hits']) == 1)
+    assert(len(se.query("table", limit=1, page=2)['hits']) == 1)
+    assert(se.query('table')['total_hits'] == 2)
+    assert(len(se.query("table", limit=1, page=3)['hits']) == 0)
+    assert(se.query("table", limit=1)['hits'][0]['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
+    assert(len(se.query('page:5')['hits']) == 6)
+    assert(len(se.query('page:6')['hits']) == 0)
+    doc_id = se.query('table')['hits'][0]['id']
+    assert(len(se.query(f'id:{doc_id}')['hits']) == 1)
+    assert(se.query(f'id:{doc_id}')['total_hits'] == 1)
+    assert(se.get_doc(doc_id)['id'] == doc_id)
+    assert(se.get_doc('XXX') is None)
+
+
+
+
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
           'test_rag'    : test_rag,
@@ -452,7 +483,10 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_tm' : test_tm,
           'test_skclassifier' : test_skclassifier,
           'test_hfclassifier' : test_hfclassifier,
-          'test_transformers' : test_transformers,}
+          'test_transformers' : test_transformers,
+          'test_search' : test_search,}
+
+NEED_LLM = ['test_prompt', 'test_rag', 'test_summarization', 'test_extraction', 'test_transformers']
 
 def run(**kwargs):
 
@@ -486,8 +520,10 @@ def run(**kwargs):
     url = kwargs["url"]
     n_gpu_layers = kwargs["gpu"]
     print(url)
-    llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128, prompt_template=prompt_template)
-    kwargs['llm'] = llm
+
+    if len(set(to_run) & set(NEED_LLM)) > 0:
+        llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128, prompt_template=prompt_template)
+        kwargs['llm'] = llm
 
     for test in to_run:
         fn = TESTS.get(test, None)
