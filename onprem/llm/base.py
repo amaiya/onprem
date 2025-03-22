@@ -172,6 +172,8 @@ class LLM:
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path
         self.store_type = store_type
+        if store_type != 'dense':
+            raise ValueError('store_type="sparse" is not yet supported.')
         self.llm = None
         self.vectorstore = None
         self.qa = None
