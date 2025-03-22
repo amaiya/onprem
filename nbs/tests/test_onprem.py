@@ -444,12 +444,12 @@ def test_search(**kwargs):
     """
     Test search
     """
-    from onprem.ingest.textstore import TextStore
+    from onprem.ingest.stores import SparseStore
     from onprem.ingest import load_single_document, chunk_documents
     docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
                                 store_md5=True)
     docs = chunk_documents(docs)
-    se = TextStore()
+    se = SparseStore()
     se.add_documents(docs)
     assert(se.get_size() ==  41)
     assert(len(list(se.get_all_docs())) ==  41)
