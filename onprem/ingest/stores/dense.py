@@ -159,7 +159,13 @@ class DenseStore(VectorStore):
                                                   k = k, **kwargs)
         return results
 
+    def semantic_search(self, *args, **kwargs):
+        """
+        Semantic search is equivalent to queries in this class
+        """
+        return self.query(*args, **kwargs)
 
+    
     def get_db(self):
         """
         Returns an instance to the `langchain_chroma.Chroma` instance

@@ -301,7 +301,7 @@ class LLM:
             store_cls = SparseStore if self.is_sparse_store() else DenseStore
 
             # stor spare store in its own subfolder in `vectordb_path`
-            store_path = os.path.join(self.vectordb_path, 'sparse') if self.is_sparse() else self.vectordb_path
+            store_path = os.path.join(self.vectordb_path, 'sparse') if self.is_sparse_store() else self.vectordb_path
 
             # create vector store
             self.vectorstore = store_cls(
@@ -612,10 +612,10 @@ class LLM:
         Perform a semantic search of the vector DB
         """
         store = self.load_vectorstore()
-        results = store.query(query, 
-                              filters=filters,
-                              where_document=where_document,
-                              k = k, **kwargs)
+        results = store.semantic_search(query, 
+                                        filters=filters,
+                                        where_document=where_document,
+                                        k = k, **kwargs)
         if not results: return []
         docs, scores = zip(*results)
         for doc, score in zip(docs, scores):

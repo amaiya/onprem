@@ -488,3 +488,7 @@ class VectorStore(ABC):
     @abstractmethod
     def query(self):
         pass
+
+    @abstractmethod
+    def semantic_search(self):
+        pass

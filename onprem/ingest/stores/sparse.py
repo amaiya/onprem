@@ -209,7 +209,13 @@ class SparseStore(VectorStore):
                 search_results.append(d)
 
         return {'hits':search_results, 'total_hits':total_hits}
-    
+
+    def semantic_search(self, *args, **kwargs):
+        """
+        Not yet implemented
+        """
+        raise NotImplementedError('This method has not yet been implemented for SparseStore.')
+        
     @classmethod
     def index_exists_in(cls, index_path: str, index_name: Optional[str] = None):
         """
