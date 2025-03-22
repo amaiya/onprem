@@ -122,7 +122,7 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
         """Wrapper adding fallback for elm without html"""
         import pymupdf4llm
         try:
-            md_text = pymupdf4llm.to_markdown(self.file_path)
+            md_text = pymupdf4llm.to_markdown(self.file_path, show_progress=False)
             if not md_text.strip():
                 raise Exception('Document had no content. ')
             doc = helpers.create_document(md_text, self.file_path, markdown=True)

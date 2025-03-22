@@ -23,6 +23,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Use `load_vectordb` to load vector database in `LLM.query` (#130)
+- disable progress bar for `pdf_markdown` (due to notebook issue) (#134)
 
 
 ## 0.9.0 (2025-02-26)
