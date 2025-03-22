@@ -77,6 +77,7 @@ class LLM:
         prompt_template: Optional[str] = None,
         model_download_path: Optional[str] = None,
         vectordb_path: Optional[str] = None,
+        store_type:str='dense',
         max_tokens: int = 512,
         n_ctx: int = 3900,
         n_batch: int = 1024,
@@ -113,6 +114,10 @@ class LLM:
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *vectordb_path*: Path to vector database (created if it doesn't exist).
                            Default is `onprem_data/vectordb` in user's home directory.
+        - *store_type*: One of `dense` for conventional vector database or `sparse`, a vector database
+                        that stores documents as sparse vectors (i.e., keyword search engine).  
+                        (Documents stored in sparse vector databases are converted to dense vectors at inference time 
+                        when used with `LLM.ask`.)
         - *max_tokens*: The maximum number of tokens to generate.
         - *n_ctx*: Token context window. (Llama2 models have max of 4096.)
         - *n_batch*: Number of tokens to process in parallel.
@@ -166,6 +171,7 @@ class LLM:
             )
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path
+        self.store_type = store_type
         self.llm = None
         self.vectorstore = None
         self.qa = None
@@ -201,6 +207,10 @@ class LLM:
         if self.is_openai_model():
             warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
                           'Use with caution, as your data and prompts will be sent externally.')
+
+    def is_sparse_store(self):
+        return self.store_type == 'sparse'
+
 
     def is_openai_model(self):
         return self.model_url and self.model_url.lower().startswith('openai')
@@ -280,21 +290,28 @@ class LLM:
             )
         return
 
+
     def load_vectorstore(self):
         """
         Get `VectorStore` instance.
         You can access the `langchain_chroma.Chroma` instance with `load_vectorstore().get_db()`.
         """
+        from onprem.ingest.stores import DenseStore, SparseStore
         if not self.vectorstore:
-            from onprem.ingest.vectorstore import VectorStore
+            store_cls = SparseStore if self.is_sparse_store() else DenseStore
 
-            self.vectorstore = VectorStore(
+            # stor spare store in its own subfolder in `vectordb_path`
+            store_path = os.path.join(self.vectordb_path, 'sparse') if self.is_sparse() else self.vectordb_path
+
+            # create vector store
+            self.vectorstore = store_cls(
                 embedding_model_name=self.embedding_model_name,
                 embedding_model_kwargs=self.embedding_model_kwargs,
                 embedding_encode_kwargs=self.embedding_encode_kwargs,
-                persist_directory=self.vectordb_path,
+                persist_directory=store_path,
             )
         return self.vectorstore
+
 
     def load_vectordb(self):
         """
