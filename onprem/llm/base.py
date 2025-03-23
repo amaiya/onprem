@@ -10,7 +10,7 @@ __all__ = ['MIN_MODEL_SIZE', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_P
            'AnswerConversationBufferMemory', 'LLM']
 
 # %% ../../nbs/00_llm.base.ipynb 3
-from ..utils import get_datadir, download, format_string
+from ..utils import get_datadir, download, format_string, DEFAULT_DB
 from . import helpers
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
@@ -170,10 +170,10 @@ class LLM:
                 confirm=confirm,
             )
         self.prompt_template = prompt_template
-        self.vectordb_path = vectordb_path
+        self.vectordb_path = vectordb_path or os.path.join(get_datadir(), DEFAULT_DB)
         self.store_type = store_type
-        if store_type != 'dense':
-            raise ValueError('store_type="sparse" is not yet supported.')
+        #if store_type != 'dense':
+            #raise ValueError('store_type="sparse" is not yet supported.')
         self.llm = None
         self.vectorstore = None
         self.qa = None

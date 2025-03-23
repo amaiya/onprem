@@ -70,29 +70,43 @@ def default_schema():
 
 class SparseStore(VectorStore):
     def __init__(self,
-                index_path: Optional[str]=None, # path to folder where search index is stored
-                index_name: Optional[str] = None, # name of index
+                persist_directory: Optional[str]=None, # path to folder where search index is stored
+                index_name:str = 'myindex',            # name of index
                 **kwargs,
         ):
         """
         Initializes full-text search engine
         """
-        self.index_path = index_path
+
+        self.index_path = persist_directory
         self.index_name = index_name
-        if index_path and not index_name:
+        if self.index_path and not self.index_name:
             raise ValueError('index_name is required if index_path is supplied')
-        if index_path:
-            if not index.exists_in(index_path, indexname=index_name):
-                self.ix = __class__.initialize_index(index_path, index_name)
+        if self.index_path:
+            if not index.exists_in(self.index_path, indexname=self.index_name):
+                self.ix = __class__.initialize_index(self.index_path, self.index_name)
             else:
-                self.ix = index.open_dir(index_path, indexname=index_name)
+                self.ix = index.open_dir(self.index_path, indexname=self.index_name)
         else:
             warnings.warn(
-                "No index_path was supplied, so an in-memory only index"
+                "No persist_directory was supplied, so an in-memory only index"
                 "was created using DEFAULT_SCHEMA"
             )
             self.ix = RamStorage().create_index(default_schema())
 
+
+    def get_db(self):
+        """
+        Get raw index
+        """
+        return self.ix
+
+
+    def exists(self):
+        """
+        Returns True if documents have been added to search index
+        """
+        return self.get_size() > 0
 
 
     def add_documents(self,

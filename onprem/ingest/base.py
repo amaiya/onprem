@@ -461,34 +461,91 @@ from abc import ABC, abstractmethod
 
 class VectorStore(ABC):
     
+    def get_embedding_model(self):
+        """
+        Returns an instance to the `langchain_huggingface.HuggingFaceEmbeddings` instance
+        """
+        return self.embeddings
+
+
+    def check(self):
+        """
+        Raise exception if `VectorStore.exists()` returns False
+        """
+        if not self.exists():
+            raise Exception('The vector store is either empty or does not yet exist. '+\
+                            'Please invoke the `ingest` method or `add_document` method.')
+
     @abstractmethod
-    def add_documents(self):
+    def get_db(self):
+        """
+        Get the raw, underlying vector database or search index.
+        """
+        pass
+
+
+    @abstractmethod
+    def exists(self):
+        """
+        Returns True if vector store has been initialized and contains documents.
+        """
+        pass
+
+
+    @abstractmethod
+    def add_documents(self, documents):
+        """
+        Stores instances of `langchain_core.documents.base.Document` in vector store
+        """
         pass
 
     @abstractmethod
-    def remove_document(self):
+    def remove_document(self, id_to_delete):
+        """
+        Remove a single document.
+        """
         pass
     
     @abstractmethod
     def get_all_docs(self):
+        """
+        Returns a list of files previously added to vector store.
+        """
         pass
 
     @abstractmethod
-    def get_doc(self):
+    def get_doc(self, id):
+        """
+        Retrieve a document by ID
+        """
         pass
 
     @abstractmethod
     def get_size(self):
+        """
+        Get total number of records added to vector store
+        """
         pass
 
     @abstractmethod
     def erase(self):
+        """
+        Removes all documents in vector store
+        """
         pass
 
     @abstractmethod
-    def query(self):
+    def query(self, query):
+        """
+        Queries the vector store.
+        For sparse stores, this is simply a keyword-search.
+        For dense stores, this is equivalent to semantic_search.
+        """
         pass
 
     @abstractmethod
     def semantic_search(self):
+        """
+        Semantic search of vector store
+        """
         pass
