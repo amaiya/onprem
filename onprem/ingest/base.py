@@ -14,6 +14,7 @@ from ..utils import batch_list, filtered_generator
 from . import helpers
 
 from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_text_splitters.base import Language
 from langchain_community.document_loaders import (
@@ -460,7 +461,24 @@ def batchify_chunks(texts, batch_size=CHROMA_MAX):
 from abc import ABC, abstractmethod
 
 class VectorStore(ABC):
-    
+
+    def init_embedding_model(self, 
+                             embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+                             embedding_model_kwargs: Optional[dict] = None,
+                             embedding_encode_kwargs: dict = {"normalize_embeddings": False},
+                             **kwargs
+                             ):
+        """
+        Instantiate embedding model
+        """
+        if not embedding_model_kwargs:
+            import torch
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            embedding_model_kwargs = {"device": device}          
+        self.embeddings =  HuggingFaceEmbeddings(model_name=embedding_model_name, 
+                                     model_kwargs=embedding_model_kwargs,
+                                     encode_kwargs=embedding_encode_kwargs)
+
     def get_embedding_model(self):
         """
         Returns an instance to the `langchain_huggingface.HuggingFaceEmbeddings` instance

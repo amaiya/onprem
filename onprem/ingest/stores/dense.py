@@ -15,7 +15,6 @@ from ...utils import get_datadir, DEFAULT_DB
 from ..base import batchify_chunks, process_folder, does_vectorstore_exist, VectorStore
 from ..base import DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP, TABLE_CHUNK_SIZE, CHROMA_MAX
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
 import chromadb
 from chromadb.config import Settings
 
@@ -28,9 +27,6 @@ CHROMA_MAX = 41000
 class DenseStore(VectorStore):
     def __init__(
         self,
-        embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
-        embedding_model_kwargs: dict = {"device": "cpu"},
-        embedding_encode_kwargs: dict = {"normalize_embeddings": False},
         persist_directory: Optional[str] = None,
         **kwargs
     ):
@@ -39,12 +35,12 @@ class DenseStore(VectorStore):
 
         **Args**:
 
-          - *embedding_model*: name of sentence-transformers model
-          - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`)
-          - *embedding_encode_kwargs*: arguments to encode method of
-                                       embedding model (e.g., `{'normalize_embeddings': False}`).
           - *persist_directory*: Path to vector database (created if it doesn't exist).
                                  Default is `onprem_data/vectordb` in user's home directory.
+          - *embedding_model*: name of sentence-transformers model
+          - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
+          - *embedding_encode_kwargs*: arguments to encode method of
+                                       embedding model (e.g., `{'normalize_embeddings': False}`).
 
 
         **Returns**: `None`
@@ -52,11 +48,8 @@ class DenseStore(VectorStore):
         self.persist_directory = persist_directory or os.path.join(
             get_datadir(), DEFAULT_DB
         )
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name=embedding_model_name,
-            model_kwargs=embedding_model_kwargs,
-            encode_kwargs=embedding_encode_kwargs,
-        )
+        self.init_embedding_model(**kwargs) # stored in self.embeddings
+
         self.chroma_settings = Settings(
             persist_directory=self.persist_directory, anonymized_telemetry=False
         )

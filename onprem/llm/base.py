@@ -85,7 +85,7 @@ class LLM:
         mute_stream: bool = False,
         callbacks=[],
         embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
-        embedding_model_kwargs: dict = {"device": "cpu"},
+        embedding_model_kwargs: Optional[dict] = None,
         embedding_encode_kwargs: dict = {"normalize_embeddings": False},
         rag_num_source_docs: int = 4,
         rag_score_threshold: float = 0.0,
@@ -125,7 +125,7 @@ class LLM:
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *callbacks*: Callbacks to supply model
         - *embedding_model_name*: name of sentence-transformers model. Used for `LLM.ingest` and `LLM.ask`.
-        - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`).
+        - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, uses GPU if available.
         - *embedding_encode_kwargs*: arguments to encode method of
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         - *rag_num_source_docs*: The maximum number of documents retrieved and fed to `LLM.ask` and `LLM.chat` to generate answers.

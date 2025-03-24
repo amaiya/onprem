@@ -20,6 +20,8 @@ from whoosh.qparser import MultifieldParser
 from langchain_core.documents import Document
 import uuid
 from tqdm import tqdm
+from sentence_transformers import SentenceTransformer
+
 from ..base import VectorStore
 
 # ------------------------------------------------------------------------------
@@ -70,12 +72,21 @@ def default_schema():
 
 class SparseStore(VectorStore):
     def __init__(self,
-                persist_directory: Optional[str]=None, # path to folder where search index is stored
-                index_name:str = 'myindex',            # name of index
+                persist_directory: Optional[str]=None, 
+                index_name:str = 'myindex',
                 **kwargs,
         ):
         """
-        Initializes full-text search engine
+        Initializes full-text search engine.
+
+        **Args:**
+
+        - *persist_directory*: path to folder where search index is stored
+        - *index_name*: name of index
+        - *embedding_model*: name of sentence-transformers model
+        - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
+        - *embedding_encode_kwargs*: arguments to encode method of
+                                     embedding model (e.g., `{'normalize_embeddings': False}`).
         """
 
         self.index_path = persist_directory
@@ -93,7 +104,7 @@ class SparseStore(VectorStore):
                 "was created using DEFAULT_SCHEMA"
             )
             self.ix = RamStorage().create_index(default_schema())
-
+        self.init_embedding_model(**kwargs) # stored as self.embeddings
 
     def get_db(self):
         """
@@ -224,10 +235,14 @@ class SparseStore(VectorStore):
 
         return {'hits':search_results, 'total_hits':total_hits}
 
-    def semantic_search(self, *args, **kwargs):
+    def semantic_search(self, query, k:int=4, n_candidates=50, **kwargs):
         """
-        Not yet implemented
+        Retrieves results based on semantic similarity to `query`
         """
+        results = self.query(query, limit=n_candidates)['hits']
+        
+        
+        
         raise NotImplementedError('This method has not yet been implemented for SparseStore.')
         
     @classmethod
