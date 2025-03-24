@@ -618,13 +618,8 @@ class LLM:
                                         filters=filters,
                                         where_document=where_document,
                                         k = k, **kwargs)
-        if not results: return []
-        docs, scores = zip(*results)
-        for doc, score in zip(docs, scores):
-            simscore = 1 - score
-            doc.metadata["score"] = 1-score
 
-        return [d for d in docs if d.metadata['score'] >= score_threshold]
+        return [d for d in results if d.metadata['score'] >= score_threshold]
 
 
     def _ask(self,

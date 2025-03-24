@@ -25,6 +25,53 @@ People:"""
     print()
     return
 
+def test_rag_sparse(**kwargs):
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
+
+    llm.vectordb_path = tempfile.mkdtemp()
+
+    # make source folder
+    source_folder = tempfile.mkdtemp()
+
+    # download ktrain paper
+    U.download(
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf",
+        os.path.join(source_folder, "ktrain.pdf"),
+    )
+
+    # ingest ktrain paper
+    llm.ingest(source_folder)
+    assert os.path.exists(source_folder)
+
+    # QA on ktrain paper
+    print()
+    print("LLM.ask test")
+    print()
+    result = llm.ask("What is ktrain?")
+    assert len(result["answer"]) > 8
+    print(len(result['source_documents']))
+    assert len(result["source_documents"]) == 4
+    assert "question" in result
+    print()
+
+
+    # download SOTU
+    U.download(
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/sotu/state_of_the_union.txt",
+        os.path.join(source_folder, "sotu.txt"),
+    )
+
+    # ingest SOTU
+    llm.ingest(source_folder)
+
+    # QA on SOTU
+    print()
+    result = llm.ask("Who is Ketanji? Brown Jackson")
+    assert len(result["answer"]) > 8
+    assert "question" in result
+    assert "source_documents" in result
+    print()
 
 def test_rag(**kwargs):
     llm = kwargs.get('llm', None)
@@ -98,9 +145,10 @@ def test_rag(**kwargs):
     # ingest but ignore MS financial statement
     llm.ingest(source_folder, ignore_fn=lambda x: os.path.basename(x) == 'ms-financial-statement.pdf')
     ingested_files = llm.vectorstore.get_all_docs()
-    print([os.path.basename(x) for x in ingested_files])
-    assert(len(ingested_files) == 2)
-    assert('ms-inancial-statement.pdf' not in [os.path.basename(x) for x in ingested_files])
+    sources = set([os.path.basename(x['source']) for x in ingested_files])
+    print(sources)
+    assert(len(sources) == 2)
+    assert('ms-inancial-statement.pdf' not in sources)
 
 
     # cleanup
@@ -479,6 +527,7 @@ def test_search(**kwargs):
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
           'test_rag'    : test_rag,
+          'test_rag_sparse'    : test_rag_sparse,
           'test_summarization' : test_summarization,
           'test_extraction' : test_extraction,
           'test_classifier' : test_classifier,
@@ -491,7 +540,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_transformers' : test_transformers,
           'test_search' : test_search,}
 
-SHARE_LLM = ['test_prompt', 'test_rag', 'test_summarization', 'test_extraction', 'test_transformers']
+SHARE_LLM = ['test_prompt', 'test_rag', 'test_rag_sparse', 'test_summarization', 'test_extraction', 'test_transformers']
 
 def run(**kwargs):
 

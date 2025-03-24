@@ -5,8 +5,8 @@
 # %% auto 0
 __all__ = ['CAPTION_DELIMITER', 'METADATA', 'FILE_METADATA', 'includes_caption', 'extract_tables', 'extract_files',
            'extract_extension', 'extract_file_dates', 'iso2date', 'date2iso', 'md5sum', 'get_mimetype',
-           'extract_mimetype', 'is_random_plaintext', 'clean_text', 'create_document', 'set_metadata_defaults',
-           'extract_file_metadata']
+           'extract_mimetype', 'is_random_plaintext', 'clean_text', 'doc_from_dict', 'create_document',
+           'set_metadata_defaults', 'extract_file_metadata']
 
 # %% ../../nbs/01_ingest.helpers.ipynb 3
 from typing import List, Union, Optional
@@ -212,14 +212,23 @@ METADATA = {'source':None,
             'document_title' : '',
            }
 
+def doc_from_dict(d:dict):
+    """
+    Create LangChain Document from dicationary
+    """
+    page_content = d.get('page_content', '')
+    if 'page_content' in d:
+        del d['page_content']
+    return create_document(page_content, only_required_metadata=False, **d)
+
+
 def create_document(page_content:str, 
-                    source:str,
+                    only_required_metadata:bool=True,
                    **kwargs):
     """
     Create document with required metadata keys from `METADATA`.
     """
-    kwargs['source'] = source
-    metadata = {k: v for k, v in kwargs.items() if k in METADATA}
+    metadata = {k: v for k, v in kwargs.items() if k in METADATA} if only_required_metadata else kwargs
     return Document(page_content=page_content, 
                     metadata=metadata)
 

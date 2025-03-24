@@ -11,18 +11,21 @@ import os
 import warnings
 from typing import Dict, List, Optional, Sequence
 import math
+import numpy as np
 
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import *
 from whoosh.filedb.filestore import RamStorage
-from whoosh.qparser import MultifieldParser
+from whoosh.qparser import MultifieldParser, OrGroup
+from whoosh.query import Term, And
 from langchain_core.documents import Document
 import uuid
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
 
 from ..base import VectorStore
+from ..helpers import doc_from_dict
 
 # ------------------------------------------------------------------------------
 # IMPORTANT: Metadata fields in langchain_core.documents.Document objects
@@ -89,15 +92,15 @@ class SparseStore(VectorStore):
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         """
 
-        self.index_path = persist_directory
+        self.persist_directory = persist_directory # alias for consistency with DenseStore
         self.index_name = index_name
-        if self.index_path and not self.index_name:
-            raise ValueError('index_name is required if index_path is supplied')
-        if self.index_path:
-            if not index.exists_in(self.index_path, indexname=self.index_name):
-                self.ix = __class__.initialize_index(self.index_path, self.index_name)
+        if self.persist_directory and not self.index_name:
+            raise ValueError('index_name is required if persist_directory is supplied')
+        if self.persist_directory:
+            if not index.exists_in(self.persist_directory, indexname=self.index_name):
+                self.ix = __class__.initialize_index(self.persist_directory, self.index_name)
             else:
-                self.ix = index.open_dir(self.index_path, indexname=self.index_name)
+                self.ix = index.open_dir(self.persist_directory, indexname=self.index_name)
         else:
             warnings.warn(
                 "No persist_directory was supplied, so an in-memory only index"
@@ -153,13 +156,13 @@ class SparseStore(VectorStore):
         Returns a generator to iterate through all indexed documents
         """
         return self.ix.searcher().documents()
-        
+       
 
     def get_doc(self, id:str):
         """
         Get an indexed record by ID
         """
-        r = self.query(f'id:{id}')
+        r = self.query(f'id:{id}', return_dict=True)
         return r['hits'][0] if len(r['hits']) > 0 else None
 
 
@@ -182,17 +185,24 @@ class SparseStore(VectorStore):
             )
             shall = input("%s (Y/n) " % msg) == "Y"
         if shall and index.exists_in(
-            self.index_path, indexname=self.index_name
+            self.persist_directory, indexname=self.index_name
         ):
             ix = index.create_in(
-                self.index_path,
+                self.persist_directory,
                 indexname=self.index_name,
                 schema=default_schema(),
             )
             return True
         return False
 
+    def _analyze_query(self, q, field:str='page_content'):
+        """
+        Analyze query
+        """
+        analyzer = self.ix.schema[field].analyzer
+        return " ".join([token.text for token in analyzer(q)])
 
+    
     def query(
             self,
             q: str,
@@ -200,6 +210,9 @@ class SparseStore(VectorStore):
             highlight: bool = True,
             limit:int=10,
             page:int=1,
+            return_dict:bool=False,
+            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
+
     ) -> List[Dict]:
         """
         Queries the index
@@ -211,15 +224,33 @@ class SparseStore(VectorStore):
         - *highlight*: If True, highlight hits
         - *limit*: results per page
         - *page*: page of hits to return
+        - *return_dict*: If True, return list of dictionaries instead of LangChain Document objects
+        - *filters*: filter results by field values (e.g., {'extension':'pdf'})
         """
+
         search_results = []
+
+        # Apply analyzer to query as long as it is not a boolean query
+        if "AND" not in q and "OR" not in q and "NOT" not in q:
+            q = self._analyze_query(q)
+
+        # process filters
+        combined_filter=None
+        if filters:
+            terms = []
+            for k in filters:
+                terms.append(Term(k, filters[k]))
+            combined_filter = And(terms)
+        
+            
+    
         with self.ix.searcher() as searcher:
             if page == 1:
                 results = searcher.search(
-                    MultifieldParser(fields, schema=self.ix.schema).parse(q), limit=limit)
+                    MultifieldParser(fields, schema=self.ix.schema, group=OrGroup.factory(0.9)).parse(q), limit=limit, filter=combined_filter)
             else:
                 results = searcher.search_page(
-                    MultifieldParser(fields, schema=self.ix.schema).parse(q), page, limit)
+                    MultifieldParser(fields, schema=self.ix.schema, group=OrGroup.factory(0.9)).parse(q), page, limit, filter=combined_filter)
             total_hits = results.scored_length()
             if page > math.ceil(total_hits/limit):
                results = []
@@ -230,20 +261,37 @@ class SparseStore(VectorStore):
                     for f in fields:
                         if r[f] and isinstance(r[f], str):
                             d['hl_'+f] = r.highlights(f) or r[f]
-
+                d = d if return_dict else doc_from_dict(d)
                 search_results.append(d)
-
+   
         return {'hits':search_results, 'total_hits':total_hits}
 
     def semantic_search(self, query, k:int=4, n_candidates=50, **kwargs):
         """
         Retrieves results based on semantic similarity to `query`
         """
-        results = self.query(query, limit=n_candidates)['hits']
-        
-        
-        
-        raise NotImplementedError('This method has not yet been implemented for SparseStore.')
+        from sentence_transformers import util
+        import torch
+
+        results = self.query(query, limit=n_candidates, return_dict=True)['hits']
+        texts = [r['page_content'] for r in results]
+        embeddings = self.get_embedding_model()
+
+        # Compute embeddings
+        query_emb = torch.tensor(embeddings.embed_query(query)).unsqueeze(0)  # Shape (1, embedding_dim)
+        text_embs = torch.tensor(embeddings.embed_documents(texts))  # Shape (len(texts), embedding_dim)
+    
+        # Compute cosine similarity
+        cos_scores = util.pytorch_cos_sim(query_emb, text_embs).squeeze(0).tolist()  # Shape (len(texts),)
+
+        # Assign scores back to results
+        for i, score in enumerate(cos_scores):
+            results[i]['score'] = score
+
+        # Sort results by similarity in descending order
+        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:k]
+        return [doc_from_dict(r) for r in sorted_results]
+              
         
     @classmethod
     def index_exists_in(cls, index_path: str, index_name: Optional[str] = None):

@@ -284,6 +284,7 @@ def load_single_document(file_path: str, # path to file
 
 
 def _ignore_file(file_path, ignored_files:List[str]=[], ignore_fn:Optional[Callable]=None):
+    file_path = os.path.abspath(file_path)
     return file_path in ignored_files or \
             os.path.basename(file_path).startswith('~$') or \
             (ignore_fn is not None and ignore_fn(file_path))
@@ -462,6 +463,62 @@ from abc import ABC, abstractmethod
 
 class VectorStore(ABC):
 
+    def ingest(
+        self,
+        source_directory: str, # path to folder containing document store
+        chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by [langchain.text_splitter.RecursiveCharacterTextSplitter](https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
+        chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        ignore_fn:Optional[Callable] = None, # Optional function that accepts the file path (including file name) as input and returns `True` if file path should not be ingested.
+        batch_size:int=CHROMA_MAX, # batch size used when processing documents
+        **kwargs
+    ) -> None:
+        """
+        Ingests all documents in `source_directory` (previously-ingested documents are
+        ignored). When retrieved, the
+        [Document](https://api.python.langchain.com/en/latest/documents/langchain_core.documents.base.Document.html)
+        objects will each have a `metadata` dict with the absolute path to the file
+        in `metadata["source"]`.
+        Extra kwargs fed to `ingest.load_single_document`.
+        """
+
+        if not os.path.exists(source_directory):
+            raise ValueError("The source_directory does not exist.")
+        elif os.path.isfile(source_directory):
+            raise ValueError(
+                "The source_directory argument must be a folder, not a file."
+            )
+        texts = None
+        if self.exists():
+            # Update and store locally vectorstore
+            print(f"Appending to existing vectorstore at {self.persist_directory}")
+            ignored_files = set([d['source'] for d in self.get_all_docs()])
+        else:
+            print(f"Creating new vectorstore at {self.persist_directory}")
+            ignored_files = []
+
+        texts = process_folder(
+            source_directory,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            ignored_files=ignored_files,
+            ignore_fn=ignore_fn,
+            batch_size=batch_size,
+            **kwargs
+
+        )
+
+        texts = list(texts)
+        print(f"Split into {len(texts)} chunks of text (max. {chunk_size} chars each for text; max. {TABLE_CHUNK_SIZE} chars for tables)")
+
+        self.add_documents(texts, batch_size=batch_size)
+
+        if texts:
+            print(
+                "Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods"
+            )
+        db = None
+        return
+    
     def init_embedding_model(self, 
                              embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
                              embedding_model_kwargs: Optional[dict] = None,
