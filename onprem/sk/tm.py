@@ -185,10 +185,7 @@ class TopicModel:
                     r"(?u)\b\w+\b" if token_pattern is None else token_pattern
                 )
             if U.is_nospace_lang(lang):
-                text_list = []
-                for t in texts:
-                    text_list.append(" ".join(jieba.cut(t, HMM=False)))
-                texts = text_list
+                texts = U.spit_chinese(texts)
             if self.verbose:
                 print("lang: %s" % (lang))
 
