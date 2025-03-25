@@ -77,7 +77,7 @@ class LLM:
         prompt_template: Optional[str] = None,
         model_download_path: Optional[str] = None,
         vectordb_path: Optional[str] = None,
-        store_type:str='dense',
+        store_type:str='sparse',
         max_tokens: int = 512,
         n_ctx: int = 3900,
         n_batch: int = 1024,

@@ -222,7 +222,7 @@ def main():
             for doc in docs:
                 answer_score = compute_similarity(answer, doc.page_content)
                 question_score = compute_similarity(question, doc.page_content)
-                if answer_score < 0.5 or question_score < 0.3:
+                if answer_score < 0.5 or question_score < 0.2:
                     continue
                 unique_sources.add(
                     (
