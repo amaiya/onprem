@@ -14,9 +14,14 @@ from tqdm import tqdm
 from ...utils import get_datadir, DEFAULT_DB
 from ..base import batchify_chunks, process_folder, does_vectorstore_exist, VectorStore
 from ..base import CHROMA_MAX
-from langchain_chroma import Chroma
-import chromadb
-from chromadb.config import Settings
+try:
+    from langchain_chroma import Chroma
+    import chromadb
+    from chromadb.config import Settings
+    CHROMA_INSTALLED = True
+except ImportError:
+    CHROMA_INSTALLED = False
+
 
 os.environ["TOKENIZERS_PARALLELISM"] = "0"
 COLLECTION_NAME = "onprem_chroma"
@@ -43,6 +48,13 @@ class DenseStore(VectorStore):
 
         **Returns**: `None`
         """
+        if not CHROMA_INSTALLED:
+            raise ImportError('Please install chromadb: pip install chromadb langchain_chroma')
+
+        from langchain_chroma import Chroma
+        import chromadb
+        from chromadb.config import Settings
+
         self.persist_directory = persist_directory or os.path.join(
             get_datadir(), DEFAULT_DB
         )

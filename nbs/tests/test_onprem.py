@@ -281,6 +281,7 @@ def test_semantic(**kwargs):
         model_url=url,
         embedding_model_name="sentence-transformers/nli-mpnet-base-v2",
         embedding_encode_kwargs={"normalize_embeddings": True},
+        store_type='dense',
         vectordb_path=vectordb_path,
     )
     data = [  # from txtai
@@ -555,7 +556,8 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_transformers' : test_transformers,
           'test_search' : test_search,}
 
-SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse', 'test_summarization', 'test_extraction', 'test_transformers']
+SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse',
+             'test_summarization', 'test_extraction', 'test_transformers', 'test_pydantic']
 
 def run(**kwargs):
 
