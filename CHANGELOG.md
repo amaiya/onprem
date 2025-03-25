@@ -15,6 +15,8 @@ Most recent releases are shown at the top. Each release shows:
 - support complex RAG filtering (#137)
 
 ### changed
+- **Breaking Changes**:`LLM.chat` renamed to `LLM.ask_with_memory`.
+  `LLM.chat` is now a simple conversational chatbot (no RAG) (#138)
 - **Breaking Changes**: refactor vectorstore (#133, 1e84f46)
 - use os.walk instead of glob for `extract_files` and remove dot
   from extensions (#127)

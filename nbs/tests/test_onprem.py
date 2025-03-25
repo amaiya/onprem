@@ -135,16 +135,16 @@ def test_rag_dense(**kwargs):
 
     # QA chat test
     print()
-    print("LLM.chat test")
+    print("LLM.ask_with_memory test")
     print()
-    result = llm.chat("What is ktrain?")
+    result = llm.ask_with_memory("What is ktrain?")
     assert len(result["answer"]) > 8
     assert "question" in result
     assert "source_documents" in result
     assert "chat_history" in result
     print()
     print()
-    result = llm.chat("Does it support image classification?")
+    result = llm.ask_with_memory("Does it support image classification?")
     assert len(result["answer"]) > 8
     print()
     print()

@@ -178,6 +178,7 @@ class LLM:
         self.vectorstore = None
         self.qa = None
         self.chatqa = None
+        self.chatbot = None
         self.n_gpu_layers = n_gpu_layers
         self.max_tokens = max_tokens
         self.n_ctx = n_ctx
@@ -605,6 +606,24 @@ class LLM:
         return self.chatqa
 
 
+    def load_chatbot(self):
+        """
+        Prepares and loads a `langchain.chains.ConversationChain` instance
+        """
+        if self.chatbot is None:
+            from langchain.chains import ConversationChain
+            from langchain.memory import ConversationBufferMemory
+
+            llm = self.load_llm()
+
+            memory = ConversationBufferMemory(
+                memory_key="history", return_messages=True
+            )
+            self.chatbot = ConversationChain(llm=llm, memory=memory)
+
+        return self.chatbot
+
+
 
     def query(self,
               query:str, # query string
@@ -730,10 +749,10 @@ class LLM:
                             where_document=where_document, **kwargs)
             return res
 
-    def chat(self, question: str, **kwargs):
+    def ask_with_memory(self, question: str, **kwargs):
         """
         Chat with documents fed to the `ingest` method.
-        Unlike `LLM.ask`, `LLM.chat` includes conversational memory.
+        Unlike `LLM.ask`, `LLM.ask_with_memory` includes conversational memory.
         Extra keyword arguments are sent directly to the model invocation.
 
         **Args:**
@@ -746,4 +765,22 @@ class LLM:
         """
         chatqa = self.load_chatqa()
         res = chatqa.invoke(question, **kwargs)
+        return res
+
+
+    def chat(self, prompt: str, prompt_template=None, **kwargs):
+        """
+        Chat with LLM.
+
+        **Args:**
+
+        - *question*: a question you want to ask
+
+        """
+
+        prompt_template = self.prompt_template if prompt_template is None else prompt_template
+        if prompt_template:
+            prompt = format_string(prompt_template, prompt=prompt)
+        chatbot = self.load_chatbot()
+        res = chatbot.invoke(prompt, **kwargs)
         return res
