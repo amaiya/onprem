@@ -31,9 +31,8 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 - \[2025/03\] v0.10.0 released and now includes built-in support for
   [sparse vector
-  stores](https://amaiya.github.io/onprem/#talk-to-your-documents)
-  (i.e., using a keyword search index as a vector database) and is now
-  the default vector store type. To use dense vector stores (the
+  stores](https://amaiya.github.io/onprem/#talk-to-your-documents) and
+  is now the default vector store type. To use dense vector stores (the
   previous default), supply `store_type='dense'` when instantiating the
   [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). If you
   have an existing dense vector store that you still want to use, please
