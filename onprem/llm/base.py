@@ -584,6 +584,9 @@ class LLM:
         Prepares and loads a `langchain.chains.ConversationalRetrievalChain` instance
         """
         if self.chatqa is None:
+            if self.is_sparse_store():
+                raise Exception('Chats are only supported for dense vector stores (i.e., LLM.store_type="dense"). '+\
+                                'Please use LLM.ask instead.')
             db = self.load_vectordb()
             retriever = db.as_retriever(
                 search_type="similarity_score_threshold",

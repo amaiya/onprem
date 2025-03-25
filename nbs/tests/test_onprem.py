@@ -167,8 +167,9 @@ def test_rag_dense(**kwargs):
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
-    return
     llm.store_type = original_store_type
+
+    return
 
 def test_guider(**kwargs):
     llm = kwargs.get('llm', None)
