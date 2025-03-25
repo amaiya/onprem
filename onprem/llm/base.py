@@ -607,11 +607,16 @@ class LLM:
               query:str, # query string
               k:int = 4, # max number of results to return
               score_threshold:float=0.0, # minimum score for document to be considered as answer source
-              filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
-              where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+              filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (e.g., {'table':True})
+              where_document:Optional[Any] = None, # If `store_type` is `dense, filter sources by document content 
               **kwargs):
         """
-        Perform a semantic search of the vector DB
+        Perform a semantic search of the vector DB.
+
+        The `where_document` parameter varies depending on the value of `LLM.store_type`.
+        If `LLM.store_type` is 'dense', then `where_document` should be a dictionary in Chroma syntax (e.g., {"$contains": "Canada"})
+        to filter results.
+        If `LLM.store_stype` is 'sparse', then `where_document` should be a a boolean search string  to filter query in Lucne syntax.
         """
         store = self.load_vectorstore()
         results = store.semantic_search(query, 

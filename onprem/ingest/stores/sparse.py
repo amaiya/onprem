@@ -211,7 +211,8 @@ class SparseStore(VectorStore):
             limit:int=10,
             page:int=1,
             return_dict:bool=False,
-            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
+            filters:Optional[Dict[str, str]] = None,
+            where_document:Optional[str]=None,
 
     ) -> List[Dict]:
         """
@@ -226,6 +227,7 @@ class SparseStore(VectorStore):
         - *page*: page of hits to return
         - *return_dict*: If True, return list of dictionaries instead of LangChain Document objects
         - *filters*: filter results by field values (e.g., {'extension':'pdf'})
+        - *where_document*: optional query to further filter results
         """
 
         search_results = []
@@ -233,6 +235,8 @@ class SparseStore(VectorStore):
         # Apply analyzer to query as long as it is not a boolean query
         if "AND" not in q and "OR" not in q and "NOT" not in q:
             q = self._analyze_query(q)
+        if where_document:
+            q = f'({q}) AND ({where_document})'
 
         # process filters
         combined_filter=None
@@ -241,9 +245,8 @@ class SparseStore(VectorStore):
             for k in filters:
                 terms.append(Term(k, filters[k]))
             combined_filter = And(terms)
-        
-            
-    
+                   
+        # process search
         with self.ix.searcher() as searcher:
             if page == 1:
                 results = searcher.search(
@@ -266,14 +269,21 @@ class SparseStore(VectorStore):
    
         return {'hits':search_results, 'total_hits':total_hits}
 
-    def semantic_search(self, query, k:int=4, n_candidates=50, **kwargs):
+    def semantic_search(self, 
+                        query, 
+                        k:int=4, # number of records to return based on highest semantic similarity scores.
+                        n_candidates=50, # Number of records to consider (for which we compute embeddings on-the-fly)
+                        filters:Optional[Dict[str, str]] = None, # filter sources by field values (e.g., {'table':True})
+                        where_document:Optional[str]=None, # a boolean query to filter results further (e.g., "climate" AND extension:pdf)
+                        **kwargs):
         """
-        Retrieves results based on semantic similarity to `query`
+        Retrieves results based on semantic similarity to supplied `query`.
         """
         from sentence_transformers import util
         import torch
 
-        results = self.query(query, limit=n_candidates, return_dict=True)['hits']
+        results = self.query(query, limit=n_candidates, return_dict=True, filters=filters, where_document=where_document)['hits']
+        if not results: return []
         texts = [r['page_content'] for r in results]
         embeddings = self.get_embedding_model()
 

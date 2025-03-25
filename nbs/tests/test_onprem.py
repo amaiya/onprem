@@ -28,6 +28,8 @@ People:"""
 def test_rag_sparse(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
+    original_store_type = llm.store_type
+    llm.store_type = 'sparse'
 
     llm.vectordb_path = tempfile.mkdtemp()
 
@@ -73,9 +75,20 @@ def test_rag_sparse(**kwargs):
     assert "source_documents" in result
     print()
 
-def test_rag(**kwargs):
+    # test filters
+    assert(len(llm.query('climate', where_document='affordable')) == 1)
+    assert(len(llm.query('climate', filters={'extension':'txt'})) == 2)
+    assert(len(llm.query('climate', filters={'extension':'pdf'})) == 0)
+
+    llm.store_type = original_store_type
+
+def test_rag_dense(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
+
+    original_store_type = llm.store_type
+    llm.store_type = 'dense'
+
 
     llm.vectordb_path = tempfile.mkdtemp()
 
@@ -155,6 +168,7 @@ def test_rag(**kwargs):
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
     return
+    llm.store_type = original_store_type
 
 def test_guider(**kwargs):
     llm = kwargs.get('llm', None)
@@ -526,7 +540,7 @@ def test_search(**kwargs):
 
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
-          'test_rag'    : test_rag,
+          'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
           'test_summarization' : test_summarization,
           'test_extraction' : test_extraction,
@@ -540,7 +554,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_transformers' : test_transformers,
           'test_search' : test_search,}
 
-SHARE_LLM = ['test_prompt', 'test_rag', 'test_rag_sparse', 'test_summarization', 'test_extraction', 'test_transformers']
+SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse', 'test_summarization', 'test_extraction', 'test_transformers']
 
 def run(**kwargs):
 

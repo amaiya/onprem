@@ -12,6 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - support for custom metadata in vectorstore (#126)
 - basic full-text indexing (#132)
 - support for using sparse vector stores with `LLM.ask` (#136)
+- support complex RAG filtering (#137)
 
 ### changed
 - **Breaking Changes**: refactor vectorstore (#133, 1e84f46)
