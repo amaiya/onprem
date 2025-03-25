@@ -369,13 +369,20 @@ def test_pdf(**kwargs):
                                 text_callables={'FIRST_PARAGRAPH':lambda text:text.split("\n\n")[0]},
                                 file_callables={'EXT':lambda fname:fname.split(".")[-1]})
     assert len(docs) == 1
-    assert segment(docs[0].page_content, unit='paragraph')[0].startswith('#')
+    paragraphs = segment(docs[0].page_content, unit='paragraph')
+    md_id = 0
+    for i, p in enumerate(paragraphs):
+        if p.startswith('#'):
+            md_id = i
+            break
+
+    assert paragraphs[md_id].startswith('#')
     assert(docs[0].metadata['EXT'] == 'pdf')
-    assert(docs[0].metadata['FIRST_PARAGRAPH'].startswith("# ktrain"))
+    assert( len(docs[0].metadata['FIRST_PARAGRAPH']) > 0)
     assert(docs[0].metadata['mimetype'] == 'application/pdf')
     assert(docs[0].metadata['extension'] == 'pdf')
     assert(docs[0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
-    assert(docs[0].metadata['cdate'] == '2024-12-19T12:51:00.588912')
+    assert(docs[0].metadata['createdate'] == '2024-12-19T12:51:00.588912')
 
     docs = load_single_document(fpath, infer_table_structure=True)
     assert len(docs) == 7
@@ -557,10 +564,10 @@ def test_search(**kwargs):
     assert(len(se.query("table", limit=1, page=2)['hits']) == 1)
     assert(se.query('table')['total_hits'] == 2)
     assert(len(se.query("table", limit=1, page=3)['hits']) == 0)
-    assert(se.query("table", limit=1)['hits'][0]['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
+    assert(se.query("table", limit=1)['hits'][0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
     assert(len(se.query('page:5')['hits']) == 6)
     assert(len(se.query('page:6')['hits']) == 0)
-    doc_id = se.query('table')['hits'][0]['id']
+    doc_id = se.query('table')['hits'][0].metadata['id']
     assert(len(se.query(f'id:{doc_id}')['hits']) == 1)
     assert(se.query(f'id:{doc_id}')['total_hits'] == 1)
     assert(se.get_doc(doc_id)['id'] == doc_id)

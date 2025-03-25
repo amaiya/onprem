@@ -50,7 +50,7 @@ class DenseStore(VectorStore):
         **Returns**: `None`
         """
         if not CHROMA_INSTALLED:
-            raise ImportError('Please install chromadb: pip install chromadb langchain_chroma')
+            raise ImportError('Please install chroma packages: pip install chromadb langchain_chroma')
 
         from langchain_chroma import Chroma
         import chromadb

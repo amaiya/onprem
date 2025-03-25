@@ -29,6 +29,17 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2025/03\] v0.10.0 released and now includes built-in support for
+  [sparse vector
+  stores](https://amaiya.github.io/onprem/#talk-to-your-documents)
+  (i.e., using a keyword search index as a vector database) and is now
+  the default vector store type. To use dense vector stores (the
+  previous default), supply `store_type='dense'` when instantiating the
+  [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). If you
+  have an existing dense vector store that you still want to use, please
+  move to a subfolder named “*dense*”:
+  `mv onprem_data/vectordb/*  onprem_data/vectordb/dense`.
+
 - \[2025/02\] v0.9.0 released and now includes built-in support for
   [self-ask
   prompting](https://learnprompting.org/docs/advanced/few_shot/self_ask)
@@ -222,24 +233,35 @@ notebook](https://amaiya.github.io/onprem/examples_rag.html).
 ``` python
 from onprem import LLM
 
-llm = LLM(n_gpu_layers=-1)
+llm = LLM(n_gpu_layers=-1, store_type='sparse', verbose=False)
 ```
 
+    llama_new_context_with_model: n_ctx_per_seq (3904) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
+
 #### Step 1: Ingest the Documents into a Vector Database
+
+As of v0.10.0, you have the option of storing documents in either a
+dense vector store (i.e., Chroma) or a sparse vector store (i.e., a
+built-in keyword search index). Sparse vector stores sacrifice a small
+amount of inference speed for significant improvements in ingestion
+speed (useful for larger document sets). To select the store type,
+supply either `store_type="dense"` or `store_type="sparse"` when
+creating the [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm).
+As you can see above, we use a sparse vector store here (which is now
+the default).
 
 ``` python
 llm.ingest("./tests/sample_data")
 ```
 
-    Creating new vectorstore at /home/amaiya/onprem_data/vectordb
-    Loading documents from ./sample_data
-    Loaded 12 new documents from ./sample_data
-    Split into 153 chunks of text (max. 500 chars each)
-    Creating embeddings. May take some minutes...
+    Creating new vectorstore at /home/amaiya/onprem_data/vectordb/sparse
+    Loading documents from ./tests/sample_data
+    Split into 354 chunks of text (max. 500 chars each for text; max. 2000 chars for tables)
     Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods
 
-    Loading new documents: 100%|██████████████████████| 3/3 [00:00<00:00, 13.71it/s]
-    100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:02<00:00,  2.49s/it]
+    Loading new documents: 100%|██████████████████████| 6/6 [00:09<00:00,  1.51s/it]
+    Processing and chunking 43 new documents: 100%|██████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 116.11it/s]
+    100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 354/354 [00:00<00:00, 2548.70it/s]
 
 #### Step 2: Answer Questions About the Documents
 
@@ -248,7 +270,7 @@ question = """What is  ktrain?"""
 result = llm.ask(question)
 ```
 
-     Ktrain is a low-code machine learning library designed to facilitate the full machine learning workflow from curating and preprocessing inputs to training, tuning, troubleshooting, and applying models. Ktrain is well-suited for domain experts who may have less experience with machine learning and software coding.
+     ktrain is a low-code machine learning platform. It provides out-of-the-box support for training models on various types of data such as text, vision, graph, and tabular.
 
 The sources used by the model to generate the answer are stored in
 `result['source_documents']`:
@@ -264,35 +286,36 @@ for i, document in enumerate(result["source_documents"]):
     Sources:
 
 
-    1.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
-    lection (He et al., 2019). By contrast, ktrain places less emphasis on this aspect of au-
-    tomation and instead focuses on either partially or fully automating other aspects of the
-    machine learning (ML) workﬂow. For these reasons, ktrain is less of a traditional Au-
-    2
+    1.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
+    transferred to, and executed on new data in a production environment.
+    ktrain is a Python library for machine learning with the goal of presenting a simple,
+    uniﬁed interface to easily perform the above steps regardless of the type of data (e.g., text
+    vs. images vs. graphs). Moreover, each of the three steps above can be accomplished in
+    ©2022 Arun S. Maiya.
+    License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/. Attribution requirements are
 
-    2.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
-    possible, ktrain automates (either algorithmically or through setting well-performing de-
-    faults), but also allows users to make choices that best ﬁt their unique application require-
-    ments. In this way, ktrain uses automation to augment and complement human engineers
-    rather than attempting to entirely replace them. In doing so, the strengths of both are
-    better exploited. Following inspiration from a blog post1 by Rachel Thomas of fast.ai
+    2.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
+    custom models and data formats, as well. Inspired by other low-code (and no-code) open-
+    source ML libraries such as fastai (Howard and Gugger, 2020) and ludwig (Molino et al.,
+    2019), ktrain is intended to help further democratize machine learning by enabling begin-
+    ners and domain experts with minimal programming or data science experience to build
+    sophisticated machine learning models with minimal coding. It is also a useful toolbox for
 
-    3.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
-    with custom models and data formats, as well.
-    Inspired by other low-code (and no-
-    code) open-source ML libraries such as fastai (Howard and Gugger, 2020) and ludwig
-    (Molino et al., 2019), ktrain is intended to help further democratize machine learning by
-    enabling beginners and domain experts with minimal programming or data science experi-
-    4. http://archive.ics.uci.edu/ml/datasets/Twenty+Newsgroups
-    6
+    3.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
+    Apache license, and available on GitHub at: https://github.com/amaiya/ktrain.
+    2. Building Models
+    Supervised learning tasks in ktrain follow a standard, easy-to-use template.
+    STEP 1: Load and Preprocess Data. This step involves loading data from diﬀerent
+    sources and preprocessing it in a way that is expected by the model. In the case of text,
+    this may involve language-speciﬁc preprocessing (e.g., tokenization). In the case of images,
 
-    4.> /home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf:
-    ktrain: A Low-Code Library for Augmented Machine Learning
-    toML platform and more of what might be called a “low-code” ML platform. Through
-    automation or semi-automation, ktrain facilitates the full machine learning workﬂow from
-    curating and preprocessing inputs (i.e., ground-truth-labeled training data) to training,
-    tuning, troubleshooting, and applying models. In this way, ktrain is well-suited for domain
-    experts who may have less experience with machine learning and software coding. Where
+    4.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
+    AutoKeras (Jin et al., 2019) and AutoGluon (Erickson et al., 2020) lack some key “pre-
+    canned” features in ktrain, which has the strongest support for natural language processing
+    and graph-based data. Support for additional features is planned for the future.
+    5. Conclusion
+    This work presented ktrain, a low-code platform for machine learning. ktrain currently in-
+    cludes out-of-the-box support for training models on text, vision, graph, and tabular
 
 ### Extract Text from Documents
 
