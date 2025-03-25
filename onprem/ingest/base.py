@@ -582,6 +582,13 @@ class VectorStore(ABC):
         pass
     
     @abstractmethod
+    def update_documents(self, *args, **kwargs):
+        """
+        Update a set of documents.
+        """
+        pass
+
+    @abstractmethod
     def get_all_docs(self):
         """
         Returns a list of files previously added to vector store.

@@ -150,6 +150,15 @@ class SparseStore(VectorStore):
         return
 
 
+    def update_documents(self,
+                         doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.
+                         **kwargs):
+        """
+        Update a set of documents (doc in index with same ID will be over-written)
+        """
+        docs = [doc_from_dict(d) for d in doc_dicts]
+        self.add_documents(docs)
+
 
     def get_all_docs(self):
         """
@@ -233,7 +242,7 @@ class SparseStore(VectorStore):
         search_results = []
 
         # Apply analyzer to query as long as it is not a boolean query
-        if "AND" not in q and "OR" not in q and "NOT" not in q:
+        if "AND" not in q and "OR" not in q and "NOT" not in q and ":" not in q:
             q = self._analyze_query(q)
         if where_document:
             q = f'({q}) AND ({where_document})'
@@ -357,7 +366,7 @@ class SparseStore(VectorStore):
                 suffix = '_n'if not k.endswith('_n') else ''
             if suffix is not None:
                 d[k+suffix] = v
-        d['id'] = uuid.uuid4().hex
+        d['id'] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
         d['page_content' ] = doc.page_content
         #d['raw'] = json.dumps(d)
         if 'source' in d:

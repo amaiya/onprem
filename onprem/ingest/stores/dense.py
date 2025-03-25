@@ -8,9 +8,10 @@ __all__ = ['COLLECTION_NAME', 'DenseStore']
 # %% ../../../nbs/01_ingest.stores.dense.ipynb 3
 import os
 import os.path
-from typing import List, Optional, Callable, Dict
+from typing import List, Optional, Callable, Dict, Sequence
 from tqdm import tqdm
 
+from ..helpers import doc_from_dict
 from ...utils import get_datadir, DEFAULT_DB
 from ..base import batchify_chunks, process_folder, does_vectorstore_exist, VectorStore
 from ..base import CHROMA_MAX
@@ -128,6 +129,20 @@ class DenseStore(VectorStore):
         if not self.exists(): return
         self.get_db().delete(ids=[id_to_delete])
         return
+
+    def update_documents(self,
+                         doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.
+                         **kwargs):
+
+        """
+        Update a set of documents (doc in index with same ID will be over-written)
+        """
+        self.check()
+        db = self.get_db()
+        docs = [doc_from_dict(d) for d in doc_dicts]
+        ids = [d['id'] for d in doc_dicts]
+        return db.update_documents(ids, docs)
+
 
     def _convert_to_dict(self, raw_results):
         """

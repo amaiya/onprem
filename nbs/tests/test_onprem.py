@@ -32,6 +32,7 @@ def test_rag_sparse(**kwargs):
     llm.store_type = 'sparse'
 
     llm.vectordb_path = tempfile.mkdtemp()
+    print(llm.vectordb_path)
 
     # make source folder
     source_folder = tempfile.mkdtemp()
@@ -80,7 +81,26 @@ def test_rag_sparse(**kwargs):
     assert(len(llm.query('climate', filters={'extension':'txt'})) == 2)
     assert(len(llm.query('climate', filters={'extension':'pdf'})) == 0)
 
+    # test updates
+    store = llm.load_vectorstore()
+    doc = list(store.get_all_docs())[0]
+    id = doc['id']
+    print(id)
+    assert(store.get_doc(id)['id'] == id)
+    doc['document_title'] = 'TEST TITLE'
+    doc['page_content'] = 'XYZ'
+    store.update_documents([doc])
+    assert(store.get_doc(id)['document_title'] == 'TEST TITLE')
+    assert(store.get_doc(id)['page_content'].endswith('XYZ'))
+    store.remove_document(id)
+    assert(store.get_doc(id) is None)
+
+
+    # cleanup
+    shutil.rmtree(source_folder)
+    shutil.rmtree(llm.vectordb_path)
     llm.store_type = original_store_type
+
 
 def test_rag_dense(**kwargs):
     llm = kwargs.get('llm', None)
@@ -163,6 +183,20 @@ def test_rag_dense(**kwargs):
     assert(len(sources) == 2)
     assert('ms-inancial-statement.pdf' not in sources)
 
+
+    # test updates
+    store = llm.load_vectorstore()
+    doc = list(store.get_all_docs())[0]
+    id = doc['id']
+    print(id)
+    assert(store.get_doc(id)['id'] == id)
+    doc['document_title'] = 'TEST TITLE'
+    doc['page_content'] = 'XYZ'
+    store.update_documents([doc])
+    assert(store.get_doc(id)['document_title'] == 'TEST TITLE')
+    assert(store.get_doc(id)['page_content'].endswith('XYZ'))
+    store.remove_document(id)
+    assert(store.get_doc(id) is None)
 
     # cleanup
     shutil.rmtree(source_folder)
