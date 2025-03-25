@@ -172,8 +172,6 @@ class LLM:
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path or os.path.join(get_datadir(), DEFAULT_DB)
         self.store_type = store_type
-        #if store_type != 'dense':
-            #raise ValueError('store_type="sparse" is not yet supported.')
         self.llm = None
         self.vectorstore = None
         self.qa = None
@@ -303,8 +301,11 @@ class LLM:
         if not self.vectorstore:
             store_cls = SparseStore if self.is_sparse_store() else DenseStore
 
-            # stor spare store in its own subfolder in `vectordb_path`
-            store_path = os.path.join(self.vectordb_path, 'sparse') if self.is_sparse_store() else self.vectordb_path
+            # store vector stores within subfolders under `vectordb_path`
+            if self.is_sparse_store():
+                store_path = os.path.join(self.vectordb_path, 'sparse')
+            else:
+                store_path = os.path.join(self.vectordb_path, 'dense')
 
             # create vector store
             self.vectorstore = store_cls(

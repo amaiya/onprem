@@ -18,6 +18,8 @@ Most recent releases are shown at the top. Each release shows:
 - **Breaking Changes**:`LLM.chat` renamed to `LLM.ask_with_memory`.
   `LLM.chat` is now a simple conversational chatbot (no RAG) (#138)
 - **Breaking Changes**: refactor vectorstore (#133, 1e84f46)
+- **Breaking Changes**: Vector stores are stored within a subfolder
+  of `LLMvectordb_path` (either `dense` or `sparse`) (#140)
 - use os.walk instead of glob for `extract_files` and remove dot
   from extensions (#127)
 - Add `batch_size` parameter to `LLM.ingest` (#128)
