@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.10.2 (TBD)
+## 0.11.0 (2025-03-26)
 
 ### new:
 - add `LLM.set_store_type` method (#147)
