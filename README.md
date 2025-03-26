@@ -166,7 +166,7 @@ following is true:
 ``` python
 from onprem import LLM
 
-llm = LLM()
+llm = LLM(verbose=False)
 ```
 
 By default, a 7B-parameter model (**Mistral-7B-Instruct-v0.2**) is
@@ -203,18 +203,24 @@ This is an example of few-shot prompting, where we provide an example of
 what we want the LLM to do.
 
 ``` python
-prompt = """Extract the names of people in the supplied sentences. Here is an example:
+prompt = """Extract the names of people in the supplied sentences.
+Separate names with commas and place on a single line.
+
+# Example 1:
 Sentence: James Gandolfini and Paul Newman were great actors.
 People:
 James Gandolfini, Paul Newman
+
+# Example 2:
 Sentence:
 I like Cillian Murphy's acting. Florence Pugh is great, too.
 People:"""
 
-saved_output = llm.prompt(prompt)
+saved_output = llm.prompt(prompt, stop=['\n\n'])
 ```
 
-     Cillian Murphy, Florence Pugh.
+
+    Cillian Murphy, Florence Pugh
 
 Additional prompt examples are [shown
 here](https://amaiya.github.io/onprem/examples.html).
