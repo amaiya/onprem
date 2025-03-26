@@ -12,6 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - add `LLM.set_store_type` method (#147)
 
 ### changed
+- Default model changed to Zephyr-7b-beta (#148)
 - remove `LLM.ask_with_memory` (#146)
 
 ### fixed:
