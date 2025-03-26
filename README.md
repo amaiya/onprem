@@ -29,6 +29,8 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2025/03\] v0.11.0 released. Default model changed to Zephyr-7b-beta.
+
 - \[2025/03\] v0.10.0 released and now includes built-in support for
   [sparse vector
   stores](https://amaiya.github.io/onprem/#talk-to-your-documents). To
