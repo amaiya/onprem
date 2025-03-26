@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- remove `LLM.ask_with_memory` (#146)
 
 ### fixed:
 - source is empty during OCR (#144)

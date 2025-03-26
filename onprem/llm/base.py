@@ -6,14 +6,11 @@
 __all__ = ['MIN_MODEL_SIZE', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_PROMPT_TEMPLATE', 'ZEPHYR_MODEL_URL',
            'ZEPHYR_MODEL_ID', 'ZEPHYR_PROMPT_TEMPLATE', 'LLAMA_MODEL_URL', 'LLAMA_MODEL_ID', 'LLAMA_PROMPT_TEMPLATE',
            'MODEL_URL_DICT', 'MODEL_ID_DICT', 'LLAMA_CPP', 'TRANSFORMERS', 'ENGINE_DICT', 'PROMPT_DICT',
-           'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT',
-           'AnswerConversationBufferMemory', 'LLM']
+           'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT', 'LLM']
 
 # %% ../../nbs/00_llm.base.ipynb 3
 from ..utils import get_datadir, download, format_string, DEFAULT_DB
 from . import helpers
-from langchain.chains import RetrievalQA, ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
@@ -27,13 +24,6 @@ import warnings
 from typing import Any, Dict, Optional, Callable, Union, List
 
 # %% ../../nbs/00_llm.base.ipynb 4
-# reference: https://github.com/langchain-ai/langchain/issues/5630#issuecomment-1574222564
-class AnswerConversationBufferMemory(ConversationBufferMemory):
-    def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
-        return super(AnswerConversationBufferMemory, self).save_context(
-            inputs, {"response": outputs["answer"]}
-        )
-
 MIN_MODEL_SIZE = 250000000
 MISTRAL_MODEL_URL = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 MISTRAL_MODEL_ID = "TheBloke/Mistral-7B-Instruct-v0.2-AWQ"
@@ -175,7 +165,6 @@ class LLM:
         self.llm = None
         self.vectorstore = None
         self.qa = None
-        self.chatqa = None
         self.chatbot = None
         self.n_gpu_layers = n_gpu_layers
         self.max_tokens = max_tokens
@@ -581,31 +570,6 @@ class LLM:
         return res.content if isinstance(res, AIMessage) else res
 
 
-    def load_chatqa(self):
-        """
-        Prepares and loads a `langchain.chains.ConversationalRetrievalChain` instance
-        """
-        if self.chatqa is None:
-            if self.is_sparse_store():
-                raise Exception('Chats are only supported for dense vector stores (i.e., LLM.store_type="dense"). '+\
-                                'Please use LLM.ask instead.')
-            db = self.load_vectordb()
-            retriever = db.as_retriever(
-                search_type="similarity_score_threshold",
-                search_kwargs={
-                    "k": self.rag_num_source_docs,
-                    "score_threshold": self.rag_score_threshold,
-                },
-            )
-            llm = self.load_llm()
-            memory = AnswerConversationBufferMemory(
-                memory_key="chat_history", return_messages=True
-            )
-            self.chatqa = ConversationalRetrievalChain.from_llm(
-                llm, retriever, memory=memory, return_source_documents=True
-            )
-        return self.chatqa
-
 
     def load_chatbot(self):
         """
@@ -749,24 +713,6 @@ class LLM:
                             filters = filters,
                             where_document=where_document, **kwargs)
             return res
-
-    def ask_with_memory(self, question: str, **kwargs):
-        """
-        Chat with documents fed to the `ingest` method.
-        Unlike `LLM.ask`, `LLM.ask_with_memory` includes conversational memory.
-        Extra keyword arguments are sent directly to the model invocation.
-
-        **Args:**
-
-        - *question*: a question you want to ask
-
-        **Returns:**
-
-        - A dictionary with keys: `answer`, `source_documents`, `question`, `chat_history`
-        """
-        chatqa = self.load_chatqa()
-        res = chatqa.invoke(question, **kwargs)
-        return res
 
 
     def chat(self, prompt: str, prompt_template=None, **kwargs):
