@@ -245,7 +245,7 @@ dense vector store (i.e., Chroma) or a sparse vector store (i.e., a
 built-in keyword search index). Sparse vector stores sacrifice a small
 amount of inference speed for significant improvements in ingestion
 speed (useful for larger document sets) and also assume answer sources
-will include at least one word in the question. To select the store
+will include at least one word from the question. To select the store
 type, supply either `store_type="dense"` or `store_type="sparse"` when
 creating the [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm).
 As you can see above, we use a sparse vector store here.
@@ -991,12 +991,28 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
     > ```
 
 7.  **How can I speed up
-    [`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest)
-    using my GPU?**
+    [`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest)?**
 
-    > Try using the `embedding_model_kwargs` argument:
+    > By default, a GPU, if available, will be used to compute
+    > embeddings, so ensure PyTorch is installed with GPU support. You
+    > can explicitly control the device used for computing embeddings
+    > with the `embedding_model_kwargs` argument.
     >
     > ``` python
     > from onprem import LLM
     > llm  = LLM(embedding_model_kwargs={'device':'cuda'})
     > ```
+
+    > You can also supply `store_type="sparse"` to `LLM` to use a sparse
+    > vector store, which sacrifices a small amount of inference speed
+    > (`LLM.ask`) for significant speed ups during ingestion
+    > (`LLM.ingest`).
+    >
+    > ``` python
+    > from onprem import LLM
+    > llm  = LLM(store_type="sparse")
+    > ```
+    >
+    > Note, however, that, unlike dense vector stores, sparse vector
+    > stores assume answer sources will contain at least one word in
+    > common with the question.
