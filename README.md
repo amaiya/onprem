@@ -31,12 +31,13 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 - \[2025/03\] v0.10.0 released and now includes built-in support for
   [sparse vector
-  stores](https://amaiya.github.io/onprem/#talk-to-your-documents) and
-  is now the default vector store type. To use dense vector stores (the
-  previous default), supply `store_type='dense'` when instantiating the
-  [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). If you
-  have an existing dense vector store that you still want to use, please
-  move to a subfolder named “*dense*”:
+  stores](https://amaiya.github.io/onprem/#talk-to-your-documents). To
+  select the store type, supply either `store_type='dense'` or
+  `store_type='sparse'` when instantiating the
+  [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). This is a
+  breaking change as vector stores are now stored in subfolders (either
+  “sparse” or “dense”). If you have an existing dense vector store that
+  you still want to use, please move to a subfolder named “*dense*”:
   `mv onprem_data/vectordb/*  onprem_data/vectordb/dense`.
 
 - \[2025/02\] v0.9.0 released and now includes built-in support for
@@ -243,11 +244,11 @@ As of v0.10.0, you have the option of storing documents in either a
 dense vector store (i.e., Chroma) or a sparse vector store (i.e., a
 built-in keyword search index). Sparse vector stores sacrifice a small
 amount of inference speed for significant improvements in ingestion
-speed (useful for larger document sets). To select the store type,
-supply either `store_type="dense"` or `store_type="sparse"` when
+speed (useful for larger document sets) and also assume answer sources
+will include at least one word in the question. To select the store
+type, supply either `store_type="dense"` or `store_type="sparse"` when
 creating the [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm).
-As you can see above, we use a sparse vector store here (which is now
-the default).
+As you can see above, we use a sparse vector store here.
 
 ``` python
 llm.ingest("./tests/sample_data")
