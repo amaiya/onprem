@@ -86,8 +86,7 @@ class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
             texts = [d.page_content for d in docs if d.metadata.get('text_as_html', None) is None]
 
             page_content = '\n'.join(texts)
-            source = docs[0].metadata['source']
-            docs = [helpers.create_document(page_content, source)]
+            docs = [helpers.create_document(page_content, self.file_path)]
             table_docs = [helpers.create_document(t, source=source, table=True) for t in tables]
             docs.extend(table_docs)
             return docs
@@ -266,6 +265,8 @@ def load_single_document(file_path: str, # path to file
                     loader = loader_class(file_path, **loader_args)
                     file_metadata['ocr'] = True
                     docs = loader.load()
+                    for doc in docs:
+                        doc.metadata['source'] = file_path
                     file_metadata.update(_apply_text_callables(docs, text_callables))
                     docs = _update_metadata(docs, file_metadata)
             else:
