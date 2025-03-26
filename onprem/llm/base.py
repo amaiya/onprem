@@ -784,4 +784,4 @@ class LLM:
             prompt = format_string(prompt_template, prompt=prompt)
         chatbot = self.load_chatbot()
         res = chatbot.invoke(prompt, **kwargs)
-        return res
+        return res.get('response', '')
