@@ -5,7 +5,7 @@
 # %% auto 0
 __all__ = ['MIN_MODEL_SIZE', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_PROMPT_TEMPLATE', 'ZEPHYR_MODEL_URL',
            'ZEPHYR_MODEL_ID', 'ZEPHYR_PROMPT_TEMPLATE', 'LLAMA_MODEL_URL', 'LLAMA_MODEL_ID', 'LLAMA_PROMPT_TEMPLATE',
-           'MODEL_URL_DICT', 'MODEL_ID_DICT', 'LLAMA_CPP', 'TRANSFORMERS', 'ENGINE_DICT', 'PROMPT_DICT',
+           'MODEL_URL_DICT', 'URL2NAME', 'MODEL_ID_DICT', 'LLAMA_CPP', 'TRANSFORMERS', 'ENGINE_DICT', 'PROMPT_DICT',
            'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT', 'LLM']
 
 # %% ../../nbs/00_llm.base.ipynb 3
@@ -40,6 +40,7 @@ You are a super-intelligent helpful assistant that executes instructions.<|eot_i
 {prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 """
 MODEL_URL_DICT = {'mistral' : MISTRAL_MODEL_URL, 'zephyr':ZEPHYR_MODEL_URL, 'llama' : LLAMA_MODEL_URL}
+URL2NAME = dict([(v,k) for k,v in MODEL_URL_DICT.items()])
 MODEL_ID_DICT = {'mistral': MISTRAL_MODEL_ID, 'zephyr' : ZEPHYR_MODEL_ID, 'llama': LLAMA_MODEL_ID}
 LLAMA_CPP = 'llama.cpp'
 TRANSFORMERS = 'transformers'
@@ -125,6 +126,11 @@ class LLM:
         """
         self.model_id = None
         self.model_url = None
+
+        if model_url in URL2NAME:
+            default_model = URL2NAME[model_url]
+            model_url = None
+
         if model_url and model_id:
             raise ValueError('The parameters model_url and model_id are mutually-exclusive.')
         elif model_id:
@@ -133,7 +139,6 @@ class LLM:
         elif model_url:
             self.model_url = model_url.split("?")[0]
             self.model_name = os.path.basename(model_url)
-            self.model_url = MODEL_DICT[default_model] if not model_url else model_url
         else: # neither supplied so use defaults
             url_or_id = ENGINE_DICT[default_engine][default_model]
             self.model_name = os.path.basename(url_or_id)
@@ -197,6 +202,17 @@ class LLM:
         if self.is_openai_model():
             warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
                           'Use with caution, as your data and prompts will be sent externally.')
+
+    def set_store_type(self, store_type:str):
+        """
+        Change store type
+        """
+        if store_type not in ['dense', 'sparse']:
+            raise ValueError('store_type must be one of {"dense", "sparse"}')
+        self.store_type = store_type
+        self.vectorstore = None
+        self.load_vectorstore()
+        return
 
     def is_sparse_store(self):
         return self.store_type == 'sparse'

@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.10.2 (TBD)
 
 ### new:
-- N/A
+- add `LLM.set_store_type` method (#147)
 
 ### changed
 - remove `LLM.ask_with_memory` (#146)

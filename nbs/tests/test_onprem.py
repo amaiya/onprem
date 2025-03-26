@@ -12,14 +12,20 @@ import os, tempfile, shutil, argparse
 def test_prompt(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
-    prompt = """Extract the names of people in the supplied sentences. Here is an example:
+    #prompt = """Extract the names of people in the supplied sentences. Separate the names with commas.
+    #[Sentence]: I like Cillian Murphy's acting. Florence Pugh is great, too.
+    #[People]:"""
+    prompt = """Extract the names of people in the supplied sentences.
+# Example 1:
 Sentence: James Gandolfini and Paul Newman were great actors.
 People:
 James Gandolfini, Paul Newman
+
+# Example 2:
 Sentence:
 I like Cillian Murphy's acting. Florence Pugh is great, too.
 People:"""
-    saved_output = llm.prompt(prompt, stop=['Sentence:'])
+    saved_output = llm.prompt(prompt, stop=['\n\n'] )
     assert saved_output.strip().startswith("Cillian Murphy, Florence Pugh"), "bad response"
     print()
     print()
@@ -29,7 +35,7 @@ def test_rag_sparse(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
     original_store_type = llm.store_type
-    llm.store_type = 'sparse'
+    llm.set_store_type('sparse')
 
     llm.vectordb_path = tempfile.mkdtemp()
     print(llm.vectordb_path)
@@ -99,7 +105,7 @@ def test_rag_sparse(**kwargs):
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
-    llm.store_type = original_store_type
+    llm.set_store_type(original_store_type)
 
 
 def test_rag_dense(**kwargs):
@@ -107,7 +113,7 @@ def test_rag_dense(**kwargs):
     if not llm: raise ValueError('llm arg is required')
 
     original_store_type = llm.store_type
-    llm.store_type = 'dense'
+    llm.set_store_type('dense')
 
 
     llm.vectordb_path = tempfile.mkdtemp()
@@ -185,7 +191,7 @@ def test_rag_dense(**kwargs):
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
-    llm.store_type = original_store_type
+    llm.set_store_type(original_store_type)
 
     return
 
@@ -654,8 +660,8 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
-        help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
+        default="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf",
+        help=("URL of model. Default is a URL to Zephyr-7b-beta."),
     )
     optional_args.add_argument(
         "-p",
