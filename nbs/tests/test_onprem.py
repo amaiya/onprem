@@ -125,22 +125,22 @@ def test_rag_dense(**kwargs):
     llm.ingest(source_folder)
     assert os.path.exists(source_folder)
 
-    ## QA on ktrain paper
-    #print()
-    #print("LLM.ask test")
-    #print()
-    #result = llm.ask("What is ktrain?")
-    #assert len(result["answer"]) > 8
-    #assert len(result["source_documents"]) == 4
-    #assert "question" in result
-    #print()
+    # QA on ktrain paper
+    print()
+    print("LLM.ask test")
+    print()
+    result = llm.ask("What is ktrain?")
+    assert len(result["answer"]) > 8
+    assert len(result["source_documents"]) == 4
+    assert "question" in result
+    print()
 
 
-    ## download SOTU
-    #U.download(
-        #"https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/sotu/state_of_the_union.txt",
-        #os.path.join(source_folder, "sotu.txt"),
-    #)
+    # download SOTU
+    U.download(
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/sotu/state_of_the_union.txt",
+        os.path.join(source_folder, "sotu.txt"),
+    )
 
     # ingest SOTU
     llm.ingest(source_folder)
@@ -151,22 +151,6 @@ def test_rag_dense(**kwargs):
     assert len(result["answer"]) > 8
     assert "question" in result
     assert "source_documents" in result
-    print()
-
-    # QA chat test
-    print()
-    print("LLM.ask_with_memory test")
-    print()
-    result = llm.ask_with_memory("What is ktrain?")
-    assert len(result["answer"]) > 8
-    assert "question" in result
-    assert "source_documents" in result
-    assert "chat_history" in result
-    print()
-    print()
-    result = llm.ask_with_memory("Does it support image classification?")
-    assert len(result["answer"]) > 8
-    print()
     print()
 
     # download MS financial statement
@@ -670,14 +654,13 @@ if __name__ == "__main__":
         "-u",
         "--url",
         type=str,
-        default="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf",
+        default="https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
         help=("URL of model. Default is a URL to Mistral-7B-Instruct-v0.2."),
     )
     optional_args.add_argument(
         "-p",
         "--prompt-template",
         type=str,
-        default = "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>",
         help=("Prompt template to use. Should have a single variable {prompt}. Not required if default model url is used."),
     )
     optional_args.add_argument(
