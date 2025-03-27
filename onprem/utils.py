@@ -8,6 +8,7 @@ __all__ = ['DEFAULT_DB', 'CAPTION_STR', 'download', 'get_datadir', 'batch_list',
            'format_string', 'get_template_vars']
 
 # %% ../nbs/02_utils.ipynb 3
+import os
 import os.path
 import requests
 import sys
@@ -20,6 +21,8 @@ import itertools
 DEFAULT_DB = "vectordb"
 
 def download(url, filename, verify=False):
+    folder = os.path.dirname(os.path.abspath(filename))
+    os.makedirs(folder, exist_ok=True)
     with open(filename, "wb") as f:
         response = requests.get(url, stream=True, verify=verify)
         total = response.headers.get("content-length")

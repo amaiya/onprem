@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.12.0 (TBD)
+
+### new:
+- N/A
+
+### changed
+- support folder creation in `utils.download` (#149)
+
+### fixed:
+- N/A
+
+
 ## 0.11.0 (2025-03-26)
 
 ### new:
