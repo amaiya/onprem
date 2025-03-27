@@ -171,8 +171,8 @@ from onprem import LLM
 llm = LLM(verbose=False)
 ```
 
-By default, a 7B-parameter model (**Mistral-7B-Instruct-v0.2**) is
-downloaded and used. If `default_model='llama'` is supplied, then a
+By default, a 7B-parameter model (**Zephyr-7B-beta**) is downloaded and
+used. If `default_model='llama'` is supplied, then a
 **Llama-3.1-8B-Instsruct** model is automatically downloaded and used
 (which is useful if the default Mistral model struggles with a
 particular task):
@@ -182,16 +182,35 @@ particular task):
 llm = LLM(default_model='llama')
 ```
 
-Similarly, suppyling `default_model='zephyr`, will use
-**Zephyr-7B-beta**. Of course, you can also easily supply the URL to an
-LLM of your choosing to
+Similarly, suppyling `default_model='mistral` will use
+**Mistral-7B-Instruct-v0.2**. Of course, you can also easily supply the
+URL to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the the
 [code generation
 example](https://amaiya.github.io/onprem/examples_code.html) or the
-[FAQ](https://amaiya.github.io/onprem/#faq) for examples). Any extra
-parameters supplied to
+[FAQ](https://amaiya.github.io/onprem/#faq) for examples).
+
+Any extra parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
-directly to `llama-cpp-python`.
+directly to
+[llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
+default LLM engine. If `default_engine="transformers"` is supplied to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
+[transformers](https://github.com/huggingface/transformers) is used as
+the LLM engine (and `transformers.pipeline` receives any extra
+parameters supplied to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)).
+
+``` python
+# LLama-3.1 model quantized using AWQ is downloaded and run with Hugging Face transformers (requires GPU)
+llm = LLM(default_model='llama', default_engine='transformers')
+```
+
+See
+[here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp)
+for more information about using Hugging Face
+[transformers](https://github.com/huggingface/transformers) as the LLM
+engine.
 
 **Note:** The default context window size (`n_ctx`) is set to 3900 and
 the default output size (`max_tokens`) is set 512. Both are configurable
