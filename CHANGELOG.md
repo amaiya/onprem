@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - support folder creation in `utils.download` (#149)
 
 ### fixed:
-- N/A
+- pin to `sentence_transformers<4` due to SetFit bug
 
 
 ## 0.11.0 (2025-03-26)
