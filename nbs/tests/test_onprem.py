@@ -532,7 +532,6 @@ def test_hfclassifier(**kwargs):
     assert(3 == clf.predict(test_doc))  
     print(acc)
     assert(acc > 0.8)
-    print(acc)
     return
 
 
