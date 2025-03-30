@@ -62,6 +62,8 @@ def main():
         st.session_state.search_type = "Keyword"
     if 'where_document' not in st.session_state:
         st.session_state.where_document = ""
+    if 'results_limit' not in st.session_state:
+        st.session_state.results_limit = 20
     
     # Create search interface
     col1, col2 = st.columns([3, 1])
@@ -77,7 +79,7 @@ def main():
                                    index=0 if st.session_state.search_type == "Keyword" else 1)
     
     # Filters section (collapsible)
-    with st.expander("Advanced Filters"):
+    with st.expander("Advanced Filters and Search Settings"):
         filter_options = {}
         
         # Custom where clause
@@ -85,6 +87,14 @@ def main():
                                       placeholder="e.g., (climate AND change) OR warming",
                                       help="Use AND, OR, NOT operators for complex queries",
                                       value=st.session_state.where_document)
+        
+        # Search settings
+        st.subheader("Search Settings")
+        results_limit = st.slider("Number of results to display:", 
+                                min_value=5, 
+                                max_value=100, 
+                                value=st.session_state.results_limit, 
+                                step=5)
     
     # Search and reset buttons in columns
     col1, col2 = st.columns([4, 1])
@@ -98,6 +108,7 @@ def main():
         st.session_state.search_query = ""
         st.session_state.search_type = "Keyword"
         st.session_state.where_document = ""
+        st.session_state.results_limit = 20
         st.rerun()
         
     # Update session state when search button is clicked
@@ -105,6 +116,7 @@ def main():
         st.session_state.search_query = query
         st.session_state.search_type = search_type
         st.session_state.where_document = where_document
+        st.session_state.results_limit = results_limit
 
     # Handle search - execute search if we have a query in session state
     if st.session_state.search_query:
@@ -113,7 +125,7 @@ def main():
                 if st.session_state.search_type == "Keyword":
                     results = sparse_store.query(
                         q=st.session_state.search_query,
-                        limit=20,
+                        limit=st.session_state.results_limit,
                         filters=filter_options,
                         where_document=st.session_state.where_document if st.session_state.where_document else None,
                         highlight=True
@@ -123,7 +135,7 @@ def main():
                 else:  # Semantic search
                     hits = sparse_store.semantic_search(
                         query=st.session_state.search_query,
-                        k=20,
+                        k=st.session_state.results_limit,
                         filters=filter_options,
                         where_document=st.session_state.where_document if st.session_state.where_document else None
                     )
@@ -231,6 +243,7 @@ if __name__ == "__main__":
         st.session_state.search_query = ""
         st.session_state.search_type = "Keyword"
         st.session_state.where_document = ""
+        st.session_state.results_limit = 20
         for i in range(100):  # Reasonable limit for number of results
             st.session_state[f"show_full_{i}"] = False
     
