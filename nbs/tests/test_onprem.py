@@ -34,11 +34,11 @@ People:"""
 def test_rag_sparse(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
+    original_vectordb_path = llm.vectordb_path
     original_store_type = llm.store_type
+    llm.vectordb_path = tempfile.mkdtemp()
     llm.set_store_type('sparse')
 
-    llm.vectordb_path = tempfile.mkdtemp()
-    print(llm.vectordb_path)
 
     # make source folder
     source_folder = tempfile.mkdtemp()
@@ -105,6 +105,7 @@ def test_rag_sparse(**kwargs):
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
+    llm.vectordb_path = original_vectordb_path
     llm.set_store_type(original_store_type)
 
 
@@ -112,11 +113,12 @@ def test_rag_dense(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
 
+    original_vectordb_path = llm.vectordb_path
     original_store_type = llm.store_type
+    llm.vectordb_path = tempfile.mkdtemp()
     llm.set_store_type('dense')
 
 
-    llm.vectordb_path = tempfile.mkdtemp()
 
     # make source folder
     source_folder = tempfile.mkdtemp()
@@ -191,6 +193,7 @@ def test_rag_dense(**kwargs):
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
+    llm.vectordb_path = original_vectordb_path
     llm.set_store_type(original_store_type)
 
     return
