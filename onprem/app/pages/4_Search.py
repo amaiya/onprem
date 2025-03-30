@@ -25,6 +25,7 @@ def main():
     RAG_SOURCE_PATH = cfg.get("ui", {}).get("rag_source_path", None)
     RAG_BASE_URL = cfg.get("ui", {}).get("rag_base_url", None)
     VECTORDB_PATH = cfg.get("llm", {}).get("vectordb_path", None)
+    STORE_TYPE = cfg.get("llm", {}).get("store_type", "dense")
     RAG_SOURCE_PATH, RAG_BASE_URL = check_create_symlink(RAG_SOURCE_PATH, RAG_BASE_URL)
     
     # Setup header
@@ -59,7 +60,8 @@ def main():
     if 'search_query' not in st.session_state:
         st.session_state.search_query = ""
     if 'search_type' not in st.session_state:
-        st.session_state.search_type = "Keyword"
+        # Default to "Semantic" if store_type is "dense", otherwise "Keyword"
+        st.session_state.search_type = "Semantic" if STORE_TYPE == "dense" else "Keyword"
     if 'where_document' not in st.session_state:
         st.session_state.where_document = ""
     if 'results_limit' not in st.session_state:
@@ -74,9 +76,20 @@ def main():
                               value=st.session_state.search_query)
     
     with col2:
+        # Only show "Keyword" option if store_type is "sparse" or "both"
+        search_options = ["Semantic"]
+        if STORE_TYPE in ["sparse", "both"]:
+            search_options.insert(0, "Keyword")
+        
+        default_index = 0
+        if "Keyword" in search_options and st.session_state.search_type == "Keyword":
+            default_index = 0
+        else:
+            default_index = search_options.index("Semantic")
+            
         search_type = st.selectbox("Search type:", 
-                                   ["Keyword", "Semantic"], 
-                                   index=0 if st.session_state.search_type == "Keyword" else 1)
+                                  search_options, 
+                                  index=default_index)
     
     # Filters section (collapsible)
     with st.expander("Advanced Filters and Search Settings"):
@@ -106,7 +119,8 @@ def main():
     # Reset search state if reset button is clicked
     if reset_button:
         st.session_state.search_query = ""
-        st.session_state.search_type = "Keyword"
+        # Set default search type based on store_type
+        st.session_state.search_type = "Semantic" if STORE_TYPE == "dense" else "Keyword"
         st.session_state.where_document = ""
         st.session_state.results_limit = 20
         st.rerun()
@@ -239,9 +253,13 @@ def main():
 if __name__ == "__main__":
     # Initialize session state
     if 'initialized' not in st.session_state:
+        # Get store_type from config to set proper default search type
+        cfg = read_config()[0]
+        store_type = cfg.get("llm", {}).get("store_type", "dense")
+        
         st.session_state.initialized = True
         st.session_state.search_query = ""
-        st.session_state.search_type = "Keyword"
+        st.session_state.search_type = "Semantic" if store_type == "dense" else "Keyword"
         st.session_state.where_document = ""
         st.session_state.results_limit = 20
         for i in range(100):  # Reasonable limit for number of results
