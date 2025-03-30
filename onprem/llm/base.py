@@ -166,7 +166,7 @@ class LLM:
             )
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path or os.path.join(get_datadir(), DEFAULT_DB)
-        self.store_type = store_type
+        self.store_type = store_type  # one of 'dense', 'sparse', or 'both'
         self.llm = None
         self.vectorstore = None
         self.qa = None
@@ -207,16 +207,24 @@ class LLM:
         """
         Change store type
         """
-        if store_type not in ['dense', 'sparse']:
-            raise ValueError('store_type must be one of {"dense", "sparse"}')
+        if store_type not in ['dense', 'sparse', 'both']:
+            raise ValueError('store_type must be one of {"dense", "sparse", "both"}')
         self.store_type = store_type
         self.vectorstore = None
         self.load_vectorstore()
         return
 
+    def get_store_type(self):
+        return self.store_type
+
     def is_sparse_store(self):
         return self.store_type == 'sparse'
 
+    def is_dense_store(self):
+        return self.store_type == 'dense'
+
+    def is_both_store(self):
+        return self.store_type == 'both'
 
     def is_openai_model(self):
         return self.model_url and self.model_url.lower().startswith('openai')
@@ -302,23 +310,43 @@ class LLM:
         Get `VectorStore` instance.
         You can access the `langchain_chroma.Chroma` instance with `load_vectorstore().get_db()`.
         """
-        from onprem.ingest.stores import DenseStore, SparseStore
+        from onprem.ingest.stores import DenseStore, SparseStore, DualStore
         if not self.vectorstore:
-            store_cls = SparseStore if self.is_sparse_store() else DenseStore
 
             # store vector stores within subfolders under `vectordb_path`
             if self.is_sparse_store():
                 store_path = os.path.join(self.vectordb_path, 'sparse')
-            else:
+                # create vector store
+                self.vectorstore = SparseStore(
+                    embedding_model_name=self.embedding_model_name,
+                    embedding_model_kwargs=self.embedding_model_kwargs,
+                    embedding_encode_kwargs=self.embedding_encode_kwargs,
+                    persist_directory=store_path,
+                )
+            elif self.is_dense_store():
                 store_path = os.path.join(self.vectordb_path, 'dense')
 
-            # create vector store
-            self.vectorstore = store_cls(
-                embedding_model_name=self.embedding_model_name,
-                embedding_model_kwargs=self.embedding_model_kwargs,
-                embedding_encode_kwargs=self.embedding_encode_kwargs,
-                persist_directory=store_path,
-            )
+                # create vector store
+                self.vectorstore = DenseStore(
+                    embedding_model_name=self.embedding_model_name,
+                    embedding_model_kwargs=self.embedding_model_kwargs,
+                    embedding_encode_kwargs=self.embedding_encode_kwargs,
+                    persist_directory=store_path,
+                )
+            else:
+
+                # Create paths for both stores
+                dense_path = os.path.join(self.vectordb_path, 'dense')
+                sparse_path = os.path.join(self.vectordb_path, 'sparse')
+
+                # create vector store
+                self.vectorstore = DualStore(
+                    embedding_model_name=self.embedding_model_name,
+                    embedding_model_kwargs=self.embedding_model_kwargs,
+                    embedding_encode_kwargs=self.embedding_encode_kwargs,
+                    sparse_persist_directory=sparse_path,
+                    dense_persist_directory=dense_path,
+                )
         return self.vectorstore
 
 

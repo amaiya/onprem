@@ -31,6 +31,63 @@ People:"""
     print()
     return
 
+def test_rag_both(**kwargs):
+    llm = kwargs.get('llm', None)
+    if not llm: raise ValueError('llm arg is required')
+    original_vectordb_path = llm.vectordb_path
+    original_store_type = llm.store_type
+    llm.vectordb_path = tempfile.mkdtemp()
+    llm.set_store_type('both')
+    
+    print(llm.vectordb_path)
+
+    # make source folder
+    source_folder = tempfile.mkdtemp()
+
+    # download ktrain paper
+    U.download(
+        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf",
+        os.path.join(source_folder, "ktrain.pdf"),
+    )
+
+    # ingest ktrain paper
+    llm.ingest(source_folder)
+    assert os.path.exists(source_folder)
+    
+    # Verify both stores have documents
+    assert os.path.exists(os.path.join(llm.vectordb_path, 'dense'))
+    assert os.path.exists(os.path.join(llm.vectordb_path, 'sparse'))
+    
+    # Verify we can retrieve documents from both stores
+    dense_docs = llm.vectorstore.dense_store.get_all_docs()
+    sparse_docs = llm.vectorstore.sparse_store.get_all_docs()
+    assert len(list(dense_docs)) > 0
+    assert len(list(sparse_docs)) > 0
+    
+    # QA on ktrain paper (should use dense store by default)
+    print()
+    print("LLM.ask test (using both stores)")
+    print()
+    result = llm.ask("What is ktrain?")
+    assert len(result["answer"]) > 8
+    assert len(result["source_documents"]) > 0
+    
+    # Test keyword search (should use sparse store)
+    keyword_results = llm.vectorstore.keyword_search("ktrain")
+    assert len(keyword_results['hits']) > 0
+    
+    # Test semantic search (should use dense store)
+    semantic_results = llm.vectorstore.semantic_search("What is ktrain?")
+    assert len(semantic_results) > 0
+    
+    # cleanup
+    shutil.rmtree(source_folder)
+    shutil.rmtree(llm.vectordb_path)
+    llm.vectordb_path = original_vectordb_path
+    llm.set_store_type(original_store_type)
+    
+    return
+
 def test_rag_sparse(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
@@ -578,6 +635,7 @@ TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
           'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
+          'test_rag_both'     : test_rag_both,
           'test_summarization' : test_summarization,
           'test_extraction' : test_extraction,
           'test_classifier' : test_classifier,
@@ -590,7 +648,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_transformers' : test_transformers,
           'test_search' : test_search,}
 
-SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse',
+SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse', 'test_rag_both',
              'test_summarization', 'test_extraction', 'test_transformers', 'test_pydantic']
 
 def run(**kwargs):
