@@ -9,7 +9,8 @@ The application consists of multiple pages:
 1. **Home** - Landing page with overview and quick navigation
 2. **Prompts** - Use direct prompts to solve problems with the LLM
 3. **Documents** - Talk to your documents using RAG (Retrieval-Augmented Generation)
-4. **Settings** - Configure application settings
+4. **Search** - Search through your documents using keywords or semantic search
+5. **Settings** - Configure application settings
 
 ## Running the Application
 
@@ -44,4 +45,5 @@ You can edit this file directly from the Settings page in the application.
   - `0_Home.py` - Home page
   - `1_Prompts.py` - Prompts page
   - `2_Documents.py` - Documents page (RAG)
-  - `3_Settings.py` - Settings page
+  - `4_Search.py` - Search page
+  - `5_Settings.py` - Settings page

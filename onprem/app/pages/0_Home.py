@@ -29,11 +29,12 @@ def main():
     
     # Main content
     st.markdown("""
-    This application allows you to interact with an LLM in two primary ways:
+    This application allows you to interact with an LLM in multiple ways:
     
     1. **Use Prompts to Solve Problems**: Submit prompts directly to the LLM model
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
-    3. **Settings**: Configure the application settings
+    3. **Search Documents**: Search through your indexed documents using keywords or semantic search
+    4. **Settings**: Configure the application settings
     
     Use the sidebar to navigate between these different features.
     """)
@@ -45,7 +46,7 @@ def main():
     
     # Quick links
     st.subheader("Quick Links")
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         if st.button("💬 Use Prompts", use_container_width=True):
@@ -54,6 +55,10 @@ def main():
     with col2:
         if st.button("📄 Talk to Documents", use_container_width=True):
             st.switch_page("pages/2_Documents.py")
+    
+    with col3:
+        if st.button("🔍 Search Documents", use_container_width=True):
+            st.switch_page("pages/4_Search.py")
     
     # Additional information
     st.markdown("---")
