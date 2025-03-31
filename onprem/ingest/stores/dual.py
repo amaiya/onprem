@@ -133,9 +133,9 @@ class DualStore(VectorStore):
     
     def query(self, q: str, **kwargs):
         """
-        Query using the dense store.
+        Query using the sparse store.
         """
-        return self.dense_store.query(q, **kwargs)
+        return self.sparse_store.query(q, **kwargs)
     
     def semantic_search(self, query: str, **kwargs):
         """

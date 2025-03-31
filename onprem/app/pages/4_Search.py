@@ -1,6 +1,7 @@
 import os
 import sys
 import streamlit as st
+from typing import Type
 
 # Add parent directory to path to allow importing when run directly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -10,7 +11,10 @@ if parent_dir not in sys.path:
 
 # Import from parent modules
 from webapp import read_config
-from utils import hide_webapp_sidebar_item, construct_link, check_create_symlink
+from utils import hide_webapp_sidebar_item, construct_link, check_create_symlink, load_llm
+from onprem.ingest.stores.sparse import SparseStore
+from onprem.ingest.stores.dense import DenseStore
+from onprem.ingest.stores.dual import DualStore
 
 def main():
     """
@@ -39,19 +43,23 @@ def main():
         st.error("No vector database found. Please ingest documents first.")
         return
     
-    # Initialize the sparse store
-    from onprem.ingest.stores.sparse import SparseStore
+    # Initialize the vector store using LLM.load_vectorstore()
     try:
-        # Use the 'sparse' subdirectory of VECTORDB_PATH
-        sparse_path = os.path.join(VECTORDB_PATH, "sparse")
-        if not os.path.exists(sparse_path):
-            st.error("No sparse index found. Please ingest documents first.")
-            return
-            
-        sparse_store = SparseStore(persist_directory=sparse_path)
-        if not sparse_store.exists():
+        # Load the LLM instance from the configuration
+        llm = load_llm()
+        
+        # Load the vector store
+        vectorstore = llm.load_vectorstore()
+        
+        # Check if store exists and has documents
+        if not vectorstore.exists():
             st.error("No documents have been indexed. Please ingest documents first.")
             return
+            
+        # Determine if keyword search is available
+        # Only allow keyword search if vectorstore is NOT a DenseStore (i.e., it's a SparseStore or DualStore)
+        has_keyword_search = not isinstance(vectorstore, DenseStore)
+            
     except Exception as e:
         st.error(f"Error loading search index: {str(e)}")
         return
@@ -76,11 +84,15 @@ def main():
                               value=st.session_state.search_query)
     
     with col2:
-        # Only show "Keyword" option if store_type is "sparse" or "both"
+        # Only show "Keyword" option if the vectorstore supports it
         search_options = ["Semantic"]
-        if STORE_TYPE in ["sparse", "both"]:
+        if has_keyword_search:
             search_options.insert(0, "Keyword")
         
+        # Reset search type if it was set to keyword but keyword search is no longer available
+        if st.session_state.search_type == "Keyword" and not has_keyword_search:
+            st.session_state.search_type = "Semantic"
+            
         default_index = 0
         if "Keyword" in search_options and st.session_state.search_type == "Keyword":
             default_index = 0
@@ -93,10 +105,10 @@ def main():
     
     # Filters section (collapsible)
     with st.expander("Advanced Filters and Search Settings"):
-        filter_options = {}
+        filter_options = {} # not currently implemented
         
         # Custom where clause
-        where_document = st.text_input("Custom query:", 
+        where_document = st.text_input("Custom query filter:", 
                                       placeholder="e.g., (climate AND change) OR warming",
                                       help="Use AND, OR, NOT operators for complex queries",
                                       value=st.session_state.where_document)
@@ -119,8 +131,8 @@ def main():
     # Reset search state if reset button is clicked
     if reset_button:
         st.session_state.search_query = ""
-        # Set default search type based on store_type
-        st.session_state.search_type = "Semantic" if STORE_TYPE == "dense" else "Keyword"
+        # Set default search type based on available search types
+        st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
         st.session_state.results_limit = 20
         st.rerun()
@@ -136,8 +148,14 @@ def main():
     if st.session_state.search_query:
         with st.spinner("Searching..."):
             try:
+                # Verify search type is valid for the current vectorstore
+                if st.session_state.search_type == "Keyword" and not has_keyword_search:
+                    st.error("Keyword search is not available with the current vector store configuration.")
+                    return
+                
                 if st.session_state.search_type == "Keyword":
-                    results = sparse_store.query(
+                    # Use query method of vectorstore for keyword search
+                    results = vectorstore.query(
                         q=st.session_state.search_query,
                         limit=st.session_state.results_limit,
                         filters=filter_options,
@@ -147,10 +165,12 @@ def main():
                     hits = results.get('hits', [])
                     total_hits = results.get('total_hits', 0)
                 else:  # Semantic search
-                    hits = sparse_store.semantic_search(
+                    # Use semantic_search method of vectorstore
+                    
+                    hits = vectorstore.semantic_search(
                         query=st.session_state.search_query,
                         k=st.session_state.results_limit,
-                        filters=filter_options,
+                        filters=filter_options if filter_options else None,
                         where_document=st.session_state.where_document if st.session_state.where_document else None
                     )
                     total_hits = len(hits)
@@ -249,17 +269,28 @@ def main():
                         
             except Exception as e:
                 st.error(f"Error processing search: {str(e)}")
+                #import traceback
+                #st.error(traceback.format_exc())
 
 if __name__ == "__main__":
     # Initialize session state
     if 'initialized' not in st.session_state:
-        # Get store_type from config to set proper default search type
+        # Get config and check if vectorstore supports keyword search
         cfg = read_config()[0]
-        store_type = cfg.get("llm", {}).get("store_type", "dense")
+        
+        try:
+            # Try to determine the vectorstore type
+            llm = load_llm()
+            vectorstore = llm.load_vectorstore()
+            has_keyword_search = not isinstance(vectorstore, DenseStore)
+        except:
+            # If we can't load the vectorstore, default to assuming dense (semantic only)
+            has_keyword_search = False
         
         st.session_state.initialized = True
         st.session_state.search_query = ""
-        st.session_state.search_type = "Semantic" if store_type == "dense" else "Keyword"
+        # Set default search type based on what's available
+        st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
         st.session_state.results_limit = 20
         for i in range(100):  # Reasonable limit for number of results
