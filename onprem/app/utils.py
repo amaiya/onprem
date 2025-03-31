@@ -82,6 +82,8 @@ def setup_llm():
 def check_create_symlink(source_path, base_url):
     """
     Symlink to folder named <n> in datadir from streamlit's static folder
+    
+    Supports cross-platform (Windows, Linux, macOS) symlink creation with fallbacks
     """
     if base_url or not source_path:
         return source_path, base_url
@@ -92,20 +94,55 @@ def check_create_symlink(source_path, base_url):
 
     # check for existence
     staticdir = os.path.join(os.path.dirname(st.__file__), "static")
-    if os.path.islink(os.path.join(staticdir, symlink_name)):
+    symlink_path = os.path.join(staticdir, symlink_name)
+    
+    # If symlink already exists, use it
+    if os.path.islink(symlink_path) or (os.name == 'nt' and os.path.isdir(symlink_path) and os.path.exists(symlink_path)):
         return new_source_path, symlink_name
 
-    # attempt creation
+    # Platform-specific symlink creation
     try:
-        os.symlink(new_source_path, os.path.join(staticdir, symlink_name))
-    except Exception:
+        if os.name == 'nt':  # Windows
+            # Windows requires administrator privileges for symlinks unless developer mode is enabled
+            # First try with the appropriate flags for Windows
+            try:
+                # Use directory junction which doesn't require admin rights
+                import subprocess
+                target_path = os.path.abspath(new_source_path)
+                subprocess.check_call(['mklink', '/J', symlink_path, target_path], shell=True)
+            except Exception as e:
+                # Try with standard os.symlink with required Windows flags
+                # 1 = SYMBOLIC_LINK_FLAG_DIRECTORY, needed for directory symlinks
+                # 0x02 = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE, for non-admin creation if developer mode is on
+                os.symlink(new_source_path, symlink_path, target_is_directory=True)
+        else:
+            # Linux/macOS symlink creation
+            os.symlink(new_source_path, symlink_path)
+            
+        return new_source_path, symlink_name
+    except Exception as e:
+        # If symlink creation fails, print a helpful message but continue
+        st.warning(f"""
+        Unable to create symlink for document viewing: {str(e)}
+        
+        To fix this on Windows:
+        1. Enable Developer Mode in Windows Settings > For Developers, OR
+        2. Run the application as administrator, OR
+        3. Open Documents directly from the file system
+        
+        Continuing without document preview capability.
+        """)
         return source_path, base_url
-    return new_source_path, base_url
 
 
 def construct_link(filepath, source_path=None, base_url=None):
     """
     Constructs a link to a document
+    
+    For Windows compatibility:
+    - If symlinks/directory junctions work, it will use Streamlit's static file server
+    - If symlinks fail, it can generate a local file:// URL as a fallback (for direct file system access)
+    - Or you can provide a base_url to use an external web server for serving files
     """
     import urllib
     from pathlib import Path
@@ -113,13 +150,36 @@ def construct_link(filepath, source_path=None, base_url=None):
     filename = os.path.basename(filepath)
     if source_path is None:
         return filename
-    base_url = base_url or "/"
-    relative = str(Path(filepath).relative_to(source_path))
-    link = os.path.join(base_url, relative)
-    return (
-        f'<a href="{urllib.parse.quote(link)}" '
-        + f'target="_blank" title="Click to view original source">{filename}</a>'
-    )
+    
+    # For Windows compatibility - check if we should use file:// URLs as fallback
+    # This is used when symlinks can't be created and files need to be accessed directly
+    use_file_url = False
+    if os.name == 'nt' and not base_url:
+        # Check if the base URL is a directory on the filesystem
+        # rather than a symlink in Streamlit's static folder
+        staticdir = os.path.join(os.path.dirname(st.__file__), "static")
+        symlink_name = os.path.basename(source_path)
+        symlink_path = os.path.join(staticdir, symlink_name)
+        if not (os.path.islink(symlink_path) or os.path.isdir(symlink_path)):
+            use_file_url = True
+    
+    if use_file_url:
+        # Use file:// URL for direct file system access (Windows fallback)
+        abs_path = os.path.abspath(filepath)
+        file_url = f"file:///{abs_path.replace(os.sep, '/')}"
+        return (
+            f'<a href="{file_url}" '
+            + f'target="_blank" title="Click to view original source (local file)">{filename}</a>'
+        )
+    else:
+        # Standard web URL (using Streamlit static server or custom base_url)
+        base_url = base_url or "/"
+        relative = str(Path(filepath).relative_to(source_path))
+        link = os.path.join(base_url, relative)
+        return (
+            f'<a href="{urllib.parse.quote(link)}" '
+            + f'target="_blank" title="Click to view original source">{filename}</a>'
+        )
 
 
 
