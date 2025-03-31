@@ -26,10 +26,10 @@ def main():
     
     st.header("Settings")
     
-    # Create tabs for different settings
-    tab1, tab2 = st.tabs(["Configuration", "Document Ingestion"])
+    # Create tabs for different settings with updated order
+    tab1, tab2 = st.tabs(["Document Ingestion", "Configuration"])
     
-    with tab1:
+    with tab2:
         st.subheader("Configuration File")
         
         cfg, _ = read_config()
@@ -70,7 +70,7 @@ def main():
             except Exception as e:
                 st.error(f"Error resetting configuration: {str(e)}")
     
-    with tab2:
+    with tab1:
         st.subheader("Document Ingestion")
         
         # Instructions
