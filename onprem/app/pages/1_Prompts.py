@@ -154,8 +154,18 @@ def main():
             with st.chat_message(message["role"], avatar=avatar):
                 st.markdown(message["content"])
     
-    # Improved chat input with placeholder
-    prompt = st.chat_input("Ask me anything...")
+    # Always display the chat input at the bottom
+    chat_input = st.chat_input("Ask me anything...")
+    
+    # Determine the prompt to process
+    if "example_to_process" in st.session_state and st.session_state.example_to_process:
+        # When an example is clicked, use it as the prompt
+        prompt = st.session_state.example_to_process
+        # Clear it to prevent reprocessing
+        st.session_state.example_to_process = None
+    else:
+        # Otherwise use normal chat input
+        prompt = chat_input
     
     # Load LLM
     llm = setup_llm()
@@ -217,8 +227,8 @@ def main():
         # Create buttons for example prompts
         for i, example in enumerate(example_prompts):
             if st.button(f"💡 {example}", key=f"example_{i}", use_container_width=True):
-                # Set the example as user input
-                add_message(USER, example)
+                # Store the example in a session variable to be processed on the next rerun
+                st.session_state.example_to_process = example
                 
                 # Force a rerun to process the example
                 st.rerun()
