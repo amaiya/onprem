@@ -249,6 +249,9 @@ def main():
         st.session_state.search_type = search_type
         st.session_state.where_document = where_document
         st.session_state.results_limit = results_limit
+    elif search_button and not st.session_state.search_query:
+        st.error("You didn't enter a search.")
+        st.stop()
 
     # Handle search - execute search if we have a query in session state
     if st.session_state.search_query:
