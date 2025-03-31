@@ -198,8 +198,13 @@ def main():
                 except Exception as e:
                     response = f"⚠️ Error: {str(e)}"
                 
-                # Remove typing indicator and display response
+                # Remove typing indicator and clear streamed output
                 typing_indicator.empty()
+                
+                # Clear the streamed output from StreamHandler
+                llm.llm.callbacks[0].container.empty()
+                
+                # Display final response
                 message_placeholder.markdown(response)
         
         # Add assistant response to chat history
