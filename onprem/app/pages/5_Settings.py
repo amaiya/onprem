@@ -105,7 +105,7 @@ def main():
             with col1:
                 chunk_size = st.number_input("Chunk Size", 
                                            min_value=100, 
-                                           max_value=2000, 
+                                           max_value=1000000, 
                                            value=500,
                                            help="Text is split into chunks of this many characters")
             with col2:
