@@ -98,6 +98,7 @@ def main():
     RAG_TEXT = None
     RAG_TEXT_PATH = cfg.get("ui", {}).get("rag_text_path", None)
     PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
+    MODEL_NAME = os.path.basename(cfg.get("llm", {}).get("model_url", "UnknownModel"))
     
     if RAG_TEXT_PATH and os.path.isfile(RAG_TEXT_PATH) and is_txt(RAG_TEXT_PATH):
         with open(RAG_TEXT_PATH, "r") as f:
@@ -112,8 +113,76 @@ def main():
         "**Note:** Be sure to check any displayed sources to guard against hallucinations in answers."
     )
     
-    # Main content
-    st.header(RAG_TITLE or "Talk to Your Documents")
+    # Add some CSS for better styling - same as in Prompts.py
+    st.markdown("""
+    <style>
+    /* Improve chat message styling */
+    .stChatMessage {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    /* Style the chat input */
+    .stChatInputContainer {
+        border-top: 1px solid #e0e0e0;
+        padding-top: 1rem;
+    }
+    
+    /* Make user messages stand out */
+    .stChatMessage[data-testid="stChatMessage-user"] {
+        background-color: #f0f7ff;
+    }
+    
+    /* Style the assistant messages */
+    .stChatMessage[data-testid="stChatMessage-assistant"] {
+        background-color: #f9f9f9;
+    }
+    
+    /* System messages should be subtle */
+    .stChatMessage[data-testid="stChatMessage-system"] {
+        background-color: #f0f0f0;
+        font-style: italic;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Improved page header - same style as in Prompts.py
+    st.markdown(f"""
+    <h1 style="
+        color: #0068c9;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #0068c9;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.8rem; margin-right: 0.5rem;">📚</span> 
+        {RAG_TITLE or "Talk to Your Documents"}
+    </h1>
+    """, unsafe_allow_html=True)
+    
+    # Enhanced model info card - same as in Prompts.py
+    st.markdown(f"""
+    <div style="
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        background: linear-gradient(to right, rgba(0, 104, 201, 0.05), rgba(92, 137, 229, 0.1));
+        border-left: 4px solid #0068c9;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.2rem; margin-right: 10px;">🤖</span>
+        <div>
+            <p style="margin: 0; font-weight: 500;">Current Model: <span style="color: #0068c9;">{MODEL_NAME}</span></p>
+            <p style="margin: 3px 0 0 0; font-size: 0.85rem; color: #666;">
+                Ask questions about your documents to get AI-generated answers based on their content.
+            </p>
+        </div>
+    </div>
+    """  , unsafe_allow_html=True)
     
     if RAG_TEXT:
         st.markdown(RAG_TEXT, unsafe_allow_html=True)

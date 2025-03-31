@@ -59,10 +59,80 @@ def main():
     RAG_BASE_URL = cfg.get("ui", {}).get("rag_base_url", None)
     VECTORDB_PATH = cfg.get("llm", {}).get("vectordb_path", None)
     STORE_TYPE = cfg.get("llm", {}).get("store_type", "dense")
+    MODEL_NAME = os.path.basename(cfg.get("llm", {}).get("model_url", "UnknownModel"))
     RAG_SOURCE_PATH, RAG_BASE_URL = check_create_symlink(RAG_SOURCE_PATH, RAG_BASE_URL)
     
-    # Setup header
-    st.header("Document Search")
+    # Add some CSS for better styling - same as in Prompts.py
+    st.markdown("""
+    <style>
+    /* Improve chat message styling */
+    .stChatMessage {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    /* Style the chat input */
+    .stChatInputContainer {
+        border-top: 1px solid #e0e0e0;
+        padding-top: 1rem;
+    }
+    
+    /* Make user messages stand out */
+    .stChatMessage[data-testid="stChatMessage-user"] {
+        background-color: #f0f7ff;
+    }
+    
+    /* Style the assistant messages */
+    .stChatMessage[data-testid="stChatMessage-assistant"] {
+        background-color: #f9f9f9;
+    }
+    
+    /* System messages should be subtle */
+    .stChatMessage[data-testid="stChatMessage-system"] {
+        background-color: #f0f0f0;
+        font-style: italic;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Improved page header - same style as in Prompts.py
+    st.markdown("""
+    <h1 style="
+        color: #0068c9;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #0068c9;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.8rem; margin-right: 0.5rem;">🔍</span> 
+        Document Search
+    </h1>
+    """, unsafe_allow_html=True)
+    
+    # Enhanced info card - same style as in Prompts.py
+    st.markdown(f"""
+    <div style="
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        background: linear-gradient(to right, rgba(0, 104, 201, 0.05), rgba(92, 137, 229, 0.1));
+        border-left: 4px solid #0068c9;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.2rem; margin-right: 10px;">🔍</span>
+        <div>
+            <p style="margin: 0; font-weight: 500;">Search Type: <span style="color: #0068c9;">{STORE_TYPE.capitalize()} Search</span></p>
+            <p style="margin: 3px 0 0 0; font-size: 0.85rem; color: #666;">
+                Semantic search finds conceptually similar documents. Keyword search finds exact matches.
+            </p>
+        </div>
+    </div>
+    """  , unsafe_allow_html=True)
+    
     st.markdown("""
     Search through your indexed documents using keywords and filters.
     """)
