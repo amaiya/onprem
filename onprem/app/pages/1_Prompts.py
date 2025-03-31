@@ -62,27 +62,100 @@ def main():
     PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
     MODEL_NAME = os.path.basename(cfg.get("llm", {}).get("model_url", "UnknownModel"))
     
-    # Page header
-    st.header("💬 Chat")
+    # Add some CSS for better styling
+    st.markdown("""
+    <style>
+    /* Improve chat message styling */
+    .stChatMessage {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
     
-    # Model info card
+    /* Style the chat input */
+    .stChatInputContainer {
+        border-top: 1px solid #e0e0e0;
+        padding-top: 1rem;
+    }
+    
+    /* Make user messages stand out */
+    .stChatMessage[data-testid="stChatMessage-user"] {
+        background-color: #f0f7ff;
+    }
+    
+    /* Style the assistant messages */
+    .stChatMessage[data-testid="stChatMessage-assistant"] {
+        background-color: #f9f9f9;
+    }
+    
+    /* System messages should be subtle */
+    .stChatMessage[data-testid="stChatMessage-system"] {
+        background-color: #f0f0f0;
+        font-style: italic;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Improved page header
+    st.markdown("""
+    <h1 style="
+        color: #0068c9;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #0068c9;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.8rem; margin-right: 0.5rem;">💬</span> 
+        Interactive Chat
+    </h1>
+    """, unsafe_allow_html=True)
+    
+    # Enhanced model info card
     st.markdown(f"""
-    <div style="padding: 10px; border-radius: 5px; margin-bottom: 20px; 
-         background-color: rgba(0, 104, 201, 0.1); border-left: 4px solid #0068c9;">
-      <p style="margin: 0;"><strong>Current Model:</strong> {MODEL_NAME}</p>
+    <div style="
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        background: linear-gradient(to right, rgba(0, 104, 201, 0.05), rgba(92, 137, 229, 0.1));
+        border-left: 4px solid #0068c9;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.2rem; margin-right: 10px;">🤖</span>
+        <div>
+            <p style="margin: 0; font-weight: 500;">Current Model: <span style="color: #0068c9;">{MODEL_NAME}</span></p>
+            <p style="margin: 3px 0 0 0; font-size: 0.85rem; color: #666;">
+                This chat maintains conversation history for context-aware responses.
+            </p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
     # Initialize chat history
     init_chat_history()
     
-    # Display chat messages
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Create a container for messages with fixed height and scrolling
+    message_container = st.container()
     
-    # Chat input
-    prompt = st.chat_input("Type your message here...")
+    # Display chat messages with improved styling
+    with message_container:
+        for message in st.session_state.messages:
+            # Choose appropriate avatars based on role
+            if message["role"] == USER:
+                avatar = "👤"
+            elif message["role"] == ASSISTANT:
+                avatar = "🤖"
+            else:  # SYSTEM
+                avatar = "ℹ️"
+                
+            # Display the message with its avatar
+            with st.chat_message(message["role"], avatar=avatar):
+                st.markdown(message["content"])
+    
+    # Improved chat input with placeholder
+    prompt = st.chat_input("Ask me anything...")
     
     # Load LLM
     llm = setup_llm()
@@ -93,41 +166,66 @@ def main():
         add_message(USER, prompt)
         
         # Display the user message
-        with st.chat_message(USER):
+        with st.chat_message(USER, avatar="👤"):
             st.markdown(prompt)
         
-        # Generate LLM response
-        with st.chat_message(ASSISTANT):
+        # Generate LLM response with improved UI
+        with st.chat_message(ASSISTANT, avatar="🤖"):
             message_placeholder = st.empty()
             
-            with st.spinner("Thinking..."):
-                # Format prompt with history in a Human/Assistant format
+            # Show a typing indicator
+            typing_indicator = st.empty()
+            typing_indicator.markdown("<em>Thinking...</em>", unsafe_allow_html=True)
+            
+            with st.spinner(None):  # Hide the default spinner
+                # Format prompt with history
                 formatted_prompt = format_prompt_with_history(prompt)
                 
-                # Send to LLM (no prompt template to avoid conflicts with our formatting)
+                # Send to LLM
                 response = ""
                 try:
                     response = llm.prompt(formatted_prompt)
                 except Exception as e:
-                    response = f"Error generating response: {str(e)}"
+                    response = f"⚠️ Error: {str(e)}"
                 
-                # Display the response
+                # Remove typing indicator and display response
+                typing_indicator.empty()
                 message_placeholder.markdown(response)
         
         # Add assistant response to chat history
         add_message(ASSISTANT, response)
     
-    # Add a clear chat button in an expander
-    with st.expander("Chat Options", expanded=False):
-        if st.button("Clear Chat History"):
+    # Create a nicer chat options section in the sidebar
+    with st.sidebar:
+        st.markdown("### Chat Options")
+        
+        # Add a primary-colored button to clear chat
+        if st.button("🗑️ New Chat", type="primary", use_container_width=True):
             st.session_state.messages = [
                 {"role": SYSTEM, "content": "Chat history cleared. How can I help you today?"}
             ]
             st.rerun()
-            
+        
+        # Example prompts section
+        st.markdown("### Try these examples")
+        example_prompts = [
+            "Explain how neural networks work",
+            "Write a short poem about technology",
+            "What are the best practices for code documentation?",
+        ]
+        
+        # Create buttons for example prompts
+        for i, example in enumerate(example_prompts):
+            if st.button(f"💡 {example}", key=f"example_{i}", use_container_width=True):
+                # Set the example as user input
+                add_message(USER, example)
+                
+                # Force a rerun to process the example
+                st.rerun()
+        
         st.markdown("---")
         st.markdown(
-            "*[Examples](https://amaiya.github.io/onprem/examples.html) of prompts for different problems*"
+            "*[More examples](https://amaiya.github.io/onprem/examples.html) of prompts*"
         )
 
 
