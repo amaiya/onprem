@@ -9,7 +9,7 @@ __all__ = ['MIN_MODEL_SIZE', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_P
            'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT', 'LLM']
 
 # %% ../../nbs/00_llm.base.ipynb 3
-from ..utils import get_datadir, download, format_string, DEFAULT_DB
+from ..utils import get_datadir, get_models_dir, download, format_string, DEFAULT_DB
 from . import helpers
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
@@ -149,7 +149,7 @@ class LLM:
             else:
                 self.model_url = None
                 self.model_id = url_or_id
-        self.model_download_path = model_download_path or get_datadir()
+        self.model_download_path = model_download_path or get_models_dir()
 
         if self.is_llamacpp():
             try:
@@ -286,7 +286,7 @@ class LLM:
         model_url = MODEL_URL_DICT[default_model] if not model_url else model_url
         if 'https://huggingface.co' in model_url and 'resolve' not in model_url:
             warnings.warn('\n\nThe supplied URL may not be pointing to the actual GGUF model file.  Please check it.\n\n')
-        datadir = model_download_path or get_datadir()
+        datadir = model_download_path or get_models_dir()
         model_name = os.path.basename(model_url)
         filename = os.path.join(datadir, model_name)
         confirm_msg = f"\nYou are about to download the LLM {model_name} to the {datadir} folder. Are you sure?"

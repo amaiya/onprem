@@ -7,8 +7,9 @@ from onprem import utils as U
 from onprem.app.utils import hide_webapp_sidebar_item
 
 DATADIR = U.get_datadir()
-DEFAULT_YAML_FNAME = "webapp.yml"
-DEFAULT_YAML_FPATH = os.path.join(DATADIR, DEFAULT_YAML_FNAME)
+DEFAULT_YAML_FNAME = "config.yml"
+DEFAULT_WEBAPP_DIR = U.get_webapp_dir()
+DEFAULT_YAML_FPATH = os.path.join(DEFAULT_WEBAPP_DIR, DEFAULT_YAML_FNAME)
 DEFAULT_PROMPT = "List three cute names for a cat."
 DEFAULT_YAML = """
 llm:
@@ -20,7 +21,7 @@ llm:
   # path to vector db folder
   vectordb_path: {datadir}/vectordb
   # path to model download folder
-  model_download_path: {datadir}
+  model_download_path: {models_dir}
   # number of source documents used by LLM.ask and LLM.chat
   rag_num_source_docs: 6
   # minimum similarity score for source to be considered by LLM.ask/LLM.chat
@@ -51,7 +52,10 @@ def write_default_yaml():
     """
     write default webapp.yml
     """
-    yaml_content = DEFAULT_YAML.format(datadir=U.get_datadir()).strip()
+    yaml_content = DEFAULT_YAML.format(
+        datadir=U.get_datadir(),
+        models_dir=U.get_models_dir()
+    ).strip()
     yaml_content = yaml_content.replace('PROMPT_VARIABLE', '{prompt}')
     with open(DEFAULT_YAML_FPATH, "w") as f:
         f.write(yaml_content)
