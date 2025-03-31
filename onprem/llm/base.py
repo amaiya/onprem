@@ -166,7 +166,7 @@ class LLM:
             )
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path or os.path.join(get_datadir(), DEFAULT_DB)
-        self.store_type = store_type  # one of 'dense', 'sparse', or 'both'
+        self.store_type = store_type  # one of 'dense', 'sparse', or 'dual'
         self.llm = None
         self.vectorstore = None
         self.qa = None
@@ -207,8 +207,8 @@ class LLM:
         """
         Change store type
         """
-        if store_type not in ['dense', 'sparse', 'both']:
-            raise ValueError('store_type must be one of {"dense", "sparse", "both"}')
+        if store_type not in ['dense', 'sparse', 'dual']:
+            raise ValueError('store_type must be one of {"dense", "sparse", "dual"}')
         self.store_type = store_type
         self.vectorstore = None
         self.load_vectorstore()
@@ -223,8 +223,8 @@ class LLM:
     def is_dense_store(self):
         return self.store_type == 'dense'
 
-    def is_both_store(self):
-        return self.store_type == 'both'
+    def is_dual_store(self):
+        return self.store_type == 'dual'
 
     def is_openai_model(self):
         return self.model_url and self.model_url.lower().startswith('openai')

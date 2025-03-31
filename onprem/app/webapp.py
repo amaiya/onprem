@@ -19,8 +19,8 @@ llm:
   # number of layers offloaded to GPU
   n_gpu_layers: -1
   # type of vector store
-  # ("both" means both Chroma semantic searches and conventional keyword searches are supported)
-  store_type: both
+  # ("dual" means both Chroma semantic searches and conventional keyword searches are supported)
+  store_type: dual
   # path to vector db folder
   vectordb_path: {webapp_dir}/vectordb
   # path to model download folder

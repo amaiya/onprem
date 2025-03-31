@@ -31,13 +31,13 @@ People:"""
     print()
     return
 
-def test_rag_both(**kwargs):
+def test_rag_dual(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
     original_vectordb_path = llm.vectordb_path
     original_store_type = llm.store_type
     llm.vectordb_path = tempfile.mkdtemp()
-    llm.set_store_type('both')
+    llm.set_store_type('dual')
     
     print(llm.vectordb_path)
 
@@ -635,7 +635,7 @@ TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
           'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
-          'test_rag_both'     : test_rag_both,
+          'test_rag_dual'     : test_rag_dual,
           'test_summarization' : test_summarization,
           'test_extraction' : test_extraction,
           'test_classifier' : test_classifier,
@@ -648,7 +648,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_transformers' : test_transformers,
           'test_search' : test_search,}
 
-SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse', 'test_rag_both',
+SHARE_LLM = ['test_prompt', 'test_rag_dense', 'test_rag_sparse', 'test_rag_dual',
              'test_summarization', 'test_extraction', 'test_transformers', 'test_pydantic']
 
 def run(**kwargs):
