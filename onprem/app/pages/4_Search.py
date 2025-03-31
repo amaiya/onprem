@@ -111,7 +111,7 @@ def main():
         
         # Custom where clause
         where_document = st.text_input("Custom query filter:", 
-                                      placeholder="e.g., (climate AND change) OR warming",
+                                      placeholder='e.g., "ChatGPT" AND extension:pdf',
                                       help="Use AND, OR, NOT operators for complex queries",
                                       value=st.session_state.where_document)
         
