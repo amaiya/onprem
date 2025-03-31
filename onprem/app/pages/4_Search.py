@@ -108,10 +108,16 @@ def main():
     # Create search interface
     col1, col2 = st.columns([3, 1])
     
+    # Update session state when search terms change
+    def on_query_change():
+        st.session_state.search_query = st.session_state.query_input
+        
     with col1:
         query = st.text_input("Enter search terms:", 
                               placeholder="Enter keywords to search for",
-                              value=st.session_state.search_query)
+                              value=st.session_state.search_query,
+                              key="query_input",
+                              on_change=on_query_change)
     
     with col2:
         # Only show "Keyword" option if the vectorstore supports it
@@ -169,8 +175,7 @@ def main():
         st.rerun()
         
     # Update session state when search button is clicked
-    if search_button and query:
-        st.session_state.search_query = query
+    if search_button and st.session_state.search_query:
         st.session_state.search_type = search_type
         st.session_state.where_document = where_document
         st.session_state.results_limit = results_limit
