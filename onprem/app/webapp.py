@@ -17,9 +17,9 @@ llm:
   # if changing, be sure to update the prompt_template variable below
   model_url: https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf
   # number of layers offloaded to GPU
-  n_gpu_layers: 32
+  n_gpu_layers: -1
   # path to vector db folder
-  vectordb_path: {datadir}/vectordb
+  vectordb_path: {webapp_dir}/vectordb
   # path to model download folder
   model_download_path: {models_dir}
   # number of source documents used by LLM.ask and LLM.chat
@@ -53,7 +53,7 @@ def write_default_yaml():
     write default webapp.yml
     """
     yaml_content = DEFAULT_YAML.format(
-        datadir=U.get_datadir(),
+        webapp_dir=U.get_webapp_dir()
         models_dir=U.get_models_dir()
     ).strip()
     yaml_content = yaml_content.replace('PROMPT_VARIABLE', '{prompt}')
