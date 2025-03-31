@@ -151,12 +151,13 @@ def main():
                                 value=st.session_state.results_limit, 
                                 step=5)
     
-    # Search and reset buttons in columns
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        search_button = st.button("Search", type="primary")
-    with col2:
-        reset_button = st.button("Reset", type="secondary")
+    # Search and reset buttons side by side
+    button_cols = st.columns([1, 1, 4])  # First two columns for buttons, third for spacing
+    with button_cols[0]:
+        search_button = st.button("Search", type="primary", use_container_width=True)
+    with button_cols[1]:
+        # Place the reset button immediately to the right of the search button
+        reset_button = st.button("Reset", type="secondary", use_container_width=True)
     
     # Reset search state if reset button is clicked
     if reset_button:
