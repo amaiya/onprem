@@ -120,3 +120,202 @@ def construct_link(filepath, source_path=None, base_url=None):
         f'<a href="{urllib.parse.quote(link)}" '
         + f'target="_blank" title="Click to view original source">{filename}</a>'
     )
+
+
+
+
+from pyparsing import (
+    Word, QuotedString, Suppress, Group, Forward, 
+    ZeroOrMore, alphanums, alphas, nums, Optional as PPOptional, 
+    Literal, CaselessLiteral, infixNotation, opAssoc, ParserElement
+)
+from typing import Dict, List, Union, Any, Optional
+
+def lucene_to_chroma(query_str: str) -> Dict[str, Union[Dict, List, None]]:
+    """
+    Transform a Lucene-style query into Chroma query parameters using pyparsing.
+    
+    Args:
+        query_str: A Lucene-style query string (e.g., '"climate change" AND extension:(pdf OR docx)')
+        
+    Returns:
+        Dictionary with 'where_document' and 'filter' parameters for Chroma
+    """
+    # Enable more helpful error messages
+    ParserElement.setDefaultWhitespaceChars(" \t")
+    
+    # Define the parser elements
+    AND = CaselessLiteral("AND")
+    OR = CaselessLiteral("OR")
+    NOT = CaselessLiteral("NOT")
+    
+    # Define basic term types
+    term = Word(alphanums + "_-.'@")
+    field_name = Word(alphas, alphanums + "_")
+    
+    # Define quoted string
+    quoted_string = QuotedString('"', escChar='\\', unquoteResults=True)
+    
+    # Forward declaration for expressions inside field value parentheses
+    field_value_expr = Forward()
+    
+    # Define simple value and complex values (for things like extension:(pdf OR docx))
+    simple_value = quoted_string | Word(alphanums + ".-_")
+    complex_value = Suppress("(") + field_value_expr + Suppress(")")
+    
+    # Define a single value or multiple values with operators for field values
+    field_value_term = simple_value
+    
+    # Define the expression with boolean operators for field values
+    field_value_expr << infixNotation(
+        field_value_term,
+        [
+            (CaselessLiteral("NOT"), 1, opAssoc.RIGHT),
+            (CaselessLiteral("AND"), 2, opAssoc.LEFT),
+            (CaselessLiteral("OR"), 2, opAssoc.LEFT),
+        ]
+    )
+    
+    # Define field:value expression for metadata filters
+    field_value = Group(field_name + Suppress(":") + (complex_value | simple_value))
+    
+    # Define various expressions that can appear in the query
+    expression = Forward()
+    
+    # Define a content term (either a quoted string or a simple term)
+    content_term = quoted_string | term
+    
+    # Define a factor (either content term, field:value, or parenthesized expression)
+    factor = field_value | content_term | (Suppress("(") + expression + Suppress(")"))
+    
+    # Define the expression with boolean operators
+    expression << infixNotation(
+        factor,
+        [
+            (NOT, 1, opAssoc.RIGHT),
+            (AND, 2, opAssoc.LEFT),
+            (OR, 2, opAssoc.LEFT),
+        ]
+    )
+    
+    # Parse the query string
+    try:
+        if not query_str.strip():
+            return {"where_document": {}, "filter": None}
+        
+        parsed_result = expression.parseString(query_str, parseAll=True)
+        
+        # Process the parsed result to extract content terms and metadata filters
+        content_terms = []
+        metadata_filters = []
+        
+        def process_value(value):
+            """Convert string values to appropriate types"""
+            if isinstance(value, str):
+                if value.lower() == "true":
+                    return True
+                elif value.lower() == "false":
+                    return False
+                elif value.isdigit():
+                    return int(value)
+                elif value.replace('.', '', 1).isdigit() and value.count('.') == 1:
+                    return float(value)
+            return value
+        
+        def process_field_value_expr(result, field_name):
+            """Process a complex field value expression like (pdf OR docx)"""
+            if not isinstance(result, list):
+                # Single value
+                processed_value = process_value(result)
+                return {field_name: {"$eq": processed_value}}
+            
+            # Check if this is an OR expression
+            if len(result) >= 3 and result[1] == "OR":
+                or_conditions = []
+                for i in range(0, len(result), 2):
+                    if isinstance(result[i], list):
+                        or_conditions.append(process_field_value_expr(result[i], field_name))
+                    else:
+                        processed_value = process_value(result[i])
+                        or_conditions.append({field_name: {"$eq": processed_value}})
+                return {"$or": or_conditions}
+            
+            # Check if this is an AND expression
+            elif len(result) >= 3 and result[1] == "AND":
+                and_conditions = []
+                for i in range(0, len(result), 2):
+                    if isinstance(result[i], list):
+                        and_conditions.append(process_field_value_expr(result[i], field_name))
+                    else:
+                        processed_value = process_value(result[i])
+                        and_conditions.append({field_name: {"$eq": processed_value}})
+                return {"$and": and_conditions}
+            
+            # For NOT expressions or other complex cases
+            elif result[0] == "NOT" and len(result) > 1:
+                if isinstance(result[1], list):
+                    # Process nested expressions
+                    return {"$not": process_field_value_expr(result[1], field_name)}
+                else:
+                    processed_value = process_value(result[1])
+                    return {field_name: {"$ne": processed_value}}
+            
+            # Fallback for other structures
+            else:
+                # Just return the first value if we can't parse the structure
+                if isinstance(result[0], list):
+                    return process_field_value_expr(result[0], field_name)
+                processed_value = process_value(result[0])
+                return {field_name: {"$eq": processed_value}}
+            
+        def process_parsed_result(result):
+            nonlocal content_terms, metadata_filters
+            
+            if isinstance(result, list) or isinstance(result, tuple):
+                # Check if it's a field:value pair (metadata filter)
+                if len(result) == 2 and isinstance(result[0], str):
+                    field = result[0]
+                    value = result[1]
+                    
+                    # Handle complex expressions like extension:(pdf OR docx)
+                    if isinstance(value, list):
+                        filter_expr = process_field_value_expr(value, field)
+                        metadata_filters.append(filter_expr)
+                    else:
+                        # Simple field:value case
+                        processed_value = process_value(value)
+                        metadata_filters.append({field: {"$eq": processed_value}})
+                    return
+                
+                # Process nested structures
+                for item in result:
+                    if item in ('AND', 'OR', 'NOT'):
+                        continue
+                    process_parsed_result(item)
+            elif isinstance(result, str) and result not in ('AND', 'OR', 'NOT'):
+                # It's a content term
+                content_terms.append(result)
+        
+        process_parsed_result(parsed_result.asList())
+        
+        # Build the where_document parameter for content search
+        where_document = {}
+        if content_terms:
+            where_document = {"$contains": " ".join(content_terms)}
+        
+        # Build the filter parameter for metadata
+        filter_param = None
+        if metadata_filters:
+            if len(metadata_filters) == 1:
+                filter_param = metadata_filters[0]
+            else:
+                filter_param = {"$and": metadata_filters}
+        
+        return {
+            "where_document": where_document,
+            "filter": filter_param
+        }
+    
+    except Exception as e:
+        # Return empty query parameters on parsing error
+        return {"where_document": {}, "filter": None, "error": str(e)}

@@ -11,7 +11,8 @@ if parent_dir not in sys.path:
 
 # Import from parent modules
 from webapp import read_config
-from utils import hide_webapp_sidebar_item, construct_link, check_create_symlink, load_llm
+from utils import hide_webapp_sidebar_item, construct_link, check_create_symlink
+from utils import load_llm, lucene_to_chroma
 from onprem.ingest.stores.sparse import SparseStore
 from onprem.ingest.stores.dense import DenseStore
 from onprem.ingest.stores.dual import DualStore
@@ -50,6 +51,7 @@ def main():
         
         # Load the vector store
         vectorstore = llm.load_vectorstore()
+        store_type = llm.get_store_type()
         
         # Check if store exists and has documents
         if not vectorstore.exists():
@@ -166,12 +168,17 @@ def main():
                     total_hits = results.get('total_hits', 0)
                 else:  # Semantic search
                     # Use semantic_search method of vectorstore
-                    
+                    if store_type != 'sparse':
+                        # transform Whoosh query filter to Chroma syntax
+                        where_document = st.session_state.where_document if st.session_state.where_document else None
+                        chroma_filters = lucene_to_chroma(where_document)
+                        where_document = chroma_filters['where_document']
+                        filter_options = chroma_filters['filter']
                     hits = vectorstore.semantic_search(
                         query=st.session_state.search_query,
                         k=st.session_state.results_limit,
                         filters=filter_options if filter_options else None,
-                        where_document=st.session_state.where_document if st.session_state.where_document else None
+                        where_document=where_document if where_document else None
                     )
                     total_hits = len(hits)
                 
