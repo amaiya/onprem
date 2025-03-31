@@ -310,16 +310,52 @@ def main():
                                         key=f"download_orig_{i}"
                                     )
                         
-                        # Show full content if requested
-                        if st.session_state.get(f"show_full_{i}", False):
-                            with st.expander("Full Content", expanded=True):
-                                st.markdown(doc.page_content)
+                        # Create an expander for document details
+                        with st.expander("Document Details", expanded=False):
+                            # Initialize toggle states in session state if not present
+                            if f"show_metadata_{i}" not in st.session_state:
+                                st.session_state[f"show_metadata_{i}"] = False
+                            if f"show_full_{i}" not in st.session_state:
+                                st.session_state[f"show_full_{i}"] = False
                                 
-                                # Show additional metadata
-                                with st.expander("Document Metadata"):
-                                    metadata = {k: v for k, v in doc.metadata.items() 
-                                              if k not in ['hl_page_content', 'page_content']}
-                                    st.json(metadata)
+                            # Add toggle for metadata
+                            show_metadata = st.toggle(
+                                "Show Document Metadata", 
+                                key=f"metadata_toggle_{i}",
+                                value=st.session_state[f"show_metadata_{i}"]
+                            )
+                            st.session_state[f"show_metadata_{i}"] = show_metadata
+                            
+                            # Add toggle for full content
+                            show_full = st.toggle(
+                                "Show Full Document Content", 
+                                key=f"content_toggle_{i}",
+                                value=st.session_state[f"show_full_{i}"]
+                            )
+                            st.session_state[f"show_full_{i}"] = show_full
+                            
+                            # Show metadata if toggle is enabled
+                            if show_metadata:
+                                # Create a nice looking metadata display
+                                metadata = {k: v for k, v in doc.metadata.items() 
+                                         if k not in ['hl_page_content', 'page_content']}
+                                
+                                st.markdown("### Document Metadata")
+                                
+                                # Create a table view of metadata for better readability
+                                metadata_df = []
+                                for key, value in metadata.items():
+                                    metadata_df.append({"Field": key, "Value": str(value)})
+                                    
+                                if metadata_df:
+                                    st.table(metadata_df)
+                                else:
+                                    st.info("No metadata available for this document.")
+                            
+                            # Show full content if toggle is enabled
+                            if show_full:
+                                st.markdown("### Full Document Content")
+                                st.markdown(doc.page_content)
                         
                         st.markdown("---")
                         
