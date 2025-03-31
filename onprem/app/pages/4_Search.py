@@ -1,7 +1,8 @@
 import os
 import sys
 import streamlit as st
-from typing import Type
+from typing import Type, Optional, Tuple
+import mimetypes
 
 # Add parent directory to path to allow importing when run directly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +17,33 @@ from utils import load_llm, lucene_to_chroma
 from onprem.ingest.stores.sparse import SparseStore
 from onprem.ingest.stores.dense import DenseStore
 from onprem.ingest.stores.dual import DualStore
+
+# Helper function to get file data for download
+def get_file_data(filepath: str) -> Tuple[Optional[bytes], Optional[str]]:
+    """
+    Read a file and determine its MIME type
+    
+    Args:
+        filepath: Path to the file to read
+        
+    Returns:
+        Tuple containing:
+        - The file data as bytes (or None if the file couldn't be read)
+        - The MIME type (or a default type if it couldn't be determined)
+    """
+    try:
+        with open(filepath, 'rb') as f:
+            file_data = f.read()
+            
+        mime_type, _ = mimetypes.guess_type(filepath)
+        if mime_type is None:
+            # Default to plain text if MIME type can't be determined
+            mime_type = 'application/octet-stream'
+            
+        return file_data, mime_type
+    except Exception as e:
+        st.error(f"Error reading file {filepath}: {str(e)}")
+        return None, None
 
 def main():
     """
@@ -195,19 +223,26 @@ def main():
                         col1, col2 = st.columns([4, 1])
                         
                         source = doc.metadata.get("source", "Unknown source")
-                        source_link = construct_link(
-                            source, source_path=RAG_SOURCE_PATH, base_url=RAG_BASE_URL
-                        )
-                        
                         # Get page if available - only show for PDFs
                         page = doc.metadata.get("page")
                         extension = doc.metadata.get("extension", "").lower()
                         page_info = ""
                         if page is not None and extension == "pdf":
                             page_info = f", page {page + 1}"
+                            
+                        is_windows = os.name == 'nt'
                         
                         with col1:
-                            st.markdown(f"**{i+1}. {source_link}{page_info}**", unsafe_allow_html=True)
+                            # For Windows, use a plain filename + download button
+                            # For Linux/macOS, use the standard hyperlink
+                            if is_windows:
+                                filename = os.path.basename(source)
+                                st.markdown(f"**{i+1}. {filename}{page_info}**")
+                            else:
+                                source_link = construct_link(
+                                    source, source_path=RAG_SOURCE_PATH, base_url=RAG_BASE_URL
+                                )
+                                st.markdown(f"**{i+1}. {source_link}{page_info}**", unsafe_allow_html=True)
                             
                             # Display score if semantic search
                             if search_type == "Semantic" and hasattr(doc, 'metadata') and 'score' in doc.metadata:
@@ -253,13 +288,26 @@ def main():
                             st.markdown(content_to_display, unsafe_allow_html=True)
                         
                         with col2:
+                            # Always show a download button for the text content
                             st.download_button(
-                                label=f"Download",
+                                label="Download Text",
                                 data=doc.page_content,
                                 file_name=f"document_{i+1}.txt",
                                 mime="text/plain",
-                                key=f"download_{i}"
+                                key=f"download_text_{i}"
                             )
+                            
+                            # For Windows, add an additional download button for the original file
+                            if is_windows and os.path.exists(source):
+                                file_data, mime_type = get_file_data(source)
+                                if file_data:
+                                    st.download_button(
+                                        label="Download Original",
+                                        data=file_data,
+                                        file_name=os.path.basename(source),
+                                        mime=mime_type,
+                                        key=f"download_orig_{i}"
+                                    )
                         
                         # Show full content if requested
                         if st.session_state.get(f"show_full_{i}", False):

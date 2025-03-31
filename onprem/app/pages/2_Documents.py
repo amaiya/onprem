@@ -1,6 +1,9 @@
 import os
 import sys
 import streamlit as st
+from typing import Optional, Tuple, List, Dict, Any
+import mimetypes
+import uuid
 
 # Add parent directory to path to allow importing when run directly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +14,74 @@ if parent_dir not in sys.path:
 # Import from parent modules
 from webapp import read_config, is_txt
 from utils import setup_llm, compute_similarity, construct_link, check_create_symlink, hide_webapp_sidebar_item
+
+def get_file_data(filepath: str) -> Tuple[Optional[bytes], Optional[str]]:
+    """
+    Read a file and determine its MIME type
+    
+    Args:
+        filepath: Path to the file to read
+        
+    Returns:
+        Tuple containing:
+        - The file data as bytes (or None if the file couldn't be read)
+        - The MIME type (or a default type if it couldn't be determined)
+    """
+    try:
+        with open(filepath, 'rb') as f:
+            file_data = f.read()
+            
+        mime_type, _ = mimetypes.guess_type(filepath)
+        if mime_type is None:
+            # Default to plain text if MIME type can't be determined
+            mime_type = 'application/octet-stream'
+            
+        return file_data, mime_type
+    except Exception as e:
+        st.error(f"Error reading file {filepath}: {str(e)}")
+        return None, None
+
+
+def create_document_display(
+    filepath: str, 
+    source_path: Optional[str], 
+    base_url: Optional[str], 
+    page: Optional[int] = None,
+    score: Optional[float] = None
+) -> str:
+    """
+    Creates either a hyperlink (on Unix) or a download button (on Windows) for a document
+    
+    Args:
+        filepath: Path to the document
+        source_path: Base path for resolving relative paths
+        base_url: Base URL for hyperlinks
+        page: Page number (for PDFs)
+        score: Similarity score to display
+        
+    Returns:
+        HTML string for the document link/button
+    """
+    filename = os.path.basename(filepath)
+    page_info = f", page {page + 1}" if isinstance(page, int) else ""
+    score_info = f" : score: {score:.3f}" if score is not None else ""
+    
+    if os.name == 'nt':  # Windows
+        # For Windows, use Streamlit's download button with a unique key
+        button_id = f"download_{uuid.uuid4().hex}"
+        st.session_state[button_id] = {
+            'filepath': filepath,
+            'filename': filename
+        }
+        
+        # Create a HTML div for the Windows version
+        return f"""<div id="{button_id}_wrapper">
+                  <span><strong>{filename}</strong>{page_info}{score_info}</span>
+               </div>"""
+    else:
+        # For Unix, use the standard hyperlink approach
+        return construct_link(filepath, source_path, base_url) + f"{page_info}{score_info}"
+
 
 def main():
     """
@@ -89,20 +160,50 @@ def main():
                 "*You can inspect these sources for more information and to also guard against hallucinations in the answer.*"
             )
             
-            for source in unique_sources:
-                fname = source[0]
-                fname = construct_link(
-                    fname, source_path=RAG_SOURCE_PATH, base_url=RAG_BASE_URL
-                )
-                page = source[1] + 1 if isinstance(source[1], int) else source[1]
+            # On Windows, we'll need to add download buttons separately
+            is_windows = os.name == 'nt'
+            windows_download_buttons = []
+            
+            for i, source in enumerate(unique_sources):
+                filepath = source[0]
+                page = source[1]
                 content = source[2]
                 question_score = source[3]
                 answer_score = source[4]
+                
+                # Create either a hyperlink (Unix) or a placeholder + download button (Windows)
+                doc_display = create_document_display(
+                    filepath=filepath,
+                    source_path=RAG_SOURCE_PATH,
+                    base_url=RAG_BASE_URL,
+                    page=page,
+                    score=answer_score
+                )
+                
+                # Add the markdown content
                 st.markdown(
-                    f"- {fname} {', page '+str(page) if page else ''} : score: {answer_score:.3f}",
+                    f"- {doc_display}",
                     help=f"{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score:.3f})",
                     unsafe_allow_html=True,
                 )
+                
+                # For Windows, add download buttons
+                if is_windows:
+                    # Get unique ID for this source
+                    button_id = f"source_btn_{i}"
+                    
+                    # Read the file data
+                    file_data, mime_type = get_file_data(filepath)
+                    
+                    if file_data:
+                        # Add download button for this source
+                        st.download_button(
+                            label=f"📄 Download {os.path.basename(filepath)}",
+                            data=file_data,
+                            file_name=os.path.basename(filepath),
+                            mime=mime_type,
+                            key=button_id
+                        )
         elif "I don't know" not in answer:
             st.warning(
                 "No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents "
