@@ -42,7 +42,7 @@ ui:
   # path to markdown file with contents that will be inserted below rag_title
   rag_text_path:
   # path to folder containing raw documents (i.e., absolute path of folder you supplied to LLM.ingest)
-  rag_source_path:
+  rag_source_path: {webapp_dir}/documents
   # base url (leave blank unless you're running your own separate web server to serve source documents)
   rag_base_url:
 """
@@ -53,7 +53,7 @@ def write_default_yaml():
     write default webapp.yml
     """
     yaml_content = DEFAULT_YAML.format(
-        webapp_dir=U.get_webapp_dir()
+        webapp_dir=U.get_webapp_dir(),
         models_dir=U.get_models_dir()
     ).strip()
     yaml_content = yaml_content.replace('PROMPT_VARIABLE', '{prompt}')
