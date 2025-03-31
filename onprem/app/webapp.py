@@ -18,6 +18,9 @@ llm:
   model_url: https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf
   # number of layers offloaded to GPU
   n_gpu_layers: -1
+  # type of vector store
+  # ("both" means both Chroma semantic searches and conventional keyword searches are supported)
+  store_type: both
   # path to vector db folder
   vectordb_path: {webapp_dir}/vectordb
   # path to model download folder
