@@ -2,7 +2,6 @@
 
 When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either use  Windows Subsystem for Linux (WSL2) or Windows directly. This guide provides instructions for both.
 
-
 ## Using the System Python in Windows 11
 
 1. Download and install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and make sure **Desktop development with C++** workload is selected and installed. This is needed to build `chroma-hnswlib` (as of this writing a pre-built wheel only exists for Python 3.11 and below). It is also needed if you need to build `llama-cpp-python` instead of installing a prebuilt wheel (as we do below).
@@ -121,27 +120,3 @@ pip install onprem
 
 
 Reference: [Getting Started With CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl)
-
-
-## Enabling Document Viewing in the Web UI (Windows-specific)
-
-For the document viewing functionality to work properly in Windows, you have the following options:
-
-1. **Enable Developer Mode in Windows**:
-   - Open Windows Settings > Privacy & Security > For Developers
-   - Turn on "Developer Mode"
-   - This allows the application to create symbolic links without administrator privileges
-
-2. **Run as Administrator**:
-   - Right-click on the command prompt or terminal
-   - Select "Run as administrator"
-   - Run the application from this elevated prompt
-
-3. **Alternative Method (Automatic Fallback)**:
-   - If neither of the above options work, the application will fall back to using direct file:// URLs
-   - Note that modern browsers may block file:// URLs for security reasons
-   - You might need to allow this in your browser security settings
-
-4. **External Web Server (Advanced)**:
-   - Set up a local web server (like NGINX or Apache) to serve your document directory
-   - Configure the `rag_base_url` setting in the configuration to point to this server
