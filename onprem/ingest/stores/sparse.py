@@ -18,7 +18,7 @@ from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import *
 from whoosh.filedb.filestore import RamStorage
 from whoosh.qparser import MultifieldParser, OrGroup
-from whoosh.query import Term, And
+from whoosh.query import Term, And, Variations
 from langchain_core.documents import Document
 import uuid
 from tqdm import tqdm
@@ -204,14 +204,6 @@ class SparseStore(VectorStore):
             return True
         return False
 
-    def _analyze_query(self, q, field:str='page_content'):
-        """
-        Analyze query
-        """
-        analyzer = self.ix.schema[field].analyzer
-        return " ".join([token.text for token in analyzer(q)])
-
-    
     def query(
             self,
             q: str,
@@ -241,9 +233,6 @@ class SparseStore(VectorStore):
 
         search_results = []
 
-        # Apply analyzer to query as long as it is not a boolean query
-        if "AND" not in q and "OR" not in q and "NOT" not in q and ":" not in q:
-            q = self._analyze_query(q)
         if where_document:
             q = f'({q}) AND ({where_document})'
 
@@ -259,10 +248,10 @@ class SparseStore(VectorStore):
         with self.ix.searcher() as searcher:
             if page == 1:
                 results = searcher.search(
-                    MultifieldParser(fields, schema=self.ix.schema, group=OrGroup.factory(0.9)).parse(q), limit=limit, filter=combined_filter)
+                    MultifieldParser(fields, schema=self.ix.schema, termclass=Variations, group=OrGroup.factory(0.9)).parse(q), limit=limit, filter=combined_filter)
             else:
                 results = searcher.search_page(
-                    MultifieldParser(fields, schema=self.ix.schema, group=OrGroup.factory(0.9)).parse(q), page, limit, filter=combined_filter)
+                    MultifieldParser(fields, schema=self.ix.schema, termclass=Variations, group=OrGroup.factory(0.9)).parse(q), page, limit, filter=combined_filter)
             total_hits = results.scored_length()
             if page > math.ceil(total_hits/limit):
                results = []

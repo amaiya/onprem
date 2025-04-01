@@ -139,7 +139,7 @@ def main():
     
     # Check if vector database exists
     if not VECTORDB_PATH or not os.path.exists(VECTORDB_PATH):
-        st.error("No vector database found. Please ingest documents first by going to Settings.")
+        st.error("No vector database found. Please ingest documents first by going to Manage.")
         return
     
     # Initialize the vector store using LLM.load_vectorstore()
