@@ -199,14 +199,16 @@ def main():
                     except Exception as e:
                         st.warning(f"Unable to preview ZIP contents: {str(e)}")
             
-            # Subfolder selection
+            # Subfolder selection - require using subfolders
             subfolder_option = st.radio(
                 "Upload documents to:",
-                ["Main folder", "Existing subfolder", "Create new subfolder"],
+                ["Existing subfolder", "Create new subfolder"],
                 index=0
             )
             
-            target_folder = rag_source_path
+            st.info("⚠️ For better organization, uploading directly to the Main folder is not allowed. Please use a subfolder.")
+            
+            target_folder = None  # Will be set to a valid subfolder path, never the main path
             if subfolder_option == "Existing subfolder":
                 # Get list of existing subfolders
                 subfolders = [d for d in os.listdir(rag_source_path) 
@@ -230,12 +232,12 @@ def main():
                             os.makedirs(target_folder, exist_ok=True)
                             st.success(f"Created subfolder: {new_subfolder}")
             
-            # Display selected target folder
-            if target_folder != rag_source_path:
+            # Display selected target folder and validate
+            if target_folder and os.path.exists(target_folder):
                 relative_path = os.path.relpath(target_folder, rag_source_path)
-                st.info(f"Selected upload location: {relative_path}/")
+                st.success(f"Selected upload location: {relative_path}/")
             else:
-                st.info("Selected upload location: Main folder")
+                st.error("Please select an existing subfolder or create a new one before uploading.")
             
             # Place all ingestion options in an expander
             with st.expander("Ingestion Options", expanded=False):
@@ -435,8 +437,13 @@ def main():
 
             # Ingest button
             has_files_to_upload = (uploaded_files and len(uploaded_files) > 0) or uploaded_zip is not None
+            has_valid_subfolder = target_folder and os.path.exists(target_folder) and target_folder != rag_source_path
             
-            if has_files_to_upload and st.button("Upload and Ingest Documents"):
+            # Disable button if no valid subfolder
+            if not has_valid_subfolder:
+                st.warning("You must select or create a subfolder before uploading documents.")
+                
+            if has_files_to_upload and has_valid_subfolder and st.button("Upload and Ingest Documents"):
                 try:
                     with st.spinner("Processing and ingesting documents..."):
                         # Create target folder if it doesn't exist
