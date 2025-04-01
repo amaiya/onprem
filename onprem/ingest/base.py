@@ -346,6 +346,9 @@ def load_documents(source_dir: str, # path to folder containing documents
                         if title:
                             doc.metadata['document_title'] = title
                 yield from docs
+        # Make sure to close the pool when done
+        pool.close()
+        pool.join()
 
 
 def process_folder(
