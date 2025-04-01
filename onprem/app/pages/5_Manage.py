@@ -200,8 +200,121 @@ def main():
                     else:
                         st.info("The selected folder does not exist yet and will be created.")
             
-            # Ingest button is placed outside the expander for visibility
-
+            # Folder management expandable section
+            with st.expander("Folder Management", expanded=False):
+                st.subheader("Manage Document Folders")
+                
+                # Add refresh button
+                if st.button("Refresh Folder List", key="refresh_folders"):
+                    st.rerun()
+                
+                # Get list of existing subfolders
+                subfolders = [d for d in os.listdir(rag_source_path) 
+                             if os.path.isdir(os.path.join(rag_source_path, d))]
+                
+                # Display folder statistics
+                if subfolders:
+                    st.write(f"Found {len(subfolders)} subfolder(s) in document root directory:")
+                    
+                    # Create columns for folder stats
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write("**Folder Name**")
+                    with col2:
+                        st.write("**File Count**")
+                    
+                    # Display each folder with file count
+                    for folder in subfolders:
+                        folder_path = os.path.join(rag_source_path, folder)
+                        file_count = sum([len(files) for _, _, files in os.walk(folder_path)])
+                        
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.write(f"📁 {folder}")
+                        with col2:
+                            st.write(f"{file_count}")
+                    
+                    st.write("---")
+                    
+                
+                if not subfolders:
+                    st.info("No subfolders exist yet. You can create subfolders using the options above.")
+                else:
+                    st.write("Select a subfolder to delete:")
+                    folder_to_delete = st.selectbox("Subfolder to delete", 
+                                                  subfolders,
+                                                  key="delete_folder_select")
+                    
+                    # Two-step deletion with session state
+                    folder_path = os.path.join(rag_source_path, folder_to_delete)
+                    
+                    # Count files that will be deleted
+                    file_count = sum([len(files) for _, _, files in os.walk(folder_path)])
+                    
+                    # Show folder contents
+                    st.write(f"Contents of '{folder_to_delete}' folder:")
+                    items = os.listdir(folder_path)
+                    if items:
+                        for item in items[:10]:  # Limit to first 10 items to avoid clutter
+                            item_path = os.path.join(folder_path, item)
+                            if os.path.isdir(item_path):
+                                st.markdown(f"📁 **{item}/** *(folder)*")
+                            else:
+                                st.markdown(f"📄 **{item}**")
+                        if len(items) > 10:
+                            st.markdown(f"*...and {len(items) - 10} more items*")
+                    else:
+                        st.info("This folder is empty.")
+                    
+                    # Use a different approach without modifying widget keys
+                    # Create a session state variable for the delete process
+                    if "delete_state" not in st.session_state:
+                        st.session_state.delete_state = {"stage": 0, "folder": None}
+                    
+                    # Store currently selected folder for deletion
+                    current_folder = folder_to_delete
+                    
+                    # Handle the deletion process based on current state
+                    if st.session_state.delete_state["stage"] == 0:
+                        # Initial stage - show delete button
+                        if st.button("Delete this folder"):
+                            # Move to confirmation stage and store folder name
+                            st.session_state.delete_state = {"stage": 1, "folder": current_folder}
+                            st.rerun()
+                    
+                    elif st.session_state.delete_state["stage"] == 1:
+                        if st.session_state.delete_state["folder"] == current_folder:
+                            # Confirmation stage
+                            st.warning(f"⚠️ You are about to permanently delete folder '{current_folder}' and all its contents ({file_count} files)!")
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button("Cancel"):
+                                    # Reset to initial stage
+                                    st.session_state.delete_state = {"stage": 0, "folder": None}
+                                    st.rerun()
+                            with col2:
+                                if st.button("Confirm Delete"):
+                                    try:
+                                        # Delete the folder
+                                        shutil.rmtree(folder_path)
+                                        st.success(f"Subfolder '{current_folder}' has been deleted successfully.")
+                                        
+                                        # Reset state and refresh
+                                        st.session_state.delete_state = {"stage": 0, "folder": None}
+                                        
+                                        # Add small delay to ensure message is shown before refresh
+                                        import time
+                                        time.sleep(0.5)
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Error deleting folder: {str(e)}")
+                        else:
+                            # Selected folder changed, reset state
+                            st.session_state.delete_state = {"stage": 0, "folder": None}
+                            st.rerun()
+            
+            # Ingest button is placed outside all expanders for visibility
 
             # Ingest button
             if uploaded_file is not None and st.button("Upload and Ingest Documents"):
