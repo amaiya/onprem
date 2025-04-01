@@ -4,7 +4,7 @@ import streamlit as st
 from pathlib import Path
 import mimetypes
 from onprem import utils as U
-from onprem.app.utils import hide_webapp_sidebar_item
+from onprem.app.utils import hide_webapp_sidebar_item, hide_manage_page
 
 DATADIR = U.get_datadir()
 DEFAULT_YAML_FNAME = "config.yml"
@@ -48,6 +48,8 @@ ui:
   rag_source_path: {webapp_dir}/documents
   # base url (leave blank unless you're running your own separate web server to serve source documents)
   rag_base_url:
+  # whether to show the Manage page in the sidebar (TRUE or FALSE)
+  show_manage: TRUE
 """
 
 
@@ -108,6 +110,9 @@ def main():
     
     # Hide webapp from the sidebar using CSS
     hide_webapp_sidebar_item()
+    
+    # Hide Manage page based on configuration
+    hide_manage_page()
     
     # Display current model in sidebar
     st.sidebar.markdown("**Current Model:**")

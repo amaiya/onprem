@@ -19,6 +19,65 @@ def hide_webapp_sidebar_item():
     st.markdown(hide_webapp_style, unsafe_allow_html=True)
 
 
+def check_manage_access():
+    """
+    Checks if the Manage page should be accessible based on configuration.
+    Returns True if the page should be shown, False otherwise.
+    This function should be called from the Manage page to restrict access.
+    """
+    from onprem.app.webapp import read_config
+    
+    cfg, _ = read_config()
+    show_manage = cfg.get("ui", {}).get("show_manage", True)
+    
+    # Convert string TRUE/FALSE to boolean if needed
+    if isinstance(show_manage, str):
+        show_manage = show_manage.upper() == "TRUE"
+    
+    return show_manage
+
+
+def hide_manage_page():
+    """
+    Attempts to hide the Manage page from the sidebar navigation based on configuration
+    """
+    from onprem.app.webapp import read_config
+    
+    cfg, _ = read_config()
+    show_manage = cfg.get("ui", {}).get("show_manage", True)
+    
+    # Convert string TRUE/FALSE to boolean if needed
+    if isinstance(show_manage, str):
+        show_manage = show_manage.upper() == "TRUE"
+    
+    if not show_manage:
+        # Try multiple CSS approaches to hide the Manage page
+        hide_manage_style = """
+            <style>
+                /* Target by position (5 = Manage) */
+                [data-testid="stSidebarNav"] ul li:nth-child(6) {
+                    display: none !important;
+                }
+                
+                /* Try with an attribute selector */
+                [data-testid="stSidebarNav"] a[href*="Manage"] {
+                    display: none !important;
+                }
+                
+                /* Try to hide via direct text match */
+                [data-testid="stSidebarNav"] span:contains("Manage") {
+                    display: none !important;
+                }
+                
+                /* Hide parent elements */
+                [data-testid="stSidebarNav"] li:has(a[href*="Manage"]) {
+                    display: none !important;
+                }
+            </style>
+        """
+        st.markdown(hide_manage_style, unsafe_allow_html=True)
+
+
 @st.cache_resource
 def load_llm():
     """

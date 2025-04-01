@@ -15,16 +15,22 @@ if parent_dir not in sys.path:
 
 # Import from parent modules
 from webapp import DEFAULT_YAML_FPATH, read_config, DEFAULT_YAML
-from utils import hide_webapp_sidebar_item, load_llm
+from utils import hide_webapp_sidebar_item, load_llm, check_manage_access
 
 def main():
     """
-    Settings page for configuring the application
+    Manage page for configuring the application and ingesting documents
     """
     # Hide webapp sidebar item
     hide_webapp_sidebar_item()
     
-    st.header("Settings")
+    # Check if manage page should be accessible
+    if not check_manage_access():
+        st.error("Access to the Manage page has been disabled in the configuration.")
+        st.info("To enable access, set 'show_manage: TRUE' in the configuration file.")
+        return
+    
+    st.header("Manage")
     
     # Create tabs for different settings with updated order
     tab1, tab2 = st.tabs(["Document Ingestion", "Configuration"])
