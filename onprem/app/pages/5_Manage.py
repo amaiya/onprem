@@ -120,13 +120,10 @@ def main():
             upload_tab1, upload_tab2 = st.tabs(["Upload Individual Files", "Upload ZIP Archive"])
             
             with upload_tab1:
-                # Individual file uploader with multiple file support
-                uploaded_files = st.file_uploader(
-                    "Upload individual document files", 
-                    accept_multiple_files=True,
-                    type=["pdf", "docx", "txt", "csv", "html", "htm", "md", "json", "xlsx", "pptx"]
-                )
+                # Using placeholder for file upload UI (moved to bottom)
+                uploaded_files = None
                 
+                # Display preview of selected files, if any
                 if uploaded_files:
                     # Show preview of selected files
                     with st.expander(f"Selected {len(uploaded_files)} file(s) for upload", expanded=False):
@@ -165,9 +162,10 @@ def main():
                         st.info(f"Total size: {total_size/1024:.2f} MB")
             
             with upload_tab2:
-                # ZIP file upload
-                uploaded_zip = st.file_uploader("Upload ZIP file containing multiple documents", type="zip")
+                # Using placeholder for file upload UI (moved to bottom)
+                uploaded_zip = None
                 
+                # Display preview of selected files, if any
                 if uploaded_zip:
                     # Show ZIP file details
                     size_mb = uploaded_zip.size / (1024 * 1024)
@@ -423,7 +421,7 @@ def main():
                                         
                                         # Add small delay to ensure message is shown before refresh
                                         import time
-                                        time.sleep(30)
+                                        time.sleep(5)
                                         st.rerun()
                                     except Exception as e:
                                         st.error(f"Error deleting folder: {str(e)}")
@@ -434,15 +432,42 @@ def main():
             
             # Ingest button is placed outside all expanders for visibility
 
+            # Create columns to place file uploader next to the ingest button
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                # Create a radio selector to choose file upload type
+                upload_type = st.radio(
+                    "Upload type:",
+                    ["Individual files", "ZIP archive"],
+                    horizontal=True
+                )
+                
+                # Move file uploaders here
+                if upload_type == "Individual files":
+                    # Individual file uploader with multiple file support
+                    uploaded_files = st.file_uploader(
+                        "Upload individual document files", 
+                        accept_multiple_files=True,
+                        type=["pdf", "docx", "txt", "csv", "html", "htm", "md", "json", "xlsx", "pptx"]
+                    )
+                    uploaded_zip = None
+                else:
+                    # ZIP file upload
+                    uploaded_zip = st.file_uploader("Upload ZIP file containing multiple documents", type="zip")
+                    uploaded_files = None
+            
             # Ingest button
             has_files_to_upload = (uploaded_files and len(uploaded_files) > 0) or uploaded_zip is not None
             has_valid_subfolder = target_folder and os.path.exists(target_folder) and target_folder != rag_source_path
             
-            # Disable button if no valid subfolder
-            if not has_valid_subfolder:
-                st.warning("You must select or create a subfolder before uploading documents.")
-                
-            if has_files_to_upload and has_valid_subfolder and st.button("Upload and Ingest Documents"):
+            upload_button = st.button("Upload and Ingest Documents")
+
+            if upload_button and not has_valid_subfolder:
+                st.error('Please select a subfolder above.')
+            elif upload_button and not has_files_to_upload:
+                st.error('Please drag and drop files to upload.')
+            elif has_files_to_upload and has_valid_subfolder and upload_button:
                 try:
                     with st.spinner("Processing and ingesting documents..."):
                         # Create target folder if it doesn't exist
