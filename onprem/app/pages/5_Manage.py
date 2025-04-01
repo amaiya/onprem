@@ -83,9 +83,18 @@ def main():
         # Instructions
         st.markdown("""
         This tool allows you to ingest documents into the vector database.
-        You can upload a ZIP file containing documents, and they will be automatically extracted and ingested.
+        You can upload individual files or a ZIP archive containing multiple documents.
         
-        Supported formats include PDF, DOCX, TXT, HTML, CSV, and more.
+        Supported document formats:
+        - PDF (`.pdf`): Adobe Portable Document Format
+        - Word (`.docx`): Microsoft Word documents
+        - Text (`.txt`): Plain text files
+        - HTML (`.html`, `.htm`): Web pages
+        - CSV (`.csv`): Comma-separated values
+        - Excel (`.xlsx`): Microsoft Excel spreadsheets
+        - PowerPoint (`.pptx`): Microsoft PowerPoint presentations
+        - Markdown (`.md`): Markdown text files
+        - JSON (`.json`): JavaScript Object Notation files
         """)
         
         # Get config to extract rag_source_path
@@ -107,8 +116,88 @@ def main():
             # Get store type from config
             store_type = cfg.get("llm", {}).get("store_type", "dense")
             
-            # ZIP file upload - kept outside the expander
-            uploaded_file = st.file_uploader("Upload ZIP file containing documents", type="zip")
+            # Create tabs for different upload types
+            upload_tab1, upload_tab2 = st.tabs(["Upload Individual Files", "Upload ZIP Archive"])
+            
+            with upload_tab1:
+                # Individual file uploader with multiple file support
+                uploaded_files = st.file_uploader(
+                    "Upload individual document files", 
+                    accept_multiple_files=True,
+                    type=["pdf", "docx", "txt", "csv", "html", "htm", "md", "json", "xlsx", "pptx"]
+                )
+                
+                if uploaded_files:
+                    # Show preview of selected files
+                    with st.expander(f"Selected {len(uploaded_files)} file(s) for upload", expanded=False):
+                        file_info = []
+                        total_size = 0
+                        
+                        # Collect file information
+                        for f in uploaded_files:
+                            size_kb = f.size / 1024
+                            total_size += size_kb
+                            file_info.append({
+                                "name": f.name, 
+                                "type": f.type if hasattr(f, 'type') and f.type else "Unknown",
+                                "size": f"{size_kb:.1f} KB"
+                            })
+                        
+                        # Display files in a table
+                        st.write("Files to upload:")
+                        col1, col2, col3 = st.columns([3, 2, 1])
+                        with col1:
+                            st.write("**Filename**")
+                        with col2:
+                            st.write("**Type**")
+                        with col3:
+                            st.write("**Size**")
+                            
+                        for file in file_info:
+                            col1, col2, col3 = st.columns([3, 2, 1])
+                            with col1:
+                                st.write(file["name"])
+                            with col2:
+                                st.write(file["type"])
+                            with col3:
+                                st.write(file["size"])
+                                
+                        st.info(f"Total size: {total_size/1024:.2f} MB")
+            
+            with upload_tab2:
+                # ZIP file upload
+                uploaded_zip = st.file_uploader("Upload ZIP file containing multiple documents", type="zip")
+                
+                if uploaded_zip:
+                    # Show ZIP file details
+                    size_mb = uploaded_zip.size / (1024 * 1024)
+                    st.info(f"Selected ZIP file: {uploaded_zip.name} ({size_mb:.2f} MB)")
+                    
+                    # Show preview of ZIP contents if possible
+                    try:
+                        with tempfile.TemporaryDirectory() as temp_dir:
+                            # Save the uploaded zip file to a temporary file
+                            temp_zip_path = os.path.join(temp_dir, "preview.zip")
+                            with open(temp_zip_path, "wb") as f:
+                                f.write(uploaded_zip.getvalue())
+                            
+                            # Read ZIP contents without extracting
+                            with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
+                                zip_files = zip_ref.namelist()
+                                
+                                # Display file count and preview in expander
+                                with st.expander(f"ZIP archive contains {len(zip_files)} file(s)", expanded=False):
+                                    # Show only first 50 files to avoid UI overload
+                                    preview_files = zip_files[:50]
+                                    for file in preview_files:
+                                        # Skip directories
+                                        if not file.endswith('/'):
+                                            st.write(f"📄 {file}")
+                                    
+                                    if len(zip_files) > 50:
+                                        st.write(f"*...and {len(zip_files) - 50} more files*")
+                    except Exception as e:
+                        st.warning(f"Unable to preview ZIP contents: {str(e)}")
             
             # Subfolder selection
             subfolder_option = st.radio(
@@ -317,42 +406,69 @@ def main():
             # Ingest button is placed outside all expanders for visibility
 
             # Ingest button
-            if uploaded_file is not None and st.button("Upload and Ingest Documents"):
+            has_files_to_upload = (uploaded_files and len(uploaded_files) > 0) or uploaded_zip is not None
+            
+            if has_files_to_upload and st.button("Upload and Ingest Documents"):
                 try:
-                    with st.spinner("Extracting and ingesting documents..."):
-                        # Create a temporary directory to extract the zip file
+                    with st.spinner("Processing and ingesting documents..."):
+                        # Create target folder if it doesn't exist
+                        os.makedirs(target_folder, exist_ok=True)
+                        
+                        # Clear the target directory if requested
+                        if clear_existing and os.path.exists(target_folder):
+                            folder_display = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
+                            st.text(f"Clearing existing documents from {folder_display}...")
+                            for item in os.listdir(target_folder):
+                                item_path = os.path.join(target_folder, item)
+                                if os.path.isfile(item_path):
+                                    os.remove(item_path)
+                                elif os.path.isdir(item_path):
+                                    shutil.rmtree(item_path)
+                        
+                        # Create a temporary directory for processing files
                         with tempfile.TemporaryDirectory() as temp_dir:
-                            # Save the uploaded zip file to a temporary file
-                            temp_zip_path = os.path.join(temp_dir, "uploaded.zip")
-                            with open(temp_zip_path, "wb") as f:
-                                f.write(uploaded_file.getvalue())
+                            processed_files = 0
                             
-                            # Create target folder if it doesn't exist
-                            os.makedirs(target_folder, exist_ok=True)
+                            # Handle individual files if available
+                            if uploaded_files and len(uploaded_files) > 0:
+                                st.text(f"Saving {len(uploaded_files)} individual files...")
+                                
+                                for uploaded_file in uploaded_files:
+                                    # Create a safe filename (remove special characters)
+                                    safe_filename = ''.join(c for c in uploaded_file.name if c.isalnum() or c in '._- ')
+                                    
+                                    # Save the file to the target directory
+                                    file_path = os.path.join(target_folder, safe_filename)
+                                    with open(file_path, "wb") as f:
+                                        f.write(uploaded_file.getvalue())
+                                    
+                                    processed_files += 1
                             
-                            # Clear the target directory if requested
-                            if clear_existing and os.path.exists(target_folder):
-                                st.text(f"Clearing existing documents from {os.path.basename(target_folder) if target_folder != rag_source_path else 'main folder'}...")
-                                for item in os.listdir(target_folder):
-                                    item_path = os.path.join(target_folder, item)
-                                    if os.path.isfile(item_path):
-                                        os.remove(item_path)
-                                    elif os.path.isdir(item_path):
-                                        shutil.rmtree(item_path)
-                            
-                            # Extract the zip file to the target directory
-                            st.text("Extracting ZIP file...")
-                            with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
-                                zip_ref.extractall(target_folder)
+                            # Handle ZIP file if available
+                            if uploaded_zip is not None:
+                                st.text("Processing ZIP archive...")
+                                
+                                # Save the uploaded zip file to a temporary file
+                                temp_zip_path = os.path.join(temp_dir, "uploaded.zip")
+                                with open(temp_zip_path, "wb") as f:
+                                    f.write(uploaded_zip.getvalue())
+                                
+                                # Extract the zip file to the target directory
+                                with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
+                                    # Get list of files in the zip
+                                    zip_files = zip_ref.namelist()
+                                    st.text(f"Extracting {len(zip_files)} files from ZIP archive...")
+                                    zip_ref.extractall(target_folder)
+                                    processed_files += len(zip_files)
                             
                             folder_display_name = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
-                            st.text(f"Files extracted to {folder_display_name}")
+                            st.text(f"Files saved to {folder_display_name} ({processed_files} files processed)")
                             
                             # Now ingest the documents
                             st.text("Ingesting documents...")
                             llm = load_llm()
                             
-                            # Ingest documents from the target folder where we extracted files
+                            # Ingest documents from the target folder
                             result = llm.ingest(
                                 source_directory=target_folder,
                                 chunk_size=chunk_size,
