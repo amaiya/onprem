@@ -146,14 +146,13 @@ def main():
                 if clear_existing and os.path.exists(rag_source_path):
                     items = os.listdir(rag_source_path)
                     if items:
-                        with st.expander("Current contents that will be cleared", expanded=True):
-                            st.warning("The following files and folders will be deleted:")
-                            for item in items:
-                                item_path = os.path.join(rag_source_path, item)
-                                if os.path.isdir(item_path):
-                                    st.markdown(f"📁 **{item}/** *(folder)*")
-                                else:
-                                    st.markdown(f"📄 **{item}**")
+                        st.warning("The following files and folders will be deleted:")
+                        for item in items:
+                            item_path = os.path.join(rag_source_path, item)
+                            if os.path.isdir(item_path):
+                                st.markdown(f"📁 **{item}/** *(folder)*")
+                            else:
+                                st.markdown(f"📄 **{item}**")
                     else:
                         st.info("The target directory is currently empty.")
             
