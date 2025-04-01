@@ -223,17 +223,18 @@ def main():
         
         # Search settings
         st.subheader("Search Settings")
-        results_limit = st.slider("Number of results (i.e., chunks) to display:", 
+        st.info('💡 OnPrem splits documents into text "chunks" during ingestion.')
+        results_limit = st.slider("Maximum number of chunks to display in search results:", 
                                 min_value=5, 
-                                max_value=500, 
+                                max_value=400, 
                                 value=st.session_state.results_limit, 
                                 step=5)
         
         # De-duplication option
         deduplicate_sources = st.checkbox(
-            "De-duplicate results by source file",
+            "Collapse chunks by document source in search results",
             value=st.session_state.deduplicate_sources,
-            help="If checked, only one result per source file will be shown, with content from all matches concatenated"
+            help="If checked, results are de-duplicated by document source, with chunk content from all matches concatenated"
         )
     
     # Search and reset buttons side by side
