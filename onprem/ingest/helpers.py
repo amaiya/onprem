@@ -10,6 +10,7 @@ __all__ = ['CAPTION_DELIMITER', 'METADATA', 'FILE_METADATA', 'includes_caption',
 
 # %% ../../nbs/01_ingest.helpers.ipynb 3
 from typing import List, Union, Optional
+import warnings
 import os
 import os.path
 import glob
