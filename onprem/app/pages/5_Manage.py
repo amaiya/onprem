@@ -101,58 +101,65 @@ def main():
             rag_source_path = rag_source_path.format(webapp_dir=U.get_webapp_dir())
             os.makedirs(rag_source_path, exist_ok=True)
             
-            st.info(f"Documents will be saved to: {rag_source_path}")
-            
-            # ZIP file upload
-            uploaded_file = st.file_uploader("Upload ZIP file containing documents", type="zip")
-            
-            # Chunking settings
-            col1, col2 = st.columns(2)
-            with col1:
-                chunk_size = st.number_input("Chunk Size", 
-                                           min_value=100, 
-                                           max_value=1000000, 
-                                           value=500,
-                                           help="Text is split into chunks of this many characters")
-            with col2:
-                chunk_overlap = st.number_input("Chunk Overlap", 
-                                              min_value=0, 
-                                              max_value=500, 
-                                              value=50,
-                                              help="Character overlap between chunks")
+            st.info(f"Uploaded documents will be saved to: {rag_source_path}")
             
             # Get store type from config
             store_type = cfg.get("llm", {}).get("store_type", "dense")
             
-            # Display store type (read-only)
-            st.info(f"Using store type from configuration: {store_type}")
+            # ZIP file upload - kept outside the expander
+            uploaded_file = st.file_uploader("Upload ZIP file containing documents", type="zip")
             
-            # Batch size
-            batch_size = st.number_input("Batch Size", 
-                                        min_value=1, 
-                                        max_value=5000, 
-                                        value=1000,
-                                        help="Number of documents to process in each batch")
+            # Place all ingestion options in an expander
+            with st.expander("Ingestion Options", expanded=False):
+                st.subheader("Document Processing Settings")
+                
+                # Chunking settings
+                col1, col2 = st.columns(2)
+                with col1:
+                    chunk_size = st.number_input("Chunk Size", 
+                                               min_value=100, 
+                                               max_value=1000000, 
+                                               value=500,
+                                               help="Text is split into chunks of this many characters")
+                with col2:
+                    chunk_overlap = st.number_input("Chunk Overlap", 
+                                                  min_value=0, 
+                                                  max_value=500, 
+                                                  value=50,
+                                                  help="Character overlap between chunks")
+                
+                # Display store type (read-only)
+                st.info(f"Using store type from configuration: {store_type}")
+                
+                # Batch size
+                batch_size = st.number_input("Batch Size", 
+                                            min_value=1, 
+                                            max_value=5000, 
+                                            value=1000,
+                                            help="Number of documents to process in each batch")
+                
+                # Option to clear existing documents
+                clear_existing = st.checkbox("Clear existing documents before ingestion", value=False, 
+                                             help="If checked, all existing documents in the target directory will be removed before extracting new ones")
+                
+                # If clear_existing is checked, show the current contents of the target directory
+                if clear_existing and os.path.exists(rag_source_path):
+                    items = os.listdir(rag_source_path)
+                    if items:
+                        with st.expander("Current contents that will be cleared", expanded=True):
+                            st.warning("The following files and folders will be deleted:")
+                            for item in items:
+                                item_path = os.path.join(rag_source_path, item)
+                                if os.path.isdir(item_path):
+                                    st.markdown(f"📁 **{item}/** *(folder)*")
+                                else:
+                                    st.markdown(f"📄 **{item}**")
+                    else:
+                        st.info("The target directory is currently empty.")
             
-            # Option to clear existing documents
-            clear_existing = st.checkbox("Clear existing documents before ingestion", value=False, 
-                                         help="If checked, all existing documents in the target directory will be removed before extracting new ones")
-            
-            # If clear_existing is checked, show the current contents of the target directory
-            if clear_existing and os.path.exists(rag_source_path):
-                items = os.listdir(rag_source_path)
-                if items:
-                    with st.expander("Current contents that will be cleared", expanded=True):
-                        st.warning("The following files and folders will be deleted:")
-                        for item in items:
-                            item_path = os.path.join(rag_source_path, item)
-                            if os.path.isdir(item_path):
-                                st.markdown(f"📁 **{item}/** *(folder)*")
-                            else:
-                                st.markdown(f"📄 **{item}**")
-                else:
-                    st.info("The target directory is currently empty.")
-            
+            # Ingest button is placed outside the expander for visibility
+
+
             # Ingest button
             if uploaded_file is not None and st.button("Upload and Ingest Documents"):
                 try:
@@ -202,46 +209,46 @@ def main():
                 except Exception as e:
                     st.error(f"Error during document upload and ingestion: {str(e)}")
                     
-            # Alternative manual folder ingest (for advanced users)
-            with st.expander("Advanced: Ingest from existing folder"):
-                st.markdown("""
-                For advanced users: If you already have documents in a folder on the server, 
-                you can ingest them directly by providing the folder path below.
-                """)
+            ## Alternative manual folder ingest (for advanced users)
+            #with st.expander("Advanced: Ingest from existing folder"):
+                #st.markdown("""
+                #For advanced users: If you already have documents in a folder on the server, 
+                #you can ingest them directly by providing the folder path below.
+                #""")
                 
-                # Folder selection
-                folder_path = st.text_input("Folder Path", 
-                                           placeholder="Enter the absolute path to your documents folder",
-                                           help="Enter the full path to the folder containing documents to ingest")
+                ## Folder selection
+                #folder_path = st.text_input("Folder Path", 
+                                           #placeholder="Enter the absolute path to your documents folder",
+                                           #help="Enter the full path to the folder containing documents to ingest")
                 
-                # Ingest button for manual folder
-                if st.button("Ingest from Folder"):
-                    if not folder_path:
-                        st.error("Please enter a valid folder path")
-                    elif not os.path.isdir(folder_path):
-                        st.error(f"Directory does not exist: {folder_path}")
-                    else:
-                        try:
-                            with st.spinner(f"Ingesting documents from {folder_path}..."):
-                                # Load the LLM with the current configuration
-                                llm = load_llm()
+                ## Ingest button for manual folder
+                #if st.button("Ingest from Folder"):
+                    #if not folder_path:
+                        #st.error("Please enter a valid folder path")
+                    #elif not os.path.isdir(folder_path):
+                        #st.error(f"Directory does not exist: {folder_path}")
+                    #else:
+                        #try:
+                            #with st.spinner(f"Ingesting documents from {folder_path}..."):
+                                ## Load the LLM with the current configuration
+                                #llm = load_llm()
                                 
-                                # Ingest documents
-                                result = llm.ingest(
-                                    source_directory=folder_path,
-                                    chunk_size=chunk_size,
-                                    chunk_overlap=chunk_overlap,
-                                    batch_size=batch_size
-                                )
+                                ## Ingest documents
+                                #result = llm.ingest(
+                                    #source_directory=folder_path,
+                                    #chunk_size=chunk_size,
+                                    #chunk_overlap=chunk_overlap,
+                                    #batch_size=batch_size
+                                #)
                                 
-                                # Show success message
-                                st.success(f"Successfully ingested documents from {folder_path}")
+                                ## Show success message
+                                #st.success(f"Successfully ingested documents from {folder_path}")
                                 
-                                # Show stats if available
-                                if isinstance(result, dict) and "num_added" in result:
-                                    st.info(f"Added {result['num_added']} new document chunks to the vector database")
-                        except Exception as e:
-                            st.error(f"Error during document ingestion: {str(e)}")
+                                ## Show stats if available
+                                #if isinstance(result, dict) and "num_added" in result:
+                                    #st.info(f"Added {result['num_added']} new document chunks to the vector database")
+                        #except Exception as e:
+                            #st.error(f"Error during document ingestion: {str(e)}")
 
 
 if __name__ == "__main__":
