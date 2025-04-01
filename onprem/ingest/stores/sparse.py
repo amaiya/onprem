@@ -37,18 +37,18 @@ from ..helpers import doc_from_dict
 # ------------------------------------------------------------------------------
 
 DEFAULT_SCHEMA = Schema(
-    page_content=TEXT(stored=True), # REQUIRED
+    page_content=TEXT(stored=True, analyzer=StemmingAnalyzer()), # REQUIRED with stemming enabled
     id=ID(stored=True, unique=True),
     source=KEYWORD(stored=True, commas=True), 
-    source_search=TEXT(stored=True),
+    source_search=TEXT(stored=True, analyzer=StemmingAnalyzer()),
     filepath=KEYWORD(stored=True, commas=True),
-    filepath_search=TEXT(stored=True),
+    filepath_search=TEXT(stored=True, analyzer=StemmingAnalyzer()),
     filename=KEYWORD(stored=True),
     ocr=BOOLEAN(stored=True),
     table=BOOLEAN(stored=True),
     markdown=BOOLEAN(stored=True),
     page=NUMERIC(stored=True),
-    document_title=TEXT(stored=True),
+    document_title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
     md5=KEYWORD(stored=True),
     mimetype=KEYWORD(stored=True),
     extension=KEYWORD(stored=True),
@@ -56,10 +56,10 @@ DEFAULT_SCHEMA = Schema(
     createdate=DATETIME(stored=True),
     modifydate=DATETIME(stored=True),
     tags=KEYWORD(stored=True, commas=True),
-    notes=TEXT(stored=True),
-    msg=TEXT(stored=True),
+    notes=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+    msg=TEXT(stored=True, analyzer=StemmingAnalyzer()),
     )
-DEFAULT_SCHEMA.add("*_t", TEXT(stored=True), glob=True)
+DEFAULT_SCHEMA.add("*_t", TEXT(stored=True, analyzer=StemmingAnalyzer()), glob=True)
 DEFAULT_SCHEMA.add("*_k", KEYWORD(stored=True, commas=True), glob=True)
 DEFAULT_SCHEMA.add("*_b", BOOLEAN(stored=True), glob=True)
 DEFAULT_SCHEMA.add("*_n", NUMERIC(stored=True), glob=True)
