@@ -210,6 +210,26 @@ class SparseStore(VectorStore):
             return True
         return False
 
+
+    def _preprocess_query(self, query):
+        """
+        Removes question marks at the end of queries.
+        This essentially disables using the question mark
+        wildcard at end of search term so legitimate
+        questions are not treated differntly depending
+        on existence of question mark.
+        """
+        # Replace question marks at the end of the query
+        if query.endswith('?'):
+            query = query[:-1]
+
+        # Handle quoted phrases with question marks at the end
+        import re
+        # Match question marks at the end of words or at the end of quoted phrases
+        query = re.sub(r'(\w)\?([\s\"]|$)', r'\1\2', query)
+        return query
+
+
     def query(
             self,
             q: str,
@@ -238,6 +258,9 @@ class SparseStore(VectorStore):
         """
 
         search_results = []
+
+
+        q = self._preprocess_query(q)
 
         if where_document:
             q = f'({q}) AND ({where_document})'
