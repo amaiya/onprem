@@ -6,6 +6,7 @@ from pathlib import Path
 import zipfile
 import tempfile
 import shutil
+import re
 
 # Add parent directory to path to allow importing when run directly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -101,13 +102,51 @@ def main():
             rag_source_path = rag_source_path.format(webapp_dir=U.get_webapp_dir())
             os.makedirs(rag_source_path, exist_ok=True)
             
-            st.info(f"Uploaded documents will be saved to: {rag_source_path}")
+            st.info(f"Documents root directory: {rag_source_path}")
             
             # Get store type from config
             store_type = cfg.get("llm", {}).get("store_type", "dense")
             
             # ZIP file upload - kept outside the expander
             uploaded_file = st.file_uploader("Upload ZIP file containing documents", type="zip")
+            
+            # Subfolder selection
+            subfolder_option = st.radio(
+                "Upload documents to:",
+                ["Main folder", "Existing subfolder", "Create new subfolder"],
+                index=0
+            )
+            
+            target_folder = rag_source_path
+            if subfolder_option == "Existing subfolder":
+                # Get list of existing subfolders
+                subfolders = [d for d in os.listdir(rag_source_path) 
+                             if os.path.isdir(os.path.join(rag_source_path, d))]
+                if subfolders:
+                    selected_subfolder = st.selectbox("Select subfolder", subfolders)
+                    target_folder = os.path.join(rag_source_path, selected_subfolder)
+                else:
+                    st.warning("No existing subfolders found. Creating one first.")
+                    subfolder_option = "Create new subfolder"
+            
+            if subfolder_option == "Create new subfolder":
+                new_subfolder = st.text_input("Enter subfolder name")
+                if new_subfolder:
+                    # Validate folder name (no special characters except underscore, hyphen)
+                    if not re.match(r'^[a-zA-Z0-9_\-]+$', new_subfolder):
+                        st.error("Folder name can only contain letters, numbers, underscores, and hyphens.")
+                    else:
+                        target_folder = os.path.join(rag_source_path, new_subfolder)
+                        if not os.path.exists(target_folder):
+                            os.makedirs(target_folder, exist_ok=True)
+                            st.success(f"Created subfolder: {new_subfolder}")
+            
+            # Display selected target folder
+            if target_folder != rag_source_path:
+                relative_path = os.path.relpath(target_folder, rag_source_path)
+                st.info(f"Selected upload location: {relative_path}/")
+            else:
+                st.info("Selected upload location: Main folder")
             
             # Place all ingestion options in an expander
             with st.expander("Ingestion Options", expanded=False):
@@ -143,18 +182,23 @@ def main():
                                              help="If checked, all existing documents in the target directory will be removed before extracting new ones")
                 
                 # If clear_existing is checked, show the current contents of the target directory
-                if clear_existing and os.path.exists(rag_source_path):
-                    items = os.listdir(rag_source_path)
-                    if items:
-                        st.warning("The following files and folders will be deleted:")
-                        for item in items:
-                            item_path = os.path.join(rag_source_path, item)
-                            if os.path.isdir(item_path):
-                                st.markdown(f"📁 **{item}/** *(folder)*")
-                            else:
-                                st.markdown(f"📄 **{item}**")
+                if clear_existing:
+                    if os.path.exists(target_folder):
+                        items = os.listdir(target_folder)
+                        folder_display = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
+                        
+                        if items:
+                            st.warning(f"The following files and folders will be deleted from {folder_display}:")
+                            for item in items:
+                                item_path = os.path.join(target_folder, item)
+                                if os.path.isdir(item_path):
+                                    st.markdown(f"📁 **{item}/** *(folder)*")
+                                else:
+                                    st.markdown(f"📄 **{item}**")
+                        else:
+                            st.info(f"The selected folder ({folder_display}) is currently empty.")
                     else:
-                        st.info("The target directory is currently empty.")
+                        st.info("The selected folder does not exist yet and will be created.")
             
             # Ingest button is placed outside the expander for visibility
 
@@ -170,37 +214,42 @@ def main():
                             with open(temp_zip_path, "wb") as f:
                                 f.write(uploaded_file.getvalue())
                             
+                            # Create target folder if it doesn't exist
+                            os.makedirs(target_folder, exist_ok=True)
+                            
                             # Clear the target directory if requested
-                            if clear_existing and os.path.exists(rag_source_path):
-                                st.text("Clearing existing documents...")
-                                for item in os.listdir(rag_source_path):
-                                    item_path = os.path.join(rag_source_path, item)
+                            if clear_existing and os.path.exists(target_folder):
+                                st.text(f"Clearing existing documents from {os.path.basename(target_folder) if target_folder != rag_source_path else 'main folder'}...")
+                                for item in os.listdir(target_folder):
+                                    item_path = os.path.join(target_folder, item)
                                     if os.path.isfile(item_path):
                                         os.remove(item_path)
                                     elif os.path.isdir(item_path):
                                         shutil.rmtree(item_path)
                             
-                            # Extract the zip file to the documents directory
+                            # Extract the zip file to the target directory
                             st.text("Extracting ZIP file...")
                             with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
-                                zip_ref.extractall(rag_source_path)
+                                zip_ref.extractall(target_folder)
                             
-                            st.text(f"Files extracted to {rag_source_path}")
+                            folder_display_name = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
+                            st.text(f"Files extracted to {folder_display_name}")
                             
                             # Now ingest the documents
                             st.text("Ingesting documents...")
                             llm = load_llm()
                             
-                            # Ingest documents
+                            # Ingest documents from the target folder where we extracted files
                             result = llm.ingest(
-                                source_directory=rag_source_path,
+                                source_directory=target_folder,
                                 chunk_size=chunk_size,
                                 chunk_overlap=chunk_overlap,
                                 batch_size=batch_size
                             )
                             
-                            # Show success message
-                            st.success(f"Successfully uploaded and ingested documents")
+                            # Show success message with folder information
+                            folder_display = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
+                            st.success(f"Successfully uploaded and ingested documents to {folder_display}")
                             
                             # Show stats if available
                             if isinstance(result, dict) and "num_added" in result:
