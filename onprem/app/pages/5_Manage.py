@@ -486,47 +486,6 @@ def main():
                 except Exception as e:
                     st.error(f"Error during document upload and ingestion: {str(e)}")
                     
-            ## Alternative manual folder ingest (for advanced users)
-            #with st.expander("Advanced: Ingest from existing folder"):
-                #st.markdown("""
-                #For advanced users: If you already have documents in a folder on the server, 
-                #you can ingest them directly by providing the folder path below.
-                #""")
-                
-                ## Folder selection
-                #folder_path = st.text_input("Folder Path", 
-                                           #placeholder="Enter the absolute path to your documents folder",
-                                           #help="Enter the full path to the folder containing documents to ingest")
-                
-                ## Ingest button for manual folder
-                #if st.button("Ingest from Folder"):
-                    #if not folder_path:
-                        #st.error("Please enter a valid folder path")
-                    #elif not os.path.isdir(folder_path):
-                        #st.error(f"Directory does not exist: {folder_path}")
-                    #else:
-                        #try:
-                            #with st.spinner(f"Ingesting documents from {folder_path}..."):
-                                ## Load the LLM with the current configuration
-                                #llm = load_llm()
-                                
-                                ## Ingest documents
-                                #result = llm.ingest(
-                                    #source_directory=folder_path,
-                                    #chunk_size=chunk_size,
-                                    #chunk_overlap=chunk_overlap,
-                                    #batch_size=batch_size
-                                #)
-                                
-                                ## Show success message
-                                #st.success(f"Successfully ingested documents from {folder_path}")
-                                
-                                ## Show stats if available
-                                #if isinstance(result, dict) and "num_added" in result:
-                                    #st.info(f"Added {result['num_added']} new document chunks to the vector database")
-                        #except Exception as e:
-                            #st.error(f"Error during document ingestion: {str(e)}")
-
 
 if __name__ == "__main__":
     main()
