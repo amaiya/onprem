@@ -127,8 +127,20 @@ class DenseStore(VectorStore):
         Remove a single document with ID, `id_to_delete`.
         """
         if not self.exists(): return
-        self.get_db().delete(ids=[id_to_delete])
+        id_to_delete = [id_to_delete] if not isinstance(id_to_delete, list) else id_to_delete
+        self.get_db().delete(ids=id_to_delete)
         return
+
+    def remove_source(self, source:str):
+        """
+        Remove all documents associated with source.
+
+        This implementation is currently inefficient.
+        """
+        ids = [d['id'] for d in self.get_all_docs() if d['source'] == source]
+        self.remove_document(ids)
+        return
+
 
     def update_documents(self,
                          doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.

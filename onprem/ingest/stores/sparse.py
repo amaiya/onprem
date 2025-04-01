@@ -149,6 +149,12 @@ class SparseStore(VectorStore):
         writer.commit(optimize=True)
         return
 
+    def remove_source(self, source:str):
+        """
+        remove all documents associated with `source1.
+        """
+        self.remove_document(source, field='source')
+
 
     def update_documents(self,
                          doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.

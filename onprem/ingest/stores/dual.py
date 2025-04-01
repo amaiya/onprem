@@ -97,6 +97,14 @@ class DualStore(VectorStore):
         self.dense_store.remove_document(id_to_delete)
         self.sparse_store.remove_document(id_to_delete)
     
+    def remove_source(self, source:str):
+        """
+        Remove a document by source from both stores.
+        """
+        self.dense_store.remove_source(source)
+        self.sparse_store.remove_source(source)
+
+
     def update_documents(self, doc_dicts: dict, **kwargs):
         """
         Update documents in both stores.
