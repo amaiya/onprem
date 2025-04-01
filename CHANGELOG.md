@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 - convert webapp to multipage (#150)
 - models now stored in `models` subfolder within
   `onprem_data` by default.
+- `streamlit` added as dependency
 
 ### fixed:
 - N/A
