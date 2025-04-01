@@ -29,10 +29,10 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
-- \[2025/04\] v0.12.0 released and now includes a completely re-vamped
-  and improved Web UI that includes support for interactive chatting,
-  document question-ansewring (RAG), and document search (both keyword
-  searches and semantic searches). See the [Web UI
+- \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
+  Web UI with support for interactive chatting, document
+  question-ansewring (RAG), and document search (both keyword searches
+  and semantic searches). See the [Web UI
   documentation](https://amaiya.github.io/onprem/webapp.html) for more
   information.
 
