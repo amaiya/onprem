@@ -187,7 +187,7 @@ def main():
             typing_indicator = st.empty()
             typing_indicator.markdown("<em>Thinking...</em>", unsafe_allow_html=True)
             
-            with st.spinner(None):  # Hide the default spinner
+            with st.spinner(""):  # Hide the default spinner
                 # Format prompt with history
                 formatted_prompt = format_prompt_with_history(prompt)
                 
