@@ -9,10 +9,14 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.12.0 (TBD)
 
 ### new:
-- N/A
+- Re-vamped Web UI
+- Support for dual vectorstore that stores documents
+  in both dense vectorstore and sparse vectorstore
 
 ### changed
 - convert webapp to multipage (#150)
+- models now stored in `models` subfolder within
+  `onprem_data` by default.
 
 ### fixed:
 - N/A
