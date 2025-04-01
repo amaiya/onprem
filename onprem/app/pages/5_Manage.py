@@ -82,7 +82,7 @@ def main():
         
         # Instructions
         st.markdown("""
-        This tool allows you to ingest documents into the vector database.
+        This tool allows you to ingest documents into the vector store.
         You can upload individual files or a ZIP archive containing multiple documents.
         
         Supported document formats:
