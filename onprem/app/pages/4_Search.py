@@ -174,6 +174,8 @@ def main():
         st.session_state.where_document = ""
     if 'results_limit' not in st.session_state:
         st.session_state.results_limit = 20
+    if 'deduplicate_sources' not in st.session_state:
+        st.session_state.deduplicate_sources = True
     
     # Create search interface
     col1, col2 = st.columns([3, 1])
@@ -226,6 +228,13 @@ def main():
                                 max_value=100, 
                                 value=st.session_state.results_limit, 
                                 step=5)
+        
+        # De-duplication option
+        deduplicate_sources = st.checkbox(
+            "De-duplicate results by source file",
+            value=st.session_state.deduplicate_sources,
+            help="If checked, only one result per source file will be shown, with content from all matches concatenated"
+        )
     
     # Search and reset buttons side by side
     button_cols = st.columns([1, 1, 4])  # First two columns for buttons, third for spacing
@@ -242,6 +251,7 @@ def main():
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
         st.session_state.results_limit = 20
+        st.session_state.deduplicate_sources = True
         st.rerun()
         
     # Update session state when search button is clicked
@@ -249,6 +259,7 @@ def main():
         st.session_state.search_type = search_type
         st.session_state.where_document = where_document
         st.session_state.results_limit = results_limit
+        st.session_state.deduplicate_sources = deduplicate_sources
     elif search_button and not st.session_state.search_query:
         st.error("You didn't enter a search.")
         st.stop()
@@ -289,8 +300,52 @@ def main():
                     )
                     total_hits = len(hits)
                 
-                # Display results
-                st.subheader(f"Search Results: {total_hits} documents found")
+                # Handle de-duplication if enabled
+                if st.session_state.deduplicate_sources:
+                    # Group results by source
+                    source_grouped_hits = {}
+                    for doc in hits:
+                        source = doc.metadata.get("source", "Unknown source")
+                        if source not in source_grouped_hits:
+                            source_grouped_hits[source] = {
+                                "metadata": doc.metadata.copy(),
+                                "docs": [],
+                                "combined_content": [],
+                                "highlights": []
+                            }
+                        source_grouped_hits[source]["docs"].append(doc)
+                        source_grouped_hits[source]["combined_content"].append(doc.page_content)
+                        
+                        # Capture highlights if available, but we'll only store the first one
+                        if st.session_state.search_type == "Keyword" and 'hl_page_content' in doc.metadata and not source_grouped_hits[source]["highlights"]:
+                            source_grouped_hits[source]["highlights"].append(doc.metadata.get('hl_page_content', ''))
+                    
+                    # Create a new list of consolidated documents
+                    consolidated_hits = []
+                    for source, data in source_grouped_hits.items():
+                        # Create a new document with combined content
+                        consolidated_doc = type('obj', (object,), {
+                            'page_content': "\n\n---\n\n".join(data["combined_content"]),
+                            'metadata': data["metadata"]
+                        })
+                        
+                        # Add highlight information if available - use just the first highlight
+                        if data["highlights"]:
+                            # Just use the first highlight instead of joining all of them
+                            consolidated_doc.metadata['hl_page_content'] = data["highlights"][0]
+                            
+                        # Store original count
+                        consolidated_doc.metadata['chunk_count'] = len(data["docs"])
+                        
+                        consolidated_hits.append(consolidated_doc)
+                    
+                    # Replace the original hits with consolidated ones
+                    hits = consolidated_hits
+                    total_consolidated = len(hits)
+                    st.subheader(f"Search Results: {total_consolidated} sources found (from {total_hits} chunks)")
+                else:
+                    # Display regular results count
+                    st.subheader(f"Search Results: {total_hits} documents found")
                 
                 if not hits:
                     st.info("No documents found matching your search criteria.")
@@ -367,14 +422,26 @@ def main():
                             st.markdown(content_to_display, unsafe_allow_html=True)
                         
                         with col2:
-                            # Always show a download button for the text content
-                            st.download_button(
-                                label="Download Text",
-                                data=doc.page_content,
-                                file_name=f"document_{i+1}.txt",
-                                mime="text/plain",
-                                key=f"download_text_{i}"
-                            )
+                            # Download button for text content
+                            if st.session_state.deduplicate_sources and 'chunk_count' in doc.metadata:
+                                # For consolidated documents, show how many chunks were combined
+                                chunk_count = doc.metadata.get('chunk_count', 1)
+                                st.download_button(
+                                    label=f"Download Text ({chunk_count} chunks)",
+                                    data=doc.page_content,
+                                    file_name=f"document_{i+1}_combined.txt",
+                                    mime="text/plain",
+                                    key=f"download_text_{i}"
+                                )
+                            else:
+                                # Regular download button for single chunk
+                                st.download_button(
+                                    label="Download Text",
+                                    data=doc.page_content,
+                                    file_name=f"document_{i+1}.txt",
+                                    mime="text/plain",
+                                    key=f"download_text_{i}"
+                                )
                             
                             # For Windows, add an additional download button for the original file
                             if is_windows and os.path.exists(source):
@@ -418,7 +485,11 @@ def main():
                                 metadata = {k: v for k, v in doc.metadata.items() 
                                          if k not in ['hl_page_content', 'page_content']}
                                 
-                                st.markdown("### Document Metadata")
+                                # Add a note about consolidated chunks if de-duplication is enabled
+                                if st.session_state.deduplicate_sources and 'chunk_count' in doc.metadata:
+                                    st.markdown(f"### Document Metadata (Consolidated from {doc.metadata['chunk_count']} chunks)")
+                                else:
+                                    st.markdown("### Document Metadata")
                                 
                                 # Create a table view of metadata for better readability
                                 metadata_df = []
@@ -463,6 +534,7 @@ if __name__ == "__main__":
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
         st.session_state.results_limit = 20
+        st.session_state.deduplicate_sources = True  # Enable deduplication by default
         for i in range(100):  # Reasonable limit for number of results
             st.session_state[f"show_full_{i}"] = False
     
