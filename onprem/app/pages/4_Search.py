@@ -316,8 +316,8 @@ def main():
                         source_grouped_hits[source]["docs"].append(doc)
                         source_grouped_hits[source]["combined_content"].append(doc.page_content)
                         
-                        # Capture highlights if available, but we'll only store the first one
-                        if st.session_state.search_type == "Keyword" and 'hl_page_content' in doc.metadata and not source_grouped_hits[source]["highlights"]:
+                        # Capture highlights if available - store up to 3 highlights
+                        if st.session_state.search_type == "Keyword" and 'hl_page_content' in doc.metadata and len(source_grouped_hits[source]["highlights"]) < 3:
                             source_grouped_hits[source]["highlights"].append(doc.metadata.get('hl_page_content', ''))
                     
                     # Create a new list of consolidated documents
@@ -329,10 +329,10 @@ def main():
                             'metadata': data["metadata"]
                         })
                         
-                        # Add highlight information if available - use just the first highlight
+                            # Add highlight information if available - join up to 3 highlights with separators
                         if data["highlights"]:
-                            # Just use the first highlight instead of joining all of them
-                            consolidated_doc.metadata['hl_page_content'] = data["highlights"][0]
+                            # Join the highlights (up to 3) with separators
+                            consolidated_doc.metadata['hl_page_content'] = "\n• • • • •\n".join(data["highlights"])
                             
                         # Store original count
                         consolidated_doc.metadata['chunk_count'] = len(data["docs"])
