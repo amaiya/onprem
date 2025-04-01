@@ -34,7 +34,7 @@ def main():
     st.header("Manage")
     
     # Create tabs for different settings with updated order
-    tab1, tab2 = st.tabs(["Document Ingestion", "Configuration"])
+    tab1, tab3, tab2 = st.tabs(["Document Ingestion", "Folder Management", "Configuration"])
     
     with tab2:
         st.subheader("Configuration File")
@@ -206,7 +206,6 @@ def main():
                 index=0
             )
             
-            st.info("⚠️ For better organization, uploading directly to the Main folder is not allowed. Please use a subfolder.")
             
             target_folder = None  # Will be set to a valid subfolder path, never the main path
             if subfolder_option == "Existing subfolder":
@@ -217,7 +216,7 @@ def main():
                     selected_subfolder = st.selectbox("Select subfolder", subfolders)
                     target_folder = os.path.join(rag_source_path, selected_subfolder)
                 else:
-                    st.warning("No existing subfolders found. Creating one first.")
+                    st.info("⚠️ For better organization, documents are uploaded into subfolders. Enter a subfolder name and press ENTER.")
                     subfolder_option = "Create new subfolder"
             
             if subfolder_option == "Create new subfolder":
@@ -237,7 +236,7 @@ def main():
                 relative_path = os.path.relpath(target_folder, rag_source_path)
                 st.success(f"Selected upload location: {relative_path}/")
             else:
-                st.error("Please select an existing subfolder or create a new one before uploading.")
+                st.error("Please select an existing subfolder or create a new one above before uploading.")
             
             # Place all ingestion options in an expander
             with st.expander("Ingestion Options", expanded=False):
@@ -292,8 +291,8 @@ def main():
                         st.info("The selected folder does not exist yet and will be created.")
             
             # Folder management expandable section
-            with st.expander("Folder Management", expanded=False):
-                st.subheader("Manage Document Folders")
+            with tab3:
+                st.subheader("Folder Management")
                 
                 # Add refresh button
                 if st.button("Refresh Folder List", key="refresh_folders"):
@@ -329,7 +328,7 @@ def main():
                     
                 
                 if not subfolders:
-                    st.info("No subfolders exist yet. You can create subfolders using the options above.")
+                    st.info("No subfolders exist yet. You can create subfolders under the Document Ingestion tab.")
                 else:
                     st.write("Select a subfolder to delete:")
                     folder_to_delete = st.selectbox("Subfolder to delete", 
@@ -492,12 +491,13 @@ def main():
                                 with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
                                     # Get list of files in the zip
                                     zip_files = zip_ref.namelist()
-                                    st.text(f"Extracting {len(zip_files)} files from ZIP archive...")
+                                    print(zip_files)
+                                    st.text(f"Extracting {len(zip_files)} files/folders from ZIP archive...")
                                     zip_ref.extractall(target_folder)
                                     processed_files += len(zip_files)
                             
                             folder_display_name = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
-                            st.text(f"Files saved to {folder_display_name} ({processed_files} files processed)")
+                            st.text(f"Saved to {folder_display_name} subfolder ({processed_files} files/folders processed)")
                             
                             # Now ingest the documents
                             st.text("Ingesting documents...")
@@ -520,6 +520,8 @@ def main():
                                 st.info(f"Added {result['num_added']} new document chunks to the vector database")
                 except Exception as e:
                     st.error(f"Error during document upload and ingestion: {str(e)}")
+                    #import traceback
+                    #st.error(traceback.format_exc())
                     
 
 if __name__ == "__main__":
