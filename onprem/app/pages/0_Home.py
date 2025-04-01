@@ -34,7 +34,7 @@ def main():
     1. **Use Prompts to Solve Problems**: Submit prompts directly to the LLM model
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
     3. **Search Documents**: Search through your indexed documents using keywords or semantic search
-    4. **Settings**: Configure the application settings
+    4. **Manage**: Upload documents, manage folders, and configure the application settings
     
     Use the sidebar to navigate between these different features.
     """)
