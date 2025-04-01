@@ -3,3 +3,6 @@ include LICENSE
 include CONTRIBUTING.md
 include README.md
 recursive-exclude * __pycache__
+
+# Explicitly include the pages directory and its content
+recursive-include onprem/app/pages *.py
