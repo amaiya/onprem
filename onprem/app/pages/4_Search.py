@@ -173,7 +173,7 @@ def main():
     if 'where_document' not in st.session_state:
         st.session_state.where_document = ""
     if 'results_limit' not in st.session_state:
-        st.session_state.results_limit = 20
+        st.session_state.results_limit = 200 
     if 'deduplicate_sources' not in st.session_state:
         st.session_state.deduplicate_sources = True
     
@@ -223,9 +223,9 @@ def main():
         
         # Search settings
         st.subheader("Search Settings")
-        results_limit = st.slider("Number of results to display:", 
+        results_limit = st.slider("Number of results (i.e., chunks) to display:", 
                                 min_value=5, 
-                                max_value=100, 
+                                max_value=500, 
                                 value=st.session_state.results_limit, 
                                 step=5)
         
@@ -250,7 +250,7 @@ def main():
         # Set default search type based on available search types
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
-        st.session_state.results_limit = 20
+        st.session_state.results_limit = 200 
         st.session_state.deduplicate_sources = True
         st.rerun()
         
@@ -472,11 +472,12 @@ def main():
                             st.session_state[f"show_metadata_{i}"] = show_metadata
                             
                             # Add toggle for full content
-                            show_full = st.toggle(
-                                "Show Full Document Content", 
-                                key=f"content_toggle_{i}",
-                                value=st.session_state[f"show_full_{i}"]
-                            )
+                            #show_full = st.toggle(
+                                #"Show Full Document Content", 
+                                #key=f"content_toggle_{i}",
+                                #value=st.session_state[f"show_full_{i}"]
+                            #)
+                            show_full = 0
                             st.session_state[f"show_full_{i}"] = show_full
                             
                             # Show metadata if toggle is enabled
@@ -494,6 +495,7 @@ def main():
                                 # Create a table view of metadata for better readability
                                 metadata_df = []
                                 for key, value in metadata.items():
+                                    if isinstance(value, str) and not value: continue
                                     metadata_df.append({"Field": key, "Value": str(value)})
                                     
                                 if metadata_df:
@@ -533,7 +535,7 @@ if __name__ == "__main__":
         # Set default search type based on what's available
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
-        st.session_state.results_limit = 20
+        st.session_state.results_limit = 200
         st.session_state.deduplicate_sources = True  # Enable deduplication by default
         for i in range(100):  # Reasonable limit for number of results
             st.session_state[f"show_full_{i}"] = False
