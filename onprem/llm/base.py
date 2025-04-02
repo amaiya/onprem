@@ -139,6 +139,7 @@ class LLM:
         elif model_url:
             self.model_url = model_url.split("?")[0]
             self.model_name = os.path.basename(model_url)
+            self.model_name = kwargs.get('model', self.model_name)
         else: # neither supplied so use defaults
             url_or_id = ENGINE_DICT[default_engine][default_model]
             self.model_name = os.path.basename(url_or_id)
