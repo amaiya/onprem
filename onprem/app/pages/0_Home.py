@@ -24,8 +24,10 @@ def main():
     
     st.header("Welcome to OnPrem.LLM")
     
-    # Get the model name for display
-    model_name = cfg['llm']['model_url'].split('/')[-1]
+    # Load LLM to get model name
+    from onprem.app.utils import load_llm
+    llm = load_llm()
+    model_name = llm.model_name
     
     # Main content
     st.markdown("""
@@ -42,7 +44,6 @@ def main():
     # Model information
     st.subheader("Current Model Information")
     st.markdown(f"**Model**: {model_name}")
-    st.markdown(f"**Layers on GPU**: {cfg['llm']['n_gpu_layers']}")
     
     # Quick links
     st.subheader("Quick Links")

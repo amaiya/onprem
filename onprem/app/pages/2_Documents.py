@@ -98,7 +98,10 @@ def main():
     RAG_TEXT = None
     RAG_TEXT_PATH = cfg.get("ui", {}).get("rag_text_path", None)
     PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
-    MODEL_NAME = os.path.basename(cfg.get("llm", {}).get("model_url", "UnknownModel"))
+    
+    # Load LLM to get model name
+    llm = setup_llm()
+    MODEL_NAME = llm.model_name
     
     if RAG_TEXT_PATH and os.path.isfile(RAG_TEXT_PATH) and is_txt(RAG_TEXT_PATH):
         with open(RAG_TEXT_PATH, "r") as f:
@@ -194,7 +197,6 @@ def main():
         "You can also try re-phrasing the question.",
     )
     ask_button = st.button("Ask")
-    llm = setup_llm()
 
     if question and ask_button:
         question = question + " " + APPEND_TO_PROMPT

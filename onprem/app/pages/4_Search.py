@@ -59,7 +59,10 @@ def main():
     RAG_BASE_URL = cfg.get("ui", {}).get("rag_base_url", None)
     VECTORDB_PATH = cfg.get("llm", {}).get("vectordb_path", None)
     STORE_TYPE = cfg.get("llm", {}).get("store_type", "dense")
-    MODEL_NAME = os.path.basename(cfg.get("llm", {}).get("model_url", "UnknownModel"))
+    
+    # Load LLM to get model name
+    llm = load_llm()
+    MODEL_NAME = llm.model_name
     RAG_SOURCE_PATH, RAG_BASE_URL = check_create_symlink(RAG_SOURCE_PATH, RAG_BASE_URL)
     
     # Add some CSS for better styling - same as in Prompts.py
@@ -144,8 +147,6 @@ def main():
     
     # Initialize the vector store using LLM.load_vectorstore()
     try:
-        # Load the LLM instance from the configuration
-        llm = load_llm()
         
         # Load the vector store
         vectorstore = llm.load_vectorstore()

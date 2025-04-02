@@ -60,7 +60,10 @@ def main():
     # Get configuration
     cfg = read_config()[0]
     PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
-    MODEL_NAME = os.path.basename(cfg.get("llm", {}).get("model_url", "UnknownModel"))
+    
+    # Load LLM to get model name
+    llm = setup_llm()
+    MODEL_NAME = llm.model_name
     
     # Add some CSS for better styling
     st.markdown("""
@@ -167,8 +170,6 @@ def main():
         # Otherwise use normal chat input
         prompt = chat_input
     
-    # Load LLM
-    llm = setup_llm()
     
     # Process user input
     if prompt:

@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.12.2 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Set llm model name properly in model cards in web app
+
+
 ## 0.12.1 (2025-04-01)
 
 ### new:
