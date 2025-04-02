@@ -145,10 +145,10 @@ try:
 except Exception as e:
     get_magic = None
     MAGIC_INSTALLED = False
-    warnings.warn(
-        "using mimetypes, since magic could not be imported (perhaps try python-magic-bin if on Windows):  %s"
-        % (e)
-    )
+    #warnings.warn(
+        #"using mimetypes, since magic could not be imported (perhaps try python-magic-bin if on Windows):  %s"
+        #% (e)
+    #)
 
 def get_mimetype(filepath):
     with open(filepath, "rb") as fobj:
