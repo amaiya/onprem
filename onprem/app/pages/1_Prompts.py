@@ -169,7 +169,10 @@ def main():
     else:
         # Otherwise use normal chat input
         prompt = chat_input
-    
+
+    # Load LLM
+    llm = setup_llm()
+
     
     # Process user input
     if prompt:

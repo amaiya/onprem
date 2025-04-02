@@ -197,6 +197,7 @@ def main():
         "You can also try re-phrasing the question.",
     )
     ask_button = st.button("Ask")
+    llm = setup_llm()
 
     if question and ask_button:
         question = question + " " + APPEND_TO_PROMPT
