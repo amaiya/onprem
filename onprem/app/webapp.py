@@ -37,6 +37,7 @@ llm:
   verbose: TRUE
   # additional parameters added in the "llm" YAML section will be fed directly to LlamaCpp (e.g., temperature)
   #temperature: 0.0
+  # max_tokens: 2048
 prompt:
   # The default prompt_template is specifically for the Zephyr-7B model.
   # It will need to be changed if you change the model_url above.
