@@ -23,7 +23,9 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
      Out[3]: 'NVIDIA RTX A1000 6GB Laptop GPU'
      ```
 
-6. Install **llama-cpp-python** (CPU only) using pre-built wheel:
+6. Install an LLM Engine:
+
+   **llama-cpp-python**:
 
    ```shell
    pip install llama-cpp-python==0.2.90 \
@@ -46,28 +48,60 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
    set CMAKE_ARGS=-DGGML_CUDA=ON
    pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
    ```
+   
+    **Ollama**:
+    - [Download and install Ollama](https://ollama.com/)
+    - At a command prompt, pull a model: `ollama pull llama3.2`
 
-7. Install OnPrem.LLM: `pip install onprem`
-8. [OPTIONAL] If you're behind a corporate firewall and  have SSL certificate
+    
+    **Hugging Face Transformers**
+    - Install the autoawq package: `pip install autoawq`, which is needed to load and run models quantized using AWQ in **transformers**.
+
+  
+8. Install OnPrem.LLM: `pip install onprem`
+9. [OPTIONAL] If you're behind a corporate firewall and  have SSL certificate
    issues, you can try adding `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` as
    environment variables and point them to the location of the certificate file
    for your organization, so hugging face models can be downloaded, etc.
-9. Try onprem at a Python prompt to make sure it works. Run the `python`
+10. Try onprem at a Python prompt to make sure it works. Run the `python`
     command and type the following:
-
+   
     ```python
     from onprem import LLM
+    # For llama-cpp-python, load LLM like this:
     llm = LLM() # to use GPU instead of CPU, use n_gpu_layers parameter: LLM(n_gpu_layers=-1)
+
+    # For Ollama, load LLM like this:
+    llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
+
+    # For transformers, load LLM like this:
+    llm = LLM (default_engine="transformers", device='cuda') # remove device argument if running on CPU
+
+    # Try out a prompt
     llm.prompt('List three cute names for a cat.')
 
     # On a multi-core 2.5 GHz laptop CPU (e.g., 13th Gen Intel(R) Core(TM)
     # i7-13800H 2.50 GHz), you should get speeds of around 12 tokens per second.
     # If enabling GPU support as described above, speeds are much faster.
     ```
+ 
 
-10. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html) by running
-    `onprem --port 8000` at a command prompt and clicking on the hyperlink.
-
+11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html):
+    - Start the Web app:  `onprem --port 8000` at a command prompt and clicking on the hyperlink.
+    - In the Web app, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url` and replacing with the following:
+      ```yaml
+      llm:
+        model_url: http://localhost:11434/v1
+        model: llama3.2
+        api_key: na
+      ```
+    -  You can optionally change other aspects of the configuration. For instance, you can change to `store_type: sparse` for faster document ingestion or add `max_tokens: 1024` for longer LLM answers.
+    - After restarting the Web app, you will be able interact with the model being served by Ollama to:
+       - Interactive chatting and prompting like ChatGPT
+       - Document question-answering
+       - Document search.
+    - See the [Web UI documentation](https://amaiya.github.io/onprem/webapp.html) for more information.
+    
 ## Using WSL2 (with GPU Acceleration)
 
 ### Install Ubuntu WSL2 Instance
