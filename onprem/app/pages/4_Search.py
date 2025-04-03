@@ -616,6 +616,14 @@ def main():
                 #st.error(traceback.format_exc())
 
 if __name__ == "__main__":
+    # Set page to wide mode when run directly
+    st.set_page_config(
+        page_title="Search", 
+        page_icon="🔍", 
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
     # Initialize session state
     if 'initialized' not in st.session_state:
         # Get config and check if vectorstore supports keyword search
