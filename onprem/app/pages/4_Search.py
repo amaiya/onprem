@@ -45,6 +45,33 @@ def get_file_data(filepath: str) -> Tuple[Optional[bytes], Optional[str]]:
         st.error(f"Error reading file {filepath}: {str(e)}")
         return None, None
 
+def resolve_path(path):
+    """
+    Resolves any format strings in the given path
+    
+    Args:
+        path: The path that might contain format strings
+        
+    Returns:
+        The resolved path
+    """
+    if not path:
+        return path
+        
+    # Import utils
+    from onprem import utils as U
+    
+    # Handle common format strings
+    resolved = path
+    if "{webapp_dir}" in path:
+        resolved = resolved.replace("{webapp_dir}", U.get_webapp_dir())
+    if "{models_dir}" in path:
+        resolved = resolved.replace("{models_dir}", U.get_models_dir())
+    if "{datadir}" in path:
+        resolved = resolved.replace("{datadir}", U.get_datadir())
+        
+    return resolved
+
 def main():
     """
     Page for searching documents using sparse vector store
@@ -60,9 +87,20 @@ def main():
     VECTORDB_PATH = cfg.get("llm", {}).get("vectordb_path", None)
     STORE_TYPE = cfg.get("llm", {}).get("store_type", "dense")
     
+    # Resolve paths - we need the correct documents path
+    # The config may use format strings, so directly resolve them
+    from onprem import utils as U
+    
+    # Get the raw path from config and resolve any format strings
+    DOCUMENTS_PATH = RAG_SOURCE_PATH
+    if RAG_SOURCE_PATH and "{webapp_dir}" in RAG_SOURCE_PATH:
+        DOCUMENTS_PATH = RAG_SOURCE_PATH.replace("{webapp_dir}", U.get_webapp_dir())
+    
     # Load LLM to get model name
     llm = load_llm()
     MODEL_NAME = llm.model_name
+    
+    # This function may change RAG_SOURCE_PATH, but we'll keep our resolved DOCUMENTS_PATH
     RAG_SOURCE_PATH, RAG_BASE_URL = check_create_symlink(RAG_SOURCE_PATH, RAG_BASE_URL)
     
     # Add some CSS for better styling - same as in Prompts.py
@@ -176,12 +214,24 @@ def main():
     if 'results_limit' not in st.session_state:
         st.session_state.results_limit = 5000 
     if 'deduplicate_sources' not in st.session_state:
-        st.session_state.deduplicate_sources = False
+        st.session_state.deduplicate_sources = True
+    if 'selected_folder' not in st.session_state:
+        st.session_state.selected_folder = "All folders"
     # Pagination parameters
     if 'current_page' not in st.session_state:
         st.session_state.current_page = 1
     if 'results_per_page' not in st.session_state:
         st.session_state.results_per_page = 5
+    
+    # Get folders from the resolved DOCUMENTS_PATH
+    folder_options = ["All folders"]
+    
+    # Use DOCUMENTS_PATH as our source for folder listing
+    if DOCUMENTS_PATH and os.path.exists(DOCUMENTS_PATH):
+        # Get all top-level folders
+        subfolders = [d for d in os.listdir(DOCUMENTS_PATH) 
+                     if os.path.isdir(os.path.join(DOCUMENTS_PATH, d))]
+        folder_options.extend(subfolders)
     
     # Create search interface
     col1, col2 = st.columns([3, 1])
@@ -217,6 +267,24 @@ def main():
                                   search_options, 
                                   index=default_index)
     
+    # Folder selection dropdown below the search box
+    folder_index = 0
+    if st.session_state.selected_folder in folder_options:
+        folder_index = folder_options.index(st.session_state.selected_folder)
+    
+    # Function to update session state when folder selection changes
+    def on_folder_change():
+        st.session_state.selected_folder = st.session_state.folder_selector
+    
+    selected_folder = st.selectbox(
+        "Folder to search:", 
+        folder_options,
+        index=folder_index,
+        key="folder_selector",
+        on_change=on_folder_change,
+        help="Select a specific folder to search, or 'All folders' to search across all documents"
+    )
+    
     # Filters section (collapsible)
     with st.expander("Advanced Filters and Search Settings"):
         filter_options = {} # not currently implemented
@@ -229,8 +297,8 @@ def main():
         
         # Search settings
         st.subheader("Search Settings")
-        st.info('💡 OnPrem splits documents into text "chunks" during ingestion.')
-        results_limit = st.slider("Maximum number of chunks to retrieve in search:", 
+        st.info('💡 OnPrem splits documents into passages during ingestion.')
+        results_limit = st.slider("Maximum number of passages to retrieve in search:", 
                                 min_value=1000, 
                                 max_value=25000, 
                                 value=st.session_state.results_limit, 
@@ -245,14 +313,15 @@ def main():
         
         # De-duplication option
         deduplicate_sources = st.checkbox(
-            "Collapse chunks by document source in search results",
+            "Collapse passages by document source in search results",
             value=st.session_state.deduplicate_sources,
-            help="If checked, results are de-duplicated by document source, with chunk content from all matches concatenated"
+            help="If checked, results are de-duplicated by document source, with passages from all matches concatenated"
         )
     
     # Search and reset buttons side by side
     button_cols = st.columns([1, 1, 4])  # First two columns for buttons, third for spacing
     with button_cols[0]:
+        # Keep button label consistently as "Search"
         search_button = st.button("Search", type="primary", use_container_width=True)
     with button_cols[1]:
         # Place the reset button immediately to the right of the search button
@@ -265,27 +334,32 @@ def main():
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
         st.session_state.results_limit = 5000 
-        st.session_state.deduplicate_sources = False
+        st.session_state.deduplicate_sources = True
+        # Reset folder selection
+        st.session_state.selected_folder = "All folders"
         # Reset pagination
         st.session_state.current_page = 1
         st.session_state.results_per_page = 5
         st.rerun()
         
     # Update session state when search button is clicked
-    if search_button and st.session_state.search_query:
+    if search_button:
+        # Allow empty search if a folder is selected - this will show all files in that folder
+        if not st.session_state.search_query and selected_folder == "All folders":
+            st.error("Please enter a search term or select a specific folder.")
+            st.stop()
+            
         st.session_state.search_type = search_type
         st.session_state.where_document = where_document
         st.session_state.results_limit = results_limit
         st.session_state.deduplicate_sources = deduplicate_sources
         st.session_state.results_per_page = results_per_page
+        st.session_state.selected_folder = selected_folder
         # Reset to first page when performing a new search
         st.session_state.current_page = 1
-    elif search_button and not st.session_state.search_query:
-        st.error("You didn't enter a search.")
-        st.stop()
 
-    # Handle search - execute search if we have a query in session state
-    if st.session_state.search_query:
+    # Handle search - execute search if we have a query OR a selected folder
+    if st.session_state.search_query or st.session_state.selected_folder != "All folders":
         with st.spinner("Searching..."):
             try:
                 # Verify search type is valid for the current vectorstore
@@ -293,13 +367,47 @@ def main():
                     st.error("Keyword search is not available with the current vector store configuration.")
                     return
                 
+                # Apply folder filtering if a specific folder is selected
+                folder_filter = None
+                where_clause = st.session_state.where_document
+                
+                if st.session_state.selected_folder != "All folders":
+                    # Get folder information we want to filter by
+                    folder_name = st.session_state.selected_folder
+                    folder_path = os.path.join(DOCUMENTS_PATH, folder_name)
+                    
+                    # We need a more precise filter to avoid false matches
+                    # For example, if folder_name is "data", we don't want to match "/other/database.txt"
+                    
+                    # Normalize the folder path for consistent handling
+                    norm_folder_path = os.path.normpath(folder_path).replace('\\', '/')
+                    
+                    # For more precision, we need to ensure the folder appears as a proper path component
+                    # We'll just match the exact folder path with a wildcard for subfolders/files
+                    # This approach is simpler and more reliable
+                    folder_filter = f'source:{norm_folder_path}*'
+                    
+                    # Combine with existing where_document if any
+                    if where_clause:
+                        where_clause = f"({where_clause}) AND {folder_filter}"
+                    else:
+                        where_clause = folder_filter
+                
+                # Handle empty query case (browsing a folder)
+                query_text = st.session_state.search_query
+                
+                # If no search query but a folder is selected, use a wildcard query
+                # that will match everything in that folder
+                if not query_text and st.session_state.selected_folder != "All folders":
+                    query_text = "*"  # Wildcard to match everything
+                
                 if st.session_state.search_type == "Keyword":
                     # Use query method of vectorstore for keyword search
                     results = vectorstore.query(
-                        q=st.session_state.search_query,
+                        q=query_text,
                         limit=st.session_state.results_limit,
                         filters=filter_options,
-                        where_document=st.session_state.where_document if st.session_state.where_document else None,
+                        where_document=where_clause if where_clause else None,
                         highlight=True
                     )
                     hits = results.get('hits', [])
@@ -308,12 +416,21 @@ def main():
                     # Use semantic_search method of vectorstore
                     if store_type != 'sparse':
                         # transform Whoosh query filter to Chroma syntax
-                        where_document = st.session_state.where_document if st.session_state.where_document else None
-                        chroma_filters = lucene_to_chroma(where_document)
+                        chroma_filters = lucene_to_chroma(where_clause)
                         where_document = chroma_filters['where_document']
                         filter_options = chroma_filters['filter']
+                    else:
+                        where_document = where_clause
+                    
+                    # For empty query + folder selection with semantic search,
+                    # we need a special approach since semantic search needs actual text
+                    if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
+                        # For semantic search with empty query, use a neutral query that will
+                        # retrieve documents based primarily on the filter
+                        query_text = "document"
+                        
                     hits = vectorstore.semantic_search(
-                        query=st.session_state.search_query,
+                        query=query_text,
                         k=st.session_state.results_limit,
                         filters=filter_options if filter_options else None,
                         where_document=where_document if where_document else None
@@ -351,8 +468,15 @@ def main():
                         
                             # Add highlight information if available - join up to 3 highlights with separators
                         if data["highlights"]:
-                            # Join the highlights (up to 3) with separators
-                            consolidated_doc.metadata['hl_page_content'] = "\n• • • • •\n".join(data["highlights"])
+                            # Process each highlight to replace newlines with spaces
+                            processed_highlights = []
+                            for highlight in data["highlights"]:
+                                # Replace newlines with a visual separator
+                                processed_highlight = highlight.replace('\n', ' ◆ ').replace('\r', ' ')
+                                processed_highlights.append(processed_highlight)
+                                
+                            # Join the highlights with a more visible separator
+                            consolidated_doc.metadata['hl_page_content'] = " ••••• ".join(processed_highlights)
                             
                         # Store original count
                         consolidated_doc.metadata['chunk_count'] = len(data["docs"])
@@ -365,13 +489,22 @@ def main():
                     total_hits = len(hits)  # Update total_hits to be the consolidated count
                     
                     # Display the result counts - we'll add pagination info after we calculate it
-                    st.subheader(f"Search Results: {total_hits} sources found (from {original_total_hits} chunks)")
+                    if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
+                        st.subheader(f"Folder Contents: {total_hits} sources found in '{st.session_state.selected_folder}' (from {original_total_hits} passages)")
+                    else:
+                        st.subheader(f"Search Results: {total_hits} sources found (from {original_total_hits} passages)")
                 else:
                     # Display regular results count - we'll add pagination info after we calculate it
-                    st.subheader(f"Search Results: {total_hits} documents found")
+                    if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
+                        st.subheader(f"Folder Contents: {total_hits} documents found in '{st.session_state.selected_folder}'")
+                    else:
+                        st.subheader(f"Search Results: {total_hits} documents found")
                 
                 if not hits:
-                    st.info("No documents found matching your search criteria.")
+                    if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
+                        st.info(f"No documents found in folder '{st.session_state.selected_folder}'.")
+                    else:
+                        st.info("No documents found matching your search criteria.")
                     return
                 
                 # Calculate pagination - this is the single, unified pagination calculation
@@ -392,7 +525,10 @@ def main():
                 end_item = min(start_idx + st.session_state.results_per_page, total_hits)
                 
                 # Update the header to include pagination information
-                st.markdown(f"Showing results {start_item}-{end_item} of {total_hits}")
+                if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
+                    st.markdown(f"Showing items {start_item}-{end_item} of {total_hits}")
+                else:
+                    st.markdown(f"Showing results {start_item}-{end_item} of {total_hits}")
                 
                 # Get current page results
                 current_page_hits = hits[start_idx:end_idx]
@@ -451,22 +587,70 @@ def main():
                                 </style>
                                 """, unsafe_allow_html=True)
                                 
+                                # Function to escape markdown characters
+                                def escape_markdown(text):
+                                    # Characters to escape: # * _ ~ ` [ ] ( ) > - + = | { } . !
+                                    markdown_chars = ['#', '*', '_', '~', '`', '[', ']', '(', ')', 
+                                                     '>', '-', '+', '=', '|', '{', '}', '.', '!']
+                                    for char in markdown_chars:
+                                        # Don't escape characters inside HTML tags
+                                        parts = text.split('<')
+                                        for i in range(len(parts)):
+                                            if i > 0:  # Not the first part
+                                                tag_parts = parts[i].split('>')
+                                                if len(tag_parts) > 1:  # Has a closing '>'
+                                                    # Don't replace in the tag part
+                                                    tag_parts[1] = tag_parts[1].replace(char, '\\' + char)
+                                                    parts[i] = '>'.join(tag_parts)
+                                            else:  # First part (no opening tag)
+                                                parts[i] = parts[i].replace(char, '\\' + char)
+                                        text = '<'.join(parts)
+                                    return text
+                                
                                 # Convert any B tags to our custom highlighted spans
                                 import re
+                                # First replace the B tags with our custom spans
                                 content_with_highlights = re.sub(
                                     r'<b class="match term\d*">(.*?)</b>', 
                                     r'<span class="search-highlight">\1</span>', 
                                     highlighted_text
                                 )
                                 
+                                # Now escape markdown characters outside of HTML tags
+                                # But preserve the HTML tags and their content
+                                escaped_content = escape_markdown(content_with_highlights)
+                                
+                                # Replace line breaks with spaces to keep content on a single line
+                                # This prevents unwanted line breaks in the display
+                                single_line_content = escaped_content.replace('\n', ' ').replace('\r', ' ')
+                                
                                 # Show the highlighted content with proper context
-                                content_to_display = f"{content_with_highlights}"
+                                content_to_display = f"{single_line_content}"
                             else:
                                 content = doc.page_content
                                 # Truncate content if it's too long
                                 if len(content) > 300:
                                     content = content[:300] + "..."
-                                content_to_display = content
+                                
+                                # Escape markdown characters in regular content as well
+                                # Reuse the escape_markdown function defined above
+                                if 'escape_markdown' not in locals():
+                                    # Define the function if it's not already defined
+                                    def escape_markdown(text):
+                                        # Characters to escape: # * _ ~ ` [ ] ( ) > - + = | { } . !
+                                        markdown_chars = ['#', '*', '_', '~', '`', '[', ']', '(', ')', 
+                                                         '>', '-', '+', '=', '|', '{', '}', '.', '!']
+                                        for char in markdown_chars:
+                                            text = text.replace(char, '\\' + char)
+                                        return text
+                                
+                                # Escape markdown characters
+                                escaped_content = escape_markdown(content)
+                                
+                                # Replace line breaks with spaces to keep content on a single line
+                                single_line_content = escaped_content.replace('\n', ' ').replace('\r', ' ')
+                                
+                                content_to_display = single_line_content
                             
                             # Display the content
                             st.markdown(content_to_display, unsafe_allow_html=True)
@@ -477,7 +661,7 @@ def main():
                                 # For consolidated documents, show how many chunks were combined
                                 chunk_count = doc.metadata.get('chunk_count', 1)
                                 st.download_button(
-                                    label=f"Download Text ({chunk_count} chunks)",
+                                    label=f"Download Text ({chunk_count} passages)",
                                     data=doc.page_content,
                                     file_name=f"document_{result_number}_combined.txt",
                                     mime="text/plain",
@@ -645,6 +829,7 @@ if __name__ == "__main__":
         st.session_state.where_document = ""
         st.session_state.results_limit = 5000 
         st.session_state.deduplicate_sources = True  # Enable deduplication by default
+        st.session_state.selected_folder = "All folders"  # Default to searching all folders
         # Pagination settings
         st.session_state.current_page = 1
         st.session_state.results_per_page = 10
