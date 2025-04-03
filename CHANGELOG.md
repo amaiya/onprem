@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.12.5 (TBD)
+## 0.12.5 (2025-04-03)
 
 ### new:
 - N/A
@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - workaround torch issue described [here](https://github.com/VikParuchuri/marker/issues/442)
+- fix folder filtering for semantic search (#154)
 
 
 ## 0.12.4 (2025-04-02)

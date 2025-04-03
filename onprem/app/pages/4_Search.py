@@ -369,6 +369,7 @@ def main():
                 
                 # Apply folder filtering if a specific folder is selected
                 folder_filter = None
+                folder_name = None
                 where_clause = st.session_state.where_document
                 
                 if st.session_state.selected_folder != "All folders":
@@ -415,8 +416,15 @@ def main():
                 else:  # Semantic search
                     # Use semantic_search method of vectorstore
                     if store_type != 'sparse':
-                        # transform Whoosh query filter to Chroma syntax
-                        chroma_filters = lucene_to_chroma(where_clause)
+                        # Transform Whoosh query filter to Chroma syntax
+                        # We'll construct a query filter that doesn't include the folder filter
+                        # since we'll handle folder filtering separately for semantic search
+                        
+                        # Create a copy of where_clause without the folder filter
+                        effective_where_clause = st.session_state.where_document
+                        
+                        # Apply basic query filter conversion
+                        chroma_filters = lucene_to_chroma(effective_where_clause)
                         where_document = chroma_filters['where_document']
                         filter_options = chroma_filters['filter']
                     else:
@@ -429,12 +437,23 @@ def main():
                         # retrieve documents based primarily on the filter
                         query_text = "document"
                         
+                    # Execute the semantic search
                     hits = vectorstore.semantic_search(
                         query=query_text,
                         k=st.session_state.results_limit,
                         filters=filter_options if filter_options else None,
                         where_document=where_document if where_document else None
                     )
+                    
+                    # Apply additional folder filtering for semantic search if needed
+                    # This performs post-filtering on the search results to ensure they're from the selected folder
+                    if st.session_state.selected_folder != "All folders" and st.session_state.search_query:
+                        folder_path = os.path.join(DOCUMENTS_PATH, st.session_state.selected_folder)
+                        norm_folder_path = os.path.normpath(folder_path).replace('\\', '/')
+                        # Filter to only keep hits that are from the selected folder
+                        hits = [hit for hit in hits if 'source' in hit.metadata and 
+                                hit.metadata['source'].startswith(norm_folder_path)]
+                    
                     total_hits = len(hits)
                 
                 # Handle de-duplication if enabled
