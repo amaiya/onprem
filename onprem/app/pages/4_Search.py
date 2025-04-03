@@ -174,9 +174,14 @@ def main():
     if 'where_document' not in st.session_state:
         st.session_state.where_document = ""
     if 'results_limit' not in st.session_state:
-        st.session_state.results_limit = 200 
+        st.session_state.results_limit = 5000 
     if 'deduplicate_sources' not in st.session_state:
-        st.session_state.deduplicate_sources = True
+        st.session_state.deduplicate_sources = False
+    # Pagination parameters
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 1
+    if 'results_per_page' not in st.session_state:
+        st.session_state.results_per_page = 5
     
     # Create search interface
     col1, col2 = st.columns([3, 1])
@@ -225,11 +230,18 @@ def main():
         # Search settings
         st.subheader("Search Settings")
         st.info('💡 OnPrem splits documents into text "chunks" during ingestion.')
-        results_limit = st.slider("Maximum number of chunks to display in search results:", 
-                                min_value=5, 
-                                max_value=400, 
+        results_limit = st.slider("Maximum number of chunks to retrieve in search:", 
+                                min_value=1000, 
+                                max_value=25000, 
                                 value=st.session_state.results_limit, 
-                                step=5)
+                                step=1000)
+        
+        # Pagination settings
+        results_per_page = st.select_slider(
+            "Results per page:",
+            options=[5, 10, 20, 50, 100],
+            value=st.session_state.results_per_page
+        )
         
         # De-duplication option
         deduplicate_sources = st.checkbox(
@@ -252,8 +264,11 @@ def main():
         # Set default search type based on available search types
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
-        st.session_state.results_limit = 200 
-        st.session_state.deduplicate_sources = True
+        st.session_state.results_limit = 5000 
+        st.session_state.deduplicate_sources = False
+        # Reset pagination
+        st.session_state.current_page = 1
+        st.session_state.results_per_page = 5
         st.rerun()
         
     # Update session state when search button is clicked
@@ -262,6 +277,9 @@ def main():
         st.session_state.where_document = where_document
         st.session_state.results_limit = results_limit
         st.session_state.deduplicate_sources = deduplicate_sources
+        st.session_state.results_per_page = results_per_page
+        # Reset to first page when performing a new search
+        st.session_state.current_page = 1
     elif search_button and not st.session_state.search_query:
         st.error("You didn't enter a search.")
         st.stop()
@@ -343,18 +361,44 @@ def main():
                     
                     # Replace the original hits with consolidated ones
                     hits = consolidated_hits
-                    total_consolidated = len(hits)
-                    st.subheader(f"Search Results: {total_consolidated} sources found (from {total_hits} chunks)")
+                    original_total_hits = total_hits  # Save the original total for reference
+                    total_hits = len(hits)  # Update total_hits to be the consolidated count
+                    
+                    # Display the result counts - we'll add pagination info after we calculate it
+                    st.subheader(f"Search Results: {total_hits} sources found (from {original_total_hits} chunks)")
                 else:
-                    # Display regular results count
+                    # Display regular results count - we'll add pagination info after we calculate it
                     st.subheader(f"Search Results: {total_hits} documents found")
                 
                 if not hits:
                     st.info("No documents found matching your search criteria.")
                     return
                 
-                # Display each result
-                for i, doc in enumerate(hits):
+                # Calculate pagination - this is the single, unified pagination calculation
+                total_pages = (total_hits + st.session_state.results_per_page - 1) // st.session_state.results_per_page
+                
+                # Ensure current_page is valid
+                if st.session_state.current_page < 1:
+                    st.session_state.current_page = 1
+                if st.session_state.current_page > total_pages:
+                    st.session_state.current_page = total_pages
+                
+                # Calculate start and end indices for current page
+                start_idx = (st.session_state.current_page - 1) * st.session_state.results_per_page
+                end_idx = min(start_idx + st.session_state.results_per_page, total_hits)
+                
+                # Calculate the item range being displayed for the header
+                start_item = start_idx + 1
+                end_item = min(start_idx + st.session_state.results_per_page, total_hits)
+                
+                # Update the header to include pagination information
+                st.markdown(f"Showing results {start_item}-{end_item} of {total_hits}")
+                
+                # Get current page results
+                current_page_hits = hits[start_idx:end_idx]
+                
+                # Display each result for the current page
+                for idx, doc in enumerate(current_page_hits):
                     with st.container():
                         col1, col2 = st.columns([4, 1])
                         
@@ -373,12 +417,16 @@ def main():
                             # For Linux/macOS, use the standard hyperlink
                             if is_windows:
                                 filename = os.path.basename(source)
-                                st.markdown(f"**{i+1}. {filename}{page_info}**")
+                                # Display the absolute position in search results
+                                result_number = start_idx + idx + 1
+                                st.markdown(f"**{result_number}. {filename}{page_info}**")
                             else:
                                 source_link = construct_link(
                                     source, source_path=RAG_SOURCE_PATH, base_url=RAG_BASE_URL
                                 )
-                                st.markdown(f"**{i+1}. {source_link}{page_info}**", unsafe_allow_html=True)
+                                # Display the absolute position in search results
+                                result_number = start_idx + idx + 1
+                                st.markdown(f"**{result_number}. {source_link}{page_info}**", unsafe_allow_html=True)
                             
                             # Display score if semantic search
                             if search_type == "Semantic" and hasattr(doc, 'metadata') and 'score' in doc.metadata:
@@ -431,18 +479,18 @@ def main():
                                 st.download_button(
                                     label=f"Download Text ({chunk_count} chunks)",
                                     data=doc.page_content,
-                                    file_name=f"document_{i+1}_combined.txt",
+                                    file_name=f"document_{result_number}_combined.txt",
                                     mime="text/plain",
-                                    key=f"download_text_{i}"
+                                    key=f"download_text_{result_number}"
                                 )
                             else:
                                 # Regular download button for single chunk
                                 st.download_button(
                                     label="Download Text",
                                     data=doc.page_content,
-                                    file_name=f"document_{i+1}.txt",
+                                    file_name=f"document_{result_number}.txt",
                                     mime="text/plain",
-                                    key=f"download_text_{i}"
+                                    key=f"download_text_{result_number}"
                                 )
                             
                             # For Windows, add an additional download button for the original file
@@ -454,33 +502,33 @@ def main():
                                         data=file_data,
                                         file_name=os.path.basename(source),
                                         mime=mime_type,
-                                        key=f"download_orig_{i}"
+                                        key=f"download_orig_{result_number}"
                                     )
                         
                         # Create an expander for document details
                         with st.expander("Document Details", expanded=False):
                             # Initialize toggle states in session state if not present
-                            if f"show_metadata_{i}" not in st.session_state:
-                                st.session_state[f"show_metadata_{i}"] = False
-                            if f"show_full_{i}" not in st.session_state:
-                                st.session_state[f"show_full_{i}"] = False
+                            if f"show_metadata_{result_number}" not in st.session_state:
+                                st.session_state[f"show_metadata_{result_number}"] = False
+                            if f"show_full_{result_number}" not in st.session_state:
+                                st.session_state[f"show_full_{result_number}"] = False
                                 
                             # Add toggle for metadata
                             show_metadata = st.toggle(
                                 "Show Document Metadata", 
-                                key=f"metadata_toggle_{i}",
-                                value=st.session_state[f"show_metadata_{i}"]
+                                key=f"metadata_toggle_{result_number}",
+                                value=st.session_state[f"show_metadata_{result_number}"]
                             )
-                            st.session_state[f"show_metadata_{i}"] = show_metadata
+                            st.session_state[f"show_metadata_{result_number}"] = show_metadata
                             
                             # Add toggle for full content
                             #show_full = st.toggle(
                                 #"Show Full Document Content", 
-                                #key=f"content_toggle_{i}",
-                                #value=st.session_state[f"show_full_{i}"]
+                                #key=f"content_toggle_{result_number}",
+                                #value=st.session_state[f"show_full_{result_number}"]
                             #)
                             show_full = 0
-                            st.session_state[f"show_full_{i}"] = show_full
+                            st.session_state[f"show_full_{result_number}"] = show_full
                             
                             # Show metadata if toggle is enabled
                             if show_metadata:
@@ -511,7 +559,57 @@ def main():
                                 st.markdown(doc.page_content)
                         
                         st.markdown("---")
+                
+                # Add pagination controls
+                if total_pages > 1:
+                    st.markdown(f"**Page {st.session_state.current_page} of {total_pages}**")
+                    
+                    # Create pagination controls
+                    pagination_cols = st.columns([1, 1, 3, 1, 1])
+                    
+                    # First page button
+                    with pagination_cols[0]:
+                        if st.session_state.current_page > 1:
+                            if st.button("❮❮ First", key="first_page", use_container_width=True):
+                                st.session_state.current_page = 1
+                                st.rerun()
+                    
+                    # Previous page button
+                    with pagination_cols[1]:
+                        if st.session_state.current_page > 1:
+                            if st.button("❮ Previous", key="prev_page", use_container_width=True):
+                                st.session_state.current_page -= 1
+                                st.rerun()
+                    
+                    # Page selector in the middle column
+                    with pagination_cols[2]:
+                        page_options = list(range(1, total_pages + 1))
+                        current_index = min(page_options.index(st.session_state.current_page), len(page_options) - 1)
                         
+                        def on_page_change():
+                            st.session_state.current_page = st.session_state.page_selector
+                            st.rerun()
+                            
+                        st.selectbox("Go to page:", 
+                                    page_options,
+                                    index=current_index,
+                                    key="page_selector",
+                                    on_change=on_page_change)
+                    
+                    # Next page button
+                    with pagination_cols[3]:
+                        if st.session_state.current_page < total_pages:
+                            if st.button("Next ❯", key="next_page", use_container_width=True):
+                                st.session_state.current_page += 1
+                                st.rerun()
+                    
+                    # Last page button
+                    with pagination_cols[4]:
+                        if st.session_state.current_page < total_pages:
+                            if st.button("Last ❯❯", key="last_page", use_container_width=True):
+                                st.session_state.current_page = total_pages
+                                st.rerun()
+                                
             except Exception as e:
                 st.error(f"Error processing search: {str(e)}")
                 #import traceback
@@ -537,9 +635,12 @@ if __name__ == "__main__":
         # Set default search type based on what's available
         st.session_state.search_type = "Keyword" if has_keyword_search else "Semantic"
         st.session_state.where_document = ""
-        st.session_state.results_limit = 200
+        st.session_state.results_limit = 5000 
         st.session_state.deduplicate_sources = True  # Enable deduplication by default
-        for i in range(100):  # Reasonable limit for number of results
-            st.session_state[f"show_full_{i}"] = False
+        # Pagination settings
+        st.session_state.current_page = 1
+        st.session_state.results_per_page = 10
+        # We don't need to initialize all the show_full and show_metadata flags here
+        # They'll be created dynamically based on the actual search results
     
     main()
