@@ -6,6 +6,10 @@ import mimetypes
 from onprem import utils as U
 from onprem.app.utils import hide_webapp_sidebar_item, hide_manage_page
 
+# https://github.com/VikParuchuri/marker/issues/442#issuecomment-2636393925
+import torch
+torch.classes.__path__ = [os.path.join(torch.__path__[0], torch.classes.__file__)]
+
 DATADIR = U.get_datadir()
 DEFAULT_YAML_FNAME = "config.yml"
 DEFAULT_WEBAPP_DIR = U.get_webapp_dir()

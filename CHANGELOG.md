@@ -6,6 +6,19 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+
+## 0.12.5 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- workaround torch issue described [here](https://github.com/VikParuchuri/marker/issues/442)
+
+
 ## 0.12.4 (2025-04-02)
 
 ### new:
