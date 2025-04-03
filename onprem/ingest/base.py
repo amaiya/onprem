@@ -226,7 +226,11 @@ def load_single_document(file_path: str, # path to file
         raise ValueError('pdf_unstructured and pdf_markdown cannot both be True.')
     file_callables = {} if not file_callables else file_callables
     text_callables = {} if not text_callables else text_callables
+    
+    # Normalize path for consistent handling - first get absolute path
     file_path = os.path.abspath(file_path)
+    # Then normalize and standardize path separators to forward slashes for cross-platform consistency
+    file_path = os.path.normpath(file_path).replace('\\', '/')
 
 
     # extract metadata
@@ -285,8 +289,14 @@ def load_single_document(file_path: str, # path to file
 
 
 def _ignore_file(file_path, ignored_files:List[str]=[], ignore_fn:Optional[Callable]=None):
+    # Normalize path for consistent handling - first get absolute path, then normalize path separators
     file_path = os.path.abspath(file_path)
-    return file_path in ignored_files or \
+    file_path = os.path.normpath(file_path).replace('\\', '/')
+    
+    # Normalize ignored_files as well for consistent comparison
+    normalized_ignored_files = [os.path.normpath(f).replace('\\', '/') for f in ignored_files]
+    
+    return file_path in normalized_ignored_files or \
             os.path.basename(file_path).startswith('~$') or \
             (ignore_fn is not None and ignore_fn(file_path))
 
@@ -495,7 +505,9 @@ class VectorStore(ABC):
         if self.exists():
             # Update and store locally vectorstore
             print(f"Appending to existing vectorstore at {self.persist_directory}")
-            ignored_files = set([d['source'] for d in self.get_all_docs()])
+            # Get existing sources and normalize them for consistent comparison
+            ignored_files = set([os.path.normpath(d['source']).replace('\\', '/') 
+                                for d in self.get_all_docs()])
         else:
             print(f"Creating new vectorstore at {self.persist_directory}")
             ignored_files = []
