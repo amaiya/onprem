@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Remove mimetype warning for Windows
-- Web UI Search page improvements
+- Web UI Search page fixes/improvements
 
 
 ## 0.12.3 (2025-04-02)
