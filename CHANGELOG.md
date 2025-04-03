@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.12.6 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- disable parallelization in web interface when on Windows (#155)
+
+
 ## 0.12.5 (2025-04-03)
 
 ### new:

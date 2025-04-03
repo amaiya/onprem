@@ -529,12 +529,19 @@ def main():
                             llm = load_llm()
                             
                             # Ingest documents from the target folder
-                            result = llm.ingest(
-                                source_directory=target_folder,
-                                chunk_size=chunk_size,
-                                chunk_overlap=chunk_overlap,
-                                batch_size=batch_size
-                            )
+                            # Set n_proc=1 on Windows to avoid multiprocessing issues with Streamlit
+                            kwargs = {
+                                "source_directory": target_folder,
+                                "chunk_size": chunk_size,
+                                "chunk_overlap": chunk_overlap,
+                                "batch_size": batch_size
+                            }
+                            # Add n_proc=1 on Windows to avoid multiprocessing stalls
+                            if os.name == 'nt':  # Windows
+                                kwargs["n_proc"] = 1
+                                st.text("Windows detected: Using single process mode for document ingestion")
+                            
+                            result = llm.ingest(**kwargs)
                             
                             # Show success message with folder information
                             folder_display = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
