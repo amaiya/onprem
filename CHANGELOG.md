@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.12.4 (TBD)
+## 0.12.4 (2025-04-02)
 
 ### new:
 - N/A
@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Remove mimetype warning for Windows
+- Web UI Search page improvements
 
 
 ## 0.12.3 (2025-04-02)
