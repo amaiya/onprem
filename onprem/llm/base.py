@@ -661,7 +661,14 @@ class LLM:
                                             filters=filters,
                                             where_document=where_document,
                                             k = n_candidates, **kwargs)
-            results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
+            # Handle path separator differences between Windows and Unix
+            if os.name == 'nt':  # Windows
+                # Normalize paths for case-insensitive comparison on Windows
+                normalized_folders = [os.path.normpath(f).lower().replace('\\', '/') for f in folders]
+                results = [d for d in results if any(os.path.normpath(d.metadata['source']).lower().replace('\\', '/').startswith(nf) for nf in normalized_folders)]
+            else:
+                # On Unix systems, use direct path comparison
+                results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
             results = results[:k]
             
         else:

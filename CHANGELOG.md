@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.12.8 (2025-04-04)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Normalize path separators for Windows support of folder filtering (#160)
+
+
 ## 0.12.7 (2025-04-04)
 
 ### new:

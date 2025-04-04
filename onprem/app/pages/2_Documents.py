@@ -179,7 +179,8 @@ def main():
     folders_for_query = None
     if selected_folders:
         # Use only selected folders
-        folders_for_query = [os.path.join(ORIGINAL_RAG_SOURCE_PATH, folder) for folder in selected_folders]
+        # Normalize path separators to handle Windows paths correctly
+        folders_for_query = [os.path.normpath(os.path.join(ORIGINAL_RAG_SOURCE_PATH, folder)) for folder in selected_folders]
     
     # Update session state
     st.session_state.folders_for_query = folders_for_query
