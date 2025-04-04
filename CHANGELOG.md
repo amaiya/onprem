@@ -8,9 +8,9 @@ Most recent releases are shown at the top. Each release shows:
 
 
 ## 0.12.7 (2025-04-04)
-- N/A
 
 ### new:
+- N/A
 
 ### changed
 - Support `folder` argument in `LLM.ask` and `LLM.query` (#158)
