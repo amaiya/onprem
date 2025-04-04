@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Support `folder` argument in `LLM.ask` and `LLM.query` (#158)
 
 ### fixed:
 - retain RAG results on screen in Web UI (#157)
