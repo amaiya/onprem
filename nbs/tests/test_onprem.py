@@ -266,7 +266,7 @@ def test_guider(**kwargs):
 
     from guidance import select, gen
 
-    prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?  Answer: """ + gen('answer', regex='\d+')
+    prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?  Answer: """ + gen('answer', regex=r'\d+')
     result = guider.prompt(prompt)
     print(result)
     assert(int(result['answer']) == 7)

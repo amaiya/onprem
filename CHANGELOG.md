@@ -18,6 +18,8 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - retain RAG results on screen in Web UI (#157)
+- pin to `pymupdf4llm==0.0.17` becaue later versions produce
+  bad results
 
 
 ## 0.12.6 (2025-04-03)
