@@ -297,7 +297,7 @@ def main():
         
         # Search settings
         st.subheader("Search Settings")
-        st.info('💡 OnPrem splits documents into passages during ingestion.')
+        st.info('💡 OnPrem splits documents into passages (or chunks) during ingestion.')
         results_limit = st.slider("Maximum number of passages to retrieve in search:", 
                                 min_value=1000, 
                                 max_value=25000, 
@@ -315,7 +315,7 @@ def main():
         deduplicate_sources = st.checkbox(
             "Collapse passages by document source in search results",
             value=st.session_state.deduplicate_sources,
-            help="If checked, results are de-duplicated by document source, with passages from all matches concatenated"
+            help="If checked, results are de-duplicated by document source (each record is a document, not a passage)."
         )
     
     # Search and reset buttons side by side
