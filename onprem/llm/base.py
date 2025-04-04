@@ -662,6 +662,7 @@ class LLM:
                                             where_document=where_document,
                                             k = n_candidates, **kwargs)
             results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
+            results = results[:k]
             
         else:
             results = store.semantic_search(query, 

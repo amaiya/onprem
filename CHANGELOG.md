@@ -7,13 +7,14 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.12.7 (TBD)
+## 0.12.7 (2025-04-04)
+- N/A
 
 ### new:
-- N/A
 
 ### changed
 - Support `folder` argument in `LLM.ask` and `LLM.query` (#158)
+- folder filter for RAG in Web UI (#159)
 
 ### fixed:
 - retain RAG results on screen in Web UI (#157)
