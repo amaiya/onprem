@@ -641,7 +641,7 @@ class LLM:
               score_threshold:float=0.0, # minimum score for document to be considered as answer source
               filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (e.g., {'table':True})
               where_document:Optional[Any] = None, # If `store_type` is `dense, filter sources by document content 
-            folder:Optional[str]=None, # folder to search (needed because LangChain does not forward "where" parameter)
+              folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
               **kwargs):
         """
         Perform a semantic search of the vector DB.
@@ -652,14 +652,16 @@ class LLM:
         If `LLM.store_stype` is 'sparse', then `where_document` should be a a boolean search string  to filter query in Lucne syntax.
         """
         store = self.load_vectorstore()
-        if folder:
+        if folders:
+            folders = [folders] if isinstance(folders, str) else folders
             # This is needed because only the where argument supports the $like operator
             # and Langchain does not properly forward the where parameter to Chroma
+            n_candidates = store.get_size() if store.get_size() < 10000 else 10000
             results = store.semantic_search(query, 
                                             filters=filters,
                                             where_document=where_document,
-                                            k = 10000, **kwargs)
-            results = [d for d in results if d.metadata['source'].startswith(folder)]
+                                            k = n_candidates, **kwargs)
+            results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
             
         else:
             results = store.semantic_search(query, 
@@ -676,7 +678,7 @@ class LLM:
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
-            folder:Optional[str]=None, # folder to search (needed because LangChain does not forward "where" parameter)
+            folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
             k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
             table_k:int=1, # maximum number of tables to consider when generating answer
@@ -690,7 +692,7 @@ class LLM:
 
         if not contexts:
             # query the vector db
-            docs = self.query(question, filters=filters, where_document=where_document, folder=folder,
+            docs = self.query(question, filters=filters, where_document=where_document, folders=folders,
                               k=k if k else self.rag_num_source_docs,
                               score_threshold=score_threshold if score_threshold else self.rag_score_threshold)
             if table_k>0:
@@ -699,6 +701,7 @@ class LLM:
                 table_docs = self.query(f'{question} (table)', 
                                         filters=table_filters, 
                                         where_document=where_document,
+                                        folders=folders,
                                         k=table_k,
                                         score_threshold=table_score_threshold)
                 if table_docs:
@@ -730,7 +733,7 @@ class LLM:
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
-            folder:Optional[str]=None, # folder to search (needed because LangChain does not forward "where" parameter)
+            folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
             k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
             table_k:int=1, # maximum number of tables to consider when generating answer
@@ -751,7 +754,7 @@ class LLM:
                                 qa_template=qa_template, 
                                 filters=filters,
                                 where_document=where_document,
-                                folder=folder,
+                                folders=folders,
                                 k=k, score_threshold=score_threshold,
                                 table_k=table_k, table_score_threshold=table_score_threshold,
                                 **kwargs) 
@@ -763,14 +766,16 @@ class LLM:
                             contexts=subanswers,
                             qa_template=qa_template, 
                             filters = filters,
-                            where_document=where_document, **kwargs) 
+                            where_document=where_document,
+                            folders=folders, **kwargs) 
             res['source_documents'] = sources
             return res
         else:       
             res = self._ask(question=question,
                             qa_template=qa_template, 
                             filters = filters,
-                            where_document=where_document, **kwargs)
+                            where_document=where_document,
+                            folders=folders, **kwargs)
             return res
 
 
