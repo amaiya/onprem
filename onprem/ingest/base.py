@@ -30,6 +30,7 @@ from langchain_community.document_loaders import (
     UnstructuredODTLoader,
     UnstructuredPowerPointLoader,
     UnstructuredWordDocumentLoader,
+    UnstructuredExcelLoader,
 )
 
 
@@ -148,15 +149,18 @@ LOADER_MAPPING = {
     "csv": (CSVLoader, {}),
     "doc": (UnstructuredWordDocumentLoader, {}),
     "docx": (UnstructuredWordDocumentLoader, {}),
+    "xlsx": (UnstructuredExcelLoader, {}),
     "enex": (EverNoteLoader, {}),
     "eml": (MyElmLoader, {}),
     "epub": (UnstructuredEPubLoader, {}),
     "html": (UnstructuredHTMLLoader, {}),
+    "htm": (UnstructuredHTMLLoader, {}),
     "md": (UnstructuredMarkdownLoader, {}),
     "odt": (UnstructuredODTLoader, {}),
     "ppt": (UnstructuredPowerPointLoader, {}),
     "pptx": (UnstructuredPowerPointLoader, {}),
     "txt": (TextLoader, {"autodetect_encoding": True}),
+    "json": (TextLoader, {"autodetect_encoding": True}),
     PDF   : (_PyMuPDFLoader, {}),
     PDFMD: (PDF2MarkdownLoader, {}),
     PDFOCR: (MyUnstructuredPDFLoader, {"infer_table_structure":False, "mode":"elements", "strategy":"hi_res"}),
