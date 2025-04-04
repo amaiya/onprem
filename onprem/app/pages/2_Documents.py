@@ -13,7 +13,7 @@ if parent_dir not in sys.path:
 
 # Import from parent modules
 from webapp import read_config, is_txt
-from utils import setup_llm, compute_similarity, construct_link, check_create_symlink, hide_webapp_sidebar_item
+from utils import setup_llm, load_llm, compute_similarity, construct_link, check_create_symlink, hide_webapp_sidebar_item
 
 def get_file_data(filepath: str) -> Tuple[Optional[bytes], Optional[str]]:
     """
@@ -89,6 +89,14 @@ def main():
     """
     # Hide webapp sidebar item
     hide_webapp_sidebar_item()
+    
+    # Initialize session state for persisting results across page reloads
+    if 'question' not in st.session_state:
+        st.session_state.question = ""
+    if 'answer' not in st.session_state:
+        st.session_state.answer = None
+    if 'unique_sources' not in st.session_state:
+        st.session_state.unique_sources = []
     
     cfg = read_config()[0]
     
@@ -192,20 +200,58 @@ def main():
     
     question = st.text_input(
         "Enter a question and press the `Ask` button:",
-        value="",
+        value=st.session_state.question,
         help="Tip: If you don't like the answer quality after pressing 'Ask', try pressing the Ask button a second time. "
         "You can also try re-phrasing the question.",
+        key="question_input"
     )
-    ask_button = st.button("Ask")
+    
+    # Create a container for the buttons
+    col1, col2 = st.columns([5, 1])
+    
+    # Reset button to clear results
+    def reset_results():
+        st.session_state.question = ""
+        st.session_state.answer = None
+        st.session_state.unique_sources = []
+    
+    with col1:
+        ask_button = st.button("Ask", type='primary')
+    
+    with col2:
+        reset_button = st.button("Reset", type='secondary', on_click=reset_results)
+    
     llm = setup_llm()
 
+    # Process new query when Ask button is clicked
+    first_answer = False if st.session_state.answer else True
     if question and ask_button:
-        question = question + " " + APPEND_TO_PROMPT
-        result = llm.ask(question, prompt_template=PROMPT_TEMPLATE)
+        # Save the question to session state
+        st.session_state.question = question
+        
+        # Create a placeholder for the streaming output
+        stream_placeholder = st.empty()
+        
+        with stream_placeholder:
+            st.info("Generating response...")
+        
+        # Process the question with temporarily hidden output
+        with stream_placeholder:
+            # Get a new LLM instance from the loaded model
+            muted_llm = load_llm()
+            # Temporarily disable streaming by replacing callbacks
+            original_callbacks = muted_llm.callbacks
+            muted_llm.callbacks = []
+            
+            # Process the question
+            question_with_append = question + " " + APPEND_TO_PROMPT
+            result = muted_llm.ask(question_with_append, prompt_template=PROMPT_TEMPLATE)
+            
+            # Restore original callbacks
+            muted_llm.callbacks = original_callbacks
         answer = result["answer"]
         docs = result["source_documents"]
         unique_sources = set()
-        
         for doc in docs:
             answer_score = compute_similarity(answer, doc.page_content)
             question_score = compute_similarity(question, doc.page_content)
@@ -224,64 +270,75 @@ def main():
         unique_sources = list(unique_sources)
         unique_sources.sort(key=lambda tup: tup[-1], reverse=True)
         
-        if unique_sources:
-            st.markdown(
-                "**One or More of These Sources Were Used to Generate the Answer:**"
-            )
-            st.markdown(
-                "*You can inspect these sources for more information and to also guard against hallucinations in the answer.*"
+        # Save results to session state
+        st.session_state.answer = answer
+        st.session_state.unique_sources = unique_sources
+        
+        # Clear the streaming placeholder
+        stream_placeholder.empty()
+    
+    # Display answer if it exists (either from new query or from session state)
+    if st.session_state.answer and not first_answer:
+        st.markdown(f"**Answer:**\n{st.session_state.answer}")
+        
+    # Display sources if they exist (either from new query or from session state)
+    if st.session_state.unique_sources:
+        st.markdown(
+            "**One or More of These Sources Were Used to Generate the Answer:**"
+        )
+        st.markdown(
+            "*You can inspect these sources for more information and to also guard against hallucinations in the answer.*"
+        )
+        
+        # On Windows, we'll need to add download buttons separately
+        is_windows = os.name == 'nt'
+        
+        for i, source in enumerate(st.session_state.unique_sources):
+            filepath = source[0]
+            page = source[1]
+            content = source[2]
+            question_score = source[3]
+            answer_score = source[4]
+            
+            # Create either a hyperlink (Unix) or a placeholder + download button (Windows)
+            doc_display = create_document_display(
+                filepath=filepath,
+                source_path=RAG_SOURCE_PATH,
+                base_url=RAG_BASE_URL,
+                page=page,
+                score=answer_score
             )
             
-            # On Windows, we'll need to add download buttons separately
-            is_windows = os.name == 'nt'
-            windows_download_buttons = []
-            
-            for i, source in enumerate(unique_sources):
-                filepath = source[0]
-                page = source[1]
-                content = source[2]
-                question_score = source[3]
-                answer_score = source[4]
-                
-                # Create either a hyperlink (Unix) or a placeholder + download button (Windows)
-                doc_display = create_document_display(
-                    filepath=filepath,
-                    source_path=RAG_SOURCE_PATH,
-                    base_url=RAG_BASE_URL,
-                    page=page,
-                    score=answer_score
-                )
-                
-                # Add the markdown content
-                st.markdown(
-                    f"- {doc_display}",
-                    help=f"{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score:.3f})",
-                    unsafe_allow_html=True,
-                )
-                
-                # For Windows, add download buttons
-                if is_windows:
-                    # Get unique ID for this source
-                    button_id = f"source_btn_{i}"
-                    
-                    # Read the file data
-                    file_data, mime_type = get_file_data(filepath)
-                    
-                    if file_data:
-                        # Add download button for this source
-                        st.download_button(
-                            label=f"📄 Download {os.path.basename(filepath)}",
-                            data=file_data,
-                            file_name=os.path.basename(filepath),
-                            mime=mime_type,
-                            key=button_id
-                        )
-        elif "I don't know" not in answer:
-            st.warning(
-                "No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents "
-                + "and increases the likelihood of false information in the answer. "
-                + "You should be more cautious when using this answer."
+            # Add the markdown content
+            st.markdown(
+                f"- {doc_display}",
+                help=f"{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score:.3f})",
+                unsafe_allow_html=True,
             )
+            
+            # For Windows, add download buttons
+            if is_windows:
+                # Get unique ID for this source
+                button_id = f"source_btn_{i}"
+                
+                # Read the file data
+                file_data, mime_type = get_file_data(filepath)
+                
+                if file_data:
+                    # Add download button for this source
+                    st.download_button(
+                        label=f"📄 Download {os.path.basename(filepath)}",
+                        data=file_data,
+                        file_name=os.path.basename(filepath),
+                        mime=mime_type,
+                        key=button_id
+                    )
+    elif st.session_state.answer and "I don't know" not in st.session_state.answer:
+        st.warning(
+            "No sources met the criteria to be displayed. This suggests the model may not be generating answers directly from your documents "
+            + "and increases the likelihood of false information in the answer. "
+            + "You should be more cautious when using this answer."
+        )
 
 
 if __name__ == "__main__":

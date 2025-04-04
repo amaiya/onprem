@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.12.7 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- retain RAG results on screen in Web UI (#157)
+
+
 ## 0.12.6 (2025-04-03)
 
 ### new:
