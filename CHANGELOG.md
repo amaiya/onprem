@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - Support for loading htm, json, and xlsx extensions (#161)
 
 ### fixed:
-- N/A
+- Fixed and organized upload UI
 
 
 ## 0.12.8 (2025-04-04)

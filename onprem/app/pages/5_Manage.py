@@ -111,92 +111,86 @@ def main():
             rag_source_path = rag_source_path.format(webapp_dir=U.get_webapp_dir())
             os.makedirs(rag_source_path, exist_ok=True)
             
-            st.info(f"Documents root directory: {rag_source_path}")
             
             # Get store type from config
             store_type = cfg.get("llm", {}).get("store_type", "dense")
             
-            # Create tabs for different upload types
-            upload_tab1, upload_tab2 = st.tabs(["Upload Individual Files", "Upload ZIP Archive"])
+            # Initialize placeholders for file upload UI (will be set later)
+            uploaded_files = None
+            uploaded_zip = None
             
-            with upload_tab1:
-                # Using placeholder for file upload UI (moved to bottom)
-                uploaded_files = None
-                
-                # Display preview of selected files, if any
-                if uploaded_files:
-                    # Show preview of selected files
-                    with st.expander(f"Selected {len(uploaded_files)} file(s) for upload", expanded=False):
-                        file_info = []
-                        total_size = 0
+            # Display preview of selected files based on upload type
+            if uploaded_files:
+                # Show preview of selected files
+                with st.expander(f"Selected {len(uploaded_files)} file(s) for upload", expanded=False):
+                    file_info = []
+                    total_size = 0
+                    
+                    # Collect file information
+                    for f in uploaded_files:
+                        size_kb = f.size / 1024
+                        total_size += size_kb
+                        file_info.append({
+                            "name": f.name, 
+                            "type": f.type if hasattr(f, 'type') and f.type else "Unknown",
+                            "size": f"{size_kb:.1f} KB"
+                        })
+                    
+                    # Display files in a table
+                    st.write("Files to upload:")
+                    col1, col2, col3 = st.columns([3, 2, 1])
+                    with col1:
+                        st.write("**Filename**")
+                    with col2:
+                        st.write("**Type**")
+                    with col3:
+                        st.write("**Size**")
                         
-                        # Collect file information
-                        for f in uploaded_files:
-                            size_kb = f.size / 1024
-                            total_size += size_kb
-                            file_info.append({
-                                "name": f.name, 
-                                "type": f.type if hasattr(f, 'type') and f.type else "Unknown",
-                                "size": f"{size_kb:.1f} KB"
-                            })
-                        
-                        # Display files in a table
-                        st.write("Files to upload:")
+                    for file in file_info:
                         col1, col2, col3 = st.columns([3, 2, 1])
                         with col1:
-                            st.write("**Filename**")
+                            st.write(file["name"])
                         with col2:
-                            st.write("**Type**")
+                            st.write(file["type"])
                         with col3:
-                            st.write("**Size**")
+                            st.write(file["size"])
                             
-                        for file in file_info:
-                            col1, col2, col3 = st.columns([3, 2, 1])
-                            with col1:
-                                st.write(file["name"])
-                            with col2:
-                                st.write(file["type"])
-                            with col3:
-                                st.write(file["size"])
-                                
-                        st.info(f"Total size: {total_size/1024:.2f} MB")
+                    st.info(f"Total size: {total_size/1024:.2f} MB")
             
-            with upload_tab2:
-                # Using placeholder for file upload UI (moved to bottom)
-                uploaded_zip = None
+            elif uploaded_zip:
+                # Show ZIP file details
+                size_mb = uploaded_zip.size / (1024 * 1024)
+                st.info(f"Selected ZIP file: {uploaded_zip.name} ({size_mb:.2f} MB)")
                 
-                # Display preview of selected files, if any
-                if uploaded_zip:
-                    # Show ZIP file details
-                    size_mb = uploaded_zip.size / (1024 * 1024)
-                    st.info(f"Selected ZIP file: {uploaded_zip.name} ({size_mb:.2f} MB)")
-                    
-                    # Show preview of ZIP contents if possible
-                    try:
-                        with tempfile.TemporaryDirectory() as temp_dir:
-                            # Save the uploaded zip file to a temporary file
-                            temp_zip_path = os.path.join(temp_dir, "preview.zip")
-                            with open(temp_zip_path, "wb") as f:
-                                f.write(uploaded_zip.getvalue())
+                # Show preview of ZIP contents if possible
+                try:
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        # Save the uploaded zip file to a temporary file
+                        temp_zip_path = os.path.join(temp_dir, "preview.zip")
+                        with open(temp_zip_path, "wb") as f:
+                            f.write(uploaded_zip.getvalue())
+                        
+                        # Read ZIP contents without extracting
+                        with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
+                            zip_files = zip_ref.namelist()
                             
-                            # Read ZIP contents without extracting
-                            with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
-                                zip_files = zip_ref.namelist()
+                            # Display file count and preview in expander
+                            with st.expander(f"ZIP archive contains {len(zip_files)} file(s)", expanded=False):
+                                # Show only first 50 files to avoid UI overload
+                                preview_files = zip_files[:50]
+                                for file in preview_files:
+                                    # Skip directories
+                                    if not file.endswith('/'):
+                                        st.write(f"📄 {file}")
                                 
-                                # Display file count and preview in expander
-                                with st.expander(f"ZIP archive contains {len(zip_files)} file(s)", expanded=False):
-                                    # Show only first 50 files to avoid UI overload
-                                    preview_files = zip_files[:50]
-                                    for file in preview_files:
-                                        # Skip directories
-                                        if not file.endswith('/'):
-                                            st.write(f"📄 {file}")
-                                    
-                                    if len(zip_files) > 50:
-                                        st.write(f"*...and {len(zip_files) - 50} more files*")
-                    except Exception as e:
-                        st.warning(f"Unable to preview ZIP contents: {str(e)}")
+                                if len(zip_files) > 50:
+                                    st.write(f"*...and {len(zip_files) - 50} more files*")
+                except Exception as e:
+                    st.warning(f"Unable to preview ZIP contents: {str(e)}")
             
+            st.markdown('**STEP 1: Select or create a folder in which your uploaded documents will be stored.**')
+            st.markdown('*Folders are used to organize your uploaded documents.*')
+
             # Subfolder selection - require using subfolders
             subfolder_option = st.radio(
                 "Upload documents to:",
@@ -236,6 +230,9 @@ def main():
             else:
                 st.error("Please select an existing subfolder or create a new one above before uploading.")
             
+
+            st.markdown('**STEP 2: [OPTIONAL] Customize document processing settings.**')
+            st.markdown('*We recommend leaving the defaults for most users.*')
             # Place all ingestion options in an expander
             with st.expander("Ingestion Options", expanded=False):
                 st.subheader("Document Processing Settings")
@@ -432,13 +429,16 @@ def main():
             
             # Ingest button is placed outside all expanders for visibility
 
+
+            st.markdown('**STEP 3: Select and upload files for ingestion into the document store.**')
+            st.info(f"Documents store location: {rag_source_path}")
             # Create columns to place file uploader next to the ingest button
             col1, col2 = st.columns([3, 1])
             
             with col1:
                 # Create a radio selector to choose file upload type
                 upload_type = st.radio(
-                    "Upload type:",
+                    "What would you like to upload?",
                     ["Individual files", "ZIP archive"],
                     horizontal=True
                 )
