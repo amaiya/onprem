@@ -416,9 +416,14 @@ def main():
                                         # Reset state and refresh
                                         st.session_state.delete_state = {"stage": 0, "folder": None}
                                         
-                                        # Add small delay to ensure message is shown before refresh
+                                        # Create a countdown before refresh
                                         import time
-                                        time.sleep(5)
+                                        countdown_seconds = 5
+                                        countdown_placeholder = st.empty()
+                                        for i in range(countdown_seconds, 0, -1):
+                                            countdown_placeholder.info(f"Refreshing in {i} seconds...")
+                                            time.sleep(1)
+                                        countdown_placeholder.info("Refreshing now...")
                                         st.rerun()
                                     except Exception as e:
                                         st.error(f"Error deleting folder: {str(e)}")
