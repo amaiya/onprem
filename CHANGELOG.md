@@ -14,6 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Support for loading htm, json, and xlsx extensions (#161)
+- avoid multiprocessing if `n_proc=1` due to Windows (#162)
 
 ### fixed:
 - Fixed and organized upload UI

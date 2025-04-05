@@ -329,40 +329,55 @@ def load_documents(source_dir: str, # path to folder containing documents
             yield f
     filtered_files = filtered_generator(all_files(), criteria=[keep])
     total = sum(1 for _ in filtered_generator(all_files(), criteria=[keep]))
-
     load_args = kwargs.copy()
-    if kwargs.get('infer_table_structure', False):
-        # Use "spawn" if using TableTransformers
-        # Reference: https://github.com/pytorch/pytorch/issues/40403
-        multiprocessing.set_start_method('spawn', force=True)
-        # call helpers.extract_tables sequentially below instead of in load_single_document if n_proc>1
-        # because helpers.extract_tables is not well-suited to multiprocessing even with line above
-        if not n_proc or n_proc>1:
-            load_args = {k:load_args[k] for k in load_args if k!='infer_table_structure'}
-    with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
-        results = []
-        with tqdm(
-            total=total, desc="Loading new documents", ncols=80, disable=not verbose
-        ) as pbar:
-            for i, docs in enumerate(
-                pool.imap_unordered(functools.partial(load_single_document, **load_args),
-                                                      filtered_files)
-            ):
-                pbar.update()
-                if docs is None: continue
-                if kwargs.get('infer_table_structure', False):
-                    docs = helpers.extract_tables(docs=docs)
-                if llm and caption_tables:
-                    summarize_tables(docs, llm=llm, **kwargs)
-                if llm and extract_document_titles:
-                    title = extract_title(docs, llm=llm, **kwargs)
-                    for doc in docs:
-                        if title:
-                            doc.metadata['document_title'] = title
-                yield from docs
-        # Make sure to close the pool when done
-        pool.close()
-        pool.join()
+
+    if n_proc==1:
+        prog_msg = 'Loading documents...'
+        mybar = None
+        for i, filtered_file in enumerate(tqdm(filtered_files, total=total)):
+            docs = load_single_document(filtered_file, **load_args)
+            if docs is None: continue
+            if llm and caption_tables:
+                summarize_tables(docs, llm=llm, **kwargs)
+            if llm and extract_document_titles:
+                title = extract_title(docs, llm=llm, **kwargs)
+                for doc in docs:
+                    if title:
+                        doc.metadata['document_title'] = title
+            yield from docs
+    else:
+        if kwargs.get('infer_table_structure', False):
+            # Use "spawn" if using TableTransformers
+            # Reference: https://github.com/pytorch/pytorch/issues/40403
+            multiprocessing.set_start_method('spawn', force=True)
+            # call helpers.extract_tables sequentially below instead of in load_single_document if n_proc>1
+            # because helpers.extract_tables is not well-suited to multiprocessing even with line above
+            if not n_proc or n_proc>1:
+                load_args = {k:load_args[k] for k in load_args if k!='infer_table_structure'}
+        with multiprocessing.Pool(processes=n_proc if n_proc else os.cpu_count()) as pool:
+            results = []
+            with tqdm(
+                total=total, desc="Loading new documents", ncols=80, disable=not verbose
+            ) as pbar:
+                for i, docs in enumerate(
+                    pool.imap_unordered(functools.partial(load_single_document, **load_args),
+                                                          filtered_files)
+                ):
+                    pbar.update()
+                    if docs is None: continue
+                    if kwargs.get('infer_table_structure', False):
+                        docs = helpers.extract_tables(docs=docs)
+                    if llm and caption_tables:
+                        summarize_tables(docs, llm=llm, **kwargs)
+                    if llm and extract_document_titles:
+                        title = extract_title(docs, llm=llm, **kwargs)
+                        for doc in docs:
+                            if title:
+                                doc.metadata['document_title'] = title
+                    yield from docs
+            # Make sure to close the pool when done
+            pool.close()
+            pool.join()
 
 
 def process_folder(
