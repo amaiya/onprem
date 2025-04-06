@@ -11,7 +11,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - Support for loading htm, json, and xlsx extensions (#161)
-- Speed up `remove_document` functionality in vector stores #163
+- Speed up `remove_source` functionality in vector stores (#163)
 
 ### changed
 - avoid multiprocessing if `n_proc=1` due to Windows (#162)
