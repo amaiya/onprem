@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.12.10 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Fixes support for `model_id` parameter in Web UI (#97)
+
+
 ## 0.12.9 (2025-04-06)
 
 ### new:

@@ -119,12 +119,6 @@ def main():
     # Hide Manage page based on configuration
     hide_manage_page()
     
-    # Display current model in sidebar
-    st.sidebar.markdown("**Current Model:**")
-    st.sidebar.markdown(f"*{os.path.basename(cfg['llm']['model_url'])}*")
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("Built with [OnPrem](https://github.com/amaiya/onprem)")
-    
     # Redirect to Home page
     import importlib.util
     
