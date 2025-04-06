@@ -226,6 +226,32 @@ class LLM:
 
     def is_dual_store(self):
         return self.store_type == 'dual'
+        
+    def optimize_vectorstore_for_search(self, ef: int = 200):
+        """
+        Optimize the HNSW index parameters for search to handle large result sets.
+        This helps fix "ef or M is too small" errors when filtering by folders.
+        
+        Args:
+            ef: The ef parameter value for HNSW search (default: 200, higher = more accurate but slower)
+            
+        Returns:
+            True if optimization succeeded, False otherwise
+        """
+        store = self.load_vectorstore()
+        
+        # For dual stores, optimize the dense component
+        if self.is_dual_store():
+            if hasattr(store.dense_store, 'optimize_for_search'):
+                return store.dense_store.optimize_for_search(ef=ef)
+        
+        # For dense stores, optimize directly
+        elif self.is_dense_store():
+            if hasattr(store, 'optimize_for_search'):
+                return store.optimize_for_search(ef=ef)
+        
+        # Not applicable to sparse stores
+        return False
 
     def is_openai_model(self):
         return self.model_url and self.model_url.lower().startswith('openai')

@@ -156,3 +156,18 @@ class DualStore(VectorStore):
         Perform keyword search using the sparse store.
         """
         return self.sparse_store.query(query, **kwargs)
+        
+    def optimize_for_search(self, ef: int = 200):
+        """
+        Optimize the dense store's HNSW index parameters for search.
+        This helps fix "ef or M is too small" errors when filtering by folders.
+        
+        Args:
+            ef: The ef parameter value for HNSW search (default: 200, higher = more accurate but slower)
+            
+        Returns:
+            True if optimization succeeded, False otherwise
+        """
+        if hasattr(self.dense_store, 'optimize_for_search'):
+            return self.dense_store.optimize_for_search(ef=ef)
+        return False

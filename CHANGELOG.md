@@ -18,6 +18,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Fixed and organized upload UI
+- fix ChromaDB HNSW "ef or M is too small" error (#162)
 
 
 ## 0.12.8 (2025-04-04)

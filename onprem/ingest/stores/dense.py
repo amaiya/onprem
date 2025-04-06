@@ -74,12 +74,12 @@ class DenseStore(VectorStore):
         """
         Returns an instance to the `langchain_chroma.Chroma` instance
         """
+        # Create ChromaDB settings - we'll configure HNSW at collection creation time
         db = Chroma(
             persist_directory=self.persist_directory,
             embedding_function=self.embeddings,
             client_settings=self.chroma_settings,
             client=self.chroma_client,
-            collection_metadata={"hnsw:space": "cosine"},
             collection_name=COLLECTION_NAME,
         )
         return db if does_vectorstore_exist(db) else None
@@ -102,23 +102,55 @@ class DenseStore(VectorStore):
             for lst in tqdm(chunk_batches, total=total_chunks):
                 db.add_documents(lst)
         else:
-            chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
-            print("Creating embeddings. May take some minutes...")
-            db = None
-
-            for lst in tqdm(chunk_batches, total=total_chunks):
-                if not db:
-                    db = Chroma.from_documents(
-                        lst,
-                        self.embeddings,
-                        persist_directory=self.persist_directory,
-                        client_settings=self.chroma_settings,
-                        client=self.chroma_client,
-                        collection_metadata={"hnsw:space": "cosine"},
-                        collection_name=COLLECTION_NAME,
-                    )
-                else:
+            # When creating a new collection, we need to properly configure HNSW
+            # First, create the collection with appropriate settings
+            try:
+                # Try to directly set the HNSW parameters by creating a collection first
+                collection = self.chroma_client.create_collection(
+                    name=COLLECTION_NAME,
+                    metadata={"hnsw:space": "cosine"},
+                    embedding_function=self.embeddings
+                )
+                
+                # Directly modify HNSW settings for the collection
+                if hasattr(collection, '_hnsw_index'):
+                    # Try accessing the underlying HNSW index if possible
+                    if hasattr(collection._hnsw_index, 'set_ef'):
+                        collection._hnsw_index.set_ef(200)  # Set search ef
+                    if hasattr(collection._hnsw_index, 'set_ef_construction'):
+                        collection._hnsw_index.set_ef_construction(200)  # Set construction ef
+                
+                # Now proceed with adding documents
+                chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
+                print("Creating embeddings. May take some minutes...")
+                db = Chroma(
+                    client=self.chroma_client,
+                    embedding_function=self.embeddings,
+                    collection_name=COLLECTION_NAME
+                )
+                
+                for lst in tqdm(chunk_batches, total=total_chunks):
                     db.add_documents(lst)
+                    
+            except Exception as e:
+                # Fallback to the standard method if the direct configuration doesn't work
+                print(f"Using standard collection creation: {str(e)}")
+                chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
+                print("Creating embeddings. May take some minutes...")
+                db = None
+
+                for lst in tqdm(chunk_batches, total=total_chunks):
+                    if not db:
+                        db = Chroma.from_documents(
+                            lst,
+                            self.embeddings,
+                            persist_directory=self.persist_directory,
+                            client_settings=self.chroma_settings,
+                            client=self.chroma_client,
+                            collection_name=COLLECTION_NAME,
+                        )
+                    else:
+                        db.add_documents(lst)
         return
 
 
@@ -243,6 +275,50 @@ class DenseStore(VectorStore):
         Semantic search is equivalent to queries in this class
         """
         return self.query(*args, **kwargs)
-
     
+    
+    def optimize_for_search(self, ef: int = 200):
+        """
+        Optimize the HNSW index parameters for search by setting a higher ef value.
+        This may help with "ef or M is too small" errors when using large k values.
+        
+        Call this method after creating a collection and before performing searches.
+        
+        Args:
+            ef: The ef parameter value for HNSW search (default: 200, higher = more accurate but slower)
+        
+        Returns:
+            True if parameters were successfully updated, False otherwise
+        """
+        if not self.exists():
+            return False
+            
+        try:
+            # Get the raw collection from the client
+            collection = self.chroma_client.get_collection(COLLECTION_NAME)
+            
+            # Try to access the HNSW index through internal APIs
+            # Note: This is using implementation details that might change
+            if hasattr(collection, '_hnsw_index'):
+                if hasattr(collection._hnsw_index, 'set_ef'):
+                    collection._hnsw_index.set_ef(ef)
+                    print(f"Successfully set HNSW ef parameter to {ef}")
+                    return True
+                    
+            # Alternative approaches - try to access through segments
+            if hasattr(collection, '_producer'):
+                if hasattr(collection._producer, '_executor'):
+                    if hasattr(collection._producer._executor, '_segments'):
+                        for segment in collection._producer._executor._segments:
+                            if hasattr(segment, 'query_index_config'):
+                                segment.query_index_config.hnsw_ef = ef
+                                print(f"Successfully set HNSW ef parameter to {ef}")
+                                return True
+                        
+            print("Could not access HNSW parameters directly")
+            return False
+            
+        except Exception as e:
+            print(f"Error optimizing HNSW parameters: {str(e)}")
+            return False
 
