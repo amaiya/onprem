@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.13.0 (TBD)
+## 0.12.9 (TBD)
 
 ### new:
 - Support for loading htm, json, and xlsx extensions (#161)
