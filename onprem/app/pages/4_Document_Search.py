@@ -821,7 +821,7 @@ def main():
 if __name__ == "__main__":
     # Set page to wide mode when run directly
     st.set_page_config(
-        page_title="Search", 
+        page_title="Document Search", 
         page_icon="🔍", 
         layout="wide",
         initial_sidebar_state="expanded"

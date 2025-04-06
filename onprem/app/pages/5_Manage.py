@@ -390,7 +390,8 @@ def main():
                                         vectorstore = llm.load_vectorstore()
                                        
                                         # Delete documents from vectorstore
-                                        num_records_deleted = vectorstore.remove_source(folder_path)
+                                        normed_folder_path = os.path.normpath(folder_path).replace('\\', '/')
+                                        num_records_deleted = vectorstore.remove_source(normed_folder_path)
                                         st.text(f'{num_records_deleted} records deleted from vectorstore.')
                                         
                                         # Delete the folder

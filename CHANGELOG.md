@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.12.9 (TBD)
+## 0.12.9 (2025-04-06)
 
 ### new:
 - Support for loading htm, json, and xlsx extensions (#161)
@@ -15,10 +15,13 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - avoid multiprocessing if `n_proc=1` due to Windows (#162)
+- Changed page names in Web UI
 
 ### fixed:
 - Fixed and organized upload UI
 - fix ChromaDB HNSW "ef or M is too small" error (#162)
+- fix normpath for Windows when deleting documents
+  from vectorstore (#165)
 
 
 ## 0.12.8 (2025-04-04)
