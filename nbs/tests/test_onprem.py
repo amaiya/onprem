@@ -232,6 +232,11 @@ def test_rag_dense(**kwargs):
     assert(len(sources) == 2)
     assert('ms-inancial-statement.pdf' not in sources)
 
+    # test large k
+    store = llm.load_vectorstore()
+    results = store.semantic_search('What is machine learning?', k=store.get_size())
+    print(f'# of results for lage k: {len(results)}')
+    assert(len(results) > 100)
 
     # test updates
     store = llm.load_vectorstore()
