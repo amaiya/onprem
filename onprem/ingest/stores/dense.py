@@ -163,15 +163,34 @@ class DenseStore(VectorStore):
         self.get_db().delete(ids=id_to_delete)
         return
 
+
     def remove_source(self, source:str):
         """
-        Remove all documents associated with source.
+        Deletes all documents in a Chroma collection whose `source` metadata field starts with the given prefix.
+        The `source` argument can either be a full path to a document or a prefix (e.g., parent folder).
 
-        This implementation is currently inefficient.
+        **Args:**
+        - *source*: The source value or prefix
+
+        **Returns:**
+        - The number of documents deleted
         """
-        ids = [d['id'] for d in self.get_all_docs() if d['source'] == source]
-        self.remove_document(ids)
-        return
+        db = self.get_db()
+
+        # Only request metadata; ids are returned automatically
+        results = db.get(include=["metadatas"])
+
+        to_delete = []
+        for doc_id, metadata in zip(results["ids"], results["metadatas"]):
+            if metadata and "source" in metadata:
+                if metadata["source"].startswith(source):
+                    to_delete.append(doc_id)
+
+        if to_delete:
+            db.delete(ids=to_delete)
+            return len(to_delete)
+        else:
+            return 0
 
 
     def update_documents(self,

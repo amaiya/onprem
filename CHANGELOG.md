@@ -7,13 +7,13 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.12.9 (TBD)
+## 0.13.0 (TBD)
 
 ### new:
-- N/A
+- Support for loading htm, json, and xlsx extensions (#161)
+- Speed up `remove_document` functionality in vector stores #163
 
 ### changed
-- Support for loading htm, json, and xlsx extensions (#161)
 - avoid multiprocessing if `n_proc=1` due to Windows (#162)
 
 ### fixed:

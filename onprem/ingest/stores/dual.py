@@ -97,12 +97,17 @@ class DualStore(VectorStore):
         self.dense_store.remove_document(id_to_delete)
         self.sparse_store.remove_document(id_to_delete)
     
+
     def remove_source(self, source:str):
         """
         Remove a document by source from both stores.
+
+        The `source` can either be the full path to a document
+        or a parent folder.  Returns the number of records deleted.
         """
-        self.dense_store.remove_source(source)
-        self.sparse_store.remove_source(source)
+        num_deleted_1 = self.dense_store.remove_source(source)
+        num_deleted_2 = self.sparse_store.remove_source(source)
+        return num_deleted_1
 
 
     def update_documents(self, doc_dicts: dict, **kwargs):

@@ -149,11 +149,43 @@ class SparseStore(VectorStore):
         writer.commit(optimize=True)
         return
 
-    def remove_source(self, source:str):
+
+    def remove_source(self, source:str, optimize:bool=True):
         """
-        remove all documents associated with `source1.
+        remove all documents associated with `source`.
+        The `source` argument can either be the full path to
+        document or a parent folder.  In the latter case,
+        ALL documents in parent folder will be removed.
         """
-        self.remove_document(source, field='source')
+        return self.delete_by_prefix(source, field='source', optimize=optimize)
+
+
+    def delete_by_prefix(self, prefix:str, field:str, optimize:bool=True):
+        """
+        Deletes all documents from a Whoosh index where the `source_field` starts with the given prefix.
+
+        **Args:**
+
+        - *prefix*: The prefix to match in the `field`.
+        - *field*: The name of the field to match against.
+        - *optimize*: If True, optimize when committing.
+
+        **Returns:**
+        - Number of records deleted
+		"""
+
+        from whoosh.query import Prefix
+        with self.ix.searcher() as searcher:
+            results = searcher.search(Prefix(field, prefix), limit=None)
+
+            if results:
+                writer = self.ix.writer()
+                for hit in results:
+                    writer.delete_document(hit.docnum)
+                writer.commit(optimize=optimize)
+                return len(results)
+            else:
+                return 0
 
 
     def update_documents(self,
@@ -181,11 +213,13 @@ class SparseStore(VectorStore):
         return r['hits'][0] if len(r['hits']) > 0 else None
 
 
-    def get_size(self) -> int:
+    def get_size(self, include_deleted:bool=False) -> int:
         """
         Gets size of index
+
+        If include_deleted is True, will include deletd detects (prior to optimization).
         """
-        return self.ix.doc_count_all()
+        return self.ix.doc_count_all() if include_deleted else self.ix.doc_count()
 
         
     def erase(self, confirm=True):

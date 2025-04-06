@@ -382,32 +382,16 @@ def main():
                                 if st.button("Confirm Delete"):
                                     try:
                                         # Remove documents from vectorstore
-                                        try:
-                                            st.text(f"Removing documents from '{current_folder}' in vectorstore...")
+                                        st.text(f"Removing documents from '{current_folder}' in vectorstore...")
                                             
-                                            # Get all files in the folder - these are the sources to remove
-                                            file_paths = []
-                                            for root, dirs, files in os.walk(folder_path):
-                                                for file in files:
-                                                    file_path = os.path.join(root, file)
-                                                    file_paths.append(file_path)
                                             
-                                            # Load LLM and get vectorstore
-                                            llm = load_llm()
-                                            vectorstore = llm.load_vectorstore()
-                                            
-                                            # Remove each document source
-                                            for source_path in file_paths:
-                                                try:
-                                                    print(os.path.abspath(source_path))
-                                                    vectorstore.remove_source(os.path.abspath(source_path))
-                                                except Exception as e:
-                                                    st.warning(f"Error removing {os.path.basename(source_path)}: {str(e)}")
-                                            
-                                            st.success(f"Documents from '{current_folder}' removed from vectorstore.")
-                                        except Exception as e:
-                                            st.warning(f"Error removing documents from vectorstore: {str(e)}")
-                                            
+                                        # Load LLM and get vectorstore
+                                        llm = load_llm()
+                                        vectorstore = llm.load_vectorstore()
+                                       
+                                        # Delete documents from vectorstore
+                                        num_records_deleted = vectorstore.remove_source(folder_path)
+                                        st.text(f'{num_records_deleted} records deleted from vectorstore.')
                                         
                                         # Delete the folder
                                         shutil.rmtree(folder_path)
