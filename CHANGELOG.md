@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- Set optimize to False by default in SparseStore (#166)
 
 ### fixed:
 - Fixes support for `model_id` parameter in Web UI (#97)

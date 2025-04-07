@@ -126,6 +126,7 @@ class SparseStore(VectorStore):
     def add_documents(self,
                       docs: Sequence[Document], # list of LangChain Documents
                       limitmb:int=1024, # maximum memory in  megabytes to use
+                      optimize:bool=False, # whether or not to also opimize index
                       verbose:bool=True, # Set to False to disable progress bar
                       **kwargs,
         ):
@@ -136,31 +137,33 @@ class SparseStore(VectorStore):
         for doc in tqdm(docs, total=len(docs), disable=not verbose):
             d = self.doc2dict(doc)
             writer.update_document(**d)
-        writer.commit(optimize=True)
+        writer.commit(optimize=optimize)
 
 
-    def remove_document(self, value:str, field:str='id'):
+    def remove_document(self, value:str, field:str='id', optimize:bool=False):
         """
         Remove document with corresponding value and field.
         Default field is the id field.
+        If optimize is True, index will be optimized.
         """
         writer = self.ix.writer()
         writer.delete_by_term(field, value)
-        writer.commit(optimize=True)
+        writer.commit(optimize=optimize)
         return
 
 
-    def remove_source(self, source:str, optimize:bool=True):
+    def remove_source(self, source:str, optimize:bool=False):
         """
         remove all documents associated with `source`.
         The `source` argument can either be the full path to
         document or a parent folder.  In the latter case,
         ALL documents in parent folder will be removed.
+        If optimize is True, index will be optimized.
         """
         return self.delete_by_prefix(source, field='source', optimize=optimize)
 
 
-    def delete_by_prefix(self, prefix:str, field:str, optimize:bool=True):
+    def delete_by_prefix(self, prefix:str, field:str, optimize:bool=False):
         """
         Deletes all documents from a Whoosh index where the `source_field` starts with the given prefix.
 
