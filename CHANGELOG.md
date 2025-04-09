@@ -10,6 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.13.0 (TBD)
 
 ### new:
+- Support all cloud based models via special URLs. (#168) 
 - Support special URLs for Ollama: `ollama://llama3.2`
   for ease of use (#167)
 
