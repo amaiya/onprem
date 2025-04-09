@@ -29,7 +29,7 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
-- \[2025/03\] v0.13.0 released and now includes streamlined support for
+- \[2025/04\] v0.13.0 released and now includes streamlined support for
   Ollama and many cloud LLMs via special URLs (e.g.,
   `model_url="ollama://llama3.2"`,
   `model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
