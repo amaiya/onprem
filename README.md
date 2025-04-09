@@ -188,47 +188,48 @@ llm = LLM(verbose=False)
 
 #### Cheat Sheet
 
-- \[LOCAL\] **Llama-cpp**:
-  `llm = LLM(default_model="llama", n_gpu_layers=-1)` \# supported
-  default models: llama, zephyr, mistral
+**Local Models**
 
-- \[LOCAL\] **Llama-cpp with selected GGUF model via URL**:
+- **Llama-cpp**: `llm = LLM(default_model="llama", n_gpu_layers=-1)`
+
+- **Llama-cpp with selected GGUF model via URL**:
 
   ``` python
    llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf', 
              prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
   ```
 
-- \[LOCAL\] **Llama-cpp with selected GGUF model via file path**:
+- **Llama-cpp with selected GGUF model via file path**:
 
   ``` python
    llm = LLM(model_url='/path/to/model/on/your/computer/zephyr-7b-beta.Q4_K_M.gguf', 
              prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
   ```
 
-- \[LOCAL\] **Hugging Face Transformers**:
+- **Hugging Face Transformers**:
   `llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct')`
 
-- \[LOCAL\] **Ollama**: `llm = LLM(model_url="ollama://llama3.2")`
+- **Ollama**: `llm = LLM(model_url="ollama://llama3.2")`
 
-- \[LOCAL\] **Also Ollama**: `llm = LLM(model_url="ollama/llama3.2")`
+- **Also Ollama**: `llm = LLM(model_url="ollama/llama3.2")`
 
-- \[LOCAL\] **Also Ollama**:
+- **Also Ollama**:
   `llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')`
 
-- \[LOCAL\] **VLLM**:
+- **VLLM**:
   `llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
+**Cloud Models**
+
 Despite the focus on local LLMs, cloud LLMs are also supported (a
-warning will be issued that your prompts are being sent externally): -
-\[CLOUD\] **Anthropic Claude**:
-`llm = LLM(model_url="anthropic://claude-3-7-sonnet-latest")` \#
-URL-style syntax - \[CLOUD\] **Also Anthropic Claude**:
-`llm = LLM(model_url="anthropic/claude-3-7-sonnet-latest")` \# LiteLLM
-syntax - \[CLOUD\] **OpenAI GPT-4o**:
-`llm = LLM(model_url="openai://gpt-4o")` \# URL-style syntax - \[CLOUD\]
-**Also OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")` \#
-LiteLLM syntax
+warning will be issued that your prompts are being sent externally):
+
+- **Anthropic Claude**:
+  `llm = LLM(model_url="anthropic://claude-3-7-sonnet-latest")`
+- **Also Anthropic Claude**:
+  `llm = LLM(model_url="anthropic/claude-3-7-sonnet-latest")`
+- **OpenAI GPT-4o**: `llm = LLM(model_url="openai://gpt-4o")`
+- **Also OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")`
 
 The instantiations above are described in more detail below.
 
