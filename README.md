@@ -29,6 +29,12 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 *Latest News* 🔥
 
+- \[2025/03\] v0.13.0 released and now includes streamlined support for
+  Ollama and many cloud LLMs via special URLs (e.g.,
+  `model_url="ollama://llama3.2"`,
+  `model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
+  sheet](https://amaiya.github.io/onprem/#how-to-use) for examples.
+
 - \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
   Web UI with support for interactive chatting, document
   question-answering (RAG), and document search (both keyword searches
@@ -127,9 +133,11 @@ following is true:
   here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
   [external REST API](#connecting-to-llms-served-through-rest-apis)
-  (e.g., vLLM, OpenLLM, Ollama).
+  (e.g., Ollama, vLLM, OpenLLM).
+- You are using **Onprem.LLM** with a cloud LLM (more information
+  below).
 
-### On GPU-Accelerated Inference
+### On GPU-Accelerated Inference With `llama-cpp-python`
 
 When installing **llama-cpp-python** with
 `pip install llama-cpp-python`, the LLM will run on your **CPU**. To
@@ -178,39 +186,96 @@ from onprem import LLM
 llm = LLM(verbose=False)
 ```
 
-By default, a 7B-parameter model (**Zephyr-7B-beta**) is downloaded and
-used. If `default_model='llama'` is supplied, then a
-**Llama-3.1-8B-Instsruct** model is automatically downloaded and used
-(which is useful if the default Mistral model struggles with a
-particular task):
+#### Cheat Sheet
+
+- \[LOCAL\] **Llama-cpp**:
+  `llm = LLM(default_model="llama", n_gpu_layers=-1)` \# supported
+  default models: llama, zephyr, mistral
+
+- \[LOCAL\] **Llama-cpp with selected GGUF model via URL**:
+
+  ``` python
+   llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf', 
+             prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
+  ```
+
+- \[LOCAL\] **Llama-cpp with selected GGUF model via file path**:
+
+  ``` python
+   llm = LLM(model_url='/path/to/model/on/your/computer/zephyr-7b-beta.Q4_K_M.gguf', 
+             prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
+  ```
+
+- \[LOCAL\] **Hugging Face Transformers**:
+  `llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct')`
+
+- \[LOCAL\] **Ollama**: `llm = LLM(model_url="ollama://llama3.2")`
+
+- \[LOCAL\] **Also Ollama**: `llm = LLM(model_url="ollama/llama3.2")`
+
+- \[LOCAL\] **Also Ollama**:
+  `llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')`
+
+- \[LOCAL\] **VLLM**:
+  `llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
+
+Despite the focus on local LLMs, cloud LLMs are also supported (a
+warning will be issued that your prompts are being sent externally): -
+\[CLOUD\] **Anthropic Claude**:
+`llm = LLM(model_url="anthropic://claude-3-7-sonnet-latest")` \#
+URL-style syntax - \[CLOUD\] **Also Anthropic Claude**:
+`llm = LLM(model_url="anthropic/claude-3-7-sonnet-latest")` \# LiteLLM
+syntax - \[CLOUD\] **OpenAI GPT-4o**:
+`llm = LLM(model_url="openai://gpt-4o")` \# URL-style syntax - \[CLOUD\]
+**Also OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")` \#
+LiteLLM syntax
+
+The instantiations above are described in more detail below.
+
+#### Specifying the Local Model to Use
+
+The default LLM engine is
+[llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the
+default model is currently a 7B-parameter model called
+**Zephyr-7B-beta**, which is automatically downloaded and used. The two
+other default models are `llama` and `mistral`. If
+`default_model='llama'` is supplied, then a **Llama-3.1-8B-Instsruct**
+model is automatically downloaded and used (which is useful if the
+default Mistral model struggles with a particular task):
 
 ``` python
 # Llama 3.1 is downloaded here and the correct prompt template for Llama-3.1 is automatically configured and used
 llm = LLM(default_model='llama')
 ```
 
-Similarly, suppyling `default_model='mistral` will use
-**Mistral-7B-Instruct-v0.2**. Of course, you can also easily supply the
-URL to an LLM of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the the
-[code generation
-example](https://amaiya.github.io/onprem/examples_code.html) or the
-[FAQ](https://amaiya.github.io/onprem/#faq) for examples).
+Of course, you can also easily supply the URL to an LLM of your choosing
+to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the
+[FAQ](https://amaiya.github.io/onprem/#faq) for an example).
 
 Any extra parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
 directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
-default LLM engine. If `default_engine="transformers"` is supplied to
+default LLM engine.
+
+#### Changing the Default LLM Engine to Hugging Face Transformers
+
+If `default_engine="transformers"` is supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
 [transformers](https://github.com/huggingface/transformers) is used as
 the LLM engine (and `transformers.pipeline` receives any extra
 parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)).
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)). If
+supplying a `model_id` parameter, the default LLM engine is
+automatically changed to Hugging Face
+[transformers](https://github.com/huggingface/transformers).
 
 ``` python
 # LLama-3.1 model quantized using AWQ is downloaded and run with Hugging Face transformers (requires GPU)
 llm = LLM(default_model='llama', default_engine='transformers')
+
+# Using a custom model with Hugging Face Transformers
+llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct', device_map='cpu')
 ```
 
 See
@@ -219,11 +284,48 @@ for more information about using Hugging Face
 [transformers](https://github.com/huggingface/transformers) as the LLM
 engine.
 
-**Note:** The default context window size (`n_ctx`) is set to 3900 and
-the default output size (`max_tokens`) is set 512. Both are configurable
-parameters to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase if
-you have larger prompts or need longer outputs.
+#### Using LLMs Servied Through Local APIs
+
+You can connect to any LLM served through local OpenAI-style APIs:
+
+``` python
+# connecting to an LLM served by Ollama
+lm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
+
+# connecting to an LLM served through vLLM
+llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
+```
+
+See
+[here](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
+for more information on local APIs.
+
+#### Using Cloud LLMs
+
+As mentioned above, despite our focus on local LLMs, you can also use
+**OnPrem.LLM** with many different cloud LLMs by simply supplying
+special URLs to indicate the provider and model:
+
+- **Anthropic Claude**:
+  `llm = LLM(model_url="anthropic://claude-3-7-sonnet-20250219")`
+- **OpenAI GPT-4o**: `llm = LLM(model_url="openai://gpt-4o")`
+
+**OnPrem.LLM** suppports any provider and model supported by the
+[LiteLLM](https://github.com/BerriAI/litellm) package.
+
+More information on using OpenAI models specifically with **OnPrem.LLM**
+is [here](https://amaiya.github.io/onprem/examples_openai.html).
+
+#### Supplying Parameters to the LLM Engine
+
+The default context window size (`n_ctx`) is set to 3900 and the default
+output size (`max_tokens`) is set 512. Both are configurable parameters
+to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase
+if you have larger prompts or need longer outputs. Other parameters
+(e.g., `api_key`, `device_map`, etc.) can be supplied directly to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be
+routed to the LLM engine or API (e.g., llama-cpp-python, Hugging Face
+transformers, vLLM, OpenAI, etc.).
 
 ### Send Prompts to the LLM to Solve Problems
 
