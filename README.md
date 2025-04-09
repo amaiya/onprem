@@ -183,7 +183,7 @@ installation.
 ``` python
 from onprem import LLM
 
-llm = LLM(verbose=False)
+llm = LLM(verbose=False) # default model and engine are used
 ```
 
 #### Cheat Sheet
@@ -238,21 +238,21 @@ The default LLM engine is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the
 default model is currently a 7B-parameter model called
 **Zephyr-7B-beta**, which is automatically downloaded and used. The two
-other default models are `llama` and `mistral`. If
+other default models are `llama` and `mistral`. For instance, if
 `default_model='llama'` is supplied, then a **Llama-3.1-8B-Instsruct**
-model is automatically downloaded and used (which is useful if the
-default Mistral model struggles with a particular task):
+model is automatically downloaded and used:
 
 ``` python
 # Llama 3.1 is downloaded here and the correct prompt template for Llama-3.1 is automatically configured and used
 llm = LLM(default_model='llama')
 ```
 
-Of course, you can also easily supply the URL to an LLM of your choosing
-to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the
+*Choosing Your Own Models:* Of course, you can also easily supply the
+URL or path to an LLM of your choosing to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the
 [FAQ](https://amaiya.github.io/onprem/#faq) for an example).
 
-Any extra parameters supplied to
+*Supplying Extra Parameters:* Any extra parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
 directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
