@@ -31,7 +31,7 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 - \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
   Web UI with support for interactive chatting, document
-  question-ansewring (RAG), and document search (both keyword searches
+  question-answering (RAG), and document search (both keyword searches
   and semantic searches). See the [Web UI
   documentation](https://amaiya.github.io/onprem/webapp.html) for more
   information.
@@ -118,6 +118,17 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
       below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference).
 2.  Install **OnPrem.LLM**: `pip install onprem`
 
+**Note:** Installing **llama-cpp-python** is optional if either the
+following is true:
+
+- You use Hugging Face Transformers (instead of llama-cpp-python) as the
+  LLM backend by supplying the `model_id` parameter when instantiating
+  an LLM, as [shown
+  here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
+- You are using **OnPrem.LLM** with an LLM being served through an
+  [external REST API](#connecting-to-llms-served-through-rest-apis)
+  (e.g., vLLM, OpenLLM, Ollama).
+
 ### On GPU-Accelerated Inference
 
 When installing **llama-cpp-python** with
@@ -156,17 +167,6 @@ See [the FAQ](https://amaiya.github.io/onprem/#faq) for extra tips, if
 you experience issues with
 [llama-cpp-python](https://pypi.org/project/llama-cpp-python/)
 installation.
-
-**Note:** Installing **llama-cpp-python** is optional if either the
-following is true:
-
-- You use Hugging Face Transformers (instead of llama-cpp-python) as the
-  LLM backend by supplying the `model_id` parameter when instantiating
-  an LLM, as [shown
-  here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
-- You are using **OnPrem.LLM** with an LLM being served through an
-  [external REST API](#connecting-to-llms-served-through-rest-apis)
-  (e.g., vLLM, OpenLLM, Ollama).
 
 ## How to Use
 
