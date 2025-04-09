@@ -25,6 +25,7 @@ from typing import Any, Dict, Optional, Callable, Union, List
 
 # %% ../../nbs/00_llm.base.ipynb 4
 MIN_MODEL_SIZE = 250000000
+OLLAMA_URL = 'http://localhost:11434/v1'
 MISTRAL_MODEL_URL = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 MISTRAL_MODEL_ID = "TheBloke/Mistral-7B-Instruct-v0.2-AWQ"
 MISTRAL_PROMPT_TEMPLATE = "[INST] {prompt} [/INST]"
@@ -139,6 +140,17 @@ class LLM:
         elif model_url:
             self.model_url = model_url.split("?")[0]
             self.model_name = os.path.basename(model_url)
+
+            # handle Ollama-style URL
+            d = self.process_service(self.model_url)
+            if d.get('provider', None) == 'ollama':
+                self.model_url = OLLAMA_URL
+                # self.model_name is not used for OpenAI-style local APIs
+                # supply model as extra kwargs due to quirk in LangChain's ChatOpenAI
+                kwargs['model'] = d['model'] 
+
+            # override model name if explicitly provided
+            # for local APIs, this replaces "v1" with actual model name
             self.model_name = kwargs.get('model', self.model_name)
         else: # neither supplied so use defaults
             url_or_id = ENGINE_DICT[default_engine][default_model]
@@ -253,25 +265,40 @@ class LLM:
         # Not applicable to sparse stores
         return False
 
-    def is_openai_model(self):
-        return self.model_url and self.model_url.lower().startswith('openai')
-
-    def is_azure(self):
-        return self.model_url and self.model_url.lower().startswith('azure')
-
 
     def is_local_api(self):
         basename = os.path.basename(self.model_url) if self.model_url else None
         return self.model_url and self.model_url.lower().startswith('http') and not basename.lower().endswith('.gguf') and not basename.lower().endswith('.bin')
 
+
+    def process_service(self, model_url):
+        """
+        If model_url represents an LLM service (e.g, openai), return it.
+        """
+        if model_url:
+            provider = model_url.split(":")[0]
+            if provider.startswith('http'):
+                return {}
+            model = os.path.basename(self.model_url)
+            return {'provider': provider, 'model': model}
+        else:
+            return {}
+
+
     def is_local(self):
-        return not self.is_openai_model() and not self.is_local_api()
+        return self.model_url and not self.is_local_api() and not self.get_service()
 
     def is_llamacpp(self):
         return self.is_local() and not self.is_hf()
 
     def is_hf(self):
         return self.model_id is not None
+
+    def is_openai_model(self):
+        return self.model_url and self.model_url.lower().startswith('openai')
+
+    def is_azure(self):
+        return self.model_url and self.model_url.lower().startswith('azure')
 
     def update_max_tokens(self, value:int=512):
         """

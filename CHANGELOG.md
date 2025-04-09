@@ -10,7 +10,8 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.13.0 (TBD)
 
 ### new:
-- N/A
+- Support special URLs for Ollama: `ollama://llama3.2`
+  for ease of use (#167)
 
 ### changed
 - Set optimize to False by default in SparseStore (#166)
