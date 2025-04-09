@@ -186,7 +186,11 @@ from onprem import LLM
 llm = LLM(verbose=False)
 ```
 
-**Local Models**
+#### Cheat Sheet
+
+**Local Models:**
+
+A number of different local LLM engines are supported.
 
 - **Llama-cpp**: `llm = LLM(default_model="llama", n_gpu_layers=-1)`
 
@@ -217,7 +221,7 @@ llm = LLM(verbose=False)
 - **VLLM**:
   `llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
-**Cloud Models**
+**Cloud Models:**
 
 Despite the focus on local LLMs, cloud LLMs are also supported (a
 warning will be issued that your prompts are being sent externally):
@@ -230,6 +234,8 @@ warning will be issued that your prompts are being sent externally):
 - **Also OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")`
 
 The instantiations above are described in more detail below.
+
+#### Specifying the Local Model to Use
 
 The default LLM engine is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the
@@ -255,6 +261,8 @@ directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
 default LLM engine.
 
+#### Changing the Default LLM Engine to Hugging Face Transformers
+
 If `default_engine="transformers"` is supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
 [transformers](https://github.com/huggingface/transformers) is used as
@@ -279,6 +287,8 @@ for more information about using Hugging Face
 [transformers](https://github.com/huggingface/transformers) as the LLM
 engine.
 
+#### Using LLMs Servied Through Local APIs
+
 You can connect to any LLM served through local OpenAI-style APIs:
 
 ``` python
@@ -293,6 +303,8 @@ See
 [here](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
 for more information on local APIs.
 
+#### Using Cloud LLMs
+
 As mentioned above, despite our focus on local LLMs, you can also use
 **OnPrem.LLM** with many different cloud LLMs by simply supplying
 special URLs to indicate the provider and model:
@@ -306,6 +318,8 @@ special URLs to indicate the provider and model:
 
 More information on using OpenAI models specifically with **OnPrem.LLM**
 is [here](https://amaiya.github.io/onprem/examples_openai.html).
+
+#### Supplying Parameters to the LLM Engine
 
 The default context window size (`n_ctx`) is set to 3900 and the default
 output size (`max_tokens`) is set 512. Both are configurable parameters
