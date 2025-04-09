@@ -19,6 +19,8 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Fixes support for `model_id` parameter in Web UI (#97)
+- Fixed issue with prompt templates not being read correctly
+ from `onprem_data/webapp/config.yml`. (#169)
 
 
 ## 0.12.9 (2025-04-06)

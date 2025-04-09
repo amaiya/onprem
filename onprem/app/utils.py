@@ -37,6 +37,22 @@ def check_manage_access():
     return show_manage
 
 
+def get_prompt_template(cfg=None):
+    """
+    Retrieves and cleans prompt template from config file.
+    """
+    from onprem.app.webapp import read_config
+    
+    if not cfg:
+        cfg, _ = read_config()
+
+    template = cfg.get("prompt", {}).get("prompt_template", None)
+    if template:
+        # convert literal \n in yaml to actual newlines
+        template = template.encode().decode('unicode_escape')
+    return template
+
+
 def hide_manage_page():
     """
     Attempts to hide the Manage page from the sidebar navigation based on configuration

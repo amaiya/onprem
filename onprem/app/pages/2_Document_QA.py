@@ -14,6 +14,7 @@ if parent_dir not in sys.path:
 # Import from parent modules
 from webapp import read_config, is_txt
 from utils import setup_llm, load_llm, compute_similarity, construct_link, check_create_symlink, hide_webapp_sidebar_item
+from utils import get_prompt_template
 
 def get_file_data(filepath: str) -> Tuple[Optional[bytes], Optional[str]]:
     """
@@ -109,7 +110,7 @@ def main():
     APPEND_TO_PROMPT = cfg.get("prompt", {}).get("append_to_prompt", "")
     RAG_TEXT = None
     RAG_TEXT_PATH = cfg.get("ui", {}).get("rag_text_path", None)
-    PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
+    PROMPT_TEMPLATE = get_prompt_template(cfg=cfg)
     
     # Load LLM to get model name
     llm = setup_llm()

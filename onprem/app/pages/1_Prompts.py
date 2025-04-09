@@ -12,7 +12,7 @@ if parent_dir not in sys.path:
 
 # Import from parent modules
 from webapp import read_config, DEFAULT_PROMPT
-from utils import setup_llm, hide_webapp_sidebar_item
+from utils import setup_llm, hide_webapp_sidebar_item, get_prompt_template
 
 # Constants for message types
 USER = "user"
@@ -57,9 +57,8 @@ def main():
     # Hide webapp sidebar item
     hide_webapp_sidebar_item()
     
-    # Get configuration
-    cfg = read_config()[0]
-    PROMPT_TEMPLATE = cfg.get("prompt", {}).get("prompt_template", None)
+    # Get prompt template
+    PROMPT_TEMPLATE = get_prompt_template()
     
     # Load LLM to get model name
     llm = setup_llm()
