@@ -198,7 +198,7 @@ def main():
                 # Send to LLM
                 response = ""
                 try:
-                    response = llm.prompt(formatted_prompt)
+                    response = llm.prompt(formatted_prompt, prompt_template=PROMPT_TEMPLATE)
                 except Exception as e:
                     response = f"⚠️ Error: {str(e)}"
                 

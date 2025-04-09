@@ -143,12 +143,12 @@ class LLM:
             self.model_name = os.path.basename(model_url)
 
             # handle Ollama-style URL
-            d = self.process_service(self.model_url)
-            if d.get('provider', None) == 'ollama':
+            provider_model = self.process_service(self.model_url)
+            if provider_model and provider_model.split("/")[0] == 'ollama':
                 self.model_url = OLLAMA_URL
                 # self.model_name is not used for OpenAI-style local APIs
                 # supply model as extra kwargs due to quirk in LangChain's ChatOpenAI
-                kwargs['model'] = d['model'] 
+                kwargs['model'] = provider_model.split("/")[1]
 
             # override model name if explicitly provided
             # for local APIs, this replaces "v1" with actual model name
@@ -274,27 +274,25 @@ class LLM:
 
     def process_service(self, model_url):
         """
-        If model_url represents an LLM service (e.g, openai), return it.
+        If model_url represents an LLM service (e.g, openai), return it
+        in LiteLLM-style syntax.
         """
         if model_url:
+            if ":" not in model_url and model_url.count("/") == 1:
+                # conclude that this a standard LiteLLM path (e.g., openai/gpt-4o)
+                return model_url
             provider = model_url.split(":")[0]
             if provider.startswith('http'):
-                return {}
+                return None
             model = os.path.basename(self.model_url)
-            return {'provider': provider, 'model': model}
+            return model if provider == model else f'{provider}/{model}'
         else:
-            return {}
-
-    def is_service_url(self):
-        """
-        Check if URL is special service (e.g., openai://gpt-4o', anthropic://claude-3-sonnet-20240229)
-        """
-        d = self.process_service(self.model_url)
-        return d
+            return None
 
 
     def is_local(self):
-        return self.model_url and not self.is_local_api() and not self.is_service_url()
+        return (self.model_url and self.model_url.lower().endswith('.gguf')) or self.model_id
+
 
     def is_llamacpp(self):
         return self.is_local() and not self.is_hf()
@@ -447,7 +445,7 @@ class LLM:
             **kwargs
         )
 
-    def check_model(self):
+    def check_model(self, silent:bool=False):
         """
         Returns the path to the model
         """
@@ -456,6 +454,7 @@ class LLM:
         datadir = self.model_download_path
         model_path = os.path.join(datadir, self.model_name)
         if not os.path.isfile(model_path):
+            if silent: return None
             raise ValueError(
                 f"The LLM model {self.model_name} does not appear to have been downloaded. "
                 + "Execute the download_model() method to download it."
@@ -474,9 +473,10 @@ class LLM:
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **self.extra_kwargs)
-        elif not self.llm and self.is_service_url():
-            d = self.process_service(self.model_url)
-            self.llm = ChatLiteLLM(model=f'{d["provider"]}/{d["model"]}',
+        elif not self.llm and\
+                self.process_service(self.model_url) and\
+                not self.check_model(silent=True):
+            self.llm = ChatLiteLLM(model=self.process_service(self.model_url),
                                   callbacks=self.callbacks,
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,

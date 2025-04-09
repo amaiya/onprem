@@ -511,7 +511,7 @@ def main():
                     if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
                         st.subheader(f"Folder Contents: {total_hits} sources found in '{st.session_state.selected_folder}' (from {original_total_hits} passages)")
                     else:
-                        st.subheader(f"Search Results: {total_hits} sources found (from {original_total_hits} passages)")
+                        st.subheader(f"Search Results: {total_hits} source(s) found (from {original_total_hits} passages)")
                 else:
                     # Display regular results count - we'll add pagination info after we calculate it
                     if not st.session_state.search_query and st.session_state.selected_folder != "All folders":
