@@ -188,7 +188,7 @@ llm = LLM(verbose=False)
 
 #### Cheat Sheet
 
-**Local Models:** A number of different local LLM engines are supported.
+*Local Models:* A number of different local LLM engines are supported.
 
 - **Llama-cpp**: `llm = LLM(default_model="llama", n_gpu_layers=-1)`
 
@@ -219,7 +219,7 @@ llm = LLM(verbose=False)
 - **VLLM**:
   `llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
-**Cloud Models:** Despite the focus on local LLMs, cloud LLMs are also
+*Cloud Models:* Despite the focus on local LLMs, cloud LLMs are also
 supported (a warning will be issued that your prompts are being sent
 externally):
 
