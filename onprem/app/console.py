@@ -45,7 +45,7 @@ def cli():
         print(f"OnPrem.LLM v{__version__}")
         exit(0)
 
-    appfile = os.path.join(os.path.dirname(__file__), "webapp.py")
+    appfile = os.path.join(os.path.dirname(__file__), "OnPrem.py")
     sys.argv = [
         "streamlit",
         "run",

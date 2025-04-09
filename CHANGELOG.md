@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.13.0 (TBD)
+## 0.13.0 (2025-04-10)
 
 ### new:
 - Support all cloud based models via special URLs. (#168) 
@@ -21,6 +21,7 @@ Most recent releases are shown at the top. Each release shows:
 - Fixes support for `model_id` parameter in Web UI (#97)
 - Fixed issue with prompt templates not being read correctly
  from `onprem_data/webapp/config.yml`. (#169)
+- rename home page and remove llm loading in Home page (#170)
 
 
 ## 0.12.9 (2025-04-06)

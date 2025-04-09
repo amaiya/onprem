@@ -2,4 +2,4 @@
 
 from . import utils
 from . import pages
-from .webapp import read_config, write_default_yaml
+from .OnPrem import read_config, write_default_yaml

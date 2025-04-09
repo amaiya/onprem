@@ -12,8 +12,8 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import from parent modules
-from webapp import read_config, is_txt
-from utils import setup_llm, load_llm, compute_similarity, construct_link, check_create_symlink, hide_webapp_sidebar_item
+from OnPrem import read_config, is_txt
+from utils import setup_llm, load_llm, compute_similarity, construct_link, check_create_symlink
 from utils import get_prompt_template
 
 def get_file_data(filepath: str) -> Tuple[Optional[bytes], Optional[str]]:
@@ -88,8 +88,7 @@ def main():
     """
     Page for talking to your documents (RAG)
     """
-    # Hide webapp sidebar item
-    hide_webapp_sidebar_item()
+    # No need to hide webapp sidebar item anymore
     
     # Initialize session state for persisting results across page reloads
     if 'question' not in st.session_state:

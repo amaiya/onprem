@@ -11,8 +11,8 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import from parent modules
-from webapp import read_config, DEFAULT_PROMPT
-from utils import setup_llm, hide_webapp_sidebar_item, get_prompt_template
+from OnPrem import read_config, DEFAULT_PROMPT
+from utils import setup_llm, get_prompt_template
 
 # Constants for message types
 USER = "user"
@@ -54,8 +54,7 @@ def main():
     """
     Chat interface with memory stored in Streamlit session state
     """
-    # Hide webapp sidebar item
-    hide_webapp_sidebar_item()
+    # No need to hide webapp sidebar item anymore
     
     # Get prompt template
     PROMPT_TEMPLATE = get_prompt_template()

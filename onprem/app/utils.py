@@ -25,7 +25,7 @@ def check_manage_access():
     Returns True if the page should be shown, False otherwise.
     This function should be called from the Manage page to restrict access.
     """
-    from onprem.app.webapp import read_config
+    from onprem.app.OnPrem import read_config
     
     cfg, _ = read_config()
     show_manage = cfg.get("ui", {}).get("show_manage", True)
@@ -41,7 +41,7 @@ def get_prompt_template(cfg=None):
     """
     Retrieves and cleans prompt template from config file.
     """
-    from onprem.app.webapp import read_config
+    from onprem.app.OnPrem import read_config
     
     if not cfg:
         cfg, _ = read_config()
@@ -57,7 +57,7 @@ def hide_manage_page():
     """
     Attempts to hide the Manage page from the sidebar navigation based on configuration
     """
-    from onprem.app.webapp import read_config
+    from onprem.app.OnPrem import read_config
     
     cfg, _ = read_config()
     show_manage = cfg.get("ui", {}).get("show_manage", True)
@@ -99,7 +99,7 @@ def load_llm():
     """
     Load the LLM model with caching
     """
-    from onprem.app.webapp import read_config
+    from onprem.app.OnPrem import read_config
     llm_config = read_config()[0]["llm"]
     return LLM(confirm=False, **llm_config)
 

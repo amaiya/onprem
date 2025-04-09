@@ -11,8 +11,8 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import from parent modules
-from webapp import read_config
-from utils import hide_webapp_sidebar_item, construct_link, check_create_symlink
+from OnPrem import read_config
+from utils import construct_link, check_create_symlink
 from utils import load_llm, lucene_to_chroma
 from onprem.ingest.stores.sparse import SparseStore
 from onprem.ingest.stores.dense import DenseStore
@@ -76,8 +76,7 @@ def main():
     """
     Page for searching documents using sparse vector store
     """
-    # Hide webapp sidebar item
-    hide_webapp_sidebar_item()
+    # No need to hide webapp sidebar item anymore
     
     cfg = read_config()[0]
     

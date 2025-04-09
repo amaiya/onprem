@@ -15,15 +15,14 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 # Import from parent modules
-from webapp import DEFAULT_YAML_FPATH, read_config, DEFAULT_YAML
-from utils import hide_webapp_sidebar_item, load_llm, check_manage_access
+from OnPrem import DEFAULT_YAML_FPATH, read_config, DEFAULT_YAML
+from utils import load_llm, check_manage_access
 
 def main():
     """
     Manage page for configuring the application and ingesting documents
     """
-    # Hide webapp sidebar item
-    hide_webapp_sidebar_item()
+    # No need to hide webapp sidebar item anymore
     
     # Check if manage page should be accessible
     if not check_manage_access():

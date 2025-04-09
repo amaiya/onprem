@@ -4,7 +4,7 @@ import streamlit as st
 from pathlib import Path
 import mimetypes
 from onprem import utils as U
-from onprem.app.utils import hide_webapp_sidebar_item, hide_manage_page
+from onprem.app.utils import load_llm
 
 # https://github.com/VikParuchuri/marker/issues/442#issuecomment-2636393925
 import torch
@@ -94,7 +94,7 @@ def is_txt(fpath):
 
 def main():
     """
-    Main entry point for the Streamlit multipage application
+    Main entry point for the Streamlit application
     """
     # Page setup
     cfg, cfg_was_created = read_config()
@@ -113,32 +113,50 @@ def main():
             f"No {DEFAULT_YAML_FNAME} file was found in {DATADIR}, so a default one was created for you. Please edit as necessary."
         )
     
-    # Hide webapp from the sidebar using CSS
-    hide_webapp_sidebar_item()
+    # Home page content
+    st.header("Welcome to OnPrem.LLM")
     
-    # Hide Manage page based on configuration
-    hide_manage_page()
+    # Load LLM to get model name
+    ## 2025-04-09: commenting this out, a streamlit is reloading the again model in other pages
+    #llm = load_llm()
+    #model_name = llm.model_name
     
-    # Redirect to Home page
-    import importlib.util
+    # Main content
+    st.markdown("""
+    This application allows you to interact with an LLM in multiple ways:
     
-    try:
-        # Calculate the path to the Home page
-        home_page_path = os.path.join(os.path.dirname(__file__), "pages", "0_Home.py")
-        
-        # Import the module
-        spec = importlib.util.spec_from_file_location("home_page", home_page_path)
-        home_page = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(home_page)
-        
-        # Run the Home page's main function
-        home_page.main()
-    except Exception as e:
-        # If there's an error, show a simple redirect button
-        st.title(TITLE)
-        st.info("Please use the sidebar to navigate or click below to go to the Home page.")
-        if st.button("Go to Home"):
-            st.switch_page("pages/0_Home.py")
+    1. **Use Prompts to Solve Problems**: Submit prompts directly to the LLM model
+    2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
+    3. **Search Documents**: Search through your indexed documents using keywords or semantic search
+    4. **Manage**: Upload documents, manage folders, and configure the application settings
+    
+    Use the sidebar to navigate between these different features.
+    """)
+    
+    ## see 2025-04-09 comment above
+    # Model information
+    #st.subheader("Current Model Information")
+    #st.markdown(f"**Model**: {model_name}")
+    
+    # Quick links
+    st.subheader("Quick Links")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("💬 Use Prompts", use_container_width=True):
+            st.switch_page("pages/1_Prompts.py")
+    
+    with col2:
+        if st.button("📄 Talk to Documents", use_container_width=True):
+            st.switch_page("pages/2_Document_QA.py")
+    
+    with col3:
+        if st.button("🔍 Search Documents", use_container_width=True):
+            st.switch_page("pages/4_Document_Search.py")
+    
+    # Additional information
+    st.markdown("---")
+    st.markdown("Built with [OnPrem](https://github.com/amaiya/onprem)")
 
 
 if __name__ == "__main__":
