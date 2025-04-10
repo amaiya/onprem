@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- fix bug in DenseStore causes abnormally cosine similarity scores (#171)
+- fixed bug in DenseStore causes abnormally cosine similarity scores (#171)
 
 
 ## 0.13.0 (2025-04-10)
