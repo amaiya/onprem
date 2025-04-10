@@ -77,8 +77,9 @@ def test_rag_dual(**kwargs):
     assert len(keyword_results['hits']) > 0
     
     # Test semantic search (should use dense store)
-    semantic_results = llm.vectorstore.semantic_search("What is ktrain?")
+    semantic_results = llm.vectorstore.semantic_search("image classification")
     assert len(semantic_results) > 0
+    assert(semantic_results[0].metadata['score'] > 0.45)
     
     # cleanup
     shutil.rmtree(source_folder)
@@ -143,6 +144,10 @@ def test_rag_sparse(**kwargs):
     assert(len(llm.query('climate', where_document='affordable')) == 1)
     assert(len(llm.query('climate', filters={'extension':'txt'})) == 2)
     assert(len(llm.query('climate', filters={'extension':'pdf'})) == 0)
+
+    # test semantic search
+    result = llm.query('image classification')
+    assert(result[0].metadata['score'] > 0.45)
 
     # test updates
     store = llm.load_vectorstore()
