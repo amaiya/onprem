@@ -400,6 +400,18 @@ class SparseStore(VectorStore):
         ix = index.create_in(index_path, indexname=index_name, schema=schema)
         return ix
 
+
+    def normalize_text(self, text):
+        """
+        normalize text (e.g., from "classiﬁcation" to "classification")
+        """
+        import unicodedata
+        try:
+            return unicodedata.normalize('NFKC', text)
+        except:
+            return text
+
+
     def doc2dict(self, doc:Document):
         """
         Convert LangChain Document to expected format
@@ -422,7 +434,7 @@ class SparseStore(VectorStore):
             if suffix is not None:
                 d[k+suffix] = v
         d['id'] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
-        d['page_content' ] = doc.page_content
+        d['page_content' ] = self.normalize_text(doc.page_content)
         #d['raw'] = json.dumps(d)
         if 'source' in d:
             d['source_search'] = d['source']

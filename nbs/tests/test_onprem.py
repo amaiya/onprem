@@ -642,6 +642,9 @@ def test_search(**kwargs):
     assert(se.get_size() ==  40)
     assert(len(list(se.get_all_docs())) ==  40)
 
+    # ensure text is normalized (ligature issues are addressed)
+    assert(len(se.query('classification')['hits']) == 10)
+
 
 
 

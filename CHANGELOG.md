@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.13.2 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Ensure text normalization in `SparseStore` (#173)
+
+
 ## 0.13.1 (2025-04-10)
 
 ### new:
