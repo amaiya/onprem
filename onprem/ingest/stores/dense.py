@@ -74,12 +74,13 @@ class DenseStore(VectorStore):
         """
         Returns an instance to the `langchain_chroma.Chroma` instance
         """
-        # Create ChromaDB settings - we'll configure HNSW at collection creation time
+        # Create ChromaDB settings
         db = Chroma(
             persist_directory=self.persist_directory,
             embedding_function=self.embeddings,
             client_settings=self.chroma_settings,
             client=self.chroma_client,
+            collection_metadata={"hnsw:space": "cosine"},
             collection_name=COLLECTION_NAME,
         )
         return db if does_vectorstore_exist(db) else None
@@ -102,55 +103,23 @@ class DenseStore(VectorStore):
             for lst in tqdm(chunk_batches, total=total_chunks):
                 db.add_documents(lst)
         else:
-            # When creating a new collection, we need to properly configure HNSW
-            # First, create the collection with appropriate settings
-            try:
-                # Try to directly set the HNSW parameters by creating a collection first
-                collection = self.chroma_client.create_collection(
-                    name=COLLECTION_NAME,
-                    metadata={"hnsw:space": "cosine"},
-                    embedding_function=self.embeddings
-                )
-                
-                # Directly modify HNSW settings for the collection
-                if hasattr(collection, '_hnsw_index'):
-                    # Try accessing the underlying HNSW index if possible
-                    if hasattr(collection._hnsw_index, 'set_ef'):
-                        collection._hnsw_index.set_ef(200)  # Set search ef
-                    if hasattr(collection._hnsw_index, 'set_ef_construction'):
-                        collection._hnsw_index.set_ef_construction(200)  # Set construction ef
-                
-                # Now proceed with adding documents
-                chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
-                print("Creating embeddings. May take some minutes...")
-                db = Chroma(
-                    client=self.chroma_client,
-                    embedding_function=self.embeddings,
-                    collection_name=COLLECTION_NAME
-                )
-                
-                for lst in tqdm(chunk_batches, total=total_chunks):
-                    db.add_documents(lst)
-                    
-            except Exception as e:
-                # Fallback to the standard method if the direct configuration doesn't work
-                print(f"Using standard collection creation: {str(e)}")
-                chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
-                print("Creating embeddings. May take some minutes...")
-                db = None
+            chunk_batches, total_chunks = batchify_chunks(documents, batch_size)
+            print("Creating embeddings. May take some minutes...")
+            db = None
 
-                for lst in tqdm(chunk_batches, total=total_chunks):
-                    if not db:
-                        db = Chroma.from_documents(
-                            lst,
-                            self.embeddings,
-                            persist_directory=self.persist_directory,
-                            client_settings=self.chroma_settings,
-                            client=self.chroma_client,
-                            collection_name=COLLECTION_NAME,
-                        )
-                    else:
-                        db.add_documents(lst)
+            for lst in tqdm(chunk_batches, total=total_chunks):
+                if not db:
+                    db = Chroma.from_documents(
+                        lst,
+                        self.embeddings,
+                        persist_directory=self.persist_directory,
+                        client_settings=self.chroma_settings,
+                        client=self.chroma_client,
+                        collection_metadata={"hnsw:space": "cosine"},
+                        collection_name=COLLECTION_NAME,
+                    )
+                else:
+                    db.add_documents(lst)
         return
 
 

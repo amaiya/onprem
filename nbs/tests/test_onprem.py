@@ -252,6 +252,10 @@ def test_rag_dense(**kwargs):
     store.remove_document(id)
     assert(store.get_doc(id) is None)
 
+    # test vector query
+    docs = llm.query('image classification')
+    assert(docs[0].metadata['score'] >= 0.45)
+
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)

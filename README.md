@@ -202,7 +202,8 @@ llm = LLM(verbose=False) # default model and engine are used
 - **Llama-cpp with selected GGUF model via file path**:
 
   ``` python
-   llm = LLM(model_url='/path/to/model/on/your/computer/zephyr-7b-beta.Q4_K_M.gguf', 
+   llm = LLM(model_url='zephyr-7b-beta.Q4_K_M.gguf', 
+             model_download_path='/path/to/folder/to/where/you/downloaded/model',
              prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
   ```
 

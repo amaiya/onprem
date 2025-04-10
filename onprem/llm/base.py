@@ -519,7 +519,6 @@ class LLM:
 
         elif not self.llm:
             model_path = self.check_model()
-            print(model_path)
             if self.check_model_download and os.path.getsize(model_path) < MIN_MODEL_SIZE:
                 raise ValueError(f'The model file ({model_path} is less than {MIN_MODEL_SIZE} bytes. ' +\
                                  'It may not have been fully downloaded. Please delete the file and start again. ')
