@@ -34,6 +34,7 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
   `model_url="ollama://llama3.2"`,
   `model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
   sheet](https://amaiya.github.io/onprem/#how-to-use) for examples.
+  (**Note: Please use `onprem>=0.13.1` due to bug in v0.13.0.**)
 
 - \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
   Web UI with support for interactive chatting, document
