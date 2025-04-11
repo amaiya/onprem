@@ -96,7 +96,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
       ```
     -  **Changing the `store_type`**: You can optionally change to `store_type` from `dense` to `sparse` for faster document ingestion and easier installation. (Using the default `store_type="dense"` requires installation of `chromadb` and `langchain_chroma`.)
     -  **Changing the `max_tokens`**: You can increase `max_tokens` to say, 1024 or 2048, for longer LLM answers. (Not needed for Ollama, as Ollama sets a  higher value by default.)
-    - After restarting the Web app, you will be able interact with the model being served by Ollama to:
+    - After restarting the Web app, you will be able to interact with the model being served by Ollama to:
        - Interactive chatting and prompting like ChatGPT
        - Document question-answering
        - Document search.
