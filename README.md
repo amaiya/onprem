@@ -211,15 +211,16 @@ llm = LLM(verbose=False) # default model and engine are used
 - **Hugging Face Transformers**:
   `llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct')`
 
-- **Ollama**: `llm = LLM(model_url="ollama://llama3.2")`
-
-- **Also Ollama**: `llm = LLM(model_url="ollama/llama3.2")`
+- **Ollama**: `llm = LLM(model_url="ollama://llama3.2", api_key='na')`
 
 - **Also Ollama**:
-  `llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')`
+  `llm = LLM(model_url="ollama/llama3.2", api_key='na')`
+
+- **Also Ollama**:
+  `llm = LLM(model_url='http://localhost:11434/v1', api_key='na', model='llama3.2')`
 
 - **VLLM**:
-  `llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
+  `llm = LLM(model_url='http://localhost:8000/v1', api_key='na', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
 *Cloud Models:* Despite the focus on local LLMs, cloud LLMs are also
 supported (a warning will be issued that your prompts are being sent
@@ -294,7 +295,7 @@ You can connect to any LLM served through local OpenAI-style APIs:
 # connecting to an LLM served by Ollama
 lm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
 
-# connecting to an LLM served through vLLM
+# connecting to an LLM served through vLLM (set API key as needed)
 llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
 ```
 
