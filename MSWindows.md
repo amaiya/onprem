@@ -28,7 +28,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
    **llama-cpp-python**:
 
    ```shell
-   pip install llama-cpp-python==0.2.90 \
+   pip install llama-cpp-python==0.3.2 \
      --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
    ```
    If you want the newest version of `llama-cpp-python`, running `pip install --upgrade --force-reinstall llama-cpp-python --no-cache-dir
