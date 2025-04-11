@@ -88,11 +88,10 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 
 11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html):
     - Start the Web app:  `onprem --port 8000` at a command prompt and clicking on the hyperlink.
-    - In the Web app, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url` and replacing with the following:
+    - If using **Ollama** as the eLLM engine, after starting the Web app for the firs time, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url` and replacing with the following and press **Save Configuration**:
       ```yaml
       llm:
-        model_url: http://localhost:11434/v1
-        model: llama3.2
+        model_url: ollama/llama3.2
         api_key: na
       ```
     -  You can optionally change other aspects of the configuration. For instance, you can change to `store_type: sparse` for faster document ingestion or add `max_tokens: 1024` for longer LLM answers.
