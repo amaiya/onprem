@@ -285,7 +285,7 @@ for more information about using Hugging Face
 [transformers](https://github.com/huggingface/transformers) as the LLM
 engine.
 
-#### Using LLMs Servied Through Local APIs
+#### Using LLMs Served Through Local APIs
 
 You can connect to any LLM served through local OpenAI-style APIs:
 
