@@ -88,7 +88,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 
 11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html):
     - Start the Web app:  `onprem --port 8000` at a command prompt and clicking on the hyperlink.
-    - If using **Ollama** as the LLM engine, after starting the Web app for the first time, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url` and replacing with the following and press **Save Configuration**:
+    - If using **Ollama** as the LLM engine, after starting the Web app for the first time, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url`, replace with the following, and then press the **Save Configuration** button:
       ```yaml
       llm:
         model_url: ollama/llama3.2
