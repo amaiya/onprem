@@ -23,7 +23,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
      Out[3]: 'NVIDIA RTX A1000 6GB Laptop GPU'
      ```
 
-6. Install an LLM Engine:
+6. Install an LLM Engine of Your Choice:
 
    **llama-cpp-python**:
 
