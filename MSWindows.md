@@ -88,15 +88,15 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
 
 11. Try the [Web GUI](https://amaiya.github.io/onprem/webapp.html):
     - Start the Web app:  `onprem --port 8000` at a command prompt and clicking on the hyperlink.
-    - In the Web app, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url` and replacing with the following:
+    - **Using Ollama with Web App**: If using **Ollama** as the LLM engine, after starting the Web app for the first time, go to **Manage -> Configuration** and edit the configuration by removing the default `model_url`, replace with the following, and then press the **Save Configuration** button:
       ```yaml
       llm:
-        model_url: http://localhost:11434/v1
-        model: llama3.2
+        model_url: ollama/llama3.2
         api_key: na
       ```
-    -  You can optionally change other aspects of the configuration. For instance, you can change to `store_type: sparse` for faster document ingestion or add `max_tokens: 1024` for longer LLM answers.
-    - After restarting the Web app, you will be able interact with the model being served by Ollama to:
+    -  **Changing the `store_type`**: You can optionally change to `store_type` from `dense` to `sparse` for faster document ingestion and easier installation. (Using the default `store_type="dense"` requires installation of `chromadb` and `langchain_chroma`.)
+    -  **Changing the `max_tokens`**: You can increase `max_tokens` to say, 1024 or 2048, for longer LLM answers. (Not needed for Ollama, as Ollama sets a  higher value by default.)
+    - After restarting the Web app, you will be able to interact with the LLM for:
        - Interactive chatting and prompting like ChatGPT
        - Document question-answering
        - Document search.
