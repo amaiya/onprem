@@ -424,9 +424,11 @@ def test_semantic(**kwargs):
     shutil.rmtree(vectordb_path)
     return
 
-def test_pdf(**kwargs):
-    from onprem.ingest import load_single_document
+def test_loading(**kwargs):
+    from onprem.ingest import load_single_document, process_folder
     from onprem.utils import segment
+
+    # test markdown and extra/custom fields
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ktrain_paper/ktrain_paper.pdf')
     docs = load_single_document(fpath, pdf_markdown=True,
                                 store_md5=True, store_mimetype=True, store_file_dates=True,
@@ -448,9 +450,16 @@ def test_pdf(**kwargs):
     assert(docs[0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
     assert(docs[0].metadata.get('createdate', None) is not None)
 
+    # test table inference
     docs = load_single_document(fpath, infer_table_structure=True)
     assert len(docs) == 7
     assert docs[-1].page_content.startswith("Table 1")
+
+
+    # test paragraph chunking on TXT
+    sotu_folder = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/sotu')
+    docs = process_folder(sotu_folder, strict_paragraph_preservation=True)
+    assert(len(list(docs)) == 359)
 
 
 def test_pdftables(**kwargs):
@@ -656,7 +665,7 @@ TESTS = { 'test_prompt' : test_prompt,
           'test_summarization' : test_summarization,
           'test_extraction' : test_extraction,
           'test_classifier' : test_classifier,
-          'test_pdf' : test_pdf,
+          'test_loading' : test_loading,
           'test_pydantic' : test_pydantic,
           'test_semantic' : test_semantic,
           'test_tm' : test_tm,

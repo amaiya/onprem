@@ -6,7 +6,7 @@
 __all__ = ['CAPTION_DELIMITER', 'METADATA', 'FILE_METADATA', 'includes_caption', 'extract_tables', 'extract_files',
            'extract_extension', 'extract_file_dates', 'iso2date', 'date2iso', 'md5sum', 'get_mimetype',
            'extract_mimetype', 'is_random_plaintext', 'clean_text', 'doc_from_dict', 'create_document',
-           'set_metadata_defaults', 'extract_file_metadata']
+           'set_metadata_defaults', 'extract_file_metadata', 'ParagraphTextSplitter']
 
 # %% ../../nbs/01_ingest.helpers.ipynb 3
 from typing import List, Union, Optional
@@ -283,4 +283,35 @@ def extract_file_metadata(file_path:str,
     file_metadata['extension'] = ext
     file_metadata.update(_apply_file_callables(file_path, file_callables))
     return file_metadata
+
+
+
+from typing import List
+from langchain.text_splitter import TextSplitter
+class ParagraphTextSplitter(TextSplitter):
+    def __init__(self, chunk_size: int = 500, chunk_overlap: int = 0):
+        super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+
+    def split_text(self, text: str) -> List[str]:
+        paragraphs = text.split("\n\n")  # Paragraphs assumed to be separated by double newlines
+        chunks = []
+        for para in paragraphs:
+            para = para.strip()
+            if not para:
+                continue
+            if len(para) <= self._chunk_size:   # <- notice: _chunk_size (with underscore)
+                chunks.append(para)
+            else:
+                chunks.extend(self._split_large_paragraph(para))
+        return chunks
+
+    def _split_large_paragraph(self, paragraph: str) -> List[str]:
+        # Split a long paragraph into smaller chunks
+        splits = []
+        start = 0
+        while start < len(paragraph):
+            end = start + self._chunk_size
+            splits.append(paragraph[start:end])
+            start = end
+        return splits
 

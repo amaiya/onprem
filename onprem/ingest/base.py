@@ -420,6 +420,7 @@ def chunk_documents(
     chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
     infer_table_structure:bool = False, # This should be set to True if `documents` may contain contain tables (i.e., `doc.metadata['table']=True`).
+    preserve_paragraphs:bool=False, # If True, strictly chunk by paragraph and only split if paragraph exceeds `chunk_size`. If False, small paragraphs will be accumulated into a single chunk until `chunk_size` is exceeded.
     **kwargs
 
 
@@ -442,6 +443,8 @@ def chunk_documents(
             language=Language.MARKDOWN,
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap)
+    elif preserve_paragraphs:
+        text_splitter = helpers.ParagraphTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     else:
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size, chunk_overlap=chunk_overlap

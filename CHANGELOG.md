@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- `preserve_paragraph` parameter for strict paragraph chunking (#175)
 
 ### fixed:
 - Ensure text normalization in `SparseStore` (#173)
