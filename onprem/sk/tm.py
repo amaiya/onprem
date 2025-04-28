@@ -399,11 +399,11 @@ class TopicModel:
                 "Length of obj is not consistent with the number of documents "
                 + "supplied to get_topic_model"
             )
-        # obj = np.array(obj) if isinstance(obj, list) else obj
-        # return obj[self.bool_array]
         from itertools import compress
 
-        return list(compress(obj, self.bool_array))
+        return pd.DataFrame(data=compress(obj.itertuples(index=False), self.bool_array),
+                            columns=obj.columns) if isinstance(obj, pd.DataFrame) \
+                                else list(compress(obj, self.bool_array))
 
     def get_docs(self, topic_ids:list=[], doc_ids:list=[], rank:bool=False):
         """

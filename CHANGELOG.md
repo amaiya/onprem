@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Ensure text normalization in `SparseStore` (#173)
+- Fix `TopicModel.filter` to work with DataFrames (#176)
 
 
 ## 0.13.1 (2025-04-10)
