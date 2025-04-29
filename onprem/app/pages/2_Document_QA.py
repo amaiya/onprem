@@ -117,6 +117,7 @@ def main():
     
     # Get document source path for folder list
     RAG_SOURCE_PATH = cfg.get("ui", {}).get("rag_source_path", None)
+    VECTORDB_PATH = cfg.get("llm", {}).get("vectordb_path", None)
     
     # Keep the original path for folder listing
     ORIGINAL_RAG_SOURCE_PATH = RAG_SOURCE_PATH
@@ -309,6 +310,27 @@ def main():
             st.rerun()  # Force a complete page rerun to refresh all components
     
     llm = setup_llm()
+
+
+    # Check if vector database exists
+    if not VECTORDB_PATH or not os.path.exists(VECTORDB_PATH):
+        st.error("No vector database found. Please ingest documents first by going to Manage.")
+        return
+        
+    # Initialize the vector store using LLM.load_vectorstore()
+    try:
+        # Load the vector store
+        vectorstore = llm.load_vectorstore()
+        
+        # Check if store exists and has documents
+        if not vectorstore.exists():
+            st.error("No documents have been indexed. Please ingest documents first by going to Manage.")
+            return
+            
+    except Exception as e:
+        st.error(f"Error loading search index: {str(e)}")
+        return
+    
 
     # Create a container for all output (streaming and final answer)
     output_container = st.container()
