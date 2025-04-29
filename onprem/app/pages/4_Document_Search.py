@@ -191,7 +191,7 @@ def main():
         
         # Check if store exists and has documents
         if not vectorstore.exists():
-            st.error("No documents have been indexed. Please ingest documents first.")
+            st.error("No documents have been indexed. Please ingest documents first by going to Manage.")
             return
             
         # Determine if keyword search is available

@@ -127,8 +127,9 @@ def main():
     
     1. **Use Prompts to Solve Problems**: Submit prompts directly to the LLM model
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
-    3. **Search Documents**: Search through your indexed documents using keywords or semantic search
-    4. **Manage**: Upload documents, manage folders, and configure the application settings
+    3. **Document Analysis**: Apply custom prompts to document chunks and export results
+    4. **Search Documents**: Search through your indexed documents using keywords or semantic search
+    5. **Manage**: Upload documents, manage folders, and configure the application settings
     
     Use the sidebar to navigate between these different features.
     """)
@@ -140,7 +141,7 @@ def main():
     
     # Quick links
     st.subheader("Quick Links")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         if st.button("💬 Use Prompts", use_container_width=True):
@@ -151,6 +152,10 @@ def main():
             st.switch_page("pages/2_Document_QA.py")
     
     with col3:
+        if st.button("📊 Document Analysis", use_container_width=True):
+            st.switch_page("pages/3_Document_Analysis.py")
+    
+    with col4:
         if st.button("🔍 Search Documents", use_container_width=True):
             st.switch_page("pages/4_Document_Search.py")
     
