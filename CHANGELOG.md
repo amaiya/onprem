@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - `preserve_paragraph` parameter for strict paragraph chunking (#175)
+- `openpyxl` added as dependency
 
 ### fixed:
 - Ensure text normalization in `SparseStore` (#173)
