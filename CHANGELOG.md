@@ -7,9 +7,11 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.13.2 (TBD)
+## 0.14.0 (TBD)
 
 ### new:
+- New **Document Analysis** screen in Web app allowing execution of
+  prompts on document passages through point-and-click interface.
 - Add ability to auto-truncate long prompts (focusing for llama.cpp) (#115)
 
 ### changed
