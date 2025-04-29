@@ -10,7 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.13.2 (TBD)
 
 ### new:
-- N/A
+- Add ability to auto-truncate long prompts (focusing for llama.cpp) (#115)
 
 ### changed
 - `preserve_paragraph` parameter for strict paragraph chunking (#175)

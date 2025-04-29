@@ -631,7 +631,9 @@ class LLM:
                prompt:Union[str, List[Dict]],
                output_parser:Optional[Any]=None,
                image_path_or_url:Optional[str] = None,
-               prompt_template: Optional[str] = None, stop:list=[], **kwargs):
+               prompt_template: Optional[str] = None, stop:list=[],
+               truncate_prompt:bool=False, truncate_strategy:str='start',
+               **kwargs):
         """
         Send prompt to LLM to generate a response.
         Extra keyword arguments are sent directly to the model invocation.
@@ -647,6 +649,8 @@ class LLM:
                              to `LLM` constructor.
         - *stop*: a list of strings to stop generation when encountered. 
                   This value will override the `stop` parameter supplied to `LLM` constructor.
+        - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
+        - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
 
         """
         # load llm
@@ -664,10 +668,31 @@ class LLM:
                 prompt = self._format_image_prompt(prompt, image_path_or_url)
                 res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
             else:
+                # set prompt template
                 prompt_template = self.prompt_template if prompt_template is None else prompt_template
+
+                # truncate prompt
+                if truncate_prompt and self.is_hf():
+                    prompt = helpers.truncate_prompt(llm.llm.pipeline,
+                                                     prompt,
+                                                     max_gen_tokens=self.max_tokens,
+                                                     truncate_from=truncate_strategy,
+                                                     prompt_template=prompt_template)
+                elif truncate_prompt and self.is_llamacpp():
+                    prompt = helpers.truncate_prompt(self.llm.client,
+                                                     prompt,
+                                                     max_gen_tokens=self.max_tokens,
+                                                     truncate_from=truncate_strategy,
+                                                     prompt_template=prompt_template)
+
+                # apply prompt template
                 if prompt_template:
                     prompt = format_string(prompt_template, prompt=prompt)
+
+                # set stop characters
                 stop = stop if stop else self.stop
+
+                # handle hf models
                 if self.is_hf():
                     tokenizer = llm.llm.pipeline.tokenizer
                     # FIX for #113/#114
@@ -679,6 +704,8 @@ class LLM:
                                            stop_strings=stop if stop else None,
                                            tokenizer=tokenizer,
                                            **kwargs)[0]['generated_text']
+
+                # handle other models (e.g., llama_cpp, LLMs served through APIs)
                 else:
                     res = llm.invoke(prompt, stop=stop, **kwargs)
         return res.content if isinstance(res, AIMessage) else res
