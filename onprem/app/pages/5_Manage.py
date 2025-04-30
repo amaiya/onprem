@@ -94,6 +94,12 @@ def main():
         - PowerPoint (`.pptx`): Microsoft PowerPoint presentations
         - Markdown (`.md`): Markdown text files
         - JSON (`.json`): JavaScript Object Notation files
+        
+        Advanced options under "Ingestion Options" allow you to:
+        - Customize chunk size and overlap
+        - Preserve paragraph structure during chunking
+        - Control batch processing size
+        - Clear existing documents before ingestion
         """)
         
         # Get config to extract rag_source_path
@@ -250,6 +256,13 @@ def main():
                                                   max_value=500, 
                                                   value=50,
                                                   help="Character overlap between chunks")
+                
+                # Paragraph preservation option
+                preserve_paragraphs = st.checkbox(
+                    "Preserve paragraphs during chunking", 
+                    value=False,
+                    help="If checked, documents will be chunked at paragraph boundaries. If a paragraph exceeds the chunk size, it will be split. If unchecked, small paragraphs will be combined into a single chunk until the chunk size is reached. We recommend you leave this off unless you are performing a **Document Analysis** that would benefit from retaining paragraphs."
+                )
                 
                 # Display store type (read-only)
                 st.info(f"Using store type from configuration: {store_type}")
@@ -523,7 +536,8 @@ def main():
                                 "source_directory": target_folder,
                                 "chunk_size": chunk_size,
                                 "chunk_overlap": chunk_overlap,
-                                "batch_size": batch_size
+                                "batch_size": batch_size,
+                                "preserve_paragraphs": preserve_paragraphs
                             }
                             # Add n_proc=1 on Windows to avoid multiprocessing stalls
                             if os.name == 'nt':  # Windows
