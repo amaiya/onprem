@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.14.0 (TBD)
+## 0.14.0 (2025-05-01)
 
 ### new:
 - New **Document Analysis** screen in Web app allowing execution of
