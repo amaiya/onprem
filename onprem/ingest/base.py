@@ -313,6 +313,7 @@ def load_documents(source_dir: str, # path to folder containing documents
                    llm=None, # a reference to the LLM (used by `caption_tables` and `extract_document_titles`
                    n_proc:Optional[int]=None, # number of CPU cores to use for text extraction. If None, use maximum for system.
                    verbose:bool=True, # verbosity
+                   preserve_paragraphs:bool=False, # This is not used here and is only included to mask it from being forwarded to `load_single_document`.
                    **kwargs
 ) -> List[Document]:
     """

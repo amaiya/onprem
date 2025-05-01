@@ -288,12 +288,14 @@ def extract_file_metadata(file_path:str,
 
 from typing import List
 from langchain.text_splitter import TextSplitter
+import re
 class ParagraphTextSplitter(TextSplitter):
-    def __init__(self, chunk_size: int = 500, chunk_overlap: int = 0):
+    def __init__(self, chunk_size: int = 5000, chunk_overlap: int = 0):
         super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def split_text(self, text: str) -> List[str]:
-        paragraphs = text.split("\n\n")  # Paragraphs assumed to be separated by double newlines
+        paragraphs = re.split(r'\n\s*\n', text) # Paragraphs assumed to be separated by double newlines
+
         chunks = []
         for para in paragraphs:
             para = para.strip()

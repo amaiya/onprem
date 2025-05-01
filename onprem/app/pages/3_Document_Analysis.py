@@ -368,7 +368,7 @@ def main():
     st.markdown("Enter the prompt to apply to each document chunk. Use `{text}` as a placeholder for the document content.")
     
     # Default prompt template with {text} placeholder
-    default_prompt = """Provide a single short keyword or keyphrase that captures the topic of the following text: {text}"""
+    default_prompt = """Provide a single short keyword or keyphrase that captures the topic of the following text (only output the keyphrase without quotes and nothing else): {text}"""
     
     prompt_template = st.text_area(
         "Prompt template:",
