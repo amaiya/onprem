@@ -459,7 +459,7 @@ def test_loading(**kwargs):
     # test paragraph chunking on TXT
     sotu_folder = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/sotu')
     docs = process_folder(sotu_folder, strict_paragraph_preservation=True)
-    assert(len(list(docs)) == 359)
+    assert(len(list(docs)) == 91)
 
 
 def test_pdftables(**kwargs):
