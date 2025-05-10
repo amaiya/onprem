@@ -62,6 +62,8 @@ def extract_tables(filepath:Optional[str]=None, docs:Optional[List[Document]]=[]
     # tag document objects that contain extracted tables
     captions = pdftab.get_captions()
     for c in captions:
+        c = c.strip()
+        if len(c) < 8: continue
         for d in docs:
             if contains_sentence(c, d.page_content):
                 table_captions = d.metadata.get('table_captions', [])
