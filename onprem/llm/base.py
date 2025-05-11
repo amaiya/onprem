@@ -515,7 +515,7 @@ class LLM:
                                      self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
                               **self.extra_kwargs)
             hfpipe = HuggingFacePipeline(pipeline=pipe)
-            self.llm = ChatHuggingFace(llm=hfpipe)
+            self.llm = ChatHuggingFace(llm=hfpipe, model_id=self.model_id, tokenizer=tokenizer)
 
         elif not self.llm:
             model_path = self.check_model()
