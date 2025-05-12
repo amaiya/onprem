@@ -27,6 +27,12 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 </p>
 </center>
 
+**[Installation](https://amaiya.github.io/onprem/#install) \| [How to
+Use](https://amaiya.github.io/onprem/#how-to-use) \| [Web
+UI](https://amaiya.github.io/onprem/webapp.html) \|
+[FAQ](https://amaiya.github.io/onprem/#faq) \|
+[Examples](https://amaiya.github.io/onprem/)**
+
 *Latest News* 🔥
 
 - \[2025/05\] v0.14.0 released and now includes a point-and-click
