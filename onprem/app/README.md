@@ -8,9 +8,10 @@ The application consists of multiple pages:
 
 1. **Home** - Landing page with overview and quick navigation
 2. **Prompts** - Use direct prompts to solve problems with the LLM
-3. **Documents** - Talk to your documents using RAG (Retrieval-Augmented Generation)
-4. **Search** - Search through your documents using keywords or semantic search
-5. **Manage** - Upload documents, manage folders, configure application settings
+3. **Document QA** - Talk to your documents using RAG (Retrieval-Augmented Generation)
+4. **Document Analysis** - Apply custom prompts to document chunks and export results
+5. **Document Search** - Search through your documents using keywords or semantic search
+6. **Manage** - Upload documents, manage folders, configure application settings
 
 ## Running the Application
 
