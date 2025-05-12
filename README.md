@@ -990,6 +990,22 @@ remote server) in a Web browser to access the application:
 For more information, [see the corresponding
 documentation](https://amaiya.github.io/onprem/webapp.html).
 
+## Examples
+
+- [Prompts for
+  Problem-Solving](https://amaiya.github.io/onprem/examples.html)
+- [RAG Example](https://amaiya.github.io/onprem/examples_rag.html)
+- [Code Generation](https://amaiya.github.io/onprem/examples_code.html)
+- [Semantic
+  Similarity](https://amaiya.github.io/onprem/examples_semantic.html)
+- [Summarization](https://amaiya.github.io/onprem/examples_summarization.html)
+- [Information
+  Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
+- [Text
+  Classification](https://amaiya.github.io/onprem/examples_classification.html)
+- [Coding Survey
+  Responses](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
+
 ## FAQ
 
 1.  **How do I use other models with OnPrem.LLM?**
@@ -1167,3 +1183,14 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
     > Note, however, that, unlike dense vector stores, sparse vector
     > stores assume answer sources will contain at least one word in
     > common with the question.
+
+<!--
+8. **What are ways in which OnPrem.LLM has been used?**
+    > Examples include:
+    > - extracting key performance parameters and other performance attributes from engineering documents
+    > - auto-coding responses to government requests for information (RFIs)
+    > - analyzing the Federal Aquisition Regulations (FAR)
+    > - understanding where and how Executive Order 14028 on cybersecurity aligns with the National Cybersecurity Strategy
+    > - generating a summary of ways to improve a course from thousdands of reviews
+    > - extracting specific information of interest from resumes for talent acquisition.
+&#10;-->
