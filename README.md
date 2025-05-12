@@ -27,11 +27,11 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 </p>
 </center>
 
-**[Installation](https://amaiya.github.io/onprem/#install) \| [How to
-Use](https://amaiya.github.io/onprem/#how-to-use) \| [Web
-UI](https://amaiya.github.io/onprem/webapp.html) \|
-[FAQ](https://amaiya.github.io/onprem/#faq) \|
-[Examples](https://amaiya.github.io/onprem/)**
+**[How to Install](https://amaiya.github.io/onprem/#install) \| [How to
+Use](https://amaiya.github.io/onprem/#how-to-use) \|
+[Examples](https://amaiya.github.io/onprem/#examples) \| [Web
+App](https://amaiya.github.io/onprem/webapp.html) \|
+[FAQ](https://amaiya.github.io/onprem/#faq)**
 
 *Latest News* 🔥
 
@@ -992,19 +992,25 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 
 ## Examples
 
+Please see the [documentation](https://amaiya.github.io/onprem/) for
+examples, including:
+
 - [Prompts for
   Problem-Solving](https://amaiya.github.io/onprem/examples.html)
 - [RAG Example](https://amaiya.github.io/onprem/examples_rag.html)
 - [Code Generation](https://amaiya.github.io/onprem/examples_code.html)
 - [Semantic
   Similarity](https://amaiya.github.io/onprem/examples_semantic.html)
-- [Summarization](https://amaiya.github.io/onprem/examples_summarization.html)
+- [Document
+  Summarization](https://amaiya.github.io/onprem/examples_summarization.html)
 - [Information
   Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
 - [Text
   Classification](https://amaiya.github.io/onprem/examples_classification.html)
-- [Coding Survey
+- [Audo-Coding Survey
   Responses](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
+- [Legal
+  Analysis](https://amaiya.github.io/onprem/examples_legal_analysis.html)
 
 ## FAQ
 

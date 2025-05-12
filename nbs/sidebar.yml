@@ -13,6 +13,7 @@ website:
         - 99g_examples_information_extraction.ipynb
         - 99h_examples_classification.ipynb
         - 99i_examples_qualitative_survey_analysis.ipynb
+        - 99j_examples_legal_analysis.ipynb
         - 99x_examples_openai.ipynb
         - 99z_webapp.ipynb
       - section: Source
