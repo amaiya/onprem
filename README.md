@@ -26,12 +26,18 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 <img src="https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/images/onprem.png" border="0" alt="onprem.llm" width="200"/>
 </p>
 </center>
+<center>
+<p align="center">
 
-**[How to Install](https://amaiya.github.io/onprem/#install) \| [How to
-Use](https://amaiya.github.io/onprem/#how-to-use) \|
+**[Install](https://amaiya.github.io/onprem/#install) \|
+[Usage](https://amaiya.github.io/onprem/#how-to-use) \|
 [Examples](https://amaiya.github.io/onprem/#examples) \| [Web
-App](https://amaiya.github.io/onprem/webapp.html) \|
-[FAQ](https://amaiya.github.io/onprem/#faq)**
+UI](https://amaiya.github.io/onprem/webapp.html) \|
+[FAQ](https://amaiya.github.io/onprem/#faq) \| [How to
+Cite](https://amaiya.github.io/onprem/#how-to-cite)**
+
+</p>
+</center>
 
 *Latest News* 🔥
 
@@ -992,7 +998,7 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 
 ## Examples
 
-Please see the [documentation](https://amaiya.github.io/onprem/) for
+The [documentation](https://amaiya.github.io/onprem/) includes many
 examples, including:
 
 - [Prompts for
@@ -1009,7 +1015,7 @@ examples, including:
   Classification](https://amaiya.github.io/onprem/examples_classification.html)
 - [Audo-Coding Survey
   Responses](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
-- [Legal
+- [Legal and Regulatory
   Analysis](https://amaiya.github.io/onprem/examples_legal_analysis.html)
 
 ## FAQ
@@ -1200,3 +1206,13 @@ examples, including:
     > - generating a summary of ways to improve a course from thousdands of reviews
     > - extracting specific information of interest from resumes for talent acquisition.
 &#10;-->
+
+### How to Cite
+
+Please cite the [following paper](https://arxiv.org/abs/2505.07672) when
+using **OnPrem.LLM**: \`\`\`
+
+@article{maiya2025onprem, title={OnPrem.LLM: A Privacy-Conscious
+Document Intelligence Toolkit}, author={Arun S. Maiya}, year={2025},
+eprint={2505.07672}, archivePrefix={arXiv}, primaryClass={cs.CL},
+url={https://arxiv.org/abs/2505.07672}, }
