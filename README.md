@@ -1207,7 +1207,7 @@ examples, including:
     > - extracting specific information of interest from resumes for talent acquisition.
 &#10;-->
 
-### How to Cite
+## How to Cite
 
 Please cite the [following paper](https://arxiv.org/abs/2505.07672) when
 using **OnPrem.LLM**:
