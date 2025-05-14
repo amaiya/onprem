@@ -88,7 +88,7 @@ class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
 
             page_content = '\n'.join(texts)
             docs = [helpers.create_document(page_content, self.file_path)]
-            table_docs = [helpers.create_document(t, source=source, table=True) for t in tables]
+            table_docs = [helpers.create_document(t, source=self.file_path, table=True) for t in tables]
             docs.extend(table_docs)
             return docs
         except Exception as e:
