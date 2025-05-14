@@ -72,7 +72,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     llm = LLM() # to use GPU instead of CPU, use n_gpu_layers parameter: LLM(n_gpu_layers=-1)
 
     # For Ollama, load LLM like this:
-    llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
+    llm = LLM(model_url='ollama/llama3.2', api_key='NA')
 
     # For transformers, load LLM like this:
     llm = LLM (default_engine="transformers", device='cuda') # remove device argument if running on CPU
@@ -99,6 +99,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     - After restarting the Web app, you will be able to interact with the LLM for:
        - Interactive chatting and prompting like ChatGPT
        - Document question-answering
+       - Document analysis
        - Document search.
     - See the [Web UI documentation](https://amaiya.github.io/onprem/webapp.html) for more information.
     
