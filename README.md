@@ -135,7 +135,7 @@ Once you have [installed
 PyTorch](https://pytorch.org/get-started/locally/), you can install
 **OnPrem.LLM** with the following steps:
 
-1.  Install **llama-cpp-python**:
+1.  Install **llama-cpp-python** (*optional* - see below):
     - **CPU:** `pip install llama-cpp-python` ([extra
       steps](https://github.com/amaiya/onprem/blob/master/MSWindows.md)
       required for Microsoft Windows)
