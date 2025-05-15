@@ -143,7 +143,7 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
       below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference).
 2.  Install **OnPrem.LLM**: `pip install onprem`
 
-**Note:** Installing **llama-cpp-python** is optional if either the
+**Note:** Installing **llama-cpp-python** is optional if any of the
 following is true:
 
 - You use Hugging Face Transformers (instead of llama-cpp-python) as the
