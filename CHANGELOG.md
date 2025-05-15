@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Fix issue when supplying `pdf_unstructured=True` and `infer_table_structure=True` (#179)
+- Remove requirement to supply `api_key` when using `ollama` models (#180)
 
 
 ## 0.14.2 (2025-05-11)

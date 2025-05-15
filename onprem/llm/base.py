@@ -149,6 +149,8 @@ class LLM:
                 # self.model_name is not used for OpenAI-style local APIs
                 # supply model as extra kwargs due to quirk in LangChain's ChatOpenAI
                 kwargs['model'] = provider_model.split("/")[1]
+                if 'OPENAI_API_KEY' not in os.environ and 'api_key' not in kwargs:
+                    kwargs['api_key'] = 'na'
 
             # override model name if explicitly provided
             # for local APIs, this replaces "v1" with actual model name
