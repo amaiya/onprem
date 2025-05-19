@@ -29,16 +29,11 @@ llm = LLM()
 
 # Basic Prompting
 result = llm.prompt('Give me a short one sentence definition of an LLM.')
-# A Large Language Model (LLM) is a type of artificial intelligence designed to process and generate human-like language, 
-# often used in applications such as language translation, text summarization, and conversation systems.
 
 # RAG
 utils.download('https://www.arxiv.org/pdf/2505.07672', '/tmp/my_documents/paper.pdf')
 llm.ingest('/tmp/my_documents')
 result = llm.ask('What is OnPrem.LLM?')
-# OnPrem.LLM is an artificial intelligence framework for document intelligence, designed to support multiple
-# large language model (LLM) backends and provide a range of features such as storage, retrieval-augmented generation, 
-# information extraction, summarization, classification, and prompt/output processing.
 ```
 
 ------------------------------------------------------------------------
