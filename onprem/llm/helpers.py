@@ -4,8 +4,8 @@
 
 # %% auto 0
 __all__ = ['SUBQUESTION_PROMPT', 'FOLLOWUP_PROMPT', 'TITLE_PROMPT', 'TABLE_PROMPT_EXACT', 'TABLE_PROMPT', 'truncate_prompt',
-           'parse_json_markdown', 'parse_code_markdown', 'decompose_question', 'needs_followup', 'Title',
-           'extract_title', 'TableSummary', 'caption_table_text', 'summarize_tables']
+           'extract_json', 'parse_json_markdown', 'parse_code_markdown', 'decompose_question', 'needs_followup',
+           'Title', 'extract_title', 'TableSummary', 'caption_table_text', 'summarize_tables']
 
 # %% ../../nbs/00_llm.helpers.ipynb 3
 from ..utils import SafeFormatter
@@ -110,14 +110,22 @@ def _marshal_llm_to_json(output: str) -> str:
     return output[left : right + 1]
 
 
+def extract_json(text:str) -> str:
+    """
+    Atttempts to extract json from markdown string.
+    If no json exists, then return empty string.
+    """
+    if "```json" in text:
+        text = text.split("```json")[1].strip().strip("```").strip()
+    
+    return _marshal_llm_to_json(text)
+
+
 def parse_json_markdown(text: str) -> Any:
     """
     Parse json embedded in markdown into dictionary
     """
-    if "```json" in text:
-        text = text.split("```json")[1].strip().strip("```").strip()
-
-    json_string = _marshal_llm_to_json(text)
+    json_string = extract_json(text)
 
     try:
         json_obj = json.loads(json_string)

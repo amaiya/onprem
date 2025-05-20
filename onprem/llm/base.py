@@ -622,11 +622,17 @@ class LLM:
         try:
             return parser.parse(output)
         except:
-            print()
-            print()
-            warnings.warn('LLM output was malformed or incomplete, so returning raw string output.')
-            print()
-            return output
+            try:
+                from onprem.llm.helpers import extract_json
+                json_string = extract_json(output)
+                if json_string:
+                    return parser.parse(json_string)
+            except:
+                print()
+                print()
+                warnings.warn('LLM output was malformed or incomplete, so returning raw string output.')
+                print()
+                return output
 
 
     def prompt(self,
