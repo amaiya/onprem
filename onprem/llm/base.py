@@ -593,13 +593,6 @@ class LLM:
                     Either a string or OpenAI-style list of dictionaries
                     representing messages (e.g., "human", "system").
         - *pydantic_model*: A Pydanatic model (sublass of `pydantic.BaseModel` that describes the desired output format.
-                             Example:
-                             ```python
-                             from pydantic import BaseModel, Field
-                             class Joke(BaseModel):
-                                 setup: str = Field(description="question to set up a joke")
-                                 punchline: str = Field(description="answer to resolve the joke")
-                             ```
                            Output will be a desired Pydantic object.
                            If `put_format=None`, then output is a string.
         - *attempt_fix*: Use an LLM call in attempt to correct malformed or incomplete outputs
