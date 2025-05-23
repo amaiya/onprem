@@ -720,7 +720,7 @@ X_test, y_test = test_df['text'].values, test_df['label'].values
 clf.train(X_sample,  y_sample, max_steps=20)
 
 # evaluate
-print(clf.evaluate(X_test, y_test)['accuracy'])
+print(clf.evaluate(X_test, y_test, print_report=False)['accuracy'])
 #output: 0.98
 
 # make predictions
