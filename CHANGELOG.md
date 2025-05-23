@@ -27,7 +27,8 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- Fix issue when supplying `pdf_unstructured=True` and `infer_table_structure=True` (#179)
+- Fix issue when supplying `pdf_unstructured=True` and `infer_table_structure=True`
+  to `LLM.ingest` (#179)
 - Remove requirement to supply `api_key` when using `ollama` models (#180)
 
 
