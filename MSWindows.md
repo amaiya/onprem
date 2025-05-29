@@ -75,7 +75,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     llm = LLM(model_url='ollama/llama3.2', api_key='NA')
 
     # For transformers, load LLM like this:
-    llm = LLM (default_engine="transformers", device='cuda') # remove device argument if running on CPU
+    llm = LLM (default_engine="transformers", device='cuda')
 
     # Try out a prompt
     llm.prompt('List three cute names for a cat.')
