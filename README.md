@@ -23,11 +23,15 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 **Quick Start**
 
 ``` python
+# install
+!pip install onprem chromadb langchain_chroma
+!ollama pull llama3.2
+
 # setup
 from onprem import LLM, utils
-llm = LLM()
+llm = LLM('ollama/llama3.2')
 
-# Basic Prompting
+# basic prompting
 result = llm.prompt('Give me a short one sentence definition of an LLM.')
 
 # RAG
@@ -35,6 +39,9 @@ utils.download('https://www.arxiv.org/pdf/2505.07672', '/tmp/my_documents/paper.
 llm.ingest('/tmp/my_documents')
 result = llm.ask('What is OnPrem.LLM?')
 ```
+
+In addition to Ollama, many other LLM backends are also supported (e.g.,
+llama_cpp, transformers, OpenAI, Anthropic).
 
 ------------------------------------------------------------------------
 
@@ -160,6 +167,11 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
       below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference).
 2.  Install **OnPrem.LLM**: `pip install onprem`
 
+For RAG using the [default dense
+vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database),
+please also install chroma packages:
+`pip install chromadb langchain_chroma`.
+
 **Note:** Installing **llama-cpp-python** is optional if any of the
 following is true:
 
@@ -219,12 +231,12 @@ installation.
 ``` python
 from onprem import LLM
 
-llm = LLM(verbose=False) # default model and engine are used
+llm = LLM(verbose=False) # default model and backend are used
 ```
 
 #### Cheat Sheet
 
-*Local Models:* A number of different local LLM engines are supported.
+*Local Models:* A number of different local LLM backends are supported.
 
 - **Llama-cpp**: `llm = LLM(default_model="llama", n_gpu_layers=-1)`
 
@@ -272,7 +284,7 @@ The instantiations above are described in more detail below.
 
 #### Specifying the Local Model to Use
 
-The default LLM engine is
+The default LLM backend is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the
 default model is currently a 7B-parameter model called
 **Zephyr-7B-beta**, which is automatically downloaded and used. The two
@@ -294,17 +306,17 @@ URL or path to an LLM of your choosing to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
 directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
-default LLM engine.
+default LLM backend.
 
-#### Changing the Default LLM Engine to Hugging Face Transformers
+#### Changing the Default LLM Backend to Hugging Face Transformers
 
 If `default_engine="transformers"` is supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
 [transformers](https://github.com/huggingface/transformers) is used as
-the LLM engine (and `transformers.pipeline` receives any extra
+the LLM backend (and `transformers.pipeline` receives any extra
 parameters supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)). If
-supplying a `model_id` parameter, the default LLM engine is
+supplying a `model_id` parameter, the default LLM backend is
 automatically changed to Hugging Face
 [transformers](https://github.com/huggingface/transformers).
 
@@ -320,7 +332,7 @@ See
 [here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp)
 for more information about using Hugging Face
 [transformers](https://github.com/huggingface/transformers) as the LLM
-engine.
+backend.
 
 #### Using LLMs Served Through Local APIs
 
@@ -354,7 +366,7 @@ special URLs to indicate the provider and model:
 More information on using OpenAI models specifically with **OnPrem.LLM**
 is [here](https://amaiya.github.io/onprem/examples_openai.html).
 
-#### Supplying Parameters to the LLM Engine
+#### Supplying Parameters to the LLM Backend
 
 The default context window size (`n_ctx`) is set to 3900 and the default
 output size (`max_tokens`) is set 512. Both are configurable parameters
@@ -362,7 +374,7 @@ to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase
 if you have larger prompts or need longer outputs. Other parameters
 (e.g., `api_key`, `device_map`, etc.) can be supplied directly to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be
-routed to the LLM engine or API (e.g., llama-cpp-python, Hugging Face
+routed to the LLM backend or API (e.g., llama-cpp-python, Hugging Face
 transformers, vLLM, OpenAI, etc.).
 
 ### Send Prompts to the LLM to Solve Problems
@@ -862,9 +874,9 @@ llm = LLM(model_url='openai://gpt-4o', temperature=0)
       warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
 
 This OpenAI [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)
-instance can now be used with as the engine for most features in
-OnPrem.LLM (e.g., RAG, information extraction, summarization, etc.).
-Here we simply use it for general prompting:
+instance can now be used for most features in OnPrem.LLM (e.g., RAG,
+information extraction, summarization, etc.). Here we simply use it for
+general prompting:
 
 ``` python
 saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
