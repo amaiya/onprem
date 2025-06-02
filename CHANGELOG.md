@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.14.5 (TBD)
+
+### new:
+- N/A
+
+### changed
+- Added extras for **chroma** (`chromadb` and `langchain_chroma`) and **explain** (`shap`)
+
+### fixed:
+- Include reason for parsing failures in warning in `LLM.pydantic_prompt` (#182)
+
+
 ## 0.14.4 (2025-05-23)
 
 ### new:

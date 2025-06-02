@@ -614,16 +614,17 @@ class LLM:
         # parse output into Pydantic class
         try:
             return parser.parse(output)
-        except:
+        except Exception as e:
             try:
                 from onprem.llm.helpers import extract_json
                 json_string = extract_json(output)
                 if json_string:
                     return parser.parse(json_string)
-            except:
+                raise Exception(str(e))
+            except Exception as e:
                 print()
                 print()
-                warnings.warn('LLM output was malformed or incomplete, so returning raw string output.')
+                warnings.warn(f'LLM output was malformed or incomplete, so returning raw string output: {str(e)}')
                 print()
                 return output
 
