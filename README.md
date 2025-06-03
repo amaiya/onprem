@@ -24,11 +24,11 @@ A Google Colab demo of installing and using **OnPrem.LLM** is
 
 ``` python
 # install
-!pip install onprem chromadb langchain_chroma
-!ollama pull llama3.2
-
-# setup
+!pip install onprem[chroma]
 from onprem import LLM, utils
+
+# local LLM with Ollama as backend
+!ollama pull llama3.2
 llm = LLM('ollama/llama3.2')
 
 # basic prompting
@@ -38,10 +38,27 @@ result = llm.prompt('Give me a short one sentence definition of an LLM.')
 utils.download('https://www.arxiv.org/pdf/2505.07672', '/tmp/my_documents/paper.pdf')
 llm.ingest('/tmp/my_documents')
 result = llm.ask('What is OnPrem.LLM?')
+
+# switch to cloud LLM using Anthropic as backend
+llm = LLM("anthropic/claude-3-7-sonnet-latest")
+
+# structured outputs
+from pydantic import BaseModel, Field
+class MeasuredQuantity(BaseModel):
+    value: str = Field(description="numerical value")
+    unit: str = Field(description="unit of measurement")
+structured_output = llm.pydantic_prompt('He was going 35 mph.', pydantic_model=MeasuredQuantity)
+print(structured_output.value) # 35
+print(structured_output.unit)  # mph
 ```
 
-In addition to Ollama, many other LLM backends are also supported (e.g.,
-llama_cpp, transformers, OpenAI, Anthropic).
+Many LLM backends are supported (e.g.,
+[llama_cpp](https://github.com/abetlen/llama-cpp-python),
+[transformers](https://github.com/huggingface/transformers),
+[Ollama](https://ollama.com/),
+[OpenAI](https://platform.openai.com/docs/models),
+[Anthropic](https://docs.anthropic.com/en/docs/about-claude/models/overview),
+etc.).
 
 ------------------------------------------------------------------------
 
@@ -169,8 +186,7 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
 
 For RAG using the [default dense
 vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database),
-please also install chroma packages:
-`pip install chromadb langchain_chroma`.
+please also install chroma packages: `pip install onprem[chroma]`.
 
 **Note:** Installing **llama-cpp-python** is optional if any of the
 following is true:
