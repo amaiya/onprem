@@ -78,10 +78,10 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     llm = LLM('ollama/llama3.2')
 
     # For transformers, load LLM like this:
-    llm = LLM (default_engine="transformers", device='cuda')
+    llm = LLM(default_engine="transformers", device='cuda')
 
     # For cloud LLM providers such as OpenAI
-    llm = LLM ('openai/gpt-4o-mini')
+    llm = LLM('openai/gpt-4o-mini')
     
     # Try out a prompt
     llm.prompt('List three cute names for a cat.')
