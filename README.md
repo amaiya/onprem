@@ -17,8 +17,8 @@ Anthropic).
 
 The full documentation is [here](https://amaiya.github.io/onprem/).
 
-A Google Colab demo of installing and using **OnPrem.LLM** is
-[here](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing).
+<!--A Google Colab demo of installing and using **OnPrem.LLM** is [here](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing).
+-->
 
 **Quick Start**
 
