@@ -23,7 +23,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
      Out[3]: 'NVIDIA RTX A1000 6GB Laptop GPU'
      ```
 
-6. Install an LLM Engine of Your Choice:
+6. Install an LLM Engine of your choice:
 
    **llama-cpp-python**:
 
@@ -56,9 +56,12 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     
     **Hugging Face Transformers**
     - Install the autoawq package: `pip install autoawq`, which is needed to load and run models quantized using AWQ in **transformers**.
+  
+    **Cloud LLM providers like OpenAI, Anthropic, and Amazon Bedrock**
+   - No extra packages are required for cloud LLMs, but you must register an API key with the provider.
 
   
-8. Install OnPrem.LLM: `pip install onprem`
+8. Install OnPrem.LLM: `pip install onprem[chroma]`
 9. [OPTIONAL] If you're behind a corporate firewall and  have SSL certificate
    issues, you can try adding `REQUESTS_CA_BUNDLE` and `SSL_CERT_FILE` as
    environment variables and point them to the location of the certificate file
@@ -72,11 +75,14 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
     llm = LLM() # to use GPU instead of CPU, use n_gpu_layers parameter: LLM(n_gpu_layers=-1)
 
     # For Ollama, load LLM like this:
-    llm = LLM(model_url='ollama/llama3.2', api_key='NA')
+    llm = LLM('ollama/llama3.2')
 
     # For transformers, load LLM like this:
-    llm = LLM (default_engine="transformers", device='cuda')
+    llm = LLM(default_engine="transformers", device='cuda')
 
+    # For cloud LLM providers such as OpenAI
+    llm = LLM('openai/gpt-4o-mini')
+    
     # Try out a prompt
     llm.prompt('List three cute names for a cat.')
 
@@ -94,6 +100,7 @@ When using OnPrem.LLM on Microsoft Windows (e.g., Windows 11), you can either us
         model_url: ollama/llama3.2
         api_key: na
       ```
+    - If using a cloud LLM with Web app, set the `model_url` in the configuration file accordingly (e.g., `openai/gpt-4o-mini`).
     -  **Changing the `store_type`**: You can optionally change to `store_type` from `dense` to `sparse` for faster document ingestion and easier installation. (Using the default `store_type="dense"` requires installation of `chromadb` and `langchain_chroma`.)
     -  **Changing the `max_tokens`**: You can increase `max_tokens` to say, 1024 or 2048, for longer LLM answers. (Not needed for Ollama, as Ollama sets a  higher value by default.)
     - After restarting the Web app, you will be able to interact with the LLM for:
