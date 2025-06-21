@@ -214,11 +214,6 @@ class LLM:
         # load LLM
         self.load_llm()
 
-        # issue warning
-        if self.is_openai_model():
-            warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
-                          'Use with caution, as your data and prompts will be sent externally.')
-
     def set_store_type(self, store_type:str):
         """
         Change store type
@@ -280,8 +275,9 @@ class LLM:
         in LiteLLM-style syntax.
         """
         if model_url:
-            if ":" not in model_url and model_url.count("/") == 1:
+            if (":" not in model_url or model_url.startswith('ollama')) and model_url.count("/") == 1:
                 # conclude that this a standard LiteLLM path (e.g., openai/gpt-4o)
+                # or Ollama model which contain ":"
                 return model_url
             provider = model_url.split(":")[0]
             if provider.startswith('http'):
