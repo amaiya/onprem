@@ -10,14 +10,12 @@ from typing import Any, Dict, List, Optional
 import json
 import re
 from smolagents.models import Model, ChatMessage, MessageRole
-
-# %% ../../../nbs/04_pipelines.agent.model.ipynb 4
-from typing import Any, Dict, List, Optional
-import json
-from smolagents.models import Model, ChatMessage, MessageRole
 from smolagents.models import get_tool_call_from_text, remove_stop_sequences
+from smolagents import get_clean_message_list, tool_role_conversions
+from enum import Enum
 from ... import LLM
 
+# %% ../../../nbs/04_pipelines.agent.model.ipynb 4
 class AgentModel(Model):
     """
     A smolagents Model implementation that wraps an onprem LLM instance.
@@ -66,11 +64,11 @@ class AgentModel(Model):
             ChatMessage: A chat message object containing the model's response.
         """
         # Convert smolagents messages to a format that onprem LLM can use
-        processed_messages = self._process_messages(messages)
+        messages = self.clean(messages)
         
         # Call the LLM with the processed messages
         response = self.llm.prompt(
-            processed_messages,
+            messages,
             stop=stop_sequences or [],
             **kwargs
         )
@@ -93,53 +91,27 @@ class AgentModel(Model):
                 )
             ]
         return message
-    
-    def _process_messages(self, messages: List[Dict[str, Any] | ChatMessage]) -> str:
+
+
+    def clean(self, messages):
         """
-        Convert smolagents messages to a format suitable for onprem LLM.
-        
-        For now, this concatenates all messages into a single string prompt.
-        
-        Parameters:
-            messages: A list of message dictionaries or ChatMessage objects.
-            
+        Gets a clean message list.
+
+        Args:
+            messages: input messages
+
         Returns:
-            str: A formatted prompt string for the LLM.
+            clean messages
         """
-        # Process each message and combine them
-        processed_parts = []
-        
-        for msg in messages:
-            # Handle ChatMessage objects
-            if isinstance(msg, ChatMessage):
-                role = msg.role
-                content = msg.content or ""
-                
-                # Handle tool calls if present
-                if msg.tool_calls:
-                    tool_calls_str = json.dumps([tc.dict() for tc in msg.tool_calls], indent=2)
-                    content = f"{content}\nTool Calls: {tool_calls_str}"
-            else:
-                # Handle dictionary format
-                role = msg["role"]
-                content = msg.get("content", "")
-                
-                # Handle tool calls if present in dictionary format
-                if "tool_calls" in msg and msg["tool_calls"]:
-                    tool_calls_str = json.dumps(msg["tool_calls"], indent=2)
-                    content = f"{content}\nTool Calls: {tool_calls_str}"
-            
-            # Format based on role
-            if role == MessageRole.USER:
-                processed_parts.append(f"User: {content}")
-            elif role == MessageRole.ASSISTANT:
-                processed_parts.append(f"Assistant: {content}")
-            elif role == MessageRole.SYSTEM:
-                processed_parts.append(f"System: {content}")
-            elif role == MessageRole.TOOL_CALL:
-                processed_parts.append(f"Tool Call: {content}")
-            elif role == MessageRole.TOOL_RESPONSE:
-                processed_parts.append(f"Tool Response: {content}")
-        
-        # Combine all parts with newlines
-        return "\n\n".join(processed_parts)
+
+        # Get clean message list
+        messages = get_clean_message_list(messages, role_conversions=tool_role_conversions, flatten_messages_as_text=self.flatten_messages_as_text)
+
+        # Ensure all roles are strings and not enums for compability across LLM frameworks
+        for message in messages:
+            if "role" in message:
+                message["role"] = message["role"].value if isinstance(message["role"], Enum) else message["role"]
+
+        return messages
+
+

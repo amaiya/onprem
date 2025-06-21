@@ -656,10 +656,16 @@ class LLM:
 
         # prompt is a list of dictionaries reprsenting messages
         if isinstance(prompt, list):
-            try:
-                res = llm.invoke(prompt, stop=stop, **kwargs)
-            except Exception as e: # stop param fails with GPT-4o vision prompts
-                res = llm.invoke(prompt, **kwargs)
+            if self.is_llama_cpp():
+                # LangChain's LlamaCpp does not provide access to create_chat_completion,
+                # so access it directly (with streaming disabled)
+                res = self.llm.llm.client.create_chat_completion(prompt)
+                res = res['choices'][0]['text']
+            else:
+                try:
+                    res = llm.invoke(prompt, stop=stop, **kwargs)
+                except Exception as e: # stop param fails with GPT-4o vision prompts
+                    res = llm.invoke(prompt, **kwargs)
         # prompt is string
         else:
             if image_path_or_url:
