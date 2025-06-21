@@ -160,4 +160,5 @@ Each result has keys 'id', 'text', 'score'."""
             search results
         """
 
-        return self.store.semantic_search(query, 5)
+        results = self.store.semantic_search(query, 5)
+        return [{'id': r.id, 'score': r.metadata['score'], 'text': r.page_content} for r in results]
