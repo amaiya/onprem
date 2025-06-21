@@ -6,6 +6,29 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.14.7 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+## 0.14.6 (2025-06-20)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Fix parsing error with some Ollama models (#183)
+
+
 ## 0.14.5 (2025-06-03)
 
 ### new:
