@@ -656,11 +656,11 @@ class LLM:
 
         # prompt is a list of dictionaries reprsenting messages
         if isinstance(prompt, list):
-            if self.is_llama_cpp():
+            if self.is_llamacpp():
                 # LangChain's LlamaCpp does not provide access to create_chat_completion,
                 # so access it directly (with streaming disabled)
-                res = self.llm.llm.client.create_chat_completion(prompt)
-                res = res['choices'][0]['text']
+                res = self.llm.client.create_chat_completion(prompt)
+                return res['choices'][0]['message']['content']
             else:
                 try:
                     res = llm.invoke(prompt, stop=stop, **kwargs)
