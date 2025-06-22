@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.14.7 (TBD)
+## 0.14.7 (2025-06-21)
 
 ### new:
 - N/A
@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- pin to `langchain_litellm==0.1.4` due to bug in `lanchain_litellm==0.2.1` (#184)
 
 ## 0.14.6 (2025-06-20)
 
