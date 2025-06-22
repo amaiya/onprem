@@ -13,7 +13,7 @@ from smolagents.models import Model, ChatMessage, MessageRole
 from smolagents.models import get_tool_call_from_text, remove_stop_sequences
 from smolagents import get_clean_message_list, tool_role_conversions
 from enum import Enum
-from ... import LLM
+import onprem
 
 # %% ../../../nbs/04_pipelines.agent.model.ipynb 4
 class AgentModel(Model):
@@ -30,7 +30,7 @@ class AgentModel(Model):
     
     def __init__(
         self,
-        llm: LLM,
+        llm: onprem.LLM,
         model_id: Optional[str] = None,
         **kwargs
     ):
@@ -65,6 +65,8 @@ class AgentModel(Model):
         """
         # Convert smolagents messages to a format that onprem LLM can use
         messages = self.clean(messages)
+
+        #messages = self._process_messages(messages)
         
         # Call the LLM with the processed messages
         response = self.llm.prompt(
@@ -72,6 +74,9 @@ class AgentModel(Model):
             stop=stop_sequences or [],
             **kwargs
         )
+        #print('START R')
+        #print(response)
+        #print('END R')
 
         # Remove stop sequences from LLM output
         if stop_sequences is not None:
@@ -85,11 +90,14 @@ class AgentModel(Model):
             token_usage=None  # onprem LLM doesn't track tokens in a way we can use here
         )
         if tools_to_call_from:
-            message.tool_calls = [
-                get_tool_call_from_text(
-                    re.sub(r".*?Action:(.*?\n\}).*", r"\1", response, flags=re.DOTALL), self.tool_name_key, self.tool_arguments_key
-                )
-            ]
+            try:
+                message.tool_calls = [
+                    get_tool_call_from_text(
+                        re.sub(r".*?Action:(.*?\n\}).*", r"\1", response, flags=re.DOTALL), self.tool_name_key, self.tool_arguments_key
+                    )
+                ]
+            except:
+                message.content = self._build_final_answer_json(response)
         return message
 
 
@@ -115,3 +123,63 @@ class AgentModel(Model):
         return messages
 
 
+    def _process_messages(self, messages: List[Dict[str, Any] | ChatMessage]) -> str:
+        """
+        Convert smolagents messages to a format suitable for onprem LLM.
+        
+        For now, this concatenates all messages into a single string prompt.
+        
+        Parameters:
+            messages: A list of message dictionaries or ChatMessage objects.
+            
+        Returns:
+            str: A formatted prompt string for the LLM.
+        """
+        # Process each message and combine them
+        processed_parts = []
+        
+        for msg in messages:
+            # Handle ChatMessage objects
+            if isinstance(msg, ChatMessage):
+                role = msg.role
+                content = msg.content or ""
+                
+                # Handle tool calls if present
+                if msg.tool_calls:
+                    tool_calls_str = json.dumps([tc.dict() for tc in msg.tool_calls], indent=2)
+                    content = f"{content}\nTool Calls: {tool_calls_str}"
+            else:
+                # Handle dictionary format
+                role = msg["role"]
+                content = msg.get("content", "")
+                
+                # Handle tool calls if present in dictionary format
+                if "tool_calls" in msg and msg["tool_calls"]:
+                    tool_calls_str = json.dumps(msg["tool_calls"], indent=2)
+                    content = f"{content}\nTool Calls: {tool_calls_str}"
+            
+            # Format based on role
+            if role == MessageRole.USER:
+                processed_parts.append(f"User: {content}")
+            elif role == MessageRole.ASSISTANT:
+                processed_parts.append(f"Assistant: {content}")
+            elif role == MessageRole.SYSTEM:
+                processed_parts.append(f"System: {content}")
+            elif role == MessageRole.TOOL_CALL:
+                processed_parts.append(f"Tool Call: {content}")
+            elif role == MessageRole.TOOL_RESPONSE:
+                processed_parts.append(f"Tool Response: {content}")
+        
+        # Combine all parts with newlines
+        return "\n\n".join(processed_parts)
+
+
+    def _build_final_answer_json(self, answer: str) -> str:
+        data = {
+            "name": "final_answer",
+            "arguments": {
+            "answer": answer
+            }
+        }
+        import json
+        return json.dumps(data, ensure_ascii=False, indent=2)

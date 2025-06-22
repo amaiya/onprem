@@ -6,10 +6,10 @@
 __all__ = ['Agent']
 
 # %% ../../../nbs/04_pipelines.agent.base.ipynb 3
+import onprem
 from typing import Callable
 import warnings
 from .model import AgentModel
-from ... import LLM
 from . import tools as tool_utils
 from ...ingest.base import VectorStore
 from smolagents import PythonInterpreterTool, WebSearchTool, VisitWebpageTool, Tool as SA_Tool
@@ -33,7 +33,7 @@ class Agent:
     
     def __init__(
         self, 
-        llm: LLM,
+        llm: onprem.LLM,
         agent_type: str = "tool_calling",
         max_steps: int = 20,
         tools:dict = {},
@@ -207,4 +207,4 @@ class Agent:
             raise ValueError('No tools have been added to agent. Please add at least one tool using on eof the Agent.add_* methods.')
             
         result = self.agent.run(task)
-        return result
+        return '\n'.join(result) if isinstance(result, list) else result
