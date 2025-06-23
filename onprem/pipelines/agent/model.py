@@ -94,6 +94,7 @@ class AgentModel(Model):
 
         if tools_to_call_from:
             try:
+                # First try to extract tool call using Action: format
                 tool_data = self.extract_json_after_action(response)
                 # Preprocess tool arguments to handle malformed schema-like structures
                 tool_data = self.preprocess_tool_arguments(tool_data)
@@ -102,25 +103,40 @@ class AgentModel(Model):
                 )
                 message.tool_calls = [tool_call]
             except Exception as e:
-                print("[!] Failed to extract tool call:", e)
-                print("Error while parsing tool call from model output:", e)
-                print("JSON blob was:", response)
-                
-                # Fallback: if no Action found, try to generate final_answer from content
-                if "No 'Action:' keyword found" in str(e) and response.strip():
+                # If Action: format fails, try to extract tool call from "Called Tool:" format
+                try:
+                    tool_data = self.extract_called_tool_format(response)
+                    tool_call = get_tool_call_from_text(
+                        tool_data, self.tool_name_key, self.tool_arguments_key
+                    )
+                    message.tool_calls = [tool_call]
+                except Exception as e2:
+                    # Last resort: try direct extraction
                     try:
-                        # Create a final answer tool call with the response content
-                        final_answer_data = json.dumps({
-                            "name": "final_answer",
-                            "arguments": {"answer": response.strip()}
-                        })
                         tool_call = get_tool_call_from_text(
-                            final_answer_data, self.tool_name_key, self.tool_arguments_key
+                            response, self.tool_name_key, self.tool_arguments_key
                         )
                         message.tool_calls = [tool_call]
-                        print("[!] Fallback: Generated final_answer from response content")
-                    except Exception as fallback_e:
-                        print("[!] Fallback failed:", fallback_e)
+                    except Exception as e3:
+                        print("[!] Failed to extract tool call:", e)
+                        print("Error while parsing tool call from model output:", e)
+                        print("JSON blob was:", response)
+                        
+                        # Fallback: if no Action found, try to generate final_answer from content
+                        if "No 'Action:' keyword found" in str(e) and response.strip():
+                            try:
+                                # Create a final answer tool call with the response content
+                                final_answer_data = json.dumps({
+                                    "name": "final_answer",
+                                    "arguments": {"answer": response.strip()}
+                                })
+                                tool_call = get_tool_call_from_text(
+                                    final_answer_data, self.tool_name_key, self.tool_arguments_key
+                                )
+                                message.tool_calls = [tool_call]
+                                print("[!] Fallback: Generated final_answer from response content")
+                            except Exception as fallback_e:
+                                print("[!] Fallback failed:", fallback_e)
 
         return message
 
@@ -185,6 +201,46 @@ class AgentModel(Model):
                             raise ValueError(f"Invalid JSON format: {json_str}")
 
         raise ValueError("Unmatched braces in tool call JSON.")
+
+    def extract_called_tool_format(self, text: str) -> str:
+        """
+        Extract tool call from "Called Tool:" format.
+        
+        Handles format like:
+        Called Tool: 'tool_name' with arguments: {'arg1': 'value1'}
+        """
+        import re
+        import json
+        
+        # Pattern to match "Called Tool: 'tool_name' with arguments: {arguments}"
+        pattern = r"Called Tool:\s*['\"]([^'\"]+)['\"] with arguments:\s*(\{.*?\})"
+        match = re.search(pattern, text)
+        
+        if not match:
+            raise ValueError("No 'Called Tool:' format found.")
+        
+        tool_name = match.group(1)
+        arguments_str = match.group(2)
+        
+        try:
+            # Parse the arguments as JSON (handling single quotes)
+            arguments_str = arguments_str.replace("'", '"')
+            arguments = json.loads(arguments_str)
+        except json.JSONDecodeError:
+            # If JSON parsing fails, try ast.literal_eval
+            import ast
+            try:
+                arguments = ast.literal_eval(match.group(2))
+            except (ValueError, SyntaxError):
+                raise ValueError(f"Invalid arguments format: {match.group(2)}")
+        
+        # Create the expected JSON format
+        tool_data = {
+            "name": tool_name,
+            "arguments": arguments
+        }
+        
+        return json.dumps(tool_data)
 
     def preprocess_tool_arguments(self, tool_data: str) -> str:
         """
