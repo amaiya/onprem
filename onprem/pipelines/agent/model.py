@@ -78,7 +78,7 @@ class AgentModel(Model):
         )
 
 
-        print(f'RESPONSE: {response}')
+        #print(f'RESPONSE: {response}')
 
         # Remove stop sequences from LLM output
         if stop_sequences is not None:
@@ -173,27 +173,12 @@ class AgentModel(Model):
 
     def preprocess_tool_arguments(self, tool_data: str) -> str:
         """
-        Preprocess tool arguments to handle malformed schema-like structures.
+        Preprocess tool arguments to handle malformed schema-like structures and incorrect formats.
         
-        Converts arguments like:
-        {
-          "name": "web_search",
-          "arguments": {
-            "query": {
-              "type": "string",
-              "description": "The search query to perform.",
-              "value": "Events on June 23"
-            }
-          }
-        }
-        
-        To:
-        {
-          "name": "web_search", 
-          "arguments": {
-            "query": "Events on June 23"
-          }
-        }
+        Handles multiple cases:
+        1. Schema-like arguments with type/description/value structure
+        2. final_answer with string arguments instead of object with 'answer' field
+        3. Other malformed argument structures
         """
         import json
         
@@ -201,8 +186,24 @@ class AgentModel(Model):
             # Parse the JSON
             data = json.loads(tool_data)
             
-            # Check if arguments exist and need preprocessing
-            if "arguments" in data and isinstance(data["arguments"], dict):
+            # Special handling for final_answer tool
+            if data.get("name") == "final_answer":
+                if "arguments" in data:
+                    args = data["arguments"]
+                    # If arguments is a string, wrap it in the expected format
+                    if isinstance(args, str):
+                        data["arguments"] = {"answer": args}
+                    # If arguments is a dict but missing 'answer' key, try to fix it
+                    elif isinstance(args, dict) and "answer" not in args:
+                        # If there's only one value, use it as the answer
+                        if len(args) == 1:
+                            data["arguments"] = {"answer": list(args.values())[0]}
+                        else:
+                            # Convert the whole dict to a string as the answer
+                            data["arguments"] = {"answer": json.dumps(args)}
+            
+            # Check if arguments exist and need preprocessing for schema-like structures
+            elif "arguments" in data and isinstance(data["arguments"], dict):
                 processed_args = {}
                 
                 for key, value in data["arguments"].items():
