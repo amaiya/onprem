@@ -282,6 +282,14 @@ class AgentModel(Model):
                     if isinstance(value, dict) and "value" in value:
                         # Extract just the value
                         processed_args[key] = value["value"]
+                    # Special handling for web_search query parameter that may contain schema info
+                    elif data.get("name") == "web_search" and key == "query" and isinstance(value, dict):
+                        # If it's a schema-like dict with description, extract the description as the query
+                        if "description" in value:
+                            processed_args[key] = value["description"]
+                        # Otherwise convert the dict to string
+                        else:
+                            processed_args[key] = str(value)
                     else:
                         # Keep as-is
                         processed_args[key] = value

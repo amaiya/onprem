@@ -655,10 +655,36 @@ def test_search(**kwargs):
     assert(len(se.query('classification')['hits']) == 10)
 
 
+def test_agent(**kwargs):
+    """
+    Test agent
+    """
+    from onprem import LLM
+    from onprem.pipelines import Agent
+    llm = LLM('openai/gpt-4o-mini', mute_stream=True)
+    agent = Agent(llm)
+
+    def today() -> str:
+        """
+        Gets the current date and time
+
+        Returns:
+            current date and time
+        """
+        from datetime import datetime
+        return datetime.today().isoformat()
+
+    agent.add_function_tool(today)
+    assert (len(agent.tools) == 1)
+    assert('today' in agent.tools)
+    answer = agent.run("What is today's date?")
+    print(answer)
+    assert(today().split('T')[0] in answer)
 
 
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
+          'test_agent' : test_agent,
           'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
           'test_rag_dual'     : test_rag_dual,
