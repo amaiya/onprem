@@ -498,22 +498,37 @@ class LLM:
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
             tokenizer = self.extra_kwargs['tokenizer'] if 'tokenizer' in self.extra_kwargs\
                         else AutoTokenizer.from_pretrained(self.model_id)
+
             if 'tokenizer' in self.extra_kwargs:
                 del self.extra_kwargs['tokenizer']
+
+
             streamer = TextStreamer(tokenizer)
 
 
             pipe = pipeline('text-generation',
                               self.model_id,
                               tokenizer=tokenizer,
-                              streamer=streamer,
+                              streamer=streamer if not self.mute_stream else None,
                               max_new_tokens = self.max_tokens,
                               return_full_text=False,
                               do_sample=True if\
                                      self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
                               **self.extra_kwargs)
+
+            model = pipe.model
+            if not model.generation_config.pad_token_id:
+                tokenid = model.generation_config.eos_token_id
+                model.generation_config.pad_token_id = tokenid[0] if isinstance(tokenid, list) else tokenid
+
             hfpipe = HuggingFacePipeline(pipeline=pipe)
             self.llm = ChatHuggingFace(llm=hfpipe, model_id=self.model_id, tokenizer=tokenizer)
+
+            # Set generation_config.pad_token_id
+            model = self.llm.llm.pipeline.model
+            if not model.generation_config.pad_token_id:
+                tokenid = model.generation_config.eos_token_id
+                model.generation_config.pad_token_id = tokenid[0] if isinstance(tokenid, list) else tokenid
 
         elif not self.llm:
             model_path = self.check_model()

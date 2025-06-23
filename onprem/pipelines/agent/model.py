@@ -9,7 +9,7 @@ __all__ = ['AgentModel']
 from typing import Any, Dict, List, Optional
 import json
 import re
-from smolagents.models import Model, ChatMessage, MessageRole
+from smolagents.models import Model, ChatMessage, MessageRole,  ChatMessageToolCall, ChatMessageToolCallDefinition
 from smolagents.models import get_tool_call_from_text, remove_stop_sequences
 from smolagents import get_clean_message_list, tool_role_conversions
 from enum import Enum
@@ -41,6 +41,9 @@ class AgentModel(Model):
         )
         # Store the LLM instance
         self.llm = llm
+        # Set default keys for tool call extraction
+        self.tool_name_key = "name"
+        self.tool_arguments_key = "arguments"
         
     def generate(
         self,
@@ -66,7 +69,6 @@ class AgentModel(Model):
         # Convert smolagents messages to a format that onprem LLM can use
         messages = self.clean(messages)
 
-        #messages = self._process_messages(messages)
         
         # Call the LLM with the processed messages
         response = self.llm.prompt(
@@ -74,9 +76,9 @@ class AgentModel(Model):
             stop=stop_sequences or [],
             **kwargs
         )
-        #print('START R')
-        #print(response)
-        #print('END R')
+
+
+        print(f'RESPONSE: {response}')
 
         # Remove stop sequences from LLM output
         if stop_sequences is not None:
@@ -87,19 +89,141 @@ class AgentModel(Model):
             role=MessageRole.ASSISTANT,
             content=response,
             raw={"response": response},
-            token_usage=None  # onprem LLM doesn't track tokens in a way we can use here
+            token_usage=None
         )
+
         if tools_to_call_from:
             try:
-                message.tool_calls = [
-                    get_tool_call_from_text(
-                        re.sub(r".*?Action:(.*?\n\}).*", r"\1", response, flags=re.DOTALL), self.tool_name_key, self.tool_arguments_key
-                    )
-                ]
-            except:
-                message.content = self._build_final_answer_json(response)
+                tool_data = self.extract_json_after_action(response)
+                # Preprocess tool arguments to handle malformed schema-like structures
+                tool_data = self.preprocess_tool_arguments(tool_data)
+                tool_call = get_tool_call_from_text(
+                    tool_data, self.tool_name_key, self.tool_arguments_key
+                )
+                message.tool_calls = [tool_call]
+            except Exception as e:
+                print("[!] Failed to extract tool call:", e)
+                print("Error while parsing tool call from model output:", e)
+                print("JSON blob was:", response)
+                # Optionally fall back to LLM repair here
+
         return message
 
+
+
+    def extract_json_after_action(self, text: str) -> str:
+        """
+        Extract the first JSON object that appears after 'Action:' and return it as a string.
+        
+        This method handles the format:
+        Action: 
+        {
+          "name": "tool_name",
+          "arguments": {}
+        }
+        
+        Observation: ...
+        """
+        import json
+        import ast
+        
+        # Ensure we're working with a string
+        if not isinstance(text, str):
+            text = str(text)
+            
+        if "Action:" not in text:
+            raise ValueError("No 'Action:' keyword found.")
+
+        after_action = text.split("Action:", 1)[1].strip()
+        
+        # Handle the case where there might be an "Observation:" section
+        # Split on "Observation:" to get just the JSON part
+        if "Observation:" in after_action:
+            after_action = after_action.split("Observation:", 1)[0].strip()
+        
+        # Try to find a complete JSON block from here
+        start_idx = after_action.find("{")
+        if start_idx == -1:
+            raise ValueError("No JSON object found after 'Action:'.")
+
+        # Bracket matching to find the full JSON object
+        stack = []
+        for i, c in enumerate(after_action[start_idx:], start=start_idx):
+            if c == '{':
+                stack.append('{')
+            elif c == '}':
+                if not stack:
+                    raise ValueError("Unmatched closing brace in tool call JSON.")
+                stack.pop()
+                if not stack:
+                    json_str = after_action[start_idx:i + 1]
+                    try:
+                        # Validate JSON and return as string
+                        parsed = json.loads(json_str)
+                        return json_str
+                    except json.JSONDecodeError:
+                        # Fallback to ast.literal_eval for single quotes
+                        try:
+                            parsed = ast.literal_eval(json_str)
+                            return json.dumps(parsed)
+                        except (ValueError, SyntaxError):
+                            raise ValueError(f"Invalid JSON format: {json_str}")
+
+        raise ValueError("Unmatched braces in tool call JSON.")
+
+    def preprocess_tool_arguments(self, tool_data: str) -> str:
+        """
+        Preprocess tool arguments to handle malformed schema-like structures.
+        
+        Converts arguments like:
+        {
+          "name": "web_search",
+          "arguments": {
+            "query": {
+              "type": "string",
+              "description": "The search query to perform.",
+              "value": "Events on June 23"
+            }
+          }
+        }
+        
+        To:
+        {
+          "name": "web_search", 
+          "arguments": {
+            "query": "Events on June 23"
+          }
+        }
+        """
+        import json
+        
+        try:
+            # Parse the JSON
+            data = json.loads(tool_data)
+            
+            # Check if arguments exist and need preprocessing
+            if "arguments" in data and isinstance(data["arguments"], dict):
+                processed_args = {}
+                
+                for key, value in data["arguments"].items():
+                    # Check if this argument has schema-like structure with 'value' field
+                    if isinstance(value, dict) and "value" in value:
+                        # Extract just the value
+                        processed_args[key] = value["value"]
+                    else:
+                        # Keep as-is
+                        processed_args[key] = value
+                
+                # Update the arguments
+                data["arguments"] = processed_args
+                
+            # Return the processed JSON as string
+            return json.dumps(data)
+            
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            # If preprocessing fails, return original data
+            print(f"[!] Warning: Failed to preprocess tool arguments: {e}")
+            return tool_data
 
     def clean(self, messages):
         """
