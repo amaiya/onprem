@@ -105,7 +105,22 @@ class AgentModel(Model):
                 print("[!] Failed to extract tool call:", e)
                 print("Error while parsing tool call from model output:", e)
                 print("JSON blob was:", response)
-                # Optionally fall back to LLM repair here
+                
+                # Fallback: if no Action found, try to generate final_answer from content
+                if "No 'Action:' keyword found" in str(e) and response.strip():
+                    try:
+                        # Create a final answer tool call with the response content
+                        final_answer_data = json.dumps({
+                            "name": "final_answer",
+                            "arguments": {"answer": response.strip()}
+                        })
+                        tool_call = get_tool_call_from_text(
+                            final_answer_data, self.tool_name_key, self.tool_arguments_key
+                        )
+                        message.tool_calls = [tool_call]
+                        print("[!] Fallback: Generated final_answer from response content")
+                    except Exception as fallback_e:
+                        print("[!] Fallback failed:", fallback_e)
 
         return message
 
