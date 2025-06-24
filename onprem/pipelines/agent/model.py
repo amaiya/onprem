@@ -83,7 +83,7 @@ class AgentModel(Model):
             max_tokens = self.maxlength,
             **kwargs
         )
-        print(f'RESPONSE: {response}')
+        #print(f'RESPONSE: {response}')
 
         # Remove stop sequences from LLM output
         if stop_sequences is not None:
