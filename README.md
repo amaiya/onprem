@@ -83,8 +83,8 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 *Latest News* 🔥
 
 - \[2025/06\] v0.15.0 released and now includes support for **solving
-  tasks with agents**. See the **[example notebook on
-  agents](https://amaiya.github.io/onprem/examples_agent.html)** for
+  tasks with agents**. See the [**example notebook on
+  agents**](https://amaiya.github.io/onprem/examples_agent.html) for
   more information.
 - \[2025/05\] v0.14.0 released and now includes a point-and-click
   interface for **Document Analysis**: applying prompts to individual
