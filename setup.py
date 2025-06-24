@@ -31,6 +31,7 @@ lic = licenses.get(cfg['license'].lower(), (cfg['license'], None))
 dev_requirements = (cfg.get('dev_requirements') or '').split()
 chroma_requirements = (cfg.get('chroma_requirements') or '').split()
 explain_requirements = (cfg.get('explain_requirements') or '').split()
+agent_requirements = (cfg.get('agent_requirements') or '').split()
 
 setuptools.setup(
     name = cfg['lib_name'],
@@ -49,7 +50,8 @@ setuptools.setup(
     install_requires = requirements,
     extras_require={ 'dev': dev_requirements,
                      'chroma' : chroma_requirements,
-                     'explain' : explain_requirements },
+                     'explain' : explain_requirements,
+                     'agent' : agent_requirements },
     dependency_links = cfg.get('dep_links','').split(),
     python_requires  = '>=' + cfg['min_python'],
     long_description = open('README.md', encoding='utf-8').read(),

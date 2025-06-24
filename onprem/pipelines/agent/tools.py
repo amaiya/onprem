@@ -6,9 +6,10 @@
 __all__ = ['DEFAULT_TOOLS', 'FunctionTool', 'fromdocs', 'createtool', 'VectorStoreTool']
 
 # %% ../../../nbs/04_pipelines.agent.tools.ipynb 3
+from transformers.utils import chat_template_utils, TypeHintParsingException
+
 from smolagents import Tool
 from smolagents import PythonInterpreterTool, Tool, tool as CreateTool, VisitWebpageTool, WebSearchTool
-from transformers.utils import chat_template_utils, TypeHintParsingException
 
 DEFAULT_TOOLS = {
     "python": PythonInterpreterTool(), 

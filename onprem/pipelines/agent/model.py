@@ -9,11 +9,12 @@ __all__ = ['AgentModel']
 from typing import Any, Dict, List, Optional
 import json
 import re
+from enum import Enum
+import onprem
+
 from smolagents.models import Model, ChatMessage, MessageRole,  ChatMessageToolCall, ChatMessageToolCallDefinition
 from smolagents.models import get_tool_call_from_text, remove_stop_sequences
 from smolagents import get_clean_message_list, tool_role_conversions
-from enum import Enum
-import onprem
 
 # %% ../../../nbs/04_pipelines.agent.model.ipynb 4
 class AgentModel(Model):

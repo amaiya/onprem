@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.15.0 (TBD)
+
+### new:
+- Support for buildling autonomous agents (#185)
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
 ## 0.14.7 (2025-06-21)
 
 ### new:
