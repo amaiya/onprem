@@ -160,6 +160,8 @@ Each result has keys 'id', 'text', 'score'."""
         Returns:
             search results
         """
-
+        # Handle case where LLM passes input schema instead of string value
+        if isinstance(query, dict) and 'type' in query and 'description' in query:
+            query = query['description']
         results = self.store.semantic_search(query, 5)
         return [{'id': r.id, 'score': r.metadata['score'], 'text': r.page_content} for r in results]
