@@ -14,6 +14,7 @@ website:
         - 99h_examples_classification.ipynb
         - 99i_examples_qualitative_survey_analysis.ipynb
         - 99j_examples_legal_analysis.ipynb
+        - 99k_examples_agent.ipynb
         - 99x_examples_openai.ipynb
         - 99z_webapp.ipynb
       - section: Source
@@ -30,3 +31,6 @@ website:
         - 04_pipelines.summarizer.ipynb
         - 04_pipelines.classifier.ipynb
         - 04_pipelines.guider.ipynb
+        - 04_pipelines.agent.base.ipynb
+        - 04_pipelines.agent.model.ipynb
+        - 04_pipelines.agent.tools.ipynb

@@ -82,91 +82,27 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 *Latest News* 🔥
 
+- \[2025/06\] v0.15.0 released and now includes support for **solving
+  tasks with agents**. See the **[example notebook on
+  agents](https://amaiya.github.io/onprem/examples_agent.html)** for
+  more information.
 - \[2025/05\] v0.14.0 released and now includes a point-and-click
   interface for **Document Analysis**: applying prompts to individual
   passages in uploaded documents. See the [Web UI
   documentation](https://amaiya.github.io/onprem/webapp.html) for more
   information.
-
 - \[2025/04\] v0.13.0 released and now includes streamlined support for
   Ollama and many cloud LLMs via special URLs (e.g.,
   `model_url="ollama://llama3.2"`,
   `model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
   sheet](https://amaiya.github.io/onprem/#how-to-use) for examples.
   (**Note: Please use `onprem>=0.13.1` due to bug in v0.13.0.**)
-
 - \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
   Web UI with support for interactive chatting, document
   question-answering (RAG), and document search (both keyword searches
   and semantic searches). See the [Web UI
   documentation](https://amaiya.github.io/onprem/webapp.html) for more
   information.
-
-- \[2025/03\] v0.11.0 released. Default model changed to Zephyr-7b-beta.
-
-- \[2025/03\] v0.10.0 released and now includes built-in support for
-  [sparse vector
-  stores](https://amaiya.github.io/onprem/#talk-to-your-documents). To
-  select the store type, supply either `store_type='dense'` or
-  `store_type='sparse'` when instantiating the
-  [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). This is a
-  breaking change as vector stores are now stored in subfolders (either
-  “sparse” or “dense”). If you have an existing dense vector store that
-  you still want to use, please move to a subfolder named “*dense*”:
-  `mv onprem_data/vectordb/*  onprem_data/vectordb/dense`.
-
-- \[2025/02\] v0.9.0 released and now includes built-in support for
-  [self-ask
-  prompting](https://learnprompting.org/docs/advanced/few_shot/self_ask)
-  with RAG and better table question-answering.
-
-- \[2025/02\] v0.8.0 released and now includes support for [training a
-  wide range of different text classification
-  models](https://amaiya.github.io/onprem/pipelines.classifier.html#example-training-hugging-face-transformer-models).
-
-- \[2024/12\] v0.7.0 released and now includes support for [structured
-  outputs](https://amaiya.github.io/onprem/#structured-and-guided-outputs).
-
-- \[2024/12\] v0.6.0 released and now includes support for PDF to
-  Markdown conversion (which includes Markdown representations of
-  tables), as shown
-  [here](https://amaiya.github.io/onprem/#extract-text-from-documents).
-
-- \[2024/11\] v0.5.0 released and now includes support for running LLMs
-  with Hugging Face
-  [transformers](https://github.com/huggingface/transformers) as the
-  backend instead of
-  [llama.cpp](https://github.com/abetlen/llama-cpp-python). See [this
-  example](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
-
-- \[2024/11\] v0.4.0 released and now includes a `default_model`
-  parameter to more easily use models like **Llama-3.1** and
-  **Zephyr-7B-beta**.
-
-- \[2024/10\] v0.3.0 released and now includes support for
-  [concept-focused
-  summarization](https://amaiya.github.io/onprem/examples_summarization.html#concept-focused-summarization)
-
-- \[2024/09\] v0.2.0 released and now includes PDF OCR support and
-  better PDF table handling.
-
-- \[2024/06\] v0.1.0 of **OnPrem.LLM** has been released. Lots of new
-  updates!
-
-  - [Ability to use with any OpenAI-compatible
-    API](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
-    (e.g., vLLM, Ollama, OpenLLM, etc.).
-  - Pipeline for [information
-    extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
-    from raw documents.
-  - Pipeline for [few-shot text
-    classification](https://amaiya.github.io/onprem/examples_classification.html)
-    (i.e., training a classifier on a tiny number of labeled examples)
-    along with the ability to explain few-shot predictions.
-  - Default model changed to
-    [Mistral-7B-Instruct-v0.2](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)
-  - [API augmentations and bug
-    fixes](https://github.com/amaiya/onprem/blob/master/CHANGELOG.md)
 
 ------------------------------------------------------------------------
 
@@ -418,8 +354,8 @@ saved_output = llm.prompt(prompt, stop=['\n\n'])
 
     Cillian Murphy, Florence Pugh
 
-Additional prompt examples are [shown
-here](https://amaiya.github.io/onprem/examples.html).
+**Additional prompt examples are [shown
+here](https://amaiya.github.io/onprem/examples.html).**
 
 ### Talk to Your Documents
 
@@ -429,8 +365,8 @@ RAG). Here, we will use [GPU
 offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
 to speed up answer generation using the default model. However, the
 Zephyr-7B model may perform even better, responds faster, and is used in
-our [example
-notebook](https://amaiya.github.io/onprem/examples_rag.html).
+our **[RAG example
+notebook](https://amaiya.github.io/onprem/examples_rag.html)**.
 
 ``` python
 from onprem import LLM
@@ -1023,6 +959,22 @@ See [the
 documentation](https://amaiya.github.io/onprem/examples_guided_prompts.html)
 for more examples of how to use
 [Guidance](https://github.com/guidance-ai/guidance) with **OnPrem.LLM**.
+
+## Solving Tasks With Agents
+
+``` python
+from onprem import LLM
+from onprem.pipelines import Agent
+llm = LLM('openai/gpt-4o-mini', mute_stream=True) 
+agent = Agent(llm)
+agent.add_webview_tool()
+answer = agent.run("What is the highest level of education of the person listed on this page: https://arun.maiya.net?")
+# ANSWER: Ph.D. in Computer Science
+```
+
+See the **[example notebook on
+agents](https://amaiya.github.io/onprem/examples_agent.html)** for more
+information
 
 ## Built-In Web App
 
