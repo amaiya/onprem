@@ -203,7 +203,7 @@ class Agent:
         Returns:
             str: The agent's response
         """
-        if not self.tools:
+        if not self.tools and self.agent_type == "tool_calling":
             raise ValueError('No tools have been added to agent. Please add at least one tool using on eof the Agent.add_* methods.')
             
         result = self.agent.run(task)
