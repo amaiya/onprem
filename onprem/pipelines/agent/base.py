@@ -11,10 +11,14 @@ from typing import Callable
 import warnings
 from ...ingest.base import VectorStore
 
-from smolagents import PythonInterpreterTool, WebSearchTool, VisitWebpageTool, Tool as SA_Tool
-from smolagents import ToolCallingAgent, CodeAgent
-from .model import AgentModel
-from . import tools as tool_utils
+try:
+    from smolagents import PythonInterpreterTool, WebSearchTool, VisitWebpageTool, Tool as SA_Tool
+    from smolagents import ToolCallingAgent, CodeAgent
+    from .model import AgentModel
+    from . import tools as tool_utils
+    SMOL_INSTALLED = True
+except ImportError:
+    SMOL_INSTALLED = False
 
 
 
@@ -40,6 +44,10 @@ class Agent:
         tools:dict = {},
         **kwargs,
     ):
+
+        if not SMOL_INSTALLED:
+            raise ImportError('Please install agent dependencies: pip install onprem[agent]')
+
         self.model = AgentModel(llm)
         self.tools = tools or {}
         self.agent_type = agent_type
@@ -75,7 +83,7 @@ class Agent:
             raise ValueError(f"Unsupported agent type: {self.agent_type}")
     
    
-    def add_tool(self, name: str, tool_instance: SA_Tool):
+    def add_tool(self, name: str, tool_instance): # tool_instance is SA_Tool
         """
         Add a tool to the agent.
         

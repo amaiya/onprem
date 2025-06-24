@@ -12,7 +12,8 @@ import re
 from enum import Enum
 import onprem
 
-from smolagents.models import Model, ChatMessage, MessageRole,  ChatMessageToolCall, ChatMessageToolCallDefinition
+from smolagents.models import Model, ChatMessage, MessageRole
+from smolagents.models import  ChatMessageToolCall, ChatMessageToolCallDefinition
 from smolagents.models import get_tool_call_from_text, remove_stop_sequences
 from smolagents import get_clean_message_list, tool_role_conversions
 
@@ -35,6 +36,7 @@ class AgentModel(Model):
         model_id: Optional[str] = None,
         **kwargs
     ):
+
         # Initialize the parent Model class
         super().__init__(
             model_id=model_id or f"onprem-{llm.model_name}",
