@@ -83,7 +83,7 @@ class AgentModel(Model):
             max_tokens = self.maxlength,
             **kwargs
         )
-        #print(f'RESPONSE: {response}')
+        print(f'RESPONSE: {response}')
 
         # Remove stop sequences from LLM output
         if stop_sequences is not None:
@@ -94,11 +94,111 @@ class AgentModel(Model):
 
         # Extract first tool action
         if tools_to_call_from:
-            message.tool_calls = [
-                get_tool_call_from_text(
-                    re.sub(r".*?Action:(.*?\n\}).*", r"\1", response, flags=re.DOTALL), self.tool_name_key, self.tool_arguments_key
-                )
-            ]
+            # Try different patterns to extract JSON
+            extracted_json = None
+            
+            # Helper function to extract balanced JSON
+            def extract_balanced_json(text, start_pos):
+                brace_count = 0
+                in_string = False
+                escape_next = False
+                
+                for i, char in enumerate(text[start_pos:], start_pos):
+                    if escape_next:
+                        escape_next = False
+                        continue
+                    
+                    if char == '\\' and in_string:
+                        escape_next = True
+                        continue
+                    
+                    if char == '"' and not escape_next:
+                        in_string = not in_string
+                        continue
+                    
+                    if not in_string:
+                        if char == '{':
+                            brace_count += 1
+                        elif char == '}':
+                            brace_count -= 1
+                            if brace_count == 0:
+                                return text[start_pos:i+1]
+                
+                return None
+            
+            # Pattern 1: Action: {...}
+            match = re.search(r"Action:\s*(\{)", response, flags=re.DOTALL)
+            if match:
+                start_pos = match.start(1)
+                extracted_json = extract_balanced_json(response, start_pos)
+            else:
+                # Pattern 2: Called Tool: 'name' with arguments: {...}
+                match = re.search(r"Called Tool: '([^']+)' with arguments:\s*(\{)", response, flags=re.DOTALL)
+                if match:
+                    tool_name = match.group(1)
+                    start_pos = match.start(2)
+                    args_json = extract_balanced_json(response, start_pos)
+                    if args_json:
+                        extracted_json = f'{{"name": "{tool_name}", "arguments": {args_json}}}'
+                else:
+                    # Pattern 3: Just the raw Called Tool format without proper JSON structure
+                    match = re.search(r"Called Tool: '([^']+)' with arguments:\s*(.+?)(?=\n|$)", response, flags=re.DOTALL)
+                    if match:
+                        tool_name, args_str = match.groups()
+                        # Try to fix the arguments format
+                        args_str = args_str.strip()
+                        if args_str.startswith('{') and args_str.endswith('}'):
+                            extracted_json = f'{{"name": "{tool_name}", "arguments": {args_str}}}'
+            
+            if extracted_json:
+                #print(f'EXTRACTED JSON: {repr(extracted_json)}')
+                # Fix JSON formatting: replace single quotes around keys/values but preserve apostrophes
+                import json
+                try:
+                    # Try to parse as-is first
+                    json.loads(extracted_json)
+                except json.JSONDecodeError:
+                    # Try a different approach - use ast.literal_eval style fixing
+                    import ast
+                    try:
+                        # Replace single quotes with double quotes more carefully
+                        # First fix obvious key patterns
+                        extracted_json = re.sub(r"'(\w+)':", r'"\1":', extracted_json)
+                        
+                        # Try to parse with Python's literal_eval which is more forgiving
+                        parsed = ast.literal_eval(extracted_json)
+                        # Convert back to JSON string
+                        import json
+                        extracted_json = json.dumps(parsed)
+                    except (ValueError, SyntaxError):
+                        # Fallback: manually escape problematic characters
+                        # Fix single quotes to double quotes for JSON structure
+                        lines = extracted_json.split('\n')
+                        fixed_lines = []
+                        for line in lines:
+                            # Don't mess with the overall JSON structure
+                            if ':' in line and not line.strip().startswith('"'):
+                                # This looks like a key-value pair, escape the value part
+                                key_part, value_part = line.split(':', 1)
+                                value_part = value_part.strip()
+                                # If it starts with a quote, escape internal quotes and newlines
+                                if value_part.startswith("'") and value_part.endswith("'"):
+                                    value_content = value_part[1:-1]  # Remove outer quotes
+                                    value_content = value_content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+                                    line = f'{key_part}: "{value_content}"'
+                                elif value_part.startswith('"') and value_part.endswith('"'):
+                                    value_content = value_part[1:-1]  # Remove outer quotes
+                                    value_content = value_content.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+                                    line = f'{key_part}: "{value_content}"'
+                            fixed_lines.append(line)
+                        extracted_json = '\n'.join(fixed_lines)
+                    #print(f'FIXED JSON: {repr(extracted_json)}')
+                
+                message.tool_calls = [
+                    get_tool_call_from_text(
+                        extracted_json, self.tool_name_key, self.tool_arguments_key
+                    )
+                ]
 
         return message
 
