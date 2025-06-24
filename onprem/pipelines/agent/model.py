@@ -12,14 +12,10 @@ import re
 from enum import Enum
 import onprem
 
-try:
-    from smolagents.models import Model, ChatMessage, MessageRole
-    from smolagents.models import  ChatMessageToolCall, ChatMessageToolCallDefinition
-    from smolagents.models import get_tool_call_from_text, remove_stop_sequences
-    from smolagents import get_clean_message_list, tool_role_conversions
-    SMOL_INSTALLED = True
-except ImportError:
-    SMOL_INSTALLED = False
+from smolagents.models import Model, ChatMessage, MessageRole
+from smolagents.models import  ChatMessageToolCall, ChatMessageToolCallDefinition
+from smolagents.models import get_tool_call_from_text, remove_stop_sequences
+from smolagents import get_clean_message_list, tool_role_conversions
 
 # %% ../../../nbs/04_pipelines.agent.model.ipynb 4
 class AgentModel(Model):
@@ -40,9 +36,6 @@ class AgentModel(Model):
         model_id: Optional[str] = None,
         **kwargs
     ):
-
-        if not SMOL_INSTALLED:
-            raise ImportError('Please install agent dependencies: pip install onprem[agent]')
 
         # Initialize the parent Model class
         super().__init__(

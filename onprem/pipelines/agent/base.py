@@ -11,16 +11,10 @@ from typing import Callable
 import warnings
 from ...ingest.base import VectorStore
 
-try:
-    from smolagents import PythonInterpreterTool, WebSearchTool, VisitWebpageTool, Tool as SA_Tool
-    from smolagents import ToolCallingAgent, CodeAgent
-    from .model import AgentModel
-    from . import tools as tool_utils
-    SMOL_INSTALLED = True
-except ImportError:
-    SMOL_INSTALLED = False
-
-
+from smolagents import PythonInterpreterTool, WebSearchTool, VisitWebpageTool, Tool as SA_Tool
+from smolagents import ToolCallingAgent, CodeAgent
+from .model import AgentModel
+from . import tools as tool_utils
 
 class Agent:
     """
@@ -44,9 +38,6 @@ class Agent:
         tools:dict = {},
         **kwargs,
     ):
-
-        if not SMOL_INSTALLED:
-            raise ImportError('Please install agent dependencies: pip install onprem[agent]')
 
         self.model = AgentModel(llm)
         self.tools = tools or {}
