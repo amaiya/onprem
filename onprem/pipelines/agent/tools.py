@@ -8,8 +8,13 @@ __all__ = ['DEFAULT_TOOLS', 'FunctionTool', 'fromdocs', 'createtool', 'VectorSto
 # %% ../../../nbs/04_pipelines.agent.tools.ipynb 3
 from transformers.utils import chat_template_utils, TypeHintParsingException
 
-from smolagents import Tool
-from smolagents import PythonInterpreterTool, Tool, tool as CreateTool, VisitWebpageTool, WebSearchTool
+try:
+    from smolagents import Tool
+    from smolagents import PythonInterpreterTool, Tool, tool as CreateTool, VisitWebpageTool, WebSearchTool
+    SMOL_INSTALLED=True
+except ImportError:
+    SMOL_INSTALLED=False
+
 
 DEFAULT_TOOLS = {
     "python": PythonInterpreterTool(), 
@@ -32,6 +37,9 @@ class FunctionTool(Tool):
         Args:
             config: `name`, `description`, `inputs`, `output` and `target` configuration
         """
+
+        if not SMOL_INSTALLED:
+            raise ImportError('Please install agent dependencies: pip install onprem[agent]')
 
         # Tool parameters
         self.name = config["name"]
