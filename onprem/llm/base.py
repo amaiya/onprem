@@ -145,12 +145,8 @@ class LLM:
             # handle Ollama-style URL
             provider_model = self.process_service(self.model_url)
             if provider_model and provider_model.split("/")[0] == 'ollama':
-                self.model_url = OLLAMA_URL
-                # self.model_name is not used for OpenAI-style local APIs
-                # supply model as extra kwargs due to quirk in LangChain's ChatOpenAI
-                kwargs['model'] = provider_model.split("/")[1]
-                if 'OPENAI_API_KEY' not in os.environ and 'api_key' not in kwargs:
-                    kwargs['api_key'] = 'na'
+                # point ollama to ollama_chat as convenience
+                self.model_url = self.model_url.replace('ollama', 'ollama_chat')
 
             # override model name if explicitly provided
             # for local APIs, this replaces "v1" with actual model name
