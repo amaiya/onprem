@@ -715,6 +715,9 @@ class LLM:
                     # Call HF pipeline directly instead of `invoke`
                     # since LangChain is not passing along stop_strings
                     # parameter to pipeline
+                    if 'max_tokens' in kwargs:
+                        kwargs['max_new_tokens'] = kwargs['max_tokens']
+                        del kwargs['max_tokens']
                     res = llm.llm.pipeline(prompt,
                                            stop_strings=stop if stop else None,
                                            tokenizer=tokenizer,

@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.15.2 (2025-06-26)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Fix `max_tokens` parameter for HF models
+
+
 ## 0.15.1 (2025-06-25)
 
 ### new:
