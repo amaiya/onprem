@@ -721,7 +721,7 @@ def run(**kwargs):
         for k in TESTS:
             print(f'\t{k}')
         print()
-        print('To run a subset of tests, use --test option. By default, all tests except test_transformers are run.')
+        print('To run a subset of tests, use --test option.')
         return
 
 
