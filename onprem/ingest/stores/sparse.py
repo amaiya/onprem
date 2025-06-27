@@ -277,8 +277,10 @@ class SparseStore(VectorStore):
             return_dict:bool=False,
             filters:Optional[Dict[str, str]] = None,
             where_document:Optional[str]=None,
+            return_generator=False,
+            **kwargs
 
-    ) -> List[Dict]:
+    ):
         """
         Queries the index
 
@@ -292,10 +294,8 @@ class SparseStore(VectorStore):
         - *return_dict*: If True, return list of dictionaries instead of LangChain Document objects
         - *filters*: filter results by field values (e.g., {'extension':'pdf'})
         - *where_document*: optional query to further filter results
+        - *return_generator*: If True, returns a generator, not a list
         """
-
-        search_results = []
-
 
         q = self._preprocess_query(q)
 
@@ -309,29 +309,54 @@ class SparseStore(VectorStore):
             for k in filters:
                 terms.append(Term(k, filters[k]))
             combined_filter = And(terms)
-                   
-        # process search
-        with self.ix.searcher() as searcher:
+        
+        def get_search_results(searcher):
+            """Helper to get search results from searcher"""
             if page == 1:
-                results = searcher.search(
+                return searcher.search(
                     MultifieldParser(fields, schema=self.ix.schema, termclass=Variations, group=OrGroup.factory(0.9)).parse(q), limit=limit, filter=combined_filter)
             else:
-                results = searcher.search_page(
+                return searcher.search_page(
                     MultifieldParser(fields, schema=self.ix.schema, termclass=Variations, group=OrGroup.factory(0.9)).parse(q), page, limit, filter=combined_filter)
-            total_hits = results.scored_length()
-            if page > math.ceil(total_hits/limit):
-               results = []
-            for r in results:
-                #d = json.loads(r["raw"])
-                d = dict(r)
-                if highlight:
-                    for f in fields:
-                        if r[f] and isinstance(r[f], str):
-                            d['hl_'+f] = r.highlights(f) or r[f]
-                d = d if return_dict else doc_from_dict(d)
-                search_results.append(d)
-   
-        return {'hits':search_results, 'total_hits':total_hits}
+        
+        def process_result(r):
+            """Helper to process individual search result"""
+            d = dict(r)
+            if highlight:
+                for f in fields:
+                    if r[f] and isinstance(r[f], str):
+                        d['hl_'+f] = r.highlights(f) or r[f]
+            return d if return_dict else doc_from_dict(d)
+        
+        if return_generator:
+            searcher = self.ix.searcher()
+            try:
+                results = get_search_results(searcher)
+                total_hits = results.scored_length()
+                if page > math.ceil(total_hits/limit):
+                   results = []
+                
+                def result_generator():
+                    try:
+                        for r in results:
+                            yield process_result(r)
+                    finally:
+                        searcher.close()
+                
+                return {'hits': result_generator(),
+                        'total_hits': total_hits}
+            except:
+                searcher.close()
+                raise
+        else:
+            with self.ix.searcher() as searcher:
+                results = get_search_results(searcher)
+                total_hits = results.scored_length()
+                if page > math.ceil(total_hits/limit):
+                   results = []
+                
+                return {'hits': [process_result(r) for r in results],
+                        'total_hits': total_hits}
 
     def semantic_search(self, 
                         query, 
