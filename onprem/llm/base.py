@@ -112,7 +112,10 @@ class LLM:
                         (Documents stored in sparse vector databases are converted to dense vectors at inference time 
                         when used with `LLM.ask`.)
         - *max_tokens*: The maximum number of tokens to generate.
-        - *n_ctx*: Token context window. (Llama2 models have max of 4096.)
+        - *n_ctx*: Token context window. (Llama2 models have max of 4096.) Only used for llama-cpp backend.
+                   For Ollama backend, supply `num_ctx` instead which is passed to LiteLLM.
+                   Hugging Face Transformers backend (i.e., when using the model_id parameter)
+                   sets context window automatically.
         - *n_batch*: Number of tokens to process in parallel.
         - *stop*: a list of strings to stop generation when encountered (applied to all calls to `LLM.prompt`)
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
