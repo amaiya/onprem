@@ -112,8 +112,8 @@ class LLM:
                         (Documents stored in sparse vector databases are converted to dense vectors at inference time 
                         when used with `LLM.ask`.)
         - *max_tokens*: The maximum number of tokens to generate.
-        - *n_ctx*: Token context window. (Llama2 models have max of 4096.) Only used for llama-cpp backend.
-                   For Ollama backend, supply `num_ctx` instead which is passed to LiteLLM.
+        - *n_ctx*: Token context window. Only used for llama-cpp backend.
+                   For Ollama backend, explicitly supply `num_ctx` instead which is passed to LiteLLM.
                    Hugging Face Transformers backend (i.e., when using the model_id parameter)
                    sets context window automatically.
         - *n_batch*: Number of tokens to process in parallel.
@@ -469,7 +469,7 @@ class LLM:
                                   callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  **self.extra_kwargs)
+                                  model_kwargs=self.extra_kwargs)
         elif not self.llm and\
                 self.process_service(self.model_url) and\
                 not self.check_model(silent=True):
@@ -477,13 +477,13 @@ class LLM:
                                   callbacks=self.callbacks,
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  **self.extra_kwargs)
+                                  model_kwargs=self.extra_kwargs)
         elif not self.llm and self.is_azure():
             self.llm = AzureChatOpenAI(azure_deployment=self.model_name, 
                                   callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  **self.extra_kwargs)
+                                  model_kwargs=self.extra_kwargs)
 
         elif not self.llm and self.is_local_api():
             self.llm = ChatOpenAI(base_url=self.model_url,
@@ -542,8 +542,7 @@ class LLM:
                 verbose=self.verbose,
                 n_gpu_layers=self.n_gpu_layers,
                 n_ctx=self.n_ctx,
-                #offload_kqv = self.offload_kqv,
-                **self.extra_kwargs,
+                model_kwargs=self.extra_kwargs,
             )
 
         return self.llm
