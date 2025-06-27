@@ -491,7 +491,7 @@ class LLM:
                                   callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  **self.extra_kwargs)
+                                  model_kwargs=self.extra_kwargs)
         elif not self.llm and self.is_hf():
             from transformers import pipeline, TextStreamer, AutoTokenizer
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
