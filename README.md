@@ -225,8 +225,7 @@ llm = LLM(verbose=False) # default model and backend are used
   `llm = LLM(model_url='http://localhost:8000/v1', api_key='na', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
 *Cloud Models:* Despite the focus on local LLMs, cloud LLMs are also
-supported (a warning will be issued that your prompts are being sent
-externally):
+supported:
 
 - **Anthropic Claude**:
   `llm = LLM(model_url="anthropic://claude-3-7-sonnet-latest")`
