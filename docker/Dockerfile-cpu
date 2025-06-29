@@ -1,4 +1,5 @@
 FROM python:3.10
+RUN apt-get update && apt-get install -y build-essential
 RUN python3 -m pip install --upgrade pip wheel setuptools
 RUN python3 -m pip install torch torchvision torchaudio \
   --index-url https://download.pytorch.org/whl/cpu
