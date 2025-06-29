@@ -1012,6 +1012,8 @@ examples, including:
   Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
 - [Text
   Classification](https://amaiya.github.io/onprem/examples_classification.html)
+- [Agent-Based Task
+  Execution](https://amaiya.github.io/onprem/examples_agent.html)
 - [Audo-Coding Survey
   Responses](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
 - [Legal and Regulatory
