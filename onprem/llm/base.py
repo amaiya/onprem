@@ -236,33 +236,6 @@ class LLM:
     def is_dual_store(self):
         return self.store_type == 'dual'
         
-    def optimize_vectorstore_for_search(self, ef: int = 200):
-        """
-        Optimize the HNSW index parameters for search to handle large result sets.
-        This helps fix "ef or M is too small" errors when filtering by folders.
-        
-        Args:
-            ef: The ef parameter value for HNSW search (default: 200, higher = more accurate but slower)
-            
-        Returns:
-            True if optimization succeeded, False otherwise
-        """
-        store = self.load_vectorstore()
-        
-        # For dual stores, optimize the dense component
-        if self.is_dual_store():
-            if hasattr(store.dense_store, 'optimize_for_search'):
-                return store.dense_store.optimize_for_search(ef=ef)
-        
-        # For dense stores, optimize directly
-        elif self.is_dense_store():
-            if hasattr(store, 'optimize_for_search'):
-                return store.optimize_for_search(ef=ef)
-        
-        # Not applicable to sparse stores
-        return False
-
-
     def is_local_api(self):
         basename = os.path.basename(self.model_url) if self.model_url else None
         return self.model_url and self.model_url.lower().startswith('http') and not basename.lower().endswith('.gguf') and not basename.lower().endswith('.bin')
@@ -405,19 +378,6 @@ class LLM:
                     dense_persist_directory=dense_path,
                 )
         return self.vectorstore
-
-
-    def load_vectordb(self):
-        """
-        Get Chroma db instance
-        """
-        vectorstore= self.load_vectorstore()
-        db = vectorstore.get_db()
-        if not db:
-            raise ValueError(
-                "A vector database has not yet been created. Please call the LLM.ingest method."
-            )
-        return db
 
     def ingest(
         self,

@@ -590,12 +590,6 @@ class VectorStore(ABC):
             raise Exception('The vector store is either empty or does not yet exist. '+\
                             'Please invoke the `ingest` method or `add_document` method.')
 
-    @abstractmethod
-    def get_db(self):
-        """
-        Get the raw, underlying vector database or search index.
-        """
-        pass
 
 
     @abstractmethod
@@ -612,11 +606,19 @@ class VectorStore(ABC):
         Stores instances of `langchain_core.documents.base.Document` in vector store
         """
         pass
-
+        
+    
     @abstractmethod
     def remove_document(self, id_to_delete):
         """
         Remove a single document.
+        """
+        pass
+
+    @abstractmethod
+    def remove_source(self, source):
+        """
+        Remove documents by source
         """
         pass
     

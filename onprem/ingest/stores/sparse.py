@@ -109,59 +109,81 @@ class SparseStore(VectorStore):
             self.ix = RamStorage().create_index(default_schema())
         self.init_embedding_model(**kwargs) # stored as self.embeddings
 
-    def get_db(self):
+
+    @classmethod
+    def index_exists_in(cls, index_path: str, index_name: Optional[str] = None):
         """
-        Get raw index
+        Returns True if index exists with name, *indexname*, and path, *index_path*.
         """
-        return self.ix
+        return index.exists_in(index_path, indexname=index_name)
+
+    @classmethod
+    def initialize_index(
+        cls, index_path: str, index_name: str, schema: Optional[Schema] = None
+    ):
+        """
+        Initialize index
+
+        **Args**
+
+        - *index_path*: path to folder storing search index
+        - *index_name*: name of index
+        - *schema*: optional whoosh.fields.Schema object.
+                    If None, DEFAULT_SCHEMA is used
+        """
+        schema = default_schema() if not schema else schema
+
+        if index.exists_in(index_path, indexname=index_name):
+            raise ValueError(
+                f"There is already an existing index named {index_name}  with path {index_path} \n"
+                + f"Delete {index_path} manually and try again."
+            )
+        if not os.path.exists(index_path):
+            os.makedirs(index_path)
+        ix = index.create_in(index_path, indexname=index_name, schema=schema)
+        return ix
 
 
-    def exists(self):
+    def normalize_text(self, text):
         """
-        Returns True if documents have been added to search index
+        normalize text (e.g., from "classiﬁcation" to "classification")
         """
-        return self.get_size() > 0
+        import unicodedata
+        try:
+            return unicodedata.normalize('NFKC', text)
+        except:
+            return text
 
 
-    def add_documents(self,
-                      docs: Sequence[Document], # list of LangChain Documents
-                      limitmb:int=1024, # maximum memory in  megabytes to use
-                      optimize:bool=False, # whether or not to also opimize index
-                      verbose:bool=True, # Set to False to disable progress bar
-                      **kwargs,
-        ):
+    def doc2dict(self, doc:Document):
         """
-        Indexes documents. Extra kwargs supplied to `TextStore.ix.writer`.
+        Convert LangChain Document to expected format
         """
-        writer = self.ix.writer(limitmb=limitmb, **kwargs)
-        for doc in tqdm(docs, total=len(docs), disable=not verbose):
-            d = self.doc2dict(doc)
-            writer.update_document(**d)
-        writer.commit(optimize=optimize)
-
-
-    def remove_document(self, value:str, field:str='id', optimize:bool=False):
-        """
-        Remove document with corresponding value and field.
-        Default field is the id field.
-        If optimize is True, index will be optimized.
-        """
-        writer = self.ix.writer()
-        writer.delete_by_term(field, value)
-        writer.commit(optimize=optimize)
-        return
-
-
-    def remove_source(self, source:str, optimize:bool=False):
-        """
-        remove all documents associated with `source`.
-        The `source` argument can either be the full path to
-        document or a parent folder.  In the latter case,
-        ALL documents in parent folder will be removed.
-        If optimize is True, index will be optimized.
-        """
-        return self.delete_by_prefix(source, field='source', optimize=optimize)
-
+        stored_names = self.ix.schema.stored_names()
+        d = {}
+        for k,v in doc.metadata.items():
+            suffix = None
+            if k in stored_names:
+                suffix = ''
+            elif isinstance(v, bool):
+                suffix = '_b' if not k.endswith('_b') else ''
+            elif isinstance(v, str):
+                if k.endswith('_date'):
+                    suffix = '_d'
+                else:
+                    suffix = '_k'if not k.endswith('_k') else ''
+            elif isinstance(v, (int, float)):
+                suffix = '_n'if not k.endswith('_n') else ''
+            if suffix is not None:
+                d[k+suffix] = v
+        d['id'] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
+        d['page_content' ] = self.normalize_text(doc.page_content)
+        #d['raw'] = json.dumps(d)
+        if 'source' in d:
+            d['source_search'] = d['source']
+        if 'filepath' in d:
+            d['filepath_search'] = d['filepath']
+        return d
 
     def delete_by_prefix(self, prefix:str, field:str, optimize:bool=False):
         """
@@ -190,6 +212,77 @@ class SparseStore(VectorStore):
             else:
                 return 0
 
+
+    def _preprocess_query(self, query):
+        """
+        Removes question marks at the end of queries.
+        This essentially disables using the question mark
+        wildcard at end of search term so legitimate
+        questions are not treated differntly depending
+        on existence of question mark.
+        """
+        # Replace question marks at the end of the query
+        if query.endswith('?'):
+            query = query[:-1]
+
+        # Handle quoted phrases with question marks at the end
+        import re
+        # Match question marks at the end of words or at the end of quoted phrases
+        query = re.sub(r'(\w)\?([\s\"]|$)', r'\1\2', query)
+        return query
+        
+    
+    #------------------------------
+    # overrides of abstract methods
+    # -----------------------------
+
+
+    def exists(self):
+        """
+        Returns True if documents have been added to search index
+        """
+        return self.get_size() > 0
+
+
+    def add_documents(self,
+                      docs: Sequence[Document], # list of LangChain Documents
+                      limitmb:int=1024, # maximum memory in  megabytes to use
+                      optimize:bool=False, # whether or not to also opimize index
+                      verbose:bool=True, # Set to False to disable progress bar
+                      **kwargs,
+        ):
+        """
+        Indexes documents. Extra kwargs supplied to `TextStore.ix.writer`.
+        """
+        writer = self.ix.writer(limitmb=limitmb, **kwargs)
+        for doc in tqdm(docs, total=len(docs), disable=not verbose):
+            d = self.doc2dict(doc)
+            writer.update_document(**d)
+        writer.commit(optimize=optimize)
+
+       
+    def remove_document(self, value:str, field:str='id', optimize:bool=False):
+        """
+        Remove document with corresponding value and field.
+        Default field is the id field.
+        If optimize is True, index will be optimized.
+        """
+        writer = self.ix.writer()
+        writer.delete_by_term(field, value)
+        writer.commit(optimize=optimize)
+        return
+
+
+    def remove_source(self, source:str, optimize:bool=False):
+        """
+        remove all documents associated with `source`.
+        The `source` argument can either be the full path to
+        document or a parent folder.  In the latter case,
+        ALL documents in parent folder will be removed.
+        If optimize is True, index will be optimized.
+        """
+        return self.delete_by_prefix(source, field='source', optimize=optimize)
+        
 
     def update_documents(self,
                          doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.
@@ -246,25 +339,6 @@ class SparseStore(VectorStore):
             )
             return True
         return False
-
-
-    def _preprocess_query(self, query):
-        """
-        Removes question marks at the end of queries.
-        This essentially disables using the question mark
-        wildcard at end of search term so legitimate
-        questions are not treated differntly depending
-        on existence of question mark.
-        """
-        # Replace question marks at the end of the query
-        if query.endswith('?'):
-            query = query[:-1]
-
-        # Handle quoted phrases with question marks at the end
-        import re
-        # Match question marks at the end of words or at the end of quoted phrases
-        query = re.sub(r'(\w)\?([\s\"]|$)', r'\1\2', query)
-        return query
 
 
     def query(
@@ -390,84 +464,3 @@ class SparseStore(VectorStore):
         # Sort results by similarity in descending order
         sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:k]
         return [doc_from_dict(r) for r in sorted_results]
-              
-        
-    @classmethod
-    def index_exists_in(cls, index_path: str, index_name: Optional[str] = None):
-        """
-        Returns True if index exists with name, *indexname*, and path, *index_path*.
-        """
-        return index.exists_in(index_path, indexname=index_name)
-
-    @classmethod
-    def initialize_index(
-        cls, index_path: str, index_name: str, schema: Optional[Schema] = None
-    ):
-        """
-        Initialize index
-
-        **Args**
-
-        - *index_path*: path to folder storing search index
-        - *index_name*: name of index
-        - *schema*: optional whoosh.fields.Schema object.
-                    If None, DEFAULT_SCHEMA is used
-        """
-        schema = default_schema() if not schema else schema
-
-        if index.exists_in(index_path, indexname=index_name):
-            raise ValueError(
-                f"There is already an existing index named {index_name}  with path {index_path} \n"
-                + f"Delete {index_path} manually and try again."
-            )
-        if not os.path.exists(index_path):
-            os.makedirs(index_path)
-        ix = index.create_in(index_path, indexname=index_name, schema=schema)
-        return ix
-
-
-    def normalize_text(self, text):
-        """
-        normalize text (e.g., from "classiﬁcation" to "classification")
-        """
-        import unicodedata
-        try:
-            return unicodedata.normalize('NFKC', text)
-        except:
-            return text
-
-
-    def doc2dict(self, doc:Document):
-        """
-        Convert LangChain Document to expected format
-        """
-        stored_names = self.ix.schema.stored_names()
-        d = {}
-        for k,v in doc.metadata.items():
-            suffix = None
-            if k in stored_names:
-                suffix = ''
-            elif isinstance(v, bool):
-                suffix = '_b' if not k.endswith('_b') else ''
-            elif isinstance(v, str):
-                if k.endswith('_date'):
-                    suffix = '_d'
-                else:
-                    suffix = '_k'if not k.endswith('_k') else ''
-            elif isinstance(v, (int, float)):
-                suffix = '_n'if not k.endswith('_n') else ''
-            if suffix is not None:
-                d[k+suffix] = v
-        d['id'] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
-        d['page_content' ] = self.normalize_text(doc.page_content)
-        #d['raw'] = json.dumps(d)
-        if 'source' in d:
-            d['source_search'] = d['source']
-        if 'filepath' in d:
-            d['filepath_search'] = d['filepath']
-        return d
-
-
-
-
-

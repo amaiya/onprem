@@ -70,6 +70,20 @@ class DenseStore(VectorStore):
         return
 
 
+    def _convert_to_dict(self, raw_results):
+        """
+        Convert raw results to dictionary
+        """
+        ids = raw_results['ids']
+        texts = raw_results['documents']
+        metadatas = raw_results['metadatas']
+        results = []
+        for i, m in enumerate(metadatas):
+            m['page_content'] = texts[i]
+            m['id'] = ids[i]
+            results.append(m)
+        return results
+
     def get_db(self):
         """
         Returns an instance to the `langchain_chroma.Chroma` instance
@@ -84,7 +98,11 @@ class DenseStore(VectorStore):
             collection_name=COLLECTION_NAME,
         )
         return db if does_vectorstore_exist(db) else None
-
+    
+    #------------------------------
+    # overrides of abstract methods
+    # -----------------------------
+    
 
     def exists(self):
         return self.get_db() is not None
@@ -132,7 +150,6 @@ class DenseStore(VectorStore):
         self.get_db().delete(ids=id_to_delete)
         return
 
-
     def remove_source(self, source:str):
         """
         Deletes all documents in a Chroma collection whose `source` metadata field starts with the given prefix.
@@ -160,8 +177,7 @@ class DenseStore(VectorStore):
             return len(to_delete)
         else:
             return 0
-
-
+    
     def update_documents(self,
                          doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.
                          **kwargs):
@@ -176,21 +192,7 @@ class DenseStore(VectorStore):
         return db.update_documents(ids, docs)
 
 
-    def _convert_to_dict(self, raw_results):
-        """
-        Convert raw results to dictionary
-        """
-        ids = raw_results['ids']
-        texts = raw_results['documents']
-        metadatas = raw_results['metadatas']
-        results = []
-        for i, m in enumerate(metadatas):
-            m['page_content'] = texts[i]
-            m['id'] = ids[i]
-            results.append(m)
-        return results
-
-    
+   
     def get_all_docs(self):
         """
         Returns all docs
@@ -264,49 +266,4 @@ class DenseStore(VectorStore):
         """
         return self.query(*args, **kwargs)
     
-    
-    def optimize_for_search(self, ef: int = 200):
-        """
-        Optimize the HNSW index parameters for search by setting a higher ef value.
-        This may help with "ef or M is too small" errors when using large k values.
-        
-        Call this method after creating a collection and before performing searches.
-        
-        Args:
-            ef: The ef parameter value for HNSW search (default: 200, higher = more accurate but slower)
-        
-        Returns:
-            True if parameters were successfully updated, False otherwise
-        """
-        if not self.exists():
-            return False
-            
-        try:
-            # Get the raw collection from the client
-            collection = self.chroma_client.get_collection(COLLECTION_NAME)
-            
-            # Try to access the HNSW index through internal APIs
-            # Note: This is using implementation details that might change
-            if hasattr(collection, '_hnsw_index'):
-                if hasattr(collection._hnsw_index, 'set_ef'):
-                    collection._hnsw_index.set_ef(ef)
-                    print(f"Successfully set HNSW ef parameter to {ef}")
-                    return True
-                    
-            # Alternative approaches - try to access through segments
-            if hasattr(collection, '_producer'):
-                if hasattr(collection._producer, '_executor'):
-                    if hasattr(collection._producer._executor, '_segments'):
-                        for segment in collection._producer._executor._segments:
-                            if hasattr(segment, 'query_index_config'):
-                                segment.query_index_config.hnsw_ef = ef
-                                print(f"Successfully set HNSW ef parameter to {ef}")
-                                return True
-                        
-            print("Could not access HNSW parameters directly")
-            return False
-            
-        except Exception as e:
-            print(f"Error optimizing HNSW parameters: {str(e)}")
-            return False
 

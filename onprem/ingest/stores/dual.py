@@ -52,14 +52,13 @@ class DualStore(VectorStore):
         
         # For compatibility with the VectorStore interface
         self.persist_directory = dense_persist_directory
-        
-    def get_db(self):
+
+    def keyword_search(self, query: str, **kwargs):
         """
-        Returns the dense store's database instance.
-        For consistency with the VectorStore interface.
+        Perform keyword search using the sparse store.
         """
-        return self.dense_store.get_db()
-    
+        return self.sparse_store.query(query, **kwargs)
+
     def get_dense_db(self):
         """
         Returns the dense store's database instance.
@@ -71,6 +70,12 @@ class DualStore(VectorStore):
         Returns the sparse store's database instance.
         """
         return self.sparse_store.get_db()
+
+
+    #------------------------------
+    # overrides of abstract methods
+    # -----------------------------
+  
     
     def exists(self):
         """
@@ -89,14 +94,14 @@ class DualStore(VectorStore):
         
         # Add to sparse store
         self.sparse_store.add_documents(documents, **kwargs)
-    
+
+   
     def remove_document(self, id_to_delete):
         """
         Remove a document from both stores.
         """
         self.dense_store.remove_document(id_to_delete)
         self.sparse_store.remove_document(id_to_delete)
-    
 
     def remove_source(self, source:str):
         """
@@ -108,7 +113,7 @@ class DualStore(VectorStore):
         num_deleted_1 = self.dense_store.remove_source(source)
         num_deleted_2 = self.sparse_store.remove_source(source)
         return num_deleted_1
-
+    
 
     def update_documents(self, doc_dicts: dict, **kwargs):
         """
@@ -155,24 +160,3 @@ class DualStore(VectorStore):
         Perform semantic search using the dense store.
         """
         return self.dense_store.semantic_search(query, **kwargs)
-    
-    def keyword_search(self, query: str, **kwargs):
-        """
-        Perform keyword search using the sparse store.
-        """
-        return self.sparse_store.query(query, **kwargs)
-        
-    def optimize_for_search(self, ef: int = 200):
-        """
-        Optimize the dense store's HNSW index parameters for search.
-        This helps fix "ef or M is too small" errors when filtering by folders.
-        
-        Args:
-            ef: The ef parameter value for HNSW search (default: 200, higher = more accurate but slower)
-            
-        Returns:
-            True if optimization succeeded, False otherwise
-        """
-        if hasattr(self.dense_store, 'optimize_for_search'):
-            return self.dense_store.optimize_for_search(ef=ef)
-        return False
