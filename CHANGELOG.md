@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added `return_generator` argument to `SparseStore` (#187)
 
 ### fixed:
-- N/A
+- code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)
 
 
 ## 0.15.3 (2025-06-27)
