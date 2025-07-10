@@ -15,12 +15,13 @@ class SparseStore(VectorStore):
             raise TypeError("Use the SparseStore.create() method instead of instantiating SparseStore directly.")
 
     @classmethod
-    def create(cls, kind=None, **kwargs) -> 'SparseStore':
+    def create(cls, persist_directory=None, kind=None, **kwargs) -> 'SparseStore':
         """
         Factory method to construct a `SparseStore` instance.       
         Extra kwargs passed to object instantiation.
         
         Args:
+            persist_directory: where the index is stored
             kind: one of {whoosh}
 
         Returns:
@@ -30,7 +31,7 @@ class SparseStore(VectorStore):
         kind = 'whoosh' if not kind else kind
         
         if kind == 'whoosh':
-            return WhooshStore()
+            return WhooshStore(persist_directory=persist_directory, **kwargs)
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
 
@@ -131,7 +132,7 @@ class WhooshStore(SparseStore):
                 self.ix = index.open_dir(self.persist_directory, indexname=self.index_name)
         else:
             warnings.warn(
-                "No persist_directory was supplied, so an in-memory only index"
+                "No persist_directory was supplied, so an in-memory only index "
                 "was created using DEFAULT_SCHEMA"
             )
             self.ix = RamStorage().create_index(default_schema())

@@ -15,12 +15,13 @@ class DenseStore(VectorStore):
             raise TypeError("Use the DenseStore.create() method instead of instantiating DenseStore directly.")
 
     @classmethod
-    def create(cls, kind=None, **kwargs) -> 'DenseStore':
+    def create(cls, persist_directory=None, kind=None, **kwargs) -> 'DenseStore':
         """
         Factory method to construct a `DenseStore` instance.       
         Extra kwargs passed to object instantiation.
         
         Args:
+            persist_directory: where the vector database is stored
             kind: one of {chroma}
 
         Returns:
@@ -30,7 +31,7 @@ class DenseStore(VectorStore):
         kind = 'chroma' if not kind else kind
         
         if kind == 'chroma':
-            return ChromaStore()
+            return ChromaStore(persist_directory=persist_directory, **kwargs)
         else:
             raise ValueError(f"Unknown DenseStore type: {kind}")
 

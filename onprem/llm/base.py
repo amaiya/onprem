@@ -347,7 +347,7 @@ class LLM:
             if self.is_sparse_store():
                 store_path = os.path.join(self.vectordb_path, 'sparse')
                 # create vector store
-                self.vectorstore = SparseStore(
+                self.vectorstore = SparseStore.create(
                     embedding_model_name=self.embedding_model_name,
                     embedding_model_kwargs=self.embedding_model_kwargs,
                     embedding_encode_kwargs=self.embedding_encode_kwargs,
@@ -357,7 +357,7 @@ class LLM:
                 store_path = os.path.join(self.vectordb_path, 'dense')
 
                 # create vector store
-                self.vectorstore = DenseStore(
+                self.vectorstore = DenseStore.create(
                     embedding_model_name=self.embedding_model_name,
                     embedding_model_kwargs=self.embedding_model_kwargs,
                     embedding_encode_kwargs=self.embedding_encode_kwargs,

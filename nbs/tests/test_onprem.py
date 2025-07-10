@@ -627,7 +627,7 @@ def test_search(**kwargs):
     docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
                                 store_md5=True)
     docs = chunk_documents(docs)
-    se = SparseStore()
+    se = SparseStore.create()
     se.add_documents(docs)
     assert(se.get_size() ==  41)
     assert(len(list(se.get_all_docs())) ==  41)
