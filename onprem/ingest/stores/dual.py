@@ -19,7 +19,9 @@ from ..helpers import doc_from_dict
 class DualStore(VectorStore):
     def __init__(
         self,
+        dense_kind:str='chroma',
         dense_persist_directory: Optional[str] = None,
+        sparse_kind:str='whoosh',
         sparse_persist_directory: Optional[str] = None,
         **kwargs
     ):
@@ -37,13 +39,13 @@ class DualStore(VectorStore):
         self.init_embedding_model(**kwargs)  # stored in self.embeddings
         
         # Initialize both stores
-        self.dense_store = DenseStore(
+        self.dense_store = DenseStore.create(dense_kind,
             persist_directory=dense_persist_directory,
             embedding_model_name=kwargs.get('embedding_model_name'),
             embedding_model_kwargs=kwargs.get('embedding_model_kwargs'),
             embedding_encode_kwargs=kwargs.get('embedding_encode_kwargs')
         )
-        self.sparse_store = SparseStore(
+        self.sparse_store = SparseStore.create(sparse_kind,
             persist_directory=sparse_persist_directory,
             embedding_model_name=kwargs.get('embedding_model_name'),
             embedding_model_kwargs=kwargs.get('embedding_model_kwargs'),
