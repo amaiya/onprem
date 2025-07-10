@@ -10,6 +10,11 @@ from ..base import VectorStore
 
 
 class DenseStore(VectorStore):
+    """
+    A factory for built-in DenseStore instances.
+    
+    In addition, custom (non-built-in) DenseStore classes should inherit from this class.
+    """
     def __init__(self, **kwargs):
         if type(self) is DenseStore:
             raise TypeError("Use the DenseStore.create() method instead of instantiating DenseStore directly.")
@@ -59,6 +64,9 @@ COLLECTION_NAME = "onprem_chroma"
 
 
 class ChromaStore(DenseStore):
+    """
+    A dense vector store based on Chroma.   
+    """
     def __init__(
         self,
         persist_directory: Optional[str] = None,

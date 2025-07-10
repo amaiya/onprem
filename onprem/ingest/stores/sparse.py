@@ -10,6 +10,11 @@ from ..base import VectorStore
 
 
 class SparseStore(VectorStore):
+    """
+    A factory for built-in SparseStore instances.
+    
+    In addition, custom (non-built-in) SparseStore classes should inherit from this class.
+    """
     def __init__(self, **kwargs):
         if type(self) is SparseStore:
             raise TypeError("Use the SparseStore.create() method instead of instantiating SparseStore directly.")
@@ -103,6 +108,9 @@ def default_schema():
 
 
 class WhooshStore(SparseStore):
+    """
+    A sparse vector store based on the Whoosh full-text search engine.
+    """
     def __init__(self,
                 persist_directory: Optional[str]=None, 
                 index_name:str = 'myindex',
