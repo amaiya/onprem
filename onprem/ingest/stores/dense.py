@@ -11,9 +11,7 @@ from ..base import VectorStore
 
 class DenseStore(VectorStore):
     """
-    A factory for built-in DenseStore instances.
-    
-    In addition, custom (non-built-in) DenseStore classes should inherit from this class.
+    A factory for built-in DenseStore instances. In addition, custom (non-built-in) DenseStore classes should inherit from this class.
     """
     def __init__(self, **kwargs):
         if type(self) is DenseStore:
@@ -22,7 +20,8 @@ class DenseStore(VectorStore):
     @classmethod
     def create(cls, persist_directory=None, kind=None, **kwargs) -> 'DenseStore':
         """
-        Factory method to construct a `DenseStore` instance.       
+        Factory method to construct a `DenseStore` instance. 
+        
         Extra kwargs passed to object instantiation.
         
         Args:
@@ -40,7 +39,7 @@ class DenseStore(VectorStore):
         else:
             raise ValueError(f"Unknown DenseStore type: {kind}")
 
-# %% ../../../nbs/01_ingest.stores.dense.ipynb 4
+# %% ../../../nbs/01_ingest.stores.dense.ipynb 5
 import os
 import os.path
 from typing import List, Optional, Callable, Dict, Sequence

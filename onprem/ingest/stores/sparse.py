@@ -40,7 +40,7 @@ class SparseStore(VectorStore):
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
 
-# %% ../../../nbs/01_ingest.stores.sparse.ipynb 4
+# %% ../../../nbs/01_ingest.stores.sparse.ipynb 5
 import json
 import os
 import warnings
