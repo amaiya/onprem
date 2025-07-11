@@ -14,9 +14,10 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - **Breaking Changes**: SparseStore and DenseStore now created using factories  (#191)
 - **Breaking Changes**: Changed `k` parameter to `limit` parameter in `LLM.ask`  (#194)
+- **Breaking Changes**: VectorStore.query methods now always return results in the
+  form of dictionaries. (#195, #196)
 - Added `return_generator` argument to `SparseStore` (#187)
 - Added `custom_vectorstore` and `reset` parameters to `LLM.load_vectorstore`. (#192)
-- VectorStore.query methods now always return results in the form of dictionaries. (#195)
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)

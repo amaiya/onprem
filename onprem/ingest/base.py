@@ -677,12 +677,14 @@ class VectorStore(ABC):
         pass
 
     @abstractmethod
-    def query(self, query):
+    def query(self, query, limit=4):
         """
         Queries the vector store.
         For sparse stores, this is simply a keyword-search.
         For dense stores, this is equivalent to semantic_search except results
         are in the form of dictionary with keys 'hits' and 'total_hits'.
+        Method must include 'query' as first positional argument and "limit" as keyword argument.
+
         """
         pass
 

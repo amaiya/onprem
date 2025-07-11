@@ -5,7 +5,7 @@
 # %% auto 0
 __all__ = ['CAPTION_DELIMITER', 'METADATA', 'FILE_METADATA', 'includes_caption', 'extract_tables', 'extract_files',
            'extract_extension', 'extract_file_dates', 'iso2date', 'date2iso', 'md5sum', 'get_mimetype',
-           'extract_mimetype', 'is_random_plaintext', 'clean_text', 'doc_from_dict', 'create_document',
+           'extract_mimetype', 'is_random_plaintext', 'clean_text', 'doc_from_dict', 'dict_from_doc', 'create_document',
            'set_metadata_defaults', 'extract_file_metadata', 'ParagraphTextSplitter']
 
 # %% ../../nbs/01_ingest.helpers.ipynb 3

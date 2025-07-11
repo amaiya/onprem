@@ -7,6 +7,7 @@ __all__ = ['DEFAULT_SCHEMA', 'SparseStore', 'default_schema', 'WhooshStore']
 
 # %% ../../../nbs/01_ingest.stores.sparse.ipynb 3
 from ..base import VectorStore
+from ..helpers import doc_from_dict
 
 
 class SparseStore(VectorStore):
@@ -38,7 +39,33 @@ class SparseStore(VectorStore):
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
 
-# %% ../../../nbs/01_ingest.stores.sparse.ipynb 5
+    def semantic_search(self, *args, **kwargs):
+        """
+        Any subclass of SparseStore can inherit this method for on-the-fly semantic searches.
+        Retrieves results based on semantic similarity to supplied `query`.
+        All arguments are fowrwarded on to the store's query method.
+        The query method is expected to include "query" as first positional argument and a "limit" keyword argument.
+        Results of query method are expected to be in the form: {'hits': list_of_dicts, 'total_hits' : int}.
+        Result of this method is a list of  LangChain Document objects sorted by semantic similarity.
+        """
+        query = args[0]
+        limit = kwargs.get('limit', 4)
+        n_candidates = kwargs.pop('n_candidates', kwargs.pop('limit', 4)*10)
+        results = self.query(*args, limit=n_candidates, **kwargs)['hits']
+        if not results: return []
+        texts = [r['page_content'] for r in results]
+
+        cos_scores = self.compute_similarity(query, texts)
+
+        # Assign scores back to results
+        for i, score in enumerate(cos_scores):
+            results[i]['score'] = score
+
+        # Sort results by similarity in descending order
+        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:limit]
+        return [doc_from_dict(r) for r in sorted_results]
+
+# %% ../../../nbs/01_ingest.stores.sparse.ipynb 6
 import json
 import os
 import warnings
@@ -378,12 +405,12 @@ class WhooshStore(SparseStore):
 
     def query(
             self,
-            q: str,
+            query: str,
             fields: Sequence = ["page_content"],
             highlight: bool = True,
             limit:int=10,
             page:int=1,
-            return_dict:bool=False,
+            return_dict:bool=True,
             filters:Optional[Dict[str, str]] = None,
             where_document:Optional[str]=None,
             return_generator=False,
@@ -395,7 +422,7 @@ class WhooshStore(SparseStore):
 
         **Args**
 
-        - *q*: the query string
+        - *query*: the query string
         - *fields*: a list of fields to search
         - *highlight*: If True, highlight hits
         - *limit*: results per page
@@ -406,6 +433,7 @@ class WhooshStore(SparseStore):
         - *return_generator*: If True, returns a generator, not a list
         """
 
+        q = query
         q = self._preprocess_query(q)
 
         if where_document:
@@ -467,27 +495,3 @@ class WhooshStore(SparseStore):
                 return {'hits': [process_result(r) for r in results],
                         'total_hits': total_hits}
 
-    def semantic_search(self, 
-                        query, 
-                        limit:int=4, # number of records to return based on highest semantic similarity scores.
-                        n_candidates=50, # Number of records to consider (for which we compute embeddings on-the-fly)
-                        filters:Optional[Dict[str, str]] = None, # filter sources by field values (e.g., {'table':True})
-                        where_document:Optional[str]=None, # a boolean query to filter results further (e.g., "climate" AND extension:pdf)
-                        **kwargs):
-        """
-        Retrieves results based on semantic similarity to supplied `query`.
-        """
-
-        results = self.query(query, limit=n_candidates, return_dict=True, filters=filters, where_document=where_document)['hits']
-        if not results: return []
-        texts = [r['page_content'] for r in results]
-
-        cos_scores = self.compute_similarity(query, texts)
-
-        # Assign scores back to results
-        for i, score in enumerate(cos_scores):
-            results[i]['score'] = score
-
-        # Sort results by similarity in descending order
-        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:limit]
-        return [doc_from_dict(r) for r in sorted_results]

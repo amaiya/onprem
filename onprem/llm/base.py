@@ -719,8 +719,14 @@ class LLM:
         return self.chatbot
 
 
+    def query(self, *args, **kwargs):
+        """
+        Perform a semantic search of vectorstore.
+        """
+        return self.semantic_search(*args, **kwargs)
 
-    def query(self,
+
+    def semantic_search(self,
               query:str, # query string
               limit:int = 4, # max number of results to return
               score_threshold:float=0.0, # minimum score for document to be considered as answer source
@@ -729,7 +735,7 @@ class LLM:
               folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
               **kwargs):
         """
-        Perform a semantic search of the vector DB.
+        Perform a semantic search of the vector DB. Alias for `LLM.query`.
 
         The `where_document` parameter varies depending on the value of `LLM.store_type`.
         If `LLM.store_type` is 'dense', then `where_document` should be a dictionary in Chroma syntax (e.g., {"$contains": "Canada"})
@@ -785,13 +791,13 @@ class LLM:
 
         if not contexts:
             # query the vector db
-            docs = self.query(question, filters=filters, where_document=where_document, folders=folders,
+            docs = self.semantic_search(question, filters=filters, where_document=where_document, folders=folders,
                               limit=limit if limit else self.rag_num_source_docs,
                               score_threshold=score_threshold if score_threshold else self.rag_score_threshold)
             if table_k>0:
                 table_filters = filters.copy() if filters else {}
                 table_filters = dict(table_filters, table=True)
-                table_docs = self.query(f'{question} (table)', 
+                table_docs = self.semantic_search(f'{question} (table)', 
                                         filters=table_filters, 
                                         where_document=where_document,
                                         folders=folders,

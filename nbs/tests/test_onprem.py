@@ -417,7 +417,7 @@ def test_semantic(**kwargs):
         "lucky",
         "dishonest junk",
     ):
-        docs = store.query(query)
+        docs = store.semantic_search(query)
         print(f"{query} : {docs[0].page_content}")
         assert docs[0].page_content == matches[query]
     shutil.rmtree(source_folder)
@@ -637,10 +637,10 @@ def test_search(**kwargs):
     assert(len(se.query("table", limit=1, page=2)['hits']) == 1)
     assert(se.query('table')['total_hits'] == 2)
     assert(len(se.query("table", limit=1, page=3)['hits']) == 0)
-    assert(se.query("table", limit=1)['hits'][0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
+    assert(se.query("table", limit=1)['hits'][0]['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
     assert(len(se.query('page:5')['hits']) == 6)
     assert(len(se.query('page:6')['hits']) == 0)
-    doc_id = se.query('table')['hits'][0].metadata['id']
+    doc_id = se.query('table')['hits'][0]['id']
     assert(len(se.query(f'id:{doc_id}')['hits']) == 1)
     assert(se.query(f'id:{doc_id}')['total_hits'] == 1)
     assert(se.get_doc(doc_id)['id'] == doc_id)
