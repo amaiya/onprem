@@ -477,20 +477,12 @@ class WhooshStore(SparseStore):
         """
         Retrieves results based on semantic similarity to supplied `query`.
         """
-        from sentence_transformers import util
-        import torch
 
         results = self.query(query, limit=n_candidates, return_dict=True, filters=filters, where_document=where_document)['hits']
         if not results: return []
         texts = [r['page_content'] for r in results]
-        embeddings = self.get_embedding_model()
 
-        # Compute embeddings
-        query_emb = torch.tensor(embeddings.embed_query(query)).unsqueeze(0)  # Shape (1, embedding_dim)
-        text_embs = torch.tensor(embeddings.embed_documents(texts))  # Shape (len(texts), embedding_dim)
-    
-        # Compute cosine similarity
-        cos_scores = util.pytorch_cos_sim(query_emb, text_embs).squeeze(0).tolist()  # Shape (len(texts),)
+        cos_scores = self.compute_similarity(query, texts)
 
         # Assign scores back to results
         for i, score in enumerate(cos_scores):

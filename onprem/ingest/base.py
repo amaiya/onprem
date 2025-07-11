@@ -582,6 +582,25 @@ class VectorStore(ABC):
         return self.embeddings
 
 
+    def compute_similarity(self, query:str, texts:list):
+        """
+        Computes semantic similarity between a query and a list of texts
+        """
+        from sentence_transformers import util
+        import torch
+
+        embeddings = self.get_embedding_model()
+
+        # Compute embeddings
+        query_emb = torch.tensor(embeddings.embed_query(query)).unsqueeze(0)  # Shape (1, embedding_dim)
+        text_embs = torch.tensor(embeddings.embed_documents(texts))  # Shape (len(texts), embedding_dim)
+
+        # Compute cosine similarity
+        cos_scores = util.pytorch_cos_sim(query_emb, text_embs).squeeze(0).tolist()  # Shape (len(texts),)
+
+        return cos_scores
+
+
     def check(self):
         """
         Raise exception if `VectorStore.exists()` returns False
