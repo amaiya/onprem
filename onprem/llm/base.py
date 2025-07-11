@@ -868,7 +868,10 @@ class LLM:
                             qa_template=qa_template, 
                             filters = filters,
                             where_document=where_document,
-                            folders=folders, **kwargs)
+                            folders=folders,
+                            k=k, score_threshold=score_threshold,
+                            table_k=table_k, table_score_threshold=table_score_threshold,
+                            **kwargs)
             return res
 
 

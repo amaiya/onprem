@@ -18,6 +18,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)
+- fixed issue with `k` not being forwarded correctly in `LLM.ask` (#193)
 
 
 ## 0.15.3 (2025-06-27)

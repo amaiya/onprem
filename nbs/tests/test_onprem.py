@@ -115,10 +115,10 @@ def test_rag_sparse(**kwargs):
     print()
     print("LLM.ask test")
     print()
-    result = llm.ask("What is ktrain?")
+    result = llm.ask("What is ktrain?", k=3)
     assert len(result["answer"]) > 8
     print(len(result['source_documents']))
-    assert len(result["source_documents"]) == 4
+    assert len(result["source_documents"]) == 3 
     assert "question" in result
     print()
 
@@ -199,9 +199,9 @@ def test_rag_dense(**kwargs):
     print()
     print("LLM.ask test")
     print()
-    result = llm.ask("What is ktrain?")
+    result = llm.ask("What is ktrain?", k=3)
     assert len(result["answer"]) > 8
-    assert len(result["source_documents"]) == 4
+    assert len(result["source_documents"]) == 3
     assert "question" in result
     print()
 
