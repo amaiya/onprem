@@ -469,7 +469,7 @@ class WhooshStore(SparseStore):
 
     def semantic_search(self, 
                         query, 
-                        k:int=4, # number of records to return based on highest semantic similarity scores.
+                        limit:int=4, # number of records to return based on highest semantic similarity scores.
                         n_candidates=50, # Number of records to consider (for which we compute embeddings on-the-fly)
                         filters:Optional[Dict[str, str]] = None, # filter sources by field values (e.g., {'table':True})
                         where_document:Optional[str]=None, # a boolean query to filter results further (e.g., "climate" AND extension:pdf)
@@ -497,5 +497,5 @@ class WhooshStore(SparseStore):
             results[i]['score'] = score
 
         # Sort results by similarity in descending order
-        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:k]
+        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:limit]
         return [doc_from_dict(r) for r in sorted_results]

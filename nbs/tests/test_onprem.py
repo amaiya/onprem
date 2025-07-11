@@ -115,7 +115,7 @@ def test_rag_sparse(**kwargs):
     print()
     print("LLM.ask test")
     print()
-    result = llm.ask("What is ktrain?", k=3)
+    result = llm.ask("What is ktrain?", limit=3)
     assert len(result["answer"]) > 8
     print(len(result['source_documents']))
     assert len(result["source_documents"]) == 3 
@@ -199,7 +199,7 @@ def test_rag_dense(**kwargs):
     print()
     print("LLM.ask test")
     print()
-    result = llm.ask("What is ktrain?", k=3)
+    result = llm.ask("What is ktrain?", limit=3)
     assert len(result["answer"]) > 8
     assert len(result["source_documents"]) == 3
     assert "question" in result
@@ -239,7 +239,7 @@ def test_rag_dense(**kwargs):
 
     # test large k
     store = llm.load_vectorstore()
-    results = store.semantic_search('What is machine learning?', k=store.get_size())
+    results = store.semantic_search('What is machine learning?', limit=store.get_size())
     print(f'# of results for lage k: {len(results)}')
     assert(len(results) > 100)
 

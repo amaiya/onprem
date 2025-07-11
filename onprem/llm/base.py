@@ -722,7 +722,7 @@ class LLM:
 
     def query(self,
               query:str, # query string
-              k:int = 4, # max number of results to return
+              limit:int = 4, # max number of results to return
               score_threshold:float=0.0, # minimum score for document to be considered as answer source
               filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (e.g., {'table':True})
               where_document:Optional[Any] = None, # If `store_type` is `dense, filter sources by document content 
@@ -745,7 +745,7 @@ class LLM:
             results = store.semantic_search(query, 
                                             filters=filters,
                                             where_document=where_document,
-                                            k = n_candidates, **kwargs)
+                                            limit = n_candidates, **kwargs)
             # Handle path separator differences between Windows and Unix
             if os.name == 'nt':  # Windows
                 # Normalize paths for case-insensitive comparison on Windows
@@ -754,13 +754,13 @@ class LLM:
             else:
                 # On Unix systems, use direct path comparison
                 results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
-            results = results[:k]
+            results = results[:limit]
             
         else:
             results = store.semantic_search(query, 
                                             filters=filters,
                                             where_document=where_document,
-                                            k = k, **kwargs)
+                                            limit = limit, **kwargs)
 
         return [d for d in results if d.metadata['score'] >= score_threshold]
 
@@ -772,7 +772,7 @@ class LLM:
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
             folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
-            k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
+            limit:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
             table_k:int=1, # maximum number of tables to consider when generating answer
             table_score_threshold:float=0.35, # minimum similarity score for table to be considered in answer
@@ -786,7 +786,7 @@ class LLM:
         if not contexts:
             # query the vector db
             docs = self.query(question, filters=filters, where_document=where_document, folders=folders,
-                              k=k if k else self.rag_num_source_docs,
+                              limit=limit if limit else self.rag_num_source_docs,
                               score_threshold=score_threshold if score_threshold else self.rag_score_threshold)
             if table_k>0:
                 table_filters = filters.copy() if filters else {}
@@ -795,10 +795,10 @@ class LLM:
                                         filters=table_filters, 
                                         where_document=where_document,
                                         folders=folders,
-                                        k=table_k,
+                                        limit=table_k,
                                         score_threshold=table_score_threshold)
                 if table_docs:
-                    docs.extend(table_docs[:k])
+                    docs.extend(table_docs[:limit])
             context = '\n\n'.join([d.page_content for d in docs])
         else:
             docs = [Document(page_content=c, metadata={'source':'<SUBANSWER>'}) for c in contexts]
@@ -827,7 +827,7 @@ class LLM:
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
             where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
             folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
-            k:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
+            limit:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
             table_k:int=1, # maximum number of tables to consider when generating answer
             table_score_threshold:float=0.35, # minimum similarity score for table to be considered in answer
@@ -848,7 +848,7 @@ class LLM:
                                 filters=filters,
                                 where_document=where_document,
                                 folders=folders,
-                                k=k, score_threshold=score_threshold,
+                                limit=limit, score_threshold=score_threshold,
                                 table_k=table_k, table_score_threshold=table_score_threshold,
                                 **kwargs) 
                 subanswers.append(res['answer'])
@@ -869,7 +869,7 @@ class LLM:
                             filters = filters,
                             where_document=where_document,
                             folders=folders,
-                            k=k, score_threshold=score_threshold,
+                            limit=limit, score_threshold=score_threshold,
                             table_k=table_k, table_score_threshold=table_score_threshold,
                             **kwargs)
             return res

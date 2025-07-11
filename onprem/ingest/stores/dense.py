@@ -277,7 +277,7 @@ class ChromaStore(DenseStore):
 
     def query(self,
               query:str, # query string
-              k:int = 4, # max number of results to return
+              limit:int = 4, # max number of results to return
               filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
               where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
               **kwargs):
@@ -289,7 +289,7 @@ class ChromaStore(DenseStore):
         results = db.similarity_search_with_score(query, 
                                                   filter=filters,
                                                   where_document=where_document,
-                                                  k = k, **kwargs)
+                                                  k = limit, **kwargs)
         if not results: return []
         docs, scores = zip(*results)
         for doc, score in zip(docs, scores):
