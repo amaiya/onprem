@@ -11,9 +11,7 @@ from ..base import VectorStore
 
 class SparseStore(VectorStore):
     """
-    A factory for built-in SparseStore instances.
-    
-    In addition, custom (non-built-in) SparseStore classes should inherit from this class.
+    A factory for built-in SparseStore instances.   
     """
     def __init__(self, **kwargs):
         if type(self) is SparseStore:

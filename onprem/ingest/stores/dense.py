@@ -11,7 +11,7 @@ from ..base import VectorStore
 
 class DenseStore(VectorStore):
     """
-    A factory for built-in DenseStore instances. In addition, custom (non-built-in) DenseStore classes should inherit from this class.
+    A factory for built-in DenseStore instances.
     """
     def __init__(self, **kwargs):
         if type(self) is DenseStore:
