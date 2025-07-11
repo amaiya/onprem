@@ -107,8 +107,8 @@ class LLM:
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *vectordb_path*: Path to vector database (created if it doesn't exist).
                            Default is `onprem_data/vectordb` in user's home directory.
-        - *store_type*: One of `dense` for conventional vector database or `sparse`, a vector database
-                        that stores documents as sparse vectors (i.e., keyword search engine).  
+        - *store_type*: One of `dense` for the default dense vector database (i.e., chroma) or
+                        `sparse` for the sparse vector store (i.e., a keyword search engine).  
                         (Documents stored in sparse vector databases are converted to dense vectors at inference time 
                         when used with `LLM.ask`.)
         - *max_tokens*: The maximum number of tokens to generate.
