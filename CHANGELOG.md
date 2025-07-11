@@ -14,6 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - **Breaking Changes**: SparseStore and DenseStore now created using factories  (#191)
 - Added `return_generator` argument to `SparseStore` (#187)
+- Added `custom_vectorstore` and `reset` parameters to `LLM.load_vectorstore`. (#192)
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)

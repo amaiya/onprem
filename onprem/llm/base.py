@@ -335,12 +335,21 @@ class LLM:
         return
 
 
-    def load_vectorstore(self):
+    def load_vectorstore(self, custom_vectorstore=None, reset=False):
         """
         Get `VectorStore` instance.
         You can access the `langchain_chroma.Chroma` instance with `load_vectorstore().get_db()`.
+        Supply `custom_vectorstore` to use your own `VectorStore` instance
+        (i.e., subclass `DenseStore` or `SparseStore`).
+        Supply `reset=True` to reload the default vectorstore.
         """
         from onprem.ingest.stores import DenseStore, SparseStore, DualStore
+
+        if reset:
+            self.vectorstore = None
+        if custom_vectorstore:
+            self.vectorstore = custom_vectorstore
+
         if not self.vectorstore:
 
             # store vector stores within subfolders under `vectordb_path`
