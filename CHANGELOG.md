@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Breaking Changes**: Changed `k` parameter to `limit` parameter in `LLM.ask`  (#194)
 - Added `return_generator` argument to `SparseStore` (#187)
 - Added `custom_vectorstore` and `reset` parameters to `LLM.load_vectorstore`. (#192)
+- VectorStore.query methods now always return results in the form of dictionaries. (#195)
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)

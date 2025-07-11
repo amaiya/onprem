@@ -45,7 +45,7 @@ import os.path
 from typing import List, Optional, Callable, Dict, Sequence
 from tqdm import tqdm
 
-from ..helpers import doc_from_dict
+from ..helpers import doc_from_dict, dict_from_doc
 from ...utils import get_datadir, DEFAULT_DB
 from ..base import batchify_chunks, process_folder, does_vectorstore_exist
 from ..base import CHROMA_MAX
@@ -279,10 +279,11 @@ class ChromaStore(DenseStore):
               query:str, # query string
               limit:int = 4, # max number of results to return
               filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
-              where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+              where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"}),
+              return_dict:bool=True, # If True, return results as dictionaries. Otherwise, return LangChain Document objects.
               **kwargs):
         """
-        Perform a semantic search of the vector DB
+        Perform a semantic search of the vector DB. Returns results as dictionary by default.
         """
         if not self.exists(): return []
         db = self.get_db()
@@ -295,12 +296,13 @@ class ChromaStore(DenseStore):
         for doc, score in zip(docs, scores):
             simscore = 1 - score
             doc.metadata["score"] = 1-score
-        return docs      
+        return {'hits' : [dict_from_doc(d) for d in docs], 'total_hits': len(docs)} if return_dict else docs      
+
 
     def semantic_search(self, *args, **kwargs):
         """
-        Semantic search is equivalent to queries in this class
+        Perform a semantic search of the vector DB. Returns results as LangChain Document objects.
         """
-        return self.query(*args, **kwargs)
+        return self.query(*args, return_dict=False, **kwargs)
     
 

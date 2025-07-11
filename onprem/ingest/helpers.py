@@ -225,6 +225,15 @@ def doc_from_dict(d:dict):
     return create_document(page_content, only_required_metadata=False, **d)
 
 
+def dict_from_doc(doc, content_field = 'page_content'):
+    """
+    Create dictinoary from LangChain Document
+    """
+    metadata_with_content = doc.metadata.copy()
+    metadata_with_content[content_field] = doc.page_content
+    return metadata_with_content
+
+
 def create_document(page_content:str, 
                     only_required_metadata:bool=True,
                    **kwargs):

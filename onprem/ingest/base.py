@@ -681,13 +681,15 @@ class VectorStore(ABC):
         """
         Queries the vector store.
         For sparse stores, this is simply a keyword-search.
-        For dense stores, this is equivalent to semantic_search.
+        For dense stores, this is equivalent to semantic_search except results
+        are in the form of dictionary with keys 'hits' and 'total_hits'.
         """
         pass
 
     @abstractmethod
     def semantic_search(self):
         """
-        Semantic search of vector store
+        Semantic search of vector store.
+        Expected to return a list of Langchain Document objects.
         """
         pass
