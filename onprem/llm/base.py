@@ -215,7 +215,7 @@ class LLM:
 
     def set_store_type(self, store_type:str):
         """
-        Change store type
+        Change store type. Not that this will reload the default vectorstore on selected store type.
         """
         if store_type not in ['dense', 'sparse', 'dual']:
             raise ValueError('store_type must be one of {"dense", "sparse", "dual"}')
