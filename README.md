@@ -125,7 +125,7 @@ For RAG using the [default dense
 vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database),
 please also install chroma packages: `pip install onprem[chroma]`.
 
-**Note:** Installing **llama-cpp-python** is optional if any of the
+**Note:** Installing **llama-cpp-python** is *optional* if any of the
 following is true:
 
 - You use Hugging Face Transformers (instead of llama-cpp-python) as the
@@ -211,7 +211,7 @@ llm = LLM(verbose=False) # default model and backend are used
   ```
 
 - **Hugging Face Transformers**:
-  `llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct')`
+  `llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct', device='cuda')`
 
 - **Ollama**: `llm = LLM(model_url="ollama://llama3.2", api_key='na')`
 
@@ -262,17 +262,16 @@ directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
 default LLM backend.
 
-#### Changing the Default LLM Backend to Hugging Face Transformers
+#### Changing the Default LLM Backend
 
 If `default_engine="transformers"` is supplied to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
 [transformers](https://github.com/huggingface/transformers) is used as
-the LLM backend (and `transformers.pipeline` receives any extra
-parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)). If
-supplying a `model_id` parameter, the default LLM backend is
-automatically changed to Hugging Face
-[transformers](https://github.com/huggingface/transformers).
+the LLM backend. Extra parameters to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (e.g.,
+‘device=’cuda’`) are forwarded diretly to`transformers.pipeline`. If supplying a`model_id\`
+parameter, the default LLM backend is automatically changed to Hugging
+Face [transformers](https://github.com/huggingface/transformers).
 
 ``` python
 # LLama-3.1 model quantized using AWQ is downloaded and run with Hugging Face transformers (requires GPU)
@@ -288,48 +287,58 @@ for more information about using Hugging Face
 [transformers](https://github.com/huggingface/transformers) as the LLM
 backend.
 
-#### Using LLMs Served Through Local APIs
-
-You can connect to any LLM served through local OpenAI-style APIs:
+You can also connect to **Ollama**, local LLM APIs (e.g., vLLM), and
+cloud LLMs.
 
 ``` python
 # connecting to an LLM served by Ollama
-lm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
+lm = LLM(model_url='ollama/llama3.2')
 
 # connecting to an LLM served through vLLM (set API key as needed)
 llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
+
+# connecting to a cloud-backed LLM (e.g., OpenAI, Anthropic).
+llm = LLM(model_url="openai/gpt-4o-mini")  # OpenAI
+llm = LLM(model_url="anthropic/claude-3-7-sonnet-20250219") # Anthropic
 ```
-
-See
-[here](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
-for more information on local APIs.
-
-#### Using Cloud LLMs
-
-As mentioned above, despite our focus on local LLMs, you can also use
-**OnPrem.LLM** with many different cloud LLMs by simply supplying
-special URLs to indicate the provider and model:
-
-- **Anthropic Claude**:
-  `llm = LLM(model_url="anthropic://claude-3-7-sonnet-20250219")`
-- **OpenAI GPT-4o**: `llm = LLM(model_url="openai://gpt-4o")`
 
 **OnPrem.LLM** suppports any provider and model supported by the
 [LiteLLM](https://github.com/BerriAI/litellm) package.
+
+See
+[here](https://amaiya.github.io/onprem/#connecting-to-llms-served-through-rest-apis)
+for more information on *local* LLM APIs.
 
 More information on using OpenAI models specifically with **OnPrem.LLM**
 is [here](https://amaiya.github.io/onprem/examples_openai.html).
 
 #### Supplying Parameters to the LLM Backend
 
-The default context window size (`n_ctx`) is set to 3900 and the default
-output size (`max_tokens`) is set 512. Both are configurable parameters
-to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase
-if you have larger prompts or need longer outputs. Other parameters
-(e.g., `api_key`, `device_map`, etc.) can be supplied directly to
+Extra parameters supplied to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
+are passed directly to the LLM backend. Parameter names will vary
+depending on the backend you chose.
+
+For instance, with the default llama-cpp backend, the default context
+window size (`n_ctx`) is set to 3900 and the default output size
+(`max_tokens`) is set 512. Both are configurable parameters to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase if
+you have larger prompts or need longer outputs. Other parameters (e.g.,
+`api_key`, `device_map`, etc.) can be supplied directly to
 [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be
 routed to the LLM backend or API (e.g., llama-cpp-python, Hugging Face
-transformers, vLLM, OpenAI, etc.).
+transformers, vLLM, OpenAI, etc.). The `max_tokens` parameter can also
+be adjusted on-the-fly by supplying it to
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
+
+On the other hand, for Ollama models, context window and output size are
+controlled by `num_ctx` and `num_predict`, respectively.
+
+With the Hugging Face transformers, setting the context window size is
+not needed, but the output size is controlled by the `max_new_tokens`
+parameter to
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
 
 ### Send Prompts to the LLM to Solve Problems
 
