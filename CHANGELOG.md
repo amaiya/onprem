@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.15.4 (TBD)
 
 ### new:
-- N/A
+- Add support for hybrid search using reciprocal rank fusion in DualStore (#197)
 
 ### changed
 - **Breaking Changes**: SparseStore and DenseStore now created using factories  (#191)

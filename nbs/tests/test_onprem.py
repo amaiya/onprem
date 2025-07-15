@@ -81,6 +81,23 @@ def test_rag_dual(**kwargs):
     assert len(semantic_results) > 0
     assert(semantic_results[0].metadata['score'] > 0.45)
     
+    # Test hybrid search (combines both dense and sparse results)
+    hybrid_results = llm.vectorstore.hybrid_search("image classification", limit=5)
+    assert len(hybrid_results['hits']) > 0
+    assert 'score' in hybrid_results['hits'][0]
+    assert hybrid_results['total_hits'] > 0
+    
+    # Test hybrid search with different weights
+    hybrid_dense_heavy = llm.vectorstore.hybrid_search("image classification", limit=5, weights=0.8)
+    hybrid_sparse_heavy = llm.vectorstore.hybrid_search("image classification", limit=5, weights=0.2)
+    assert len(hybrid_dense_heavy['hits']) > 0
+    assert len(hybrid_sparse_heavy['hits']) > 0
+    
+    # Test hybrid search with explicit weight array
+    hybrid_explicit = llm.vectorstore.hybrid_search("image classification", limit=5, weights=[0.6, 0.4])
+    assert len(hybrid_explicit['hits']) > 0
+    assert hybrid_explicit['hits'][0]['score'] > 0
+    
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
