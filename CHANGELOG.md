@@ -18,6 +18,8 @@ Most recent releases are shown at the top. Each release shows:
   form of dictionaries. (#195, #196)
 - Added `return_generator` argument to `SparseStore` (#187)
 - Added `custom_vectorstore` and `reset` parameters to `LLM.load_vectorstore`. (#192)
+- Allow dynamic fields to be added without suffixes (#190)
+- Add tests for dynamic field storage and retrieval (#190)
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)

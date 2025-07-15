@@ -171,7 +171,6 @@ class WhooshStore(SparseStore):
             self.ix = RamStorage().create_index(default_schema())
         self.init_embedding_model(**kwargs) # stored as self.embeddings
 
-
     @classmethod
     def index_exists_in(cls, index_path: str, index_name: Optional[str] = None):
         """
@@ -221,23 +220,9 @@ class WhooshStore(SparseStore):
         """
         Convert LangChain Document to expected format
         """
-        stored_names = self.ix.schema.stored_names()
         d = {}
         for k,v in doc.metadata.items():
-            suffix = None
-            if k in stored_names:
-                suffix = ''
-            elif isinstance(v, bool):
-                suffix = '_b' if not k.endswith('_b') else ''
-            elif isinstance(v, str):
-                if k.endswith('_date'):
-                    suffix = '_d'
-                else:
-                    suffix = '_k'if not k.endswith('_k') else ''
-            elif isinstance(v, (int, float)):
-                suffix = '_n'if not k.endswith('_n') else ''
-            if suffix is not None:
-                d[k+suffix] = v
+            d[k] = v
         d['id'] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
         d['page_content' ] = self.normalize_text(doc.page_content)
         #d['raw'] = json.dumps(d)
@@ -317,6 +302,31 @@ class WhooshStore(SparseStore):
         Indexes documents. Extra kwargs supplied to `TextStore.ix.writer`.
         """
         writer = self.ix.writer(limitmb=limitmb, **kwargs)
+        
+        # Add any new fields first
+        stored_names = self.ix.schema.stored_names()
+        new_fields = set()
+        
+        for doc in docs:
+            for k, v in doc.metadata.items():
+                if k not in stored_names and k not in new_fields:
+                    # Add field to writer based on type
+                    if isinstance(v, bool):
+                        writer.add_field(k, BOOLEAN(stored=True))
+                    elif isinstance(v, list):
+                        # Lists are stored as comma-separated keywords
+                        writer.add_field(k, KEYWORD(stored=True, commas=True))
+                    elif isinstance(v, str):
+                        if k.endswith('_date'):
+                            writer.add_field(k, DATETIME(stored=True))
+                        elif len(v) > 100:  # Use TEXT for strings longer than 100 characters
+                            writer.add_field(k, TEXT(stored=True, analyzer=StemmingAnalyzer()))
+                        else:
+                            writer.add_field(k, KEYWORD(stored=True, commas=True))
+                    elif isinstance(v, (int, float)):
+                        writer.add_field(k, NUMERIC(stored=True))
+                    new_fields.add(k)
+        
         for doc in tqdm(docs, total=len(docs), disable=not verbose):
             d = self.doc2dict(doc)
             writer.update_document(**d)

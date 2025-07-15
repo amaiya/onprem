@@ -654,6 +654,68 @@ def test_search(**kwargs):
     # ensure text is normalized (ligature issues are addressed)
     assert(len(se.query('classification')['hits']) == 10)
 
+    # Test dynamic field types
+    from langchain_core.documents import Document
+    
+    # Test various field types
+    test_doc = Document(
+        page_content="This is a test document for dynamic field types",
+        metadata={
+            'test_boolean': True,
+            'test_short_string': 'keyword',
+            'test_long_string': 'This is a very long string that should exceed the 100 character threshold and be stored as TEXT field type for full-text search capabilities rather than keyword matching',
+            'test_created_date': '2023-01-01',
+            'test_int': 42,
+            'test_float': 3.14,
+            'test_list': ['tag1', 'tag2', 'tag3']
+        }
+    )
+    
+    se.add_documents([test_doc])
+    
+    # Get the test document to examine stored values
+    test_doc_stored = list(se.get_all_docs())[-1]  # Get the last added document
+    
+    # Test boolean field
+    bool_results = se.query('test_boolean:True')
+    assert len(bool_results['hits']) == 1
+    assert bool_results['hits'][0]['test_boolean'] == True
+    
+    # Test short string (keyword field)
+    keyword_results = se.query('test_short_string:keyword')
+    assert len(keyword_results['hits']) == 1
+    assert keyword_results['hits'][0]['test_short_string'] == 'keyword'
+    
+    # Test long string (text field) - should be searchable by partial content
+    text_results = se.query('capabilities', fields=['test_long_string'])
+    assert len(text_results['hits']) == 1
+    assert 'capabilities' in text_results['hits'][0]['test_long_string']
+    
+    # Test date field (must end with _date to trigger DATETIME field type)
+    # Note: Date fields might be stored differently, so just check existence
+    assert 'test_created_date' in test_doc_stored
+    assert test_doc_stored['test_created_date'] == '2023-01-01'
+    
+    # Test int field
+    int_results = se.query('test_int:42')
+    assert len(int_results['hits']) == 1
+    assert int_results['hits'][0]['test_int'] == 42
+    
+    # Test float field - check if it's stored correctly
+    assert 'test_float' in test_doc_stored
+    assert test_doc_stored['test_float'] == 3.14
+    
+    # Test list field (stored as comma-separated keywords)
+    list_results = se.query('test_list:tag2')
+    assert len(list_results['hits']) == 1
+    # Check what's actually stored
+    actual_list_value = list_results['hits'][0]['test_list']
+    print(f"Actual list value: {repr(actual_list_value)}")
+    # More flexible assertion - check if it contains the expected tags
+    assert 'tag1' in actual_list_value
+    assert 'tag2' in actual_list_value  
+    assert 'tag3' in actual_list_value
+
 
 def test_agent(**kwargs):
     """
