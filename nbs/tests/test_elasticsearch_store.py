@@ -66,7 +66,7 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
     try:
         store_params = {
             'kind': 'elasticsearch',
-            'persist_directory': host,
+            'persist_location': host,
             'index_name': index,
             'verify_certs': verify_certs,
             'timeout': timeout,
@@ -229,7 +229,7 @@ def test_elasticsearch_dual_store():
         store_params = {
             'dense_kind': 'elasticsearch',
             'sparse_kind': 'elasticsearch',
-            'persist_directory': config['host'],
+            'persist_location': config['host'],
             'index_name': config['index'],
             'verify_certs': config['verify_certs'],
             'timeout': config['timeout'],

@@ -20,9 +20,9 @@ class DualStore(VectorStore):
     def __init__(
         self,
         dense_kind:str='chroma',
-        dense_persist_directory: Optional[str] = None,
+        dense_persist_location: Optional[str] = None,
         sparse_kind:str='whoosh',
-        sparse_persist_directory: Optional[str] = None,
+        sparse_persist_location: Optional[str] = None,
         **kwargs
     ):
         """
@@ -30,8 +30,8 @@ class DualStore(VectorStore):
         
         **Args**:
         
-          - *dense_persist_directory*: Path to dense vector database (created if it doesn't exist).
-          - *sparse_persist_directory*: Path to sparse vector database (created if it doesn't exist).
+          - *dense_persist_location*: Path to dense vector database (created if it doesn't exist).
+          - *sparse_persist_location*: Path to sparse vector database (created if it doesn't exist).
           - *embedding_model_name*: name of sentence-transformers model
           - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
           - *embedding_encode_kwargs*: arguments to encode method of embedding model (e.g., `{'normalize_embeddings': False}`).
@@ -41,36 +41,36 @@ class DualStore(VectorStore):
         # Initialize both stores
         self.dense_store = DenseStore.create(
             kind=dense_kind,
-            persist_directory=dense_persist_directory,
+            persist_location=dense_persist_location,
             embedding_model_name=kwargs.get('embedding_model_name'),
             embedding_model_kwargs=kwargs.get('embedding_model_kwargs'),
             embedding_encode_kwargs=kwargs.get('embedding_encode_kwargs')
         )
         self.sparse_store = SparseStore.create(
             kind=sparse_kind,
-            persist_directory=sparse_persist_directory,
+            persist_location=sparse_persist_location,
             embedding_model_name=kwargs.get('embedding_model_name'),
             embedding_model_kwargs=kwargs.get('embedding_model_kwargs'),
             embedding_encode_kwargs=kwargs.get('embedding_encode_kwargs')
         )
         
         # For compatibility with the VectorStore interface
-        self.persist_directory = dense_persist_directory
+        self.persist_location = dense_persist_location
 
     @classmethod
-    def create(cls, dense_kind='chroma', sparse_kind='whoosh', persist_directory=None, **kwargs):
+    def create(cls, dense_kind='chroma', sparse_kind='whoosh', persist_location=None, **kwargs):
         """
         Factory method to construct a DualStore instance.
         
         Args:
             dense_kind: type of dense store ('chroma', 'elasticsearch')
             sparse_kind: type of sparse store ('whoosh', 'elasticsearch')
-            persist_directory: base directory for stores or Elasticsearch URL
+            persist_location: base directory for stores or Elasticsearch URL
             **kwargs: additional arguments passed to store initialization
             
         For traditional dual stores (different dense_kind and sparse_kind):
-            dense_persist_directory: directory for dense store  
-            sparse_persist_directory: directory for sparse store
+            dense_persist_location: directory for dense store  
+            sparse_persist_location: directory for sparse store
             
         For unified Elasticsearch dual store (both kinds are 'elasticsearch'):
             index_name: name of Elasticsearch index
@@ -87,14 +87,14 @@ class DualStore(VectorStore):
         if dense_kind == 'elasticsearch' and sparse_kind == 'elasticsearch':
             if not ELASTICSEARCH_INSTALLED:
                 raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
-            return ElasticsearchDualStore(persist_directory=persist_directory, **kwargs)
+            return ElasticsearchDualStore(persist_location=persist_location, **kwargs)
         
         # Otherwise, use traditional dual store approach
         return cls(
             dense_kind=dense_kind,
             sparse_kind=sparse_kind,
-            dense_persist_directory=persist_directory,
-            sparse_persist_directory=persist_directory,
+            dense_persist_location=persist_location,
+            sparse_persist_location=persist_location,
             **kwargs
         )
 
@@ -287,7 +287,7 @@ class ElasticsearchDualStore(ElasticsearchStore):
         
         **Args:**
         - *dense_vector_field*: field name for dense vectors (default: 'dense_vector')
-        - All other args are passed to ElasticsearchStore (persist_directory, index_name, basic_auth, etc.)
+        - All other args are passed to ElasticsearchStore (persist_location, index_name, basic_auth, etc.)
         """
         self.dense_vector_field = dense_vector_field
         

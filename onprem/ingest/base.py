@@ -527,12 +527,12 @@ class VectorStore(ABC):
         texts = None
         if self.exists():
             # Update and store locally vectorstore
-            print(f"Appending to existing vectorstore at {self.persist_directory}")
+            print(f"Appending to existing vectorstore at {self.persist_location}")
             # Get existing sources and normalize them for consistent comparison
             ignored_files = set([os.path.normpath(d['source']).replace('\\', '/') 
                                 for d in self.get_all_docs()])
         else:
-            print(f"Creating new vectorstore at {self.persist_directory}")
+            print(f"Creating new vectorstore at {self.persist_location}")
             ignored_files = []
 
         texts = process_folder(

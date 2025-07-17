@@ -22,6 +22,7 @@ Most recent releases are shown at the top. Each release shows:
 - Allow dynamic fields to be added without suffixes (#190)
 - Add tests for dynamic field storage and retrieval (#190)
 - Simplify vectorstore schemas by removing fields that can be dynamically added (#200)
+- change `persist_directory` to `persist_location` in stores (#200)
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)

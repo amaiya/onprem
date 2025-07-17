@@ -19,13 +19,13 @@ class SparseStore(VectorStore):
             raise TypeError("Use the SparseStore.create() method instead of instantiating SparseStore directly.")
 
     @classmethod
-    def create(cls, persist_directory=None, kind=None, **kwargs) -> 'SparseStore':
+    def create(cls, persist_location=None, kind=None, **kwargs) -> 'SparseStore':
         """
         Factory method to construct a `SparseStore` instance.       
         Extra kwargs passed to object instantiation.
         
         Args:
-            persist_directory: where the index is stored (for whoosh) or Elasticsearch URL (for elasticsearch)
+            persist_location: where the index is stored (for whoosh) or Elasticsearch URL (for elasticsearch)
             kind: one of {whoosh, elasticsearch}
             
         Elasticsearch-specific kwargs:
@@ -44,11 +44,11 @@ class SparseStore(VectorStore):
         kind = 'whoosh' if not kind else kind
         
         if kind == 'whoosh':
-            return WhooshStore(persist_directory=persist_directory, **kwargs)
+            return WhooshStore(persist_location=persist_location, **kwargs)
         elif kind == 'elasticsearch':
             if not ELASTICSEARCH_INSTALLED:
                 raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
-            return ElasticsearchStore(persist_directory=persist_directory, **kwargs)
+            return ElasticsearchStore(persist_location=persist_location, **kwargs)
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
 
@@ -139,7 +139,7 @@ class WhooshStore(SparseStore):
     A sparse vector store based on the Whoosh full-text search engine.
     """
     def __init__(self,
-                persist_directory: Optional[str]=None, 
+                persist_location: Optional[str]=None, 
                 index_name:str = 'myindex',
                 **kwargs,
         ):
@@ -148,7 +148,7 @@ class WhooshStore(SparseStore):
 
         **Args:**
 
-        - *persist_directory*: path to folder where search index is stored
+        - *persist_location*: path to folder where search index is stored
         - *index_name*: name of index
         - *embedding_model*: name of sentence-transformers model
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
@@ -156,18 +156,18 @@ class WhooshStore(SparseStore):
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         """
 
-        self.persist_directory = persist_directory # alias for consistency with DenseStore
+        self.persist_location = persist_location # alias for consistency with DenseStore
         self.index_name = index_name
-        if self.persist_directory and not self.index_name:
-            raise ValueError('index_name is required if persist_directory is supplied')
-        if self.persist_directory:
-            if not index.exists_in(self.persist_directory, indexname=self.index_name):
-                self.ix = __class__.initialize_index(self.persist_directory, self.index_name)
+        if self.persist_location and not self.index_name:
+            raise ValueError('index_name is required if persist_location is supplied')
+        if self.persist_location:
+            if not index.exists_in(self.persist_location, indexname=self.index_name):
+                self.ix = __class__.initialize_index(self.persist_location, self.index_name)
             else:
-                self.ix = index.open_dir(self.persist_directory, indexname=self.index_name)
+                self.ix = index.open_dir(self.persist_location, indexname=self.index_name)
         else:
             warnings.warn(
-                "No persist_directory was supplied, so an in-memory only index "
+                "No persist_location was supplied, so an in-memory only index "
                 "was created using DEFAULT_SCHEMA"
             )
             self.ix = RamStorage().create_index(default_schema())
@@ -404,10 +404,10 @@ class WhooshStore(SparseStore):
             )
             shall = input("%s (Y/n) " % msg) == "Y"
         if shall and index.exists_in(
-            self.persist_directory, indexname=self.index_name
+            self.persist_location, indexname=self.index_name
         ):
             ix = index.create_in(
-                self.persist_directory,
+                self.persist_location,
                 indexname=self.index_name,
                 schema=default_schema(),
             )
@@ -513,7 +513,7 @@ class ElasticsearchStore(SparseStore):
     A sparse vector store based on Elasticsearch.
     """
     def __init__(self,
-                persist_directory: Optional[str]=None, 
+                persist_location: Optional[str]=None, 
                 index_name:str = 'myindex',
                 basic_auth: Optional[tuple] = None,
                 verify_certs: bool = True,
@@ -529,7 +529,7 @@ class ElasticsearchStore(SparseStore):
 
         **Args:**
 
-        - *persist_directory*: Elasticsearch URL (e.g., 'http://localhost:9200'). If None, defaults to 'http://localhost:9200'
+        - *persist_location*: Elasticsearch URL (e.g., 'http://localhost:9200'). If None, defaults to 'http://localhost:9200'
         - *index_name*: name of Elasticsearch index
         - *basic_auth*: tuple of (username, password) for basic authentication
         - *verify_certs*: whether to verify SSL certificates
@@ -546,9 +546,9 @@ class ElasticsearchStore(SparseStore):
         if not ELASTICSEARCH_INSTALLED:
             raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
 
-        # Use persist_directory as Elasticsearch URL
-        self.elasticsearch_url = persist_directory if persist_directory else 'http://localhost:9200'
-        self.persist_directory = self.elasticsearch_url  # for interface compatibility
+        # Use persist_location as Elasticsearch URL
+        self.elasticsearch_url = persist_location if persist_location else 'http://localhost:9200'
+        self.persist_location = self.elasticsearch_url  # for interface compatibility
         self.index_name = index_name
         
         # Prepare Elasticsearch client parameters
@@ -628,7 +628,7 @@ class ElasticsearchStore(SparseStore):
         - *index_name*: name of Elasticsearch index
         - *elasticsearch_url*: Elasticsearch URL (e.g., 'http://localhost:9200')
         """
-        store = cls(persist_directory=elasticsearch_url, index_name=index_name)
+        store = cls(persist_location=elasticsearch_url, index_name=index_name)
         return store.es
 
     def normalize_text(self, text):

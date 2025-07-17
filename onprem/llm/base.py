@@ -360,7 +360,7 @@ class LLM:
                     embedding_model_name=self.embedding_model_name,
                     embedding_model_kwargs=self.embedding_model_kwargs,
                     embedding_encode_kwargs=self.embedding_encode_kwargs,
-                    persist_directory=store_path,
+                    persist_location=store_path,
                 )
             elif self.is_dense_store():
                 store_path = os.path.join(self.vectordb_path, 'dense')
@@ -370,7 +370,7 @@ class LLM:
                     embedding_model_name=self.embedding_model_name,
                     embedding_model_kwargs=self.embedding_model_kwargs,
                     embedding_encode_kwargs=self.embedding_encode_kwargs,
-                    persist_directory=store_path,
+                    persist_location=store_path,
                 )
             else:
 
@@ -383,8 +383,8 @@ class LLM:
                     embedding_model_name=self.embedding_model_name,
                     embedding_model_kwargs=self.embedding_model_kwargs,
                     embedding_encode_kwargs=self.embedding_encode_kwargs,
-                    sparse_persist_directory=sparse_path,
-                    dense_persist_directory=dense_path,
+                    sparse_persist_location=sparse_path,
+                    dense_persist_location=dense_path,
                 )
         return self.vectorstore
 

@@ -18,14 +18,14 @@ class DenseStore(VectorStore):
             raise TypeError("Use the DenseStore.create() method instead of instantiating DenseStore directly.")
 
     @classmethod
-    def create(cls, persist_directory=None, kind=None, **kwargs) -> 'DenseStore':
+    def create(cls, persist_location=None, kind=None, **kwargs) -> 'DenseStore':
         """
         Factory method to construct a `DenseStore` instance. 
         
         Extra kwargs passed to object instantiation.
         
         Args:
-            persist_directory: where the vector database is stored
+            persist_location: where the vector database is stored
             kind: one of {chroma}
 
         Returns:
@@ -35,7 +35,7 @@ class DenseStore(VectorStore):
         kind = 'chroma' if not kind else kind
         
         if kind == 'chroma':
-            return ChromaStore(persist_directory=persist_directory, **kwargs)
+            return ChromaStore(persist_location=persist_location, **kwargs)
         else:
             raise ValueError(f"Unknown DenseStore type: {kind}")
 
@@ -68,7 +68,7 @@ class ChromaStore(DenseStore):
     """
     def __init__(
         self,
-        persist_directory: Optional[str] = None,
+        persist_location: Optional[str] = None,
         **kwargs
     ):
         """
@@ -76,7 +76,7 @@ class ChromaStore(DenseStore):
 
         **Args**:
 
-          - *persist_directory*: Path to vector database (created if it doesn't exist).
+          - *persist_location*: Path to vector database (created if it doesn't exist).
                                  Default is `onprem_data/vectordb` in user's home directory.
           - *embedding_model*: name of sentence-transformers model
           - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
@@ -93,16 +93,16 @@ class ChromaStore(DenseStore):
         import chromadb
         from chromadb.config import Settings
 
-        self.persist_directory = persist_directory or os.path.join(
+        self.persist_location = persist_location or os.path.join(
             get_datadir(), DEFAULT_DB
         )
         self.init_embedding_model(**kwargs) # stored in self.embeddings
 
         self.chroma_settings = Settings(
-            persist_directory=self.persist_directory, anonymized_telemetry=False
+            persist_directory=self.persist_location, anonymized_telemetry=False
         )
         self.chroma_client = chromadb.PersistentClient(
-            settings=self.chroma_settings, path=self.persist_directory
+            settings=self.chroma_settings, path=self.persist_location
         )
         return
 
@@ -127,7 +127,7 @@ class ChromaStore(DenseStore):
         """
         # Create ChromaDB settings
         db = Chroma(
-            persist_directory=self.persist_directory,
+            persist_directory=self.persist_location,
             embedding_function=self.embeddings,
             client_settings=self.chroma_settings,
             client=self.chroma_client,
@@ -167,7 +167,7 @@ class ChromaStore(DenseStore):
                     db = Chroma.from_documents(
                         lst,
                         self.embeddings,
-                        persist_directory=self.persist_directory,
+                        persist_directory=self.persist_location,
                         client_settings=self.chroma_settings,
                         client=self.chroma_client,
                         collection_metadata={"hnsw:space": "cosine"},
