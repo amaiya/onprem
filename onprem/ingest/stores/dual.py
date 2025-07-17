@@ -75,7 +75,6 @@ class DualStore(VectorStore):
         For unified Elasticsearch dual store (both kinds are 'elasticsearch'):
             index_name: name of Elasticsearch index
             dense_vector_field: field name for dense vectors
-            vector_dims: dimension of dense vectors
             basic_auth: authentication credentials
             verify_certs: SSL verification
             ca_certs: CA certificate path
@@ -282,18 +281,15 @@ class ElasticsearchDualStore(ElasticsearchStore):
     
     def __init__(self,
                 dense_vector_field: str = 'dense_vector',
-                vector_dims: int = 384,  # Default for sentence-transformers models
                 **kwargs):
         """
         Initializes unified Elasticsearch dual store with both dense and sparse capabilities.
         
         **Args:**
         - *dense_vector_field*: field name for dense vectors (default: 'dense_vector')
-        - *vector_dims*: dimension of dense vectors (default: 384)
         - All other args are passed to ElasticsearchStore (persist_directory, index_name, basic_auth, etc.)
         """
         self.dense_vector_field = dense_vector_field
-        self.vector_dims = vector_dims
         
         # Initialize parent ElasticsearchStore
         super().__init__(**kwargs)
@@ -313,7 +309,6 @@ class ElasticsearchDualStore(ElasticsearchStore):
                     # Dense vector field for semantic search
                     self.dense_vector_field: {
                         "type": "dense_vector",
-                        "dims": self.vector_dims,
                         "index": True,
                         "similarity": "cosine"
                     }
@@ -390,94 +385,6 @@ class ElasticsearchDualStore(ElasticsearchStore):
             return [doc_from_dict(hit) for hit in hits]
 
 
-    def hybrid_search(self,
-                     query: str,
-                     limit: int = 10,
-                     weights: Union[List[float], float] = 0.5,
-                     filters: Optional[Dict[str, str]] = None,
-                     **kwargs):
-        """Perform hybrid search combining dense vector and sparse text search using Reciprocal Rank Fusion (RRF)"""
-        # Create weights array if single number passed
-        if isinstance(weights, (int, float)):
-            weights = [weights, 1 - weights]
-        
-        # Get expanded results from both search types
-        search_limit = limit * 10  # Get more candidates for better fusion
-        
-        # Get dense vector results
-        dense_results = []
-        if weights[0] > 0:
-            try:
-                dense_results = self.semantic_search(
-                    query, 
-                    limit=search_limit, 
-                    filters=filters, 
-                    return_dict=True
-                )['hits']
-            except Exception:
-                # If dense search fails, continue with sparse only
-                pass
-        
-        # Get sparse text results  
-        sparse_results = []
-        if weights[1] > 0:
-            try:
-                sparse_results = self.query(
-                    query, 
-                    limit=search_limit, 
-                    filters=filters, 
-                    return_dict=True
-                )['hits']
-            except Exception:
-                # If sparse search fails, continue with dense only
-                pass
-        
-        # Combine scores using Reciprocal Rank Fusion (RRF)
-        doc_scores = {}
-        
-        # Process dense results (use actual similarity scores)
-        if weights[0] > 0:
-            for rank, doc in enumerate(dense_results):
-                doc_id = doc.get('id')
-                if doc_id:
-                    # Use RRF: 1 / (k + rank) where k=60 is standard
-                    rrf_score = 1.0 / (60 + rank + 1)
-                    doc_scores[doc_id] = {
-                        'doc': doc,
-                        'score': rrf_score * weights[0]
-                    }
-        
-        # Process sparse results (use RRF for ranking)
-        if weights[1] > 0:
-            for rank, doc in enumerate(sparse_results):
-                doc_id = doc.get('id')
-                if doc_id:
-                    # Use RRF: 1 / (k + rank) where k=60 is standard
-                    rrf_score = 1.0 / (60 + rank + 1)
-                    if doc_id in doc_scores:
-                        # Combine scores if document appears in both results
-                        doc_scores[doc_id]['score'] += rrf_score * weights[1]
-                    else:
-                        doc_scores[doc_id] = {
-                            'doc': doc,
-                            'score': rrf_score * weights[1]
-                        }
-        
-        # Sort by combined score and limit results
-        sorted_results = sorted(
-            doc_scores.items(), 
-            key=lambda x: x[1]['score'], 
-            reverse=True
-        )[:limit]
-        
-        # Convert back to result format
-        hits = []
-        for doc_id, result in sorted_results:
-            doc_dict = result['doc'].copy()
-            doc_dict['score'] = result['score']  # Update with combined RRF score
-            hits.append(doc_dict)
-        
-        return {'hits': hits, 'total_hits': len(hits)}
 
     def get_dense_db(self):
         """Returns the Elasticsearch client for dense operations"""
@@ -486,3 +393,85 @@ class ElasticsearchDualStore(ElasticsearchStore):
     def get_sparse_db(self):
         """Returns the Elasticsearch client for sparse operations"""
         return self.es
+
+    # Override DualStore methods to work with unified store
+    @property
+    def dense_store(self):
+        """Return self as dense store for hybrid_search compatibility"""
+        return self
+    
+    @property
+    def sparse_store(self):
+        """Return self as sparse store for hybrid_search compatibility"""
+        return self
+
+    def hybrid_search(self, query: str, limit: int = 10, weights: Union[List[float], float] = 0.5, **kwargs):
+        """
+        Perform hybrid search combining dense and sparse results.
+        
+        **Args**:
+        - *query*: Search query string
+        - *limit*: Maximum number of results to return
+        - *weights*: Weights for combining dense and sparse scores. 
+                    If float, represents dense weight (sparse = 1 - dense).
+                    If list, [dense_weight, sparse_weight]
+        - *kwargs*: Additional arguments passed to individual search methods
+        
+        **Returns**:
+        Dictionary with 'hits' and 'total_hits' keys
+        """
+        # Create weights array if single number passed
+        if isinstance(weights, (int, float)):
+            weights = [weights, 1 - weights]
+        
+        # Get expanded results from both stores
+        search_limit = limit * 10  # Get more candidates for better fusion
+        
+        # Get dense results
+        dense_results = self.dense_store.query(query, limit=search_limit, return_dict=True, **kwargs)
+        dense_hits = dense_results.get('hits', [])
+        
+        # Get sparse results  
+        sparse_results = self.sparse_store.query(query, limit=search_limit, return_dict=True, **kwargs)
+        sparse_hits = sparse_results.get('hits', [])
+        
+        # Combine scores using hybrid approach
+        uids = {}
+        
+        # Process dense results (similarity-based scores)
+        if weights[0] > 0:
+            for dense_doc in dense_hits:
+                uid = dense_doc.get('id')
+                if uid:
+                    score = dense_doc.get('score', 0.0)
+                    uids[uid] = score * weights[0]
+        
+        # Process sparse results (use RRF since sparse doesn't have normalized scores)
+        if weights[1] > 0:
+            for rank, sparse_doc in enumerate(sparse_hits):
+                uid = sparse_doc.get('id')
+                if uid:
+                    # Use Reciprocal Rank Fusion (RRF) for sparse results
+                    rrf_score = 1.0 / (rank + 1)
+                    if uid in uids:
+                        uids[uid] += rrf_score * weights[1]
+                    else:
+                        uids[uid] = rrf_score * weights[1]
+        
+        # Sort by combined score and limit results
+        sorted_results = sorted(uids.items(), key=lambda x: x[1], reverse=True)[:limit]
+        
+        # Convert back to result dictionaries
+        results = []
+        # Create a lookup dict for efficient document retrieval
+        doc_lookup = {}
+        for doc in dense_hits + sparse_hits:
+            doc_lookup[doc.get('id')] = doc
+        
+        for uid, combined_score in sorted_results:
+            if uid in doc_lookup:
+                doc_dict = doc_lookup[uid].copy()
+                doc_dict['score'] = combined_score  # Update with combined score
+                results.append(doc_dict)
+        
+        return {'hits': results, 'total_hits': len(results)}

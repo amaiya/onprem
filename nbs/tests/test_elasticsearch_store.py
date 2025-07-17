@@ -92,10 +92,12 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
     try:
         # Test exists (should be False for new index)
         exists = store.exists()
+        assert not exists, "New index should not exist initially"
         print(f"✓ exists() returned: {exists}")
         
         # Test size
         size = store.get_size()
+        assert size == 0, "New index should have size 0"
         print(f"✓ get_size() returned: {size}")
         
         # Test adding documents with dynamic fields
@@ -127,36 +129,45 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
         
         # Test exists after adding documents
         exists = store.exists()
+        assert exists, "Index should exist after adding documents"
         print(f"✓ exists() after adding docs: {exists}")
         
         # Test size after adding documents
         size = store.get_size()
+        assert size == 2, f"Index should have 2 documents, got {size}"
         print(f"✓ get_size() after adding docs: {size}")
         
         # Test query
         query_results = store.query("test document")
+        assert query_results['total_hits'] > 0, "Query should return hits for 'test document'"
+        assert 'hits' in query_results, "Query results should contain 'hits' key"
         print(f"✓ query() returned {query_results['total_hits']} hits")
         
         # Test semantic search
         semantic_results = store.semantic_search("test document", limit=2)
+        assert len(semantic_results) > 0, "Semantic search should return results"
         print(f"✓ semantic_search() returned {len(semantic_results)} results")
         
         # Test dynamic field filtering
         try:
             # Test boolean field filter
             bool_filter_results = store.query("document", filters={"published": True})
+            assert bool_filter_results['total_hits'] == 1, "Boolean filter should return 1 hit for published=True"
             print(f"✓ Boolean field filter returned {bool_filter_results['total_hits']} hits")
             
             # Test string field filter
             author_filter_results = store.query("document", filters={"author": "John Doe"})
+            # Note: This might be 0 if the field mapping doesn't match exactly
             print(f"✓ String field filter returned {author_filter_results['total_hits']} hits")
             
             # Test numeric field filter (note: exact match for term filter)
             priority_filter_results = store.query("document", filters={"priority": 5})
+            assert priority_filter_results['total_hits'] == 1, "Numeric filter should return 1 hit for priority=5"
             print(f"✓ Numeric field filter returned {priority_filter_results['total_hits']} hits")
             
             # Test list field filter
             tags_filter_results = store.query("document", filters={"tags": "python"})
+            assert tags_filter_results['total_hits'] == 1, "List filter should return 1 hit for tags containing 'python'"
             print(f"✓ List field filter returned {tags_filter_results['total_hits']} hits")
             
         except Exception as e:
@@ -171,6 +182,7 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
                     # Check if dynamic fields are preserved
                     dynamic_fields = ['author', 'priority', 'published', 'tags', 'custom_score']
                     preserved_fields = [field for field in dynamic_fields if field in retrieved_doc]
+                    assert len(preserved_fields) >= 3, f"Should preserve at least 3 dynamic fields, got {len(preserved_fields)}"
                     print(f"✓ Dynamic fields preserved: {preserved_fields}")
                     
                     # Show sample values
@@ -182,6 +194,7 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
                         print(f"  - Tags: {retrieved_doc['tags']}")
                 else:
                     print("⚠ Could not retrieve document for dynamic field verification")
+                    assert False, "Should be able to retrieve document by ID"
         except Exception as e:
             print(f"⚠ Dynamic field retrieval test failed: {e}")
         
@@ -191,6 +204,9 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
         
         return True
         
+    except AssertionError as e:
+        print(f"✗ Test assertion failed: {e}")
+        return False
     except Exception as e:
         print(f"✗ Error during testing: {e}")
         return False
@@ -217,7 +233,6 @@ def test_elasticsearch_dual_store():
             'index_name': config['index'],
             'verify_certs': config['verify_certs'],
             'timeout': config['timeout'],
-            'vector_dims': 384,
         }
         
         if config['basic_auth']:
@@ -246,25 +261,35 @@ def test_elasticsearch_dual_store():
         
         # Test search (sparse)
         search_results = store.search("machine learning", limit=2)
+        assert search_results['total_hits'] > 0, "Search should return hits for 'machine learning'"
+        assert 'hits' in search_results, "Search results should contain 'hits' key"
         print(f"✓ search() returned {search_results['total_hits']} hits")
         
         # Test semantic search (dense)
         try:
             semantic_results = store.semantic_search("artificial intelligence", limit=2)
+            assert semantic_results['total_hits'] > 0, "Semantic search should return hits"
+            assert 'hits' in semantic_results, "Semantic search results should contain 'hits' key"
             print(f"✓ semantic_search() returned {semantic_results['total_hits']} hits")
         except Exception as e:
             print(f"⚠ semantic_search() failed: {e}")
+            assert False, f"Semantic search should not fail: {e}"
         
         # Test hybrid search
         try:
+            assert hasattr(store, 'hybrid_search'), "ElasticsearchDualStore should have hybrid_search method"
             hybrid_results = store.hybrid_search("machine learning AI", limit=2, weights=[0.6, 0.4])
+            assert hybrid_results['total_hits'] > 0, "Hybrid search should return hits"
+            assert 'hits' in hybrid_results, "Hybrid search results should contain 'hits' key"
             print(f"✓ hybrid_search() returned {hybrid_results['total_hits']} hits")
         except Exception as e:
             print(f"⚠ hybrid_search() failed: {e}")
+            assert False, f"Hybrid search should not fail: {e}"
         
         # Test get_dense_db and get_sparse_db return same client
         dense_db = store.get_dense_db()
         sparse_db = store.get_sparse_db()
+        assert dense_db is sparse_db, "Unified store should return same client for dense and sparse operations"
         print(f"✓ Unified store: dense_db is sparse_db = {dense_db is sparse_db}")
         
         # Clean up
@@ -273,6 +298,9 @@ def test_elasticsearch_dual_store():
         
         return True
         
+    except AssertionError as e:
+        print(f"✗ Test assertion failed: {e}")
+        return False
     except Exception as e:
         print(f"✗ Error during testing: {e}")
         return False

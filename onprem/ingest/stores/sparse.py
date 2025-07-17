@@ -713,6 +713,9 @@ class ElasticsearchStore(SparseStore):
             from elasticsearch.helpers import bulk
             bulk(self.es, actions)
             
+            # Force refresh to make documents immediately searchable
+            self.es.indices.refresh(index=self.index_name)
+            
         if optimize:
             self.es.indices.forcemerge(index=self.index_name)
 
