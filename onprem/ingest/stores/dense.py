@@ -327,12 +327,12 @@ class ElasticsearchDenseStore(DenseStore):
         - *dense_vector_field*: field name for dense vectors (default: 'dense_vector')
         - All other args are passed to ElasticsearchStore for the underlying implementation
         """
-        from .sparse import ElasticsearchStore
+        from .sparse import ElasticsearchSparseStore
         
         self.dense_vector_field = dense_vector_field
         
-        # Create underlying ElasticsearchStore instance
-        self.es_store = ElasticsearchStore(**kwargs)
+        # Create underlying ElasticsearchSparseStore instance
+        self.es_store = ElasticsearchSparseStore(**kwargs)
         
         # Initialize embedding model
         self.init_embedding_model(**kwargs)
@@ -384,7 +384,7 @@ class ElasticsearchDenseStore(DenseStore):
     
     def doc2dict(self, doc: Document, include_vector: bool = True):
         """Convert LangChain Document to expected format with vector embedding"""
-        # Get the standard dict from ElasticsearchStore
+        # Get the standard dict from ElasticsearchSparseStore
         d = self.es_store.doc2dict(doc)
         
         # Add dense vector embedding if requested

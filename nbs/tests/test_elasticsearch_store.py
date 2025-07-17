@@ -42,8 +42,8 @@ def get_elastic_env():
     return config
 
 def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_certs=None, ca_certs=None, timeout=None):
-    """Test basic ElasticsearchStore functionality"""
-    print("Testing ElasticsearchStore...")
+    """Test basic ElasticsearchSparseStore functionality"""
+    print("Testing ElasticsearchSparseStore...")
     
     # Get configuration from environment
     config = get_elastic_env()
@@ -78,13 +78,13 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
             store_params['ca_certs'] = ca_certs
             
         store = SparseStore.create(**store_params)
-        print("✓ ElasticsearchStore created successfully")
+        print("✓ ElasticsearchSparseStore created successfully")
     except ImportError as e:
         print(f"✗ ImportError: {e}")
         print("Please install elasticsearch: pip install elasticsearch")
         return False
     except Exception as e:
-        print(f"✗ Error creating ElasticsearchStore: {e}")
+        print(f"✗ Error creating ElasticsearchSparseStore: {e}")
         print("Make sure Elasticsearch is running and accessible")
         return False
     
@@ -212,9 +212,9 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
         return False
 
 def test_elasticsearch_dual_store():
-    """Test ElasticsearchDualStore functionality"""
+    """Test ElasticsearchStore functionality"""
     print("\n" + "="*50)
-    print("Testing ElasticsearchDualStore (unified dense + sparse)...")
+    print("Testing ElasticsearchStore (unified dense + sparse)...")
     print("="*50)
     
     # Get configuration from environment
@@ -241,9 +241,9 @@ def test_elasticsearch_dual_store():
             store_params['ca_certs'] = config['ca_certs']
             
         store = DualStore.create(**store_params)
-        print("✓ ElasticsearchDualStore created successfully")
+        print("✓ ElasticsearchStore created successfully")
     except Exception as e:
-        print(f"✗ Error creating ElasticsearchDualStore: {e}")
+        print(f"✗ Error creating ElasticsearchStore: {e}")
         return False
     
     # Test basic operations
@@ -312,14 +312,14 @@ if __name__ == "__main__":
     if success1 and success2:
         print("\n🎉 All tests passed!")
         print("\nSUMMARY:")
-        print("✓ ElasticsearchStore (sparse text search)")
-        print("✓ ElasticsearchDualStore (unified dense + sparse)")
+        print("✓ ElasticsearchSparseStore (sparse text search)")
+        print("✓ ElasticsearchStore (unified dense + sparse)")
     else:
         print("\n❌ Some tests failed")
         if not success1:
             print("✗ ElasticsearchStore test failed")
         if not success2:
-            print("✗ ElasticsearchDualStore test failed")
+            print("✗ ElasticsearchStore test failed")
     
         # Example of testing with specific parameters
         print("\n" + "="*50)
