@@ -46,6 +46,8 @@ class SparseStore(VectorStore):
         if kind == 'whoosh':
             return WhooshStore(persist_directory=persist_directory, **kwargs)
         elif kind == 'elasticsearch':
+            if not ELASTICSEARCH_INSTALLED:
+                raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
             return ElasticsearchStore(persist_directory=persist_directory, **kwargs)
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
@@ -94,6 +96,12 @@ from langchain_core.documents import Document
 import uuid
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
+
+try:
+    from elasticsearch import Elasticsearch
+    ELASTICSEARCH_INSTALLED = True
+except ImportError:
+    ELASTICSEARCH_INSTALLED = False
 
 from ..helpers import doc_from_dict
 
@@ -552,10 +560,8 @@ class ElasticsearchStore(SparseStore):
         - *embedding_encode_kwargs*: arguments to encode method of
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         """
-        try:
-            from elasticsearch import Elasticsearch
-        except ImportError:
-            raise ImportError("elasticsearch package is required. Install with: pip install elasticsearch")
+        if not ELASTICSEARCH_INSTALLED:
+            raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
 
         # Use persist_directory as Elasticsearch URL
         self.elasticsearch_url = persist_directory if persist_directory else 'http://localhost:9200'
@@ -639,12 +645,11 @@ class ElasticsearchStore(SparseStore):
         - *index_name*: name of Elasticsearch index
         - *elasticsearch_url*: Elasticsearch URL (e.g., 'http://localhost:9200')
         """
-        try:
-            from elasticsearch import Elasticsearch
-            es = Elasticsearch([elasticsearch_url])
-            return es.indices.exists(index=index_name)
-        except ImportError:
-            raise ImportError("elasticsearch package is required. Install with: pip install elasticsearch")
+        if not ELASTICSEARCH_INSTALLED:
+            raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
+        
+        es = Elasticsearch([elasticsearch_url])
+        return es.indices.exists(index=index_name)
 
     @classmethod
     def initialize_index(cls, index_path: str, index_name: str, elasticsearch_url: str = 'http://localhost:9200'):

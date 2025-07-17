@@ -13,7 +13,7 @@ from langchain_core.documents import Document
 
 from ..base import VectorStore
 from .dense import DenseStore
-from .sparse import SparseStore, ElasticsearchStore
+from .sparse import SparseStore, ElasticsearchStore, ELASTICSEARCH_INSTALLED
 from ..helpers import doc_from_dict
 
 class DualStore(VectorStore):
@@ -86,6 +86,8 @@ class DualStore(VectorStore):
         """
         # If both dense and sparse are elasticsearch, use unified ElasticsearchDualStore
         if dense_kind == 'elasticsearch' and sparse_kind == 'elasticsearch':
+            if not ELASTICSEARCH_INSTALLED:
+                raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
             return ElasticsearchDualStore(persist_directory=persist_directory, **kwargs)
         
         # Otherwise, use traditional dual store approach
