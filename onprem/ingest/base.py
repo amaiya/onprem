@@ -695,3 +695,10 @@ class VectorStore(ABC):
         Expected to return a list of Langchain Document objects.
         """
         pass
+
+    def search(self, query: str, **kwargs):
+        """
+        Generic search method that invokes the store's query method.
+        This provides a consistent interface across all store types.
+        """
+        return self.query(query, **kwargs)
