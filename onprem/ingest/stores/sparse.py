@@ -901,4 +901,6 @@ class ElasticsearchStore(SparseStore):
             total_hits = response['hits']['total']['value']
             
             return {'hits': hits, 'total_hits': total_hits}
+    
+    # get_db() method removed - use store methods instead
 

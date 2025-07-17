@@ -338,7 +338,7 @@ class LLM:
     def load_vectorstore(self, custom_vectorstore=None, reset=False):
         """
         Get `VectorStore` instance.
-        You can access the `langchain_chroma.Chroma` instance with `load_vectorstore().get_db()`.
+        Use the vectorstore's methods directly instead of accessing the underlying database.
         Supply `custom_vectorstore` to use your own `VectorStore` instance
         (i.e., subclass `DenseStore` or `SparseStore`).
         Supply `reset=True` to reload the default vectorstore.

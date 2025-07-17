@@ -99,17 +99,7 @@ class DualStore(VectorStore):
         )
 
 
-    def get_dense_db(self):
-        """
-        Returns the dense store's database instance.
-        """
-        return self.dense_store.get_db()
-    
-    def get_sparse_db(self):
-        """
-        Returns the sparse store's database instance.
-        """
-        return self.sparse_store.get_db()
+    # get_dense_db() and get_sparse_db() methods removed - use store methods instead
 
 
     #------------------------------
@@ -224,7 +214,7 @@ class DualStore(VectorStore):
         search_limit = limit * 10  # Get more candidates for better fusion
         
         # Get dense results
-        dense_results = self.dense_store.query(query, limit=search_limit, return_dict=True, **kwargs)
+        dense_results = self.dense_store.semantic_search(query, limit=search_limit, **kwargs)
         dense_hits = dense_results.get('hits', [])
         
         # Get sparse results  
@@ -273,10 +263,10 @@ class DualStore(VectorStore):
         return {'hits': results, 'total_hits': len(results)}
 
 
-class ElasticsearchDualStore(ElasticsearchStore):
+class ElasticsearchDualStore(DualStore):
     """
     A unified Elasticsearch-based dual store that supports both dense vector searches
-    and sparse text searches in a single index. Extends ElasticsearchStore with dense vector capabilities.
+    and sparse text searches in a single index. Uses composition to manage both stores.
     """
     
     def __init__(self,
@@ -287,191 +277,20 @@ class ElasticsearchDualStore(ElasticsearchStore):
         
         **Args:**
         - *dense_vector_field*: field name for dense vectors (default: 'dense_vector')
-        - All other args are passed to ElasticsearchStore (persist_location, index_name, basic_auth, etc.)
+        - All other args are passed to both stores (persist_location, index_name, basic_auth, etc.)
         """
-        self.dense_vector_field = dense_vector_field
+        # Initialize embedding model (required by DualStore interface)
+        self.init_embedding_model(**kwargs)
         
-        # Initialize parent ElasticsearchStore
-        super().__init__(**kwargs)
+        # Create both stores pointing to the same Elasticsearch index
+        from .dense import ElasticsearchDenseStore
+        self.dense_store = ElasticsearchDenseStore(
+            dense_vector_field=dense_vector_field, **kwargs)
+        self.sparse_store = ElasticsearchStore(**kwargs)
+        
+        # For compatibility with the VectorStore interface
+        self.persist_location = kwargs.get('persist_location')
 
-    def _create_index(self):
-        """Create Elasticsearch index with both text and vector mappings"""
-        # Get the standard mapping from parent class
-        mapping = {
-            "mappings": {
-                "properties": {
-                    # Essential fields for core functionality
-                    "page_content": {"type": "text", "analyzer": "standard"},
-                    "id": {"type": "keyword"},
-                    "source": {"type": "keyword"},
-                    "source_search": {"type": "text", "analyzer": "standard"},
-                    
-                    # Dense vector field for semantic search
-                    self.dense_vector_field: {
-                        "type": "dense_vector",
-                        "index": True,
-                        "similarity": "cosine"
-                    }
-                }
-            }
-        }
-        
-        self.es.indices.create(index=self.index_name, body=mapping)
+    # get_dense_db() and get_sparse_db() methods removed - use store methods instead
 
-    def doc2dict(self, doc: Document, include_vector: bool = True):
-        """Convert LangChain Document to expected format with optional vector embedding"""
-        # Get the standard dict from parent class
-        d = super().doc2dict(doc)
-        
-        # Add dense vector embedding if requested
-        if include_vector and hasattr(self, 'embeddings'):
-            try:
-                # Generate embedding for the document text
-                embedding = self.embeddings.embed_documents([doc.page_content])[0]
-                d[self.dense_vector_field] = embedding
-            except Exception as e:
-                # If embedding fails, continue without it
-                pass
-                
-        return d
-
-
-    def semantic_search(self,
-                       query: str,
-                       limit: int = 4,
-                       filters: Optional[Dict[str, str]] = None,
-                       return_dict: bool = True,
-                       **kwargs):
-        """Perform semantic search using dense vectors (equivalent to ChromaStore.semantic_search)"""
-        if not hasattr(self, 'embeddings'):
-            raise ValueError("Embeddings not initialized. Cannot perform semantic search.")
-        
-        # Generate query embedding
-        query_embedding = self.embeddings.embed_query(query)
-        
-        # Build Elasticsearch KNN query
-        knn_query = {
-            "knn": {
-                "field": self.dense_vector_field,
-                "query_vector": query_embedding,
-                "k": limit,
-                "num_candidates": limit * 10  # More candidates for better results
-            }
-        }
-        
-        # Add filters if provided
-        if filters:
-            filter_clauses = []
-            for k, v in filters.items():
-                filter_clauses.append({"term": {k: v}})
-            knn_query["knn"]["filter"] = filter_clauses
-        
-        # Execute search
-        response = self.es.search(index=self.index_name, body=knn_query, size=limit)
-        
-        # Process results
-        hits = []
-        for hit in response['hits']['hits']:
-            doc_dict = hit['_source'].copy()
-            # Convert Elasticsearch score to similarity score (higher is better)
-            doc_dict['score'] = hit['_score']
-            hits.append(doc_dict)
-        
-        total_hits = response['hits']['total']['value']
-        
-        if return_dict:
-            return {'hits': hits, 'total_hits': total_hits}
-        else:
-            return [doc_from_dict(hit) for hit in hits]
-
-
-
-    def get_dense_db(self):
-        """Returns the Elasticsearch client for dense operations"""
-        return self.es
-    
-    def get_sparse_db(self):
-        """Returns the Elasticsearch client for sparse operations"""
-        return self.es
-
-    # Override DualStore methods to work with unified store
-    @property
-    def dense_store(self):
-        """Return self as dense store for hybrid_search compatibility"""
-        return self
-    
-    @property
-    def sparse_store(self):
-        """Return self as sparse store for hybrid_search compatibility"""
-        return self
-
-    def hybrid_search(self, query: str, limit: int = 10, weights: Union[List[float], float] = 0.5, **kwargs):
-        """
-        Perform hybrid search combining dense and sparse results.
-        
-        **Args**:
-        - *query*: Search query string
-        - *limit*: Maximum number of results to return
-        - *weights*: Weights for combining dense and sparse scores. 
-                    If float, represents dense weight (sparse = 1 - dense).
-                    If list, [dense_weight, sparse_weight]
-        - *kwargs*: Additional arguments passed to individual search methods
-        
-        **Returns**:
-        Dictionary with 'hits' and 'total_hits' keys
-        """
-        # Create weights array if single number passed
-        if isinstance(weights, (int, float)):
-            weights = [weights, 1 - weights]
-        
-        # Get expanded results from both stores
-        search_limit = limit * 10  # Get more candidates for better fusion
-        
-        # Get dense results
-        dense_results = self.dense_store.query(query, limit=search_limit, return_dict=True, **kwargs)
-        dense_hits = dense_results.get('hits', [])
-        
-        # Get sparse results  
-        sparse_results = self.sparse_store.query(query, limit=search_limit, return_dict=True, **kwargs)
-        sparse_hits = sparse_results.get('hits', [])
-        
-        # Combine scores using hybrid approach
-        uids = {}
-        
-        # Process dense results (similarity-based scores)
-        if weights[0] > 0:
-            for dense_doc in dense_hits:
-                uid = dense_doc.get('id')
-                if uid:
-                    score = dense_doc.get('score', 0.0)
-                    uids[uid] = score * weights[0]
-        
-        # Process sparse results (use RRF since sparse doesn't have normalized scores)
-        if weights[1] > 0:
-            for rank, sparse_doc in enumerate(sparse_hits):
-                uid = sparse_doc.get('id')
-                if uid:
-                    # Use Reciprocal Rank Fusion (RRF) for sparse results
-                    rrf_score = 1.0 / (rank + 1)
-                    if uid in uids:
-                        uids[uid] += rrf_score * weights[1]
-                    else:
-                        uids[uid] = rrf_score * weights[1]
-        
-        # Sort by combined score and limit results
-        sorted_results = sorted(uids.items(), key=lambda x: x[1], reverse=True)[:limit]
-        
-        # Convert back to result dictionaries
-        results = []
-        # Create a lookup dict for efficient document retrieval
-        doc_lookup = {}
-        for doc in dense_hits + sparse_hits:
-            doc_lookup[doc.get('id')] = doc
-        
-        for uid, combined_score in sorted_results:
-            if uid in doc_lookup:
-                doc_dict = doc_lookup[uid].copy()
-                doc_dict['score'] = combined_score  # Update with combined score
-                results.append(doc_dict)
-        
-        return {'hits': results, 'total_hits': len(results)}
+    # hybrid_search method is inherited from DualStore
