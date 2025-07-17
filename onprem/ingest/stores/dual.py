@@ -304,28 +304,11 @@ class ElasticsearchDualStore(ElasticsearchStore):
         mapping = {
             "mappings": {
                 "properties": {
-                    # Text fields for sparse search (same as parent)
+                    # Essential fields for core functionality
                     "page_content": {"type": "text", "analyzer": "standard"},
                     "id": {"type": "keyword"},
                     "source": {"type": "keyword"},
                     "source_search": {"type": "text", "analyzer": "standard"},
-                    "filepath": {"type": "keyword"},
-                    "filepath_search": {"type": "text", "analyzer": "standard"},
-                    "filename": {"type": "keyword"},
-                    "ocr": {"type": "boolean"},
-                    "table": {"type": "boolean"},
-                    "markdown": {"type": "boolean"},
-                    "page": {"type": "integer"},
-                    "document_title": {"type": "text", "analyzer": "standard"},
-                    "md5": {"type": "keyword"},
-                    "mimetype": {"type": "keyword"},
-                    "extension": {"type": "keyword"},
-                    "filesize": {"type": "integer"},
-                    "createdate": {"type": "date"},
-                    "modifydate": {"type": "date"},
-                    "tags": {"type": "keyword"},
-                    "notes": {"type": "text", "analyzer": "standard"},
-                    "msg": {"type": "text", "analyzer": "standard"},
                     
                     # Dense vector field for semantic search
                     self.dense_vector_field: {

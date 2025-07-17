@@ -106,9 +106,9 @@ except ImportError:
 from ..helpers import doc_from_dict
 
 # ------------------------------------------------------------------------------
-# IMPORTANT: Metadata fields in langchain_core.documents.Document objects
-#            (i.e., the input to WSearch.index_documents) should
-#            ideally match schema fields below, but this is not strictly required.
+# IMPORTANT: The schema below contains only essential fields required for core
+#            functionality. All other fields (filepath, filename, tags, etc.) are
+#            automatically added as dynamic fields when documents are indexed.
 #
 #            The page_content field is the only truly required field in supplied
 #            Document objects. All other fields, including dynamic fields, are optional. 
@@ -119,23 +119,6 @@ DEFAULT_SCHEMA = Schema(
     id=ID(stored=True, unique=True),
     source=KEYWORD(stored=True, commas=True), 
     source_search=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-    filepath=KEYWORD(stored=True, commas=True),
-    filepath_search=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-    filename=KEYWORD(stored=True),
-    ocr=BOOLEAN(stored=True),
-    table=BOOLEAN(stored=True),
-    markdown=BOOLEAN(stored=True),
-    page=NUMERIC(stored=True),
-    document_title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-    md5=KEYWORD(stored=True),
-    mimetype=KEYWORD(stored=True),
-    extension=KEYWORD(stored=True),
-    filesize=NUMERIC(stored=True),
-    createdate=DATETIME(stored=True),
-    modifydate=DATETIME(stored=True),
-    tags=KEYWORD(stored=True, commas=True),
-    notes=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-    msg=TEXT(stored=True, analyzer=StemmingAnalyzer()),
     )
 DEFAULT_SCHEMA.add("*_t", TEXT(stored=True, analyzer=StemmingAnalyzer()), glob=True)
 DEFAULT_SCHEMA.add("*_k", KEYWORD(stored=True, commas=True), glob=True)
@@ -608,27 +591,11 @@ class ElasticsearchStore(SparseStore):
         mapping = {
             "mappings": {
                 "properties": {
+                    # Essential fields for core functionality
                     "page_content": {"type": "text", "analyzer": "standard"},
                     "id": {"type": "keyword"},
                     "source": {"type": "keyword"},
                     "source_search": {"type": "text", "analyzer": "standard"},
-                    "filepath": {"type": "keyword"},
-                    "filepath_search": {"type": "text", "analyzer": "standard"},
-                    "filename": {"type": "keyword"},
-                    "ocr": {"type": "boolean"},
-                    "table": {"type": "boolean"},
-                    "markdown": {"type": "boolean"},
-                    "page": {"type": "integer"},
-                    "document_title": {"type": "text", "analyzer": "standard"},
-                    "md5": {"type": "keyword"},
-                    "mimetype": {"type": "keyword"},
-                    "extension": {"type": "keyword"},
-                    "filesize": {"type": "integer"},
-                    "createdate": {"type": "date"},
-                    "modifydate": {"type": "date"},
-                    "tags": {"type": "keyword"},
-                    "notes": {"type": "text", "analyzer": "standard"},
-                    "msg": {"type": "text", "analyzer": "standard"},
                 }
             }
         }
