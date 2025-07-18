@@ -247,6 +247,11 @@ def test_elasticsearch_dual_store():
     
     # Test basic operations
     try:
+        # Clear any existing data first
+        if store.exists():
+            store.erase(confirm=False)
+            print("✓ Cleared existing index data")
+        
         # Test adding documents
         docs = [
             Document(page_content="Machine learning is a subset of artificial intelligence", 
@@ -266,7 +271,7 @@ def test_elasticsearch_dual_store():
         
         # Test semantic search (dense)
         try:
-            semantic_results = store.semantic_search("artificial intelligence", limit=2)
+            semantic_results = store.semantic_search("artificial intelligence", limit=2, return_dict=True)
             assert semantic_results['total_hits'] > 0, "Semantic search should return hits"
             assert 'hits' in semantic_results, "Semantic search results should contain 'hits' key"
             print(f"✓ semantic_search() returned {semantic_results['total_hits']} hits")

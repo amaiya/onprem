@@ -237,7 +237,7 @@ class DualStore(VectorStore):
         search_limit = limit * 10  # Get more candidates for better fusion
         
         # Get dense results
-        dense_results = self.dense_store.query(query, limit=search_limit, return_dict=True, **kwargs)
+        dense_results = self.dense_store.query(query, limit=search_limit, **kwargs)
         dense_hits = dense_results.get('hits', [])
         
         # Get sparse results  
