@@ -1,0 +1,37 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - section: Examples
+        contents:
+        - 99a_examples.ipynb
+        - 99b_examples_rag.ipynb
+        - 99c_examples_code.ipynb
+        - 99d_examples_semantic.ipynb
+        - 99e_examples_guided_prompts.ipynb
+        - 99f_examples_summarization.ipynb
+        - 99g_examples_information_extraction.ipynb
+        - 99h_examples_classification.ipynb
+        - 99i_examples_qualitative_survey_analysis.ipynb
+        - 99j_examples_legal_analysis.ipynb
+        - 99k_examples_agent.ipynb
+        - 99x_examples_openai.ipynb
+        - 99l_examples_vectorstore_factory.ipynb
+        - 99z_webapp.ipynb
+      - section: Source
+        contents:
+        - 00_llm.base.ipynb
+        - 00_llm.helpers.ipynb
+        - 01_ingest.base.ipynb
+        - 01_ingest.helpers.ipynb
+        - 01_ingest.stores.dense.ipynb
+        - 01_ingest.stores.sparse.ipynb
+        - 01_ingest.stores.dual.ipynb
+        - 02_utils.ipynb
+        - 04_pipelines.extractor.ipynb
+        - 04_pipelines.summarizer.ipynb
+        - 04_pipelines.classifier.ipynb
+        - 04_pipelines.guider.ipynb
+        - 04_pipelines.agent.base.ipynb
+        - 04_pipelines.agent.model.ipynb
+        - 04_pipelines.agent.tools.ipynb
