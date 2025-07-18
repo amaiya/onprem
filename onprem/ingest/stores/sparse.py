@@ -66,8 +66,20 @@ class SparseStore(VectorStore):
         """
         query = args[0]
         limit = kwargs.get('limit', 4)
-        n_candidates = kwargs.pop('n_candidates', kwargs.pop('limit', 4)*10)
-        results = self.query(*args, limit=n_candidates, **kwargs)['hits']
+        n_candidates = kwargs.pop('n_candidates', limit * 10)
+        
+        # Create a copy of kwargs to avoid modifying the original
+        query_kwargs = kwargs.copy()
+        query_kwargs['limit'] = n_candidates
+        
+        results = self.query(*args, **query_kwargs)['hits']
+        
+        # If no results but we have filters/where_document, try a broader search
+        if not results and (kwargs.get('filters') or kwargs.get('where_document')):
+            # Try with a wildcard query to get all documents, then filter
+            wildcard_args = ('*',) + args[1:]  # Replace query with wildcard
+            results = self.query(*wildcard_args, **query_kwargs)['hits']
+        
         if not results: return []
         
         # Check if subclass supports dynamic chunking

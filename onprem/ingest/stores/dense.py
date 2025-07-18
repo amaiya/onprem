@@ -478,13 +478,19 @@ class ElasticsearchDenseStore(DenseStore):
         # Generate query embedding
         query_embedding = self.embeddings.embed_query(query)
         
-        # Build Elasticsearch KNN query
-        knn_query = {
-            "knn": {
-                "field": self.dense_vector_field,
-                "query_vector": query_embedding,
-                "k": limit,
-                "num_candidates": limit * 10  # More candidates for better results
+        # Use script_score to get actual cosine similarity scores
+        script_query = {
+            "size": limit,
+            "query": {
+                "script_score": {
+                    "query": {"match_all": {}},  # Start with all documents
+                    "script": {
+                        "source": "cosineSimilarity(params.query_vector, '" + self.dense_vector_field + "') + 1.0",
+                        "params": {
+                            "query_vector": query_embedding
+                        }
+                    }
+                }
             }
         }
         
@@ -493,17 +499,24 @@ class ElasticsearchDenseStore(DenseStore):
             filter_clauses = []
             for k, v in filters.items():
                 filter_clauses.append({"term": {k: v}})
-            knn_query["knn"]["filter"] = filter_clauses
+            script_query["query"]["script_score"]["query"] = {
+                "bool": {
+                    "filter": filter_clauses
+                }
+            }
         
         # Execute search
-        response = self.es_store.es.search(index=self.es_store.index_name, body=knn_query, size=limit)
+        response = self.es_store.es.search(index=self.es_store.index_name, body=script_query)
         
         # Process results
         hits = []
         for hit in response['hits']['hits']:
             doc_dict = hit['_source'].copy()
-            # Convert Elasticsearch score to similarity score (higher is better)
-            doc_dict['score'] = hit['_score']
+            # Convert script_score back to actual cosine similarity
+            # script_score returns (cosineSimilarity + 1.0), so subtract 1.0
+            elasticsearch_score = hit['_score']
+            cosine_similarity = elasticsearch_score - 1.0
+            doc_dict['score'] = cosine_similarity
             hits.append(doc_dict)
         
         total_hits = response['hits']['total']['value']
