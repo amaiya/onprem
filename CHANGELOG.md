@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.15.4 (TBD)
+## 0.16.0 (2025-07-18)
 
 ### new:
 - Add support for Elasticsearch as vectorstore (#198, #199, #200, #201)
