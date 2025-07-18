@@ -73,7 +73,7 @@ def test_rag_dual(**kwargs):
     assert len(result["source_documents"]) > 0
     
     # Test keyword search (should use sparse store)
-    keyword_results = llm.vectorstore.keyword_search("ktrain")
+    keyword_results = llm.vectorstore.search("ktrain")
     assert len(keyword_results['hits']) > 0
     
     # Test semantic search (should use dense store)
@@ -160,7 +160,9 @@ def test_rag_sparse(**kwargs):
     # test filters
     assert(len(llm.query('climate', where_document='affordable')) == 1)
     assert(len(llm.query('climate', filters={'extension':'txt'})) == 2)
-    assert(len(llm.query('climate', filters={'extension':'pdf'})) == 0)
+    results= llm.query('climate', filters={'extension':'pdf'})
+    assert(len(results) == 4)  # no keyword matches so scores num_candidates and returns top 4
+    assert(results[0].metadata['score'] < 0.2) # no keyword matches
 
     # test semantic search
     result = llm.query('image classification')

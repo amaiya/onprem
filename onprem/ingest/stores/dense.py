@@ -470,7 +470,7 @@ class ElasticsearchDenseStore(DenseStore):
     
     def semantic_search(self, query: str, limit: int = 4, 
                        filters: Optional[Dict[str, str]] = None,
-                       return_dict: bool = True, **kwargs):
+                       return_dict: bool = False, **kwargs):
         """Perform semantic search using dense vectors"""
         if not hasattr(self, 'embeddings'):
             raise ValueError("Embeddings not initialized. Cannot perform semantic search.")
