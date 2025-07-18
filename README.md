@@ -86,8 +86,7 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 - \[2025/07\] v0.16.0 released and now includes out-of-the-box support
   for **Elasticsearch** as a vectorstore for RAG and semantic search in
   addition to other vectorstore backends. See the [example notebook on
-  vector
-  stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
+  vectorstores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
   for more information.
 - \[2025/06\] v0.15.0 released and now includes support for solving
   tasks with **agents**. See the [example notebook on
