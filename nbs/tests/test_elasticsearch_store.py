@@ -366,7 +366,7 @@ def test_dynamic_chunking():
     try:
         # Create test documents with different sizes
         docs = [
-            # Large document that will be chunked
+            # Large document that will be chunked - target term at the end
             Document(page_content=(
                 "This is the first paragraph about machine learning. "
                 "Machine learning is a subset of artificial intelligence that focuses on algorithms. "
@@ -375,19 +375,27 @@ def test_dynamic_chunking():
                 "The third paragraph covers natural language processing. "
                 "Natural language processing enables computers to understand human language. "
                 "The final paragraph talks about computer vision applications. "
-                "Computer vision allows machines to interpret and understand visual information."
+                "Computer vision allows machines to interpret and understand visual information from images and videos."
             ), metadata={"source": "large_doc.txt", "doc_type": "large"}),
             
-            # Medium document
+            # Medium document - has some similar terms but not the exact target
             Document(page_content=(
                 "Python is a programming language widely used in data science. "
                 "It has extensive libraries for machine learning and data analysis. "
-                "Popular libraries include NumPy, Pandas, and Scikit-learn."
+                "Popular libraries include NumPy, Pandas, and Scikit-learn. "
+                "Data visualization is important for understanding patterns."
             ), metadata={"source": "medium_doc.txt", "doc_type": "medium"}),
             
-            # Small document
-            Document(page_content="TensorFlow is an open-source machine learning framework.", 
-                    metadata={"source": "small_doc.txt", "doc_type": "small"})
+            # Small document - completely different topic
+            Document(page_content="TensorFlow is an open-source machine learning framework developed by Google.", 
+                    metadata={"source": "small_doc.txt", "doc_type": "small"}),
+            
+            # Additional document that might confuse traditional search
+            Document(page_content=(
+                "Computer graphics and rendering applications have evolved significantly. "
+                "Modern computers can process complex visual data efficiently. "
+                "However, this document doesn't contain the specific term we're looking for."
+            ), metadata={"source": "graphics_doc.txt", "doc_type": "distractor"})
         ]
         
         store.add_documents(docs)
@@ -484,25 +492,50 @@ def test_dynamic_chunking():
         print(f"  - With chunking: {len(semantic_results)} results")
         print(f"  - Without chunking: {len(no_chunk_results)} results")
         
-        # Validate that chunking can find more relevant results
-        # This is the key benefit - chunking should find content that traditional approach might miss
-        if len(semantic_results) > len(no_chunk_results):
-            print("✓ Chunking found more relevant results (demonstrates improved recall)")
-        elif len(semantic_results) == len(no_chunk_results):
-            print("✓ Same number of results (both approaches found the content)")
-        else:
-            print("⚠ Chunking found fewer results (this could happen due to scoring differences)")
+        # Check the actual scores to see if chunking provides better relevance
+        chunking_scores = [r.metadata.get('score', 0) for r in semantic_results if r.metadata.get('doc_type') == 'large']
+        traditional_scores = [r.metadata.get('score', 0) for r in no_chunk_results if r.metadata.get('doc_type') == 'large']
         
         # Most importantly, check that the large document is found with chunking
         found_large_in_chunked = any(r.metadata.get('doc_type') == 'large' for r in semantic_results)
         found_large_in_traditional = any(r.metadata.get('doc_type') == 'large' for r in no_chunk_results)
         
-        if found_large_in_chunked and not found_large_in_traditional:
-            print("✓ Chunking successfully found large document that traditional approach missed!")
-        elif found_large_in_chunked and found_large_in_traditional:
+        if found_large_in_chunked and found_large_in_traditional:
             print("✓ Both approaches found the large document")
+            
+            # Compare relevance scores
+            if chunking_scores and traditional_scores:
+                chunk_score = chunking_scores[0]
+                trad_score = traditional_scores[0]
+                print(f"  - Chunking score: {chunk_score:.4f}")
+                print(f"  - Traditional score: {trad_score:.4f}")
+                
+                if chunk_score > trad_score:
+                    print("✓ Chunking found more relevant content (higher score)")
+                elif chunk_score == trad_score:
+                    print("✓ Same relevance score (both found the content equally well)")
+                else:
+                    print("⚠ Traditional approach had higher score (unexpected)")
+            
+        elif found_large_in_chunked and not found_large_in_traditional:
+            print("✓ Chunking successfully found large document that traditional approach missed!")
+        elif not found_large_in_chunked and found_large_in_traditional:
+            print("⚠ Traditional approach found large document but chunking didn't (this shouldn't happen)")
         else:
-            print("⚠ Large document not found with chunking (this shouldn't happen)")
+            print("⚠ Neither approach found the large document (this shouldn't happen)")
+        
+        # Validate that chunking can find more relevant results
+        # The key benefit is better relevance scoring within documents, not necessarily more results
+        if len(semantic_results) > len(no_chunk_results):
+            print("✓ Chunking found more relevant results (demonstrates improved recall)")
+        elif len(semantic_results) == len(no_chunk_results):
+            print("✓ Same number of results (both approaches found the content)")
+            # Even with same number of results, chunking can provide better relevance
+            if found_large_in_chunked and chunking_scores and traditional_scores:
+                if chunking_scores[0] > traditional_scores[0]:
+                    print("✓ Chunking demonstrated improved relevance scoring")
+        else:
+            print("⚠ Chunking found fewer results (this could happen due to scoring differences)")
         
         # Check that chunking version doesn't have the extra metadata
         for result in no_chunk_results:
