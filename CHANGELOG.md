@@ -13,6 +13,20 @@ Most recent releases are shown at the top. Each release shows:
 - Add support for hybrid search using reciprocal rank fusion in DualStore (#197)
 
 ### changed
+- Added `return_chunks` parameter to `SparseStore.semantic_search` to better support
+  RAG with existing non-chunked search indices. (#203)
+
+### fixed:
+- N/A
+
+
+## 0.16.0 (2025-07-18)
+
+### new:
+- Add support for Elasticsearch as vectorstore (#198, #199, #200, #201)
+- Add support for hybrid search using reciprocal rank fusion in DualStore (#197)
+
+### changed
 - **Breaking Changes**: SparseStore and DenseStore now created using factories  (#191)
 - **Breaking Changes**: Changed `k` parameter to `limit` parameter in `LLM.ask`  (#194)
 - **Breaking Changes**: VectorStore.query methods now always return results in the

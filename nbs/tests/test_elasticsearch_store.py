@@ -143,10 +143,15 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
         assert 'hits' in query_results, "Query results should contain 'hits' key"
         print(f"✓ query() returned {query_results['total_hits']} hits")
         
-        # Test semantic search
+        # Test semantic search - test both return_chunks modes
         semantic_results = store.semantic_search("test document", limit=2)
         assert len(semantic_results) > 0, "Semantic search should return results"
         print(f"✓ semantic_search() returned {len(semantic_results)} results")
+        
+        # Test return_chunks parameter (should work even without chunking enabled)
+        semantic_results_no_chunks = store.semantic_search("test document", limit=2, return_chunks=False)
+        assert len(semantic_results_no_chunks) > 0, "Semantic search with return_chunks=False should return results"
+        print(f"✓ semantic_search() with return_chunks=False returned {len(semantic_results_no_chunks)} results")
         
         # Test dynamic field filtering
         try:
@@ -406,13 +411,72 @@ def test_dynamic_chunking():
         store.add_documents(docs)
         print("✓ Test documents added successfully")
         
-        # Test semantic search with chunking
+        # Test semantic search with chunking - Test both return_chunks modes
         print("\nTesting semantic search with dynamic chunking...")
         
-        # Search for something in the middle/end of the large document
-        semantic_results = store.semantic_search("computer vision applications", limit=3)
-        assert len(semantic_results) > 0, "Semantic search should return results"
-        print(f"✓ semantic_search() returned {len(semantic_results)} results")
+        # Test 1: return_chunks=True (default) - should return individual chunks
+        print("Testing return_chunks=True (default - individual chunks)...")
+        semantic_results_chunks = store.semantic_search("computer vision applications", limit=3)
+        assert len(semantic_results_chunks) > 0, "Semantic search should return results"
+        print(f"✓ semantic_search() with return_chunks=True returned {len(semantic_results_chunks)} results")
+        
+        # Test 2: return_chunks=False - should return full documents  
+        print("Testing return_chunks=False (full documents)...")
+        semantic_results_docs = store.semantic_search("computer vision applications", limit=3, return_chunks=False)
+        assert len(semantic_results_docs) > 0, "Semantic search should return results"
+        print(f"✓ semantic_search() with return_chunks=False returned {len(semantic_results_docs)} results")
+        
+        # Test the differences between the two modes
+        print("Comparing return_chunks modes...")
+        
+        # Check that chunk mode returns individual chunks
+        chunk_mode_found_chunk = False
+        for result in semantic_results_chunks:
+            if result.metadata.get('is_chunk', False):
+                chunk_mode_found_chunk = True
+                assert 'chunk_idx' in result.metadata, "Chunk mode should have chunk_idx"
+                print(f"✓ Found individual chunk with index {result.metadata['chunk_idx']}")
+                break
+        
+        # In chunk mode, we should find at least one result marked as a chunk
+        assert chunk_mode_found_chunk, "return_chunks=True should return individual chunks with is_chunk=True"
+        
+        # Check that document mode returns full documents
+        doc_mode_found_full_doc = False
+        for result in semantic_results_docs:
+            if result.metadata.get('doc_type') == 'large' and not result.metadata.get('is_chunk', False):
+                doc_mode_found_full_doc = True
+                assert 'chunks' in result.metadata, "Document mode should have chunks metadata"
+                assert 'best_chunk_text' in result.metadata, "Document mode should have best_chunk_text"
+                assert 'chunk_scores' in result.metadata, "Document mode should have chunk_scores metadata"
+                
+                # Verify chunk_scores is a parallel list of scores
+                chunk_scores = result.metadata['chunk_scores']
+                chunks = result.metadata['chunks']
+                assert isinstance(chunk_scores, list), "chunk_scores should be a list"
+                assert len(chunk_scores) > 1, "Should have multiple chunk scores"
+                assert len(chunk_scores) == len(chunks), "chunk_scores should be parallel to chunks"
+                
+                # Verify all scores are numeric
+                for score in chunk_scores:
+                    assert isinstance(score, (int, float)), "Each score should be numeric"
+                
+                # Verify chunks and scores are in document order (by chunk index)
+                # The highest score should correspond to the best chunk
+                best_chunk_idx = result.metadata['best_chunk_idx']
+                best_score = max(chunk_scores)
+                actual_best_score = chunk_scores[best_chunk_idx]
+                assert actual_best_score == best_score, f"Score at best_chunk_idx should be the highest score"
+                
+                print(f"✓ Found full document with {len(chunks)} chunks")
+                print(f"✓ All {len(chunk_scores)} chunk scores tracked (range: {min(chunk_scores):.3f} - {max(chunk_scores):.3f})")
+                print(f"✓ Best chunk (idx {best_chunk_idx}) has score {actual_best_score:.3f}")
+                break
+                
+        assert doc_mode_found_full_doc, "return_chunks=False should return full documents with chunk metadata"
+        
+        # Use semantic_results_docs for the rest of the test (backward compatibility)
+        semantic_results = semantic_results_docs
         
         # Check if we got enhanced metadata from chunking
         found_large_doc = False

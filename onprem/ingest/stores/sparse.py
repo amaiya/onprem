@@ -63,10 +63,15 @@ class SparseStore(VectorStore):
         
         If subclass supports dynamic chunking (has chunk_for_semantic_search=True), 
         it will chunk large documents and find the best matching chunks per document.
+        
+        Args:
+            return_chunks (bool): If True (default), return individual chunks as Document objects for RAG.
+                                 If False, return original documents with full content and all chunk scores.
         """
         query = args[0]
         limit = kwargs.get('limit', 4)
         n_candidates = kwargs.pop('n_candidates', limit * 10)
+        return_chunks = kwargs.pop('return_chunks', True)  # Default True for RAG optimization
         
         # Create a copy of kwargs to avoid modifying the original
         query_kwargs = kwargs.copy()
@@ -84,12 +89,17 @@ class SparseStore(VectorStore):
         
         # Check if subclass supports dynamic chunking
         if hasattr(self, 'chunk_for_semantic_search') and self.chunk_for_semantic_search:
-            return self._semantic_search_with_chunking(query, results, limit)
+            return self._semantic_search_with_chunking(query, results, limit, return_chunks)
         else:
-            return self._semantic_search_original(query, results, limit)
+            return self._semantic_search_original(query, results, limit, return_chunks)
     
-    def _semantic_search_original(self, query, results, limit):
-        """Original semantic search implementation without chunking."""
+    def _semantic_search_original(self, query, results, limit, return_chunks=True):
+        """Original semantic search implementation without chunking.
+        
+        Args:
+            return_chunks (bool): Included for API consistency. Since this method doesn't chunk,
+                                 this parameter doesn't affect behavior.
+        """
         texts = [r['page_content'] for r in results]
 
         cos_scores = self.compute_similarity(query, texts)
@@ -102,10 +112,14 @@ class SparseStore(VectorStore):
         sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:limit]
         return [doc_from_dict(r) for r in sorted_results]
     
-    def _semantic_search_with_chunking(self, query, results, limit):
+    def _semantic_search_with_chunking(self, query, results, limit, return_chunks=True):
         """
         Enhanced semantic search that dynamically chunks large documents.
         Subclasses can override this method to customize chunking behavior.
+        
+        Args:
+            return_chunks (bool): If True, return individual chunks as Document objects for RAG.
+                                 If False, return original documents with full content and all chunk scores.
         """
         from ..base import chunk_documents
         
@@ -143,13 +157,23 @@ class SparseStore(VectorStore):
         # Compute similarity for all chunks
         cos_scores = self.compute_similarity(query, all_chunks)
         
-        # Find best chunk for each document
+        # Store chunk scores and find best chunk for each document
         doc_best_scores = {}
         doc_best_chunks = {}
+        chunk_score_data = []  # Store all chunks with their scores
         
         for i, chunk_data in enumerate(doc_chunk_data):
             doc_idx = chunk_data['doc_idx']
             score = cos_scores[i]
+            
+            # Store chunk with score for potential individual return
+            chunk_score_data.append({
+                'doc_idx': doc_idx,
+                'chunk_idx': chunk_data['chunk_idx'],
+                'chunk_text': chunk_data['chunk_text'],
+                'score': score,
+                'original_doc': chunk_data['original_doc']
+            })
             
             # Keep track of best chunk per document
             if doc_idx not in doc_best_scores or score > doc_best_scores[doc_idx]:
@@ -160,39 +184,74 @@ class SparseStore(VectorStore):
                     'score': score
                 }
         
-        # Create results with document-level information
-        final_results = []
-        for doc_idx, best_chunk in doc_best_chunks.items():
-            doc = results[doc_idx].copy()
-            doc['score'] = best_chunk['score']
+        if return_chunks:
+            # Return individual chunks as Document objects, sorted by score
+            chunk_score_data.sort(key=lambda x: x['score'], reverse=True)
+            chunk_score_data = chunk_score_data[:limit]
             
-            # Get all chunks for this document
-            doc_chunks = [c['chunk_text'] for c in doc_chunk_data if c['doc_idx'] == doc_idx]
+            documents = []
+            for chunk_data in chunk_score_data:
+                # Create metadata from original document and add chunk-specific info
+                metadata = chunk_data['original_doc'].copy()
+                metadata['score'] = chunk_data['score']
+                metadata['chunk_idx'] = chunk_data['chunk_idx']
+                metadata['is_chunk'] = True
+                
+                doc = Document(
+                    page_content=chunk_data['chunk_text'],
+                    metadata=metadata
+                )
+                documents.append(doc)
             
-            # Add metadata about the best matching chunk
-            doc['best_chunk_text'] = best_chunk['chunk_text']
-            doc['best_chunk_idx'] = best_chunk['chunk_idx']
-            doc['total_chunks'] = len(doc_chunks)
+            return documents
+        else:
+            # Return original documents with scores from best chunks (backward compatibility)
+            final_results = []
+            for doc_idx, best_chunk in doc_best_chunks.items():
+                doc = results[doc_idx].copy()
+                doc['score'] = best_chunk['score']
+                
+                # Get all chunks for this document with their scores
+                doc_chunks_with_scores = []
+                for chunk_data in chunk_score_data:
+                    if chunk_data['doc_idx'] == doc_idx:
+                        doc_chunks_with_scores.append({
+                            'text': chunk_data['chunk_text'],
+                            'idx': chunk_data['chunk_idx'],
+                            'score': chunk_data['score']
+                        })
+                
+                # Sort chunks by their original order (by chunk_idx)
+                doc_chunks_with_scores.sort(key=lambda x: x['idx'])
+                
+                # Extract parallel arrays
+                doc_chunks = [item['text'] for item in doc_chunks_with_scores]
+                doc_chunk_scores = [item['score'] for item in doc_chunks_with_scores]
+                
+                # Add metadata about all chunks and the best matching chunk
+                doc['best_chunk_text'] = best_chunk['chunk_text']
+                doc['best_chunk_idx'] = best_chunk['chunk_idx']
+                doc['total_chunks'] = len(doc_chunks)
+                doc['chunk_scores'] = doc_chunk_scores  # Parallel list of scores
+                
+                final_results.append((doc, doc_chunks))
             
-            final_results.append((doc, doc_chunks))
-        
-        # Sort by best chunk score and limit
-        final_results.sort(key=lambda x: x[0]['score'], reverse=True)
-        final_results = final_results[:limit]
-        
-        # Create Document objects with chunks as content
-        documents = []
-        for doc_data, chunks in final_results:
-            # Create Document with chunks as page_content (join with newlines for LangChain compatibility)
-            # Store original chunks list in metadata
-            doc_data['chunks'] = chunks
-            doc = Document(
-                page_content='\n\n'.join(chunks),  # Join chunks for LangChain compatibility
-                metadata=doc_data
-            )
-            documents.append(doc)
-        
-        return documents
+            # Sort by best chunk score and limit
+            final_results.sort(key=lambda x: x[0]['score'], reverse=True)
+            final_results = final_results[:limit]
+            
+            # Create Document objects with chunks as content
+            documents = []
+            for doc_data, chunks in final_results:
+                # Store original chunks list in metadata
+                doc_data['chunks'] = chunks
+                doc = Document(
+                    page_content='\n\n'.join(chunks),  # Join chunks for LangChain compatibility
+                    metadata=doc_data
+                )
+                documents.append(doc)
+            
+            return documents
 
 # %% ../../../nbs/01_ingest.stores.sparse.ipynb 6
 import json
