@@ -326,6 +326,204 @@ def test_elasticsearch_dual_store():
         print(f"✗ Error during testing: {e}")
         return False
 
+def test_dynamic_chunking():
+    """Test dynamic chunking feature for semantic search"""
+    print("\n" + "="*50)
+    print("Testing Dynamic Chunking Feature...")
+    print("="*50)
+    
+    # Get configuration from environment
+    config = get_elastic_env()
+    config['index'] = config['index'] + '_chunking'  # Use different index
+    
+    print(f"Connecting to: {config['host']}")
+    print(f"Index: {config['index']}")
+    
+    # Test with dynamic chunking enabled
+    try:
+        store_params = {
+            'kind': 'elasticsearch',
+            'persist_location': config['host'],
+            'index_name': config['index'],
+            'verify_certs': config['verify_certs'],
+            'timeout': config['timeout'],
+            'chunk_for_semantic_search': True,  # Enable dynamic chunking
+            'chunk_size': 100,  # Small chunks for testing
+            'chunk_overlap': 20,
+        }
+        
+        if config['basic_auth']:
+            store_params['basic_auth'] = config['basic_auth']
+        if config['ca_certs']:
+            store_params['ca_certs'] = config['ca_certs']
+            
+        store = SparseStore.create(**store_params)
+        print("✓ ElasticsearchSparseStore with dynamic chunking created successfully")
+    except Exception as e:
+        print(f"✗ Error creating store with dynamic chunking: {e}")
+        return False
+    
+    try:
+        # Create test documents with different sizes
+        docs = [
+            # Large document that will be chunked
+            Document(page_content=(
+                "This is the first paragraph about machine learning. "
+                "Machine learning is a subset of artificial intelligence that focuses on algorithms. "
+                "The second paragraph discusses deep learning concepts. "
+                "Deep learning uses neural networks with multiple layers to process data. "
+                "The third paragraph covers natural language processing. "
+                "Natural language processing enables computers to understand human language. "
+                "The final paragraph talks about computer vision applications. "
+                "Computer vision allows machines to interpret and understand visual information."
+            ), metadata={"source": "large_doc.txt", "doc_type": "large"}),
+            
+            # Medium document
+            Document(page_content=(
+                "Python is a programming language widely used in data science. "
+                "It has extensive libraries for machine learning and data analysis. "
+                "Popular libraries include NumPy, Pandas, and Scikit-learn."
+            ), metadata={"source": "medium_doc.txt", "doc_type": "medium"}),
+            
+            # Small document
+            Document(page_content="TensorFlow is an open-source machine learning framework.", 
+                    metadata={"source": "small_doc.txt", "doc_type": "small"})
+        ]
+        
+        store.add_documents(docs)
+        print("✓ Test documents added successfully")
+        
+        # Test semantic search with chunking
+        print("\nTesting semantic search with dynamic chunking...")
+        
+        # Search for something in the middle/end of the large document
+        semantic_results = store.semantic_search("computer vision applications", limit=3)
+        assert len(semantic_results) > 0, "Semantic search should return results"
+        print(f"✓ semantic_search() returned {len(semantic_results)} results")
+        
+        # Check if we got enhanced metadata from chunking
+        found_large_doc = False
+        for result in semantic_results:
+            if result.metadata.get('doc_type') == 'large':
+                found_large_doc = True
+                
+                # Check for chunking metadata
+                assert 'best_chunk_text' in result.metadata, "Should have best_chunk_text metadata"
+                assert 'best_chunk_idx' in result.metadata, "Should have best_chunk_idx metadata"
+                assert 'total_chunks' in result.metadata, "Should have total_chunks metadata"
+                
+                # Check that chunks are available in metadata
+                assert 'chunks' in result.metadata, "Should have chunks in metadata when chunking is enabled"
+                assert isinstance(result.metadata['chunks'], list), "Chunks should be a list"
+                assert len(result.metadata['chunks']) > 1, "Should have multiple chunks"
+                
+                # Check that page_content is a string (joined chunks)
+                assert isinstance(result.page_content, str), "page_content should be a string (joined chunks)"
+                
+                print(f"✓ Large document chunking metadata found:")
+                print(f"  - Best chunk index: {result.metadata['best_chunk_idx']}")
+                print(f"  - Total chunks: {result.metadata['total_chunks']}")
+                print(f"  - Chunks available: {len(result.metadata['chunks'])} chunks")
+                print(f"  - Content type: {type(result.page_content)} (joined chunks)")
+                print(f"  - Best chunk preview: {result.metadata['best_chunk_text'][:60]}...")
+                
+                # The best chunk should contain our search term
+                best_chunk = result.metadata['best_chunk_text'].lower()
+                assert 'computer vision' in best_chunk or 'visual' in best_chunk, \
+                    "Best chunk should contain relevant terms"
+                print("✓ Best chunk contains relevant search terms")
+                
+                # Should have multiple chunks for the large document
+                assert result.metadata['total_chunks'] > 1, \
+                    f"Large document should be split into multiple chunks, got {result.metadata['total_chunks']}"
+                print(f"✓ Large document properly chunked into {result.metadata['total_chunks']} chunks")
+                
+                # Verify chunk metadata matches actual chunks
+                assert len(result.metadata['chunks']) == result.metadata['total_chunks'], \
+                    f"Chunks list length should match total_chunks: {len(result.metadata['chunks'])} vs {result.metadata['total_chunks']}"
+                print("✓ Chunks list matches total chunk count")
+                
+                # Verify page_content is joined chunks
+                expected_content = '\n\n'.join(result.metadata['chunks'])
+                assert result.page_content == expected_content, "page_content should be joined chunks"
+                print("✓ page_content correctly contains joined chunks")
+                
+                break
+        
+        assert found_large_doc, "Should find the large document in results"
+        print("✓ Large document found with proper chunking metadata")
+        
+        # Test that normal semantic search still works (without chunking metadata for small docs)
+        python_results = store.semantic_search("Python programming", limit=2)
+        assert len(python_results) > 0, "Should find Python-related document"
+        print("✓ Normal semantic search still works for other documents")
+        
+        # Compare with traditional approach
+        print("\nComparing with traditional approach...")
+        
+        # Create store without chunking for comparison
+        store_no_chunk = SparseStore.create(
+            kind='elasticsearch',
+            persist_location=config['host'],
+            index_name=config['index'] + '_no_chunk',
+            verify_certs=config['verify_certs'],
+            timeout=config['timeout'],
+            chunk_for_semantic_search=False,  # Disable dynamic chunking
+            basic_auth=config['basic_auth'],
+            ca_certs=config['ca_certs']
+        )
+        
+        # Add same documents
+        store_no_chunk.add_documents(docs)
+        
+        # Search for the same term
+        no_chunk_results = store_no_chunk.semantic_search("computer vision applications", limit=3)
+        
+        # Compare results
+        print(f"✓ Results comparison:")
+        print(f"  - With chunking: {len(semantic_results)} results")
+        print(f"  - Without chunking: {len(no_chunk_results)} results")
+        
+        # Validate that chunking can find more relevant results
+        # This is the key benefit - chunking should find content that traditional approach might miss
+        if len(semantic_results) > len(no_chunk_results):
+            print("✓ Chunking found more relevant results (demonstrates improved recall)")
+        elif len(semantic_results) == len(no_chunk_results):
+            print("✓ Same number of results (both approaches found the content)")
+        else:
+            print("⚠ Chunking found fewer results (this could happen due to scoring differences)")
+        
+        # Most importantly, check that the large document is found with chunking
+        found_large_in_chunked = any(r.metadata.get('doc_type') == 'large' for r in semantic_results)
+        found_large_in_traditional = any(r.metadata.get('doc_type') == 'large' for r in no_chunk_results)
+        
+        if found_large_in_chunked and not found_large_in_traditional:
+            print("✓ Chunking successfully found large document that traditional approach missed!")
+        elif found_large_in_chunked and found_large_in_traditional:
+            print("✓ Both approaches found the large document")
+        else:
+            print("⚠ Large document not found with chunking (this shouldn't happen)")
+        
+        # Check that chunking version doesn't have the extra metadata
+        for result in no_chunk_results:
+            assert 'best_chunk_text' not in result.metadata, "No-chunking version should not have chunk metadata"
+            assert 'chunks' not in result.metadata, "No-chunking version should not have chunks metadata"
+        print("✓ No-chunking version correctly lacks chunk metadata")
+        
+        # Clean up both indices
+        store.erase(confirm=False)
+        store_no_chunk.erase(confirm=False)
+        print("✓ Test indices erased successfully")
+        
+        return True
+        
+    except AssertionError as e:
+        print(f"✗ Test assertion failed: {e}")
+        return False
+    except Exception as e:
+        print(f"✗ Error during dynamic chunking test: {e}")
+        return False
+
 if __name__ == "__main__":
     # Test ElasticsearchStore (sparse only)
     success1 = test_elasticsearch_store()
@@ -333,17 +531,23 @@ if __name__ == "__main__":
     # Test ElasticsearchDualStore (unified dense + sparse)
     success2 = test_elasticsearch_dual_store()
     
-    if success1 and success2:
+    # Test dynamic chunking feature
+    success3 = test_dynamic_chunking()
+    
+    if success1 and success2 and success3:
         print("\n🎉 All tests passed!")
         print("\nSUMMARY:")
         print("✓ ElasticsearchSparseStore (sparse text search)")
         print("✓ ElasticsearchStore (unified dense + sparse)")
+        print("✓ Dynamic chunking for semantic search")
     else:
         print("\n❌ Some tests failed")
         if not success1:
-            print("✗ ElasticsearchStore test failed")
+            print("✗ ElasticsearchSparseStore test failed")
         if not success2:
             print("✗ ElasticsearchStore test failed")
+        if not success3:
+            print("✗ Dynamic chunking test failed")
     
         # Example of testing with specific parameters
         print("\n" + "="*50)

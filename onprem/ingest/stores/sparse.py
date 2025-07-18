@@ -527,6 +527,10 @@ class ElasticsearchSparseStore(SparseStore):
                 source_field: Optional[str] = 'source',
                 id_field: str = 'id',
                 content_analyzer: str = 'standard',
+                # Dynamic chunking for semantic search
+                chunk_for_semantic_search: bool = False,
+                chunk_size: int = 500,
+                chunk_overlap: int = 50,
                 **kwargs,
         ):
         """
@@ -547,6 +551,9 @@ class ElasticsearchSparseStore(SparseStore):
         - *source_field*: field name for document source (default: 'source', set to None to disable)
         - *id_field*: field name for document ID (default: 'id')
         - *content_analyzer*: analyzer for content field (default: 'standard')
+        - *chunk_for_semantic_search*: if True, dynamically chunk large documents for semantic search (default: False)
+        - *chunk_size*: size of chunks when chunk_for_semantic_search=True (default: 500)
+        - *chunk_overlap*: overlap between chunks when chunk_for_semantic_search=True (default: 50)
         - *embedding_model*: name of sentence-transformers model
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
         - *embedding_encode_kwargs*: arguments to encode method of
@@ -565,6 +572,11 @@ class ElasticsearchSparseStore(SparseStore):
         self.source_field = source_field
         self.id_field = id_field
         self.content_analyzer = content_analyzer
+        
+        # Store dynamic chunking settings
+        self.chunk_for_semantic_search = chunk_for_semantic_search
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
         
         # Prepare Elasticsearch client parameters
         es_params = {
@@ -992,7 +1004,7 @@ class ElasticsearchSparseStore(SparseStore):
     
     def semantic_search(self, *args, **kwargs):
         """
-        Override semantic search to use custom field mappings.
+        Override semantic search to use custom field mappings and optional dynamic chunking.
         """
         query = args[0]
         limit = kwargs.get('limit', 4)
@@ -1000,6 +1012,15 @@ class ElasticsearchSparseStore(SparseStore):
         results = self.query(*args, limit=n_candidates, **kwargs)['hits']
         if not results: return []
         
+        if self.chunk_for_semantic_search:
+            # Dynamic chunking approach for large documents
+            return self._semantic_search_with_chunking(query, results, limit)
+        else:
+            # Original approach - use full document text
+            return self._semantic_search_original(query, results, limit)
+    
+    def _semantic_search_original(self, query, results, limit):
+        """Original semantic search implementation without chunking."""
         # Use custom content field instead of hardcoded 'page_content'
         texts = [r[self.content_field] for r in results]
 
@@ -1012,6 +1033,94 @@ class ElasticsearchSparseStore(SparseStore):
         # Sort results by similarity in descending order
         sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:limit]
         return [doc_from_dict(r) for r in sorted_results]
+    
+    def _semantic_search_with_chunking(self, query, results, limit):
+        """
+        Enhanced semantic search that dynamically chunks large documents,
+        finds best matching chunks, but returns document-level results.
+        Uses the existing chunk_documents function for consistent chunking behavior.
+        """
+        from ..base import chunk_documents
+        
+        # Process each document and its chunks
+        doc_chunk_data = []
+        all_chunks = []
+        
+        for doc_idx, doc in enumerate(results):
+            # Extract text and use chunk_documents to split it
+            doc_text = doc[self.content_field]
+            chunk_docs = chunk_documents(
+                [doc_text],  # Pass text string directly
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap
+            )
+            
+            # Store mapping of chunks to original document
+            for chunk_idx, chunk_doc in enumerate(chunk_docs):
+                doc_chunk_data.append({
+                    'doc_idx': doc_idx,
+                    'chunk_idx': chunk_idx,
+                    'chunk_text': chunk_doc.page_content,
+                    'original_doc': doc
+                })
+                all_chunks.append(chunk_doc.page_content)
+        
+        if not all_chunks:
+            return []
+        
+        # Compute similarity for all chunks
+        cos_scores = self.compute_similarity(query, all_chunks)
+        
+        # Find best chunk for each document
+        doc_best_scores = {}
+        doc_best_chunks = {}
+        
+        for i, chunk_data in enumerate(doc_chunk_data):
+            doc_idx = chunk_data['doc_idx']
+            score = cos_scores[i]
+            
+            # Keep track of best chunk per document
+            if doc_idx not in doc_best_scores or score > doc_best_scores[doc_idx]:
+                doc_best_scores[doc_idx] = score
+                doc_best_chunks[doc_idx] = {
+                    'chunk_text': chunk_data['chunk_text'],
+                    'chunk_idx': chunk_data['chunk_idx'],
+                    'score': score
+                }
+        
+        # Create results with document-level information
+        final_results = []
+        for doc_idx, best_chunk in doc_best_chunks.items():
+            doc = results[doc_idx].copy()
+            doc['score'] = best_chunk['score']
+            
+            # Get all chunks for this document
+            doc_chunks = [c['chunk_text'] for c in doc_chunk_data if c['doc_idx'] == doc_idx]
+            
+            # Add metadata about the best matching chunk
+            doc['best_chunk_text'] = best_chunk['chunk_text']
+            doc['best_chunk_idx'] = best_chunk['chunk_idx']
+            doc['total_chunks'] = len(doc_chunks)
+            
+            final_results.append((doc, doc_chunks))
+        
+        # Sort by best chunk score and limit
+        final_results.sort(key=lambda x: x[0]['score'], reverse=True)
+        final_results = final_results[:limit]
+        
+        # Create Document objects with chunks as content
+        documents = []
+        for doc_data, chunks in final_results:
+            # Create Document with chunks as page_content (join with newlines for LangChain compatibility)
+            # Store original chunks list in metadata
+            doc_data['chunks'] = chunks
+            doc = Document(
+                page_content='\n\n'.join(chunks),  # Join chunks for LangChain compatibility
+                metadata=doc_data
+            )
+            documents.append(doc)
+        
+        return documents
 
     # get_db() method removed - use store methods instead
 

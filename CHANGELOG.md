@@ -24,6 +24,7 @@ Most recent releases are shown at the top. Each release shows:
 - Simplify vectorstore schemas by removing fields that can be dynamically added (#200)
 - change `persist_directory` to `persist_location` in stores (#200)
 - make content, id, and source fields dynamic to support existing ES indices (#202)
+- `ingest.base.chunk_documents` now accepts a list of texts
 
 ### fixed:
 - code improvements/fixes thanks to @Mirza-Samad-Ahmed-Baig (#188)

@@ -417,7 +417,7 @@ def process_folder(
 
 
 def chunk_documents(
-    documents: list, # list of LangChain Documents
+    documents: list, # list of LangChain Documents or list of text strings
     chunk_size: int = DEFAULT_CHUNK_SIZE, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
     infer_table_structure:bool = False, # This should be set to True if `documents` may contain contain tables (i.e., `doc.metadata['table']=True`).
@@ -427,8 +427,12 @@ def chunk_documents(
 
 ) -> List[Document]:
     """
-    Process list of Documents by splitting into chunks.
+    Process list of Documents or text strings by splitting into chunks.
+    If text strings are provided, they will be converted to Document objects internally.
     """
+    # Convert text strings to Documents if needed
+    if documents and isinstance(documents[0], str):
+        documents = [Document(page_content=text, metadata={}) for text in documents]
     # remove tables before chunking
     if infer_table_structure and not kwargs.get('pdf_unstructured', False):
         tables = [d for d in documents if d.metadata.get('table', False)]
