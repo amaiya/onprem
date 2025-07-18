@@ -157,9 +157,15 @@ class DualStore(VectorStore):
         The `source` can either be the full path to a document
         or a parent folder.  Returns the number of records deleted.
         """
-        num_deleted_1 = self.dense_store.remove_source(source)
-        num_deleted_2 = self.sparse_store.remove_source(source)
-        return num_deleted_1
+        try:
+            num_deleted_1 = self.dense_store.remove_source(source)
+            num_deleted_2 = self.sparse_store.remove_source(source)
+            return num_deleted_1
+        except ValueError as e:
+            # Re-raise with more context if source field is not configured
+            if "no source field configured" in str(e):
+                raise ValueError("Cannot remove by source: neither dense nor sparse store has a source field configured. Set source_field parameter when creating the store.")
+            raise
     
 
     def update_documents(self, doc_dicts: dict, **kwargs):

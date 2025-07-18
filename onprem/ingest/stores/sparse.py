@@ -522,6 +522,11 @@ class ElasticsearchSparseStore(SparseStore):
                 max_retries: int = 3,
                 retry_on_timeout: bool = True,
                 maxsize: int = 25,
+                # Field mapping parameters for existing indices
+                content_field: str = 'page_content',
+                source_field: Optional[str] = 'source',
+                id_field: str = 'id',
+                content_analyzer: str = 'standard',
                 **kwargs,
         ):
         """
@@ -538,6 +543,10 @@ class ElasticsearchSparseStore(SparseStore):
         - *max_retries*: maximum number of retries
         - *retry_on_timeout*: whether to retry on timeout
         - *maxsize*: maximum number of connections in the pool
+        - *content_field*: field name for document content (default: 'page_content')
+        - *source_field*: field name for document source (default: 'source', set to None to disable)
+        - *id_field*: field name for document ID (default: 'id')
+        - *content_analyzer*: analyzer for content field (default: 'standard')
         - *embedding_model*: name of sentence-transformers model
         - *embedding_model_kwargs*: arguments to embedding model (e.g., `{device':'cpu'}`). If None, GPU used if available.
         - *embedding_encode_kwargs*: arguments to encode method of
@@ -550,6 +559,12 @@ class ElasticsearchSparseStore(SparseStore):
         self.elasticsearch_url = persist_location if persist_location else 'http://localhost:9200'
         self.persist_location = self.elasticsearch_url  # for interface compatibility
         self.index_name = index_name
+        
+        # Store field mappings for custom field names
+        self.content_field = content_field
+        self.source_field = source_field
+        self.id_field = id_field
+        self.content_analyzer = content_analyzer
         
         # Prepare Elasticsearch client parameters
         es_params = {
@@ -580,27 +595,89 @@ class ElasticsearchSparseStore(SparseStore):
         # Initialize Elasticsearch client
         self.es = Elasticsearch([self.elasticsearch_url], **es_params)
         
-        # Create index if it doesn't exist
+        # Handle index creation or validation
         if not self.es.indices.exists(index=self.index_name):
             self._create_index()
+        else:
+            # Validate existing index has required fields
+            self._validate_existing_index()
         
         self.init_embedding_model(**embedding_kwargs)  # stored as self.embeddings
 
     def _create_index(self):
-        """Create Elasticsearch index with appropriate mapping"""
+        """Create Elasticsearch index with appropriate mapping using custom field names and analyzer"""
+        properties = {
+            # Essential fields for core functionality using custom field names and analyzer
+            self.content_field: {"type": "text", "analyzer": self.content_analyzer},
+            self.id_field: {"type": "keyword"},
+        }
+        
+        # Add source field only if specified
+        if self.source_field:
+            properties[self.source_field] = {"type": "keyword"}
+            properties[f"{self.source_field}_search"] = {"type": "text", "analyzer": self.content_analyzer}
+        
         mapping = {
             "mappings": {
-                "properties": {
-                    # Essential fields for core functionality
-                    "page_content": {"type": "text", "analyzer": "standard"},
-                    "id": {"type": "keyword"},
-                    "source": {"type": "keyword"},
-                    "source_search": {"type": "text", "analyzer": "standard"},
-                }
+                "properties": properties
             }
         }
         
         self.es.indices.create(index=self.index_name, body=mapping)
+
+    def _validate_existing_index(self):
+        """Validate that existing index has required fields with compatible types"""
+        try:
+            # Get index mapping
+            mapping_response = self.es.indices.get_mapping(index=self.index_name)
+            index_mapping = mapping_response[self.index_name]['mappings']
+            properties = index_mapping.get('properties', {})
+            
+            # Check required fields exist
+            missing_fields = []
+            incompatible_fields = []
+            
+            # Validate content field
+            if self.content_field not in properties:
+                missing_fields.append(f"Content field '{self.content_field}' not found")
+            else:
+                field_props = properties[self.content_field]
+                if field_props.get('type') != 'text':
+                    incompatible_fields.append(f"Content field '{self.content_field}' is not text type (found: {field_props.get('type')})")
+            
+            # Validate ID field  
+            if self.id_field not in properties:
+                missing_fields.append(f"ID field '{self.id_field}' not found")
+            else:
+                field_props = properties[self.id_field]
+                if field_props.get('type') not in ['keyword', '_id']:
+                    incompatible_fields.append(f"ID field '{self.id_field}' is not keyword type (found: {field_props.get('type')})")
+            
+            # Validate source field (only if specified)
+            if self.source_field:
+                if self.source_field not in properties:
+                    missing_fields.append(f"Source field '{self.source_field}' not found")
+                else:
+                    field_props = properties[self.source_field]
+                    if field_props.get('type') not in ['keyword', 'text']:
+                        incompatible_fields.append(f"Source field '{self.source_field}' is not keyword or text type (found: {field_props.get('type')})")
+            
+            # Report validation results
+            if missing_fields:
+                warnings.warn(f"Index validation warnings - Missing fields: {'; '.join(missing_fields)}")
+            
+            if incompatible_fields:
+                warnings.warn(f"Index validation warnings - Incompatible field types: {'; '.join(incompatible_fields)}")
+                
+            # Log analyzer info for content field if it exists
+            if self.content_field in properties:
+                content_props = properties[self.content_field]
+                existing_analyzer = content_props.get('analyzer', 'default')
+                if existing_analyzer != self.content_analyzer:
+                    warnings.warn(f"Content field '{self.content_field}' uses analyzer '{existing_analyzer}' but you specified '{self.content_analyzer}'. Search behavior may be affected.")
+                    
+        except Exception as e:
+            warnings.warn(f"Could not validate index mapping: {e}")
 
     @classmethod
     def index_exists_in(cls, index_path: str, index_name: Optional[str] = None, elasticsearch_url: str = 'http://localhost:9200'):
@@ -643,15 +720,20 @@ class ElasticsearchSparseStore(SparseStore):
 
     def doc2dict(self, doc: Document):
         """
-        Convert LangChain Document to expected format
+        Convert LangChain Document to expected format using custom field mappings
         """
         d = {}
         for k, v in doc.metadata.items():
             d[k] = v
-        d['id'] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
-        d['page_content'] = self.normalize_text(doc.page_content)
-        if 'source' in d:
-            d['source_search'] = d['source']
+        
+        # Use custom field mappings
+        d[self.id_field] = uuid.uuid4().hex if not doc.metadata.get('id', '') else doc.metadata['id']
+        d[self.content_field] = self.normalize_text(doc.page_content)
+        
+        # Handle source field mapping (only if source field is configured)
+        if self.source_field and 'source' in d:
+            d[self.source_field] = d.pop('source')  # Replace 'source' with custom field name
+            d[f"{self.source_field}_search"] = d[self.source_field]
         if 'filepath' in d:
             d['filepath_search'] = d['filepath']
         return d
@@ -740,7 +822,9 @@ class ElasticsearchSparseStore(SparseStore):
         """
         remove all documents associated with `source`.
         """
-        return self.delete_by_prefix(source, field='source')
+        if not self.source_field:
+            raise ValueError("Cannot remove by source: no source field configured. Set source_field parameter when creating the store.")
+        return self.delete_by_prefix(source, field=self.source_field)
 
     def update_documents(self,
                          doc_dicts: dict,
@@ -805,7 +889,7 @@ class ElasticsearchSparseStore(SparseStore):
 
     def query(self,
               query: str,
-              fields: Sequence = ["page_content"],
+              fields: Sequence = None,
               highlight: bool = True,
               limit: int = 10,
               page: int = 1,
@@ -818,6 +902,10 @@ class ElasticsearchSparseStore(SparseStore):
         """
         Queries the Elasticsearch index
         """
+        # Use custom content field as default if no fields specified
+        if fields is None:
+            fields = [self.content_field]
+        
         q = self._preprocess_query(query)
         
         # Build Elasticsearch query
@@ -902,5 +990,28 @@ class ElasticsearchSparseStore(SparseStore):
             
             return {'hits': hits, 'total_hits': total_hits}
     
+    def semantic_search(self, *args, **kwargs):
+        """
+        Override semantic search to use custom field mappings.
+        """
+        query = args[0]
+        limit = kwargs.get('limit', 4)
+        n_candidates = kwargs.pop('n_candidates', kwargs.pop('limit', 4)*10)
+        results = self.query(*args, limit=n_candidates, **kwargs)['hits']
+        if not results: return []
+        
+        # Use custom content field instead of hardcoded 'page_content'
+        texts = [r[self.content_field] for r in results]
+
+        cos_scores = self.compute_similarity(query, texts)
+
+        # Assign scores back to results
+        for i, score in enumerate(cos_scores):
+            results[i]['score'] = score
+
+        # Sort results by similarity in descending order
+        sorted_results = sorted(results, key=lambda x: x['score'], reverse=True)[:limit]
+        return [doc_from_dict(r) for r in sorted_results]
+
     # get_db() method removed - use store methods instead
 

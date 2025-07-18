@@ -347,23 +347,28 @@ class ElasticsearchDenseStore(DenseStore):
         """Ensure the index has vector field mappings"""
         # Check if index exists
         if not self.es_store.es.indices.exists(index=self.es_store.index_name):
-            # Create index with vector mappings
+            # Create index with vector mappings using custom field names from es_store
+            properties = {
+                # Essential fields for core functionality using custom field names and analyzer
+                self.es_store.content_field: {"type": "text", "analyzer": self.es_store.content_analyzer},
+                self.es_store.id_field: {"type": "keyword"},
+                
+                # Dense vector field for semantic search
+                self.dense_vector_field: {
+                    "type": "dense_vector",
+                    "index": True,
+                    "similarity": "cosine"
+                }
+            }
+            
+            # Add source field only if specified
+            if self.es_store.source_field:
+                properties[self.es_store.source_field] = {"type": "keyword"}
+                properties[f"{self.es_store.source_field}_search"] = {"type": "text", "analyzer": self.es_store.content_analyzer}
+            
             mapping = {
                 "mappings": {
-                    "properties": {
-                        # Essential fields for core functionality
-                        "page_content": {"type": "text", "analyzer": "standard"},
-                        "id": {"type": "keyword"},
-                        "source": {"type": "keyword"},
-                        "source_search": {"type": "text", "analyzer": "standard"},
-                        
-                        # Dense vector field for semantic search
-                        self.dense_vector_field: {
-                            "type": "dense_vector",
-                            "index": True,
-                            "similarity": "cosine"
-                        }
-                    }
+                    "properties": properties
                 }
             }
             
@@ -418,7 +423,7 @@ class ElasticsearchDenseStore(DenseStore):
             d = self.doc2dict(doc, include_vector=True)
             action = {
                 "_index": self.es_store.index_name,
-                "_id": d['id'],
+                "_id": d[self.es_store.id_field],
                 "_source": d
             }
             actions.append(action)
