@@ -116,14 +116,31 @@ class DualStore(VectorStore):
     def add_documents(self, documents: Sequence[Document], batch_size: int = 1000, **kwargs):
         """
         Add documents to both dense and sparse stores.
+        If both stores use the same persist_location, only add once.
         """
         if not documents:
             return
-        # Add to dense store
-        self.dense_store.add_documents(documents, batch_size=batch_size, **kwargs)
         
-        # Add to sparse store
-        self.sparse_store.add_documents(documents, **kwargs)
+        # Check if both stores are using the same persist_location
+        if self._stores_share_same_location():
+            # Use the dense store since it typically includes both text and vectors
+            self.dense_store.add_documents(documents, batch_size=batch_size, **kwargs)
+        else:
+            # Traditional dual store approach - add to both stores
+            self.dense_store.add_documents(documents, batch_size=batch_size, **kwargs)
+            self.sparse_store.add_documents(documents, **kwargs)
+    
+    def _stores_share_same_location(self):
+        """
+        Check if the dense and sparse stores are using the same persist_location.
+        This indicates they're using the same underlying storage/index.
+        """
+        dense_location = getattr(self.dense_store, 'persist_location', None)
+        sparse_location = getattr(self.sparse_store, 'persist_location', None)
+        
+        return (dense_location is not None and 
+                sparse_location is not None and 
+                dense_location == sparse_location)
 
    
     def remove_document(self, id_to_delete):

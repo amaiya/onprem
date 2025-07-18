@@ -288,6 +288,31 @@ def test_elasticsearch_dual_store():
         # Test that both dense and sparse functionality work (implementation details are abstracted)
         print("✓ Both dense and sparse search functionality working correctly")
         
+        # Test for duplicate documents (regression test for issue #XXX)
+        try:
+            expected_doc_count = len(docs)
+            actual_doc_count = store.get_size()
+            assert actual_doc_count == expected_doc_count, f"Expected {expected_doc_count} documents but got {actual_doc_count}. This suggests duplicate indexing."
+            print(f"✓ No duplicate documents: {actual_doc_count} documents stored as expected")
+            
+            # Also check for duplicate results in search
+            search_results = store.search("machine learning", limit=10)
+            unique_ids = set()
+            duplicate_count = 0
+            for hit in search_results['hits']:
+                hit_id = hit.get('id')
+                if hit_id in unique_ids:
+                    duplicate_count += 1
+                else:
+                    unique_ids.add(hit_id)
+            
+            assert duplicate_count == 0, f"Found {duplicate_count} duplicate documents in search results"
+            print(f"✓ No duplicate search results: {len(unique_ids)} unique documents found")
+            
+        except Exception as e:
+            print(f"⚠ Duplicate document test failed: {e}")
+            assert False, f"Duplicate document test should not fail: {e}"
+        
         # Clean up
         store.erase(confirm=False)
         print("✓ Index erased successfully")

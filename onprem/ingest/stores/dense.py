@@ -334,6 +334,9 @@ class ElasticsearchDenseStore(DenseStore):
         # Create underlying ElasticsearchSparseStore instance
         self.es_store = ElasticsearchSparseStore(**kwargs)
         
+        # Set persist_location to match the underlying store
+        self.persist_location = self.es_store.persist_location
+        
         # Initialize embedding model
         self.init_embedding_model(**kwargs)
         
