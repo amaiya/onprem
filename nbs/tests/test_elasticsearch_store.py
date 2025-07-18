@@ -6,7 +6,7 @@ Test script for ElasticsearchStore implementation
 import os
 from langchain_core.documents import Document
 from onprem.ingest.stores.sparse import SparseStore
-from onprem.ingest.stores.dual import DualStore
+from onprem.ingest.stores import VectorStoreFactory
 
 def get_elastic_env():
     """
@@ -227,8 +227,7 @@ def test_elasticsearch_dual_store():
     # Test factory method
     try:
         store_params = {
-            'dense_kind': 'elasticsearch',
-            'sparse_kind': 'elasticsearch',
+            'kind': 'elasticsearch',
             'persist_location': config['host'],
             'index_name': config['index'],
             'verify_certs': config['verify_certs'],
@@ -240,7 +239,7 @@ def test_elasticsearch_dual_store():
         if config['ca_certs']:
             store_params['ca_certs'] = config['ca_certs']
             
-        store = DualStore.create(**store_params)
+        store = VectorStoreFactory.create(**store_params)
         print("✓ ElasticsearchStore created successfully")
     except Exception as e:
         print(f"✗ Error creating ElasticsearchStore: {e}")

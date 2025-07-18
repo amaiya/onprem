@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.15.4 (TBD)
 
 ### new:
-- Add support for Elasticsearch as vectorstore (#198, #199, #200)
+- Add support for Elasticsearch as vectorstore (#198, #199, #200, #201)
 - Add support for hybrid search using reciprocal rank fusion in DualStore (#197)
 
 ### changed
