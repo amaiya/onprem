@@ -6,11 +6,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.16.0 (2025-07-18)
+## 0.16.1 (2025-07-18)
 
 ### new:
-- Add support for Elasticsearch as vectorstore (#198, #199, #200, #201)
-- Add support for hybrid search using reciprocal rank fusion in DualStore (#197)
+- N/A
 
 ### changed
 - Added `return_chunks` parameter to `SparseStore.semantic_search` to better support
