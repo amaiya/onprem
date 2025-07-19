@@ -32,10 +32,10 @@ class SparseStore(VectorStore):
             basic_auth: tuple of (username, password) for basic authentication
             verify_certs: whether to verify SSL certificates (default: True)
             ca_certs: path to CA certificate file
-            timeout: connection timeout in seconds (default: 30)
+            timeout: connection timeout in seconds (default: 30, becomes request_timeout for v9+ compatibility)
             max_retries: maximum number of retries (default: 3)
             retry_on_timeout: whether to retry on timeout (default: True)
-            maxsize: maximum number of connections in the pool (default: 25)
+            maxsize: maximum number of connections in the pool (default: 25, removed for Elasticsearch v9+ compatibility)
 
         Returns:
             SparseStore instance
@@ -731,10 +731,10 @@ class ElasticsearchSparseStore(SparseStore):
         - *basic_auth*: tuple of (username, password) for basic authentication
         - *verify_certs*: whether to verify SSL certificates
         - *ca_certs*: path to CA certificate file
-        - *timeout*: connection timeout in seconds
+        - *timeout*: connection timeout in seconds (becomes request_timeout internally for Elasticsearch v9+ compatibility)
         - *max_retries*: maximum number of retries
         - *retry_on_timeout*: whether to retry on timeout
-        - *maxsize*: maximum number of connections in the pool
+        - *maxsize*: maximum number of connections in the pool (removed for Elasticsearch v9+ compatibility)
         - *content_field*: field name for document content (default: 'page_content')
         - *source_field*: field name for document source (default: 'source', set to None to disable)
         - *id_field*: field name for document ID (default: 'id')
@@ -748,7 +748,7 @@ class ElasticsearchSparseStore(SparseStore):
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         """
         if not ELASTICSEARCH_INSTALLED:
-            raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
+            raise ImportError('Please install a version of elasticsearch compatible with your running Elasticsearch instance. For latest: pip install elasticsearch')
 
         # Use persist_location as Elasticsearch URL
         self.elasticsearch_url = persist_location if persist_location else 'http://localhost:9200'
@@ -767,11 +767,12 @@ class ElasticsearchSparseStore(SparseStore):
         self.chunk_overlap = chunk_overlap
         
         # Prepare Elasticsearch client parameters
+        # Use request_timeout (works in both v8 and v9) instead of timeout (removed in v9)
+        # Remove maxsize (removed in v9) for compatibility
         es_params = {
-            'timeout': timeout,
+            'request_timeout': timeout,
             'max_retries': max_retries,
             'retry_on_timeout': retry_on_timeout,
-            'maxsize': maxsize,
         }
         
         # Add authentication if provided
