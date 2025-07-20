@@ -196,12 +196,13 @@ def extract_noun_phrases(text:str):
     }
 
     def safe_nltk_download(resource_id):
+        import contextlib
         path = RESOURCE_PATHS[resource_id]
         try:
             nltk.data.find(path)
         except LookupError:
             with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
-                nltk.download(resource_id, quiet=True)
+                nltk.download(resource_id, quiet=False)
 
     safe_nltk_download("punkt")
     safe_nltk_download("averaged_perceptron_tagger")
