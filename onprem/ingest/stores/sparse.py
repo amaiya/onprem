@@ -52,6 +52,46 @@ class SparseStore(VectorStore):
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
 
+
+    def _augment_query(self, query:str):
+        """
+        Augments query for better search ranking
+        """
+
+    def is_boolean_or_phrase_query(self, query: str) -> bool:
+        """
+        Returns True if the query looks like a Boolean or phrase query.
+        """
+        # Check for quoted phrases
+        if re.search(r'"[^"]+"', query):
+            return True
+
+        # Check for Boolean operators (case-insensitive)
+        if re.search(r'\b(AND|OR|NOT)\b', query, re.IGNORECASE):
+            return True
+
+        return False
+
+    def augment_query(self, query: str) -> str:
+        """
+        Augments a natural language query with extracted noun phrases,
+        unless the query already looks like a Boolean or phrase query.
+        """
+        from onprem.utils import extract_noun_phrases
+
+        if self.is_boolean_or_phrase_query(query):
+            return query  # Don't modify Boolean/phrase queries
+
+        noun_phrases = extract_noun_phrases(query)
+        if not noun_phrases:
+            return query
+
+        quoted_nps = [f'"{np}"^2.0' for np in noun_phrases]
+        or_clause = " OR ".join(quoted_nps)
+
+        return f"({query}) OR ({or_clause})"
+
+
     def semantic_search(self, *args, **kwargs):
         """
         Any subclass of SparseStore can inherit this method for on-the-fly semantic searches.
@@ -68,7 +108,10 @@ class SparseStore(VectorStore):
             return_chunks (bool): If True (default), return individual chunks as Document objects for RAG.
                                  If False, return original documents with full content and all chunk scores.
         """
-        query = args[0]
+        args = list(args)
+        query = args[0] # for semantic search
+        args[0] = self.augment_query(args[0]) # for keyword search
+
         limit = kwargs.get('limit', 4)
         n_candidates = kwargs.pop('n_candidates', limit * 10)
         return_chunks = kwargs.pop('return_chunks', True)  # Default True for RAG optimization

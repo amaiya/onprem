@@ -5,8 +5,8 @@
 # %% auto 0
 __all__ = ['DEFAULT_DB', 'MODELS_SUBDIR', 'WEBAPP_SUBDIR', 'CAPTION_STR', 'download', 'get_datadir', 'get_models_dir',
            'get_webapp_dir', 'batch_list', 'batch_generator', 'filtered_generator', 'segment', 'remove_sentence',
-           'contains_sentence', 'md_to_df', 'html_to_df', 'df_to_md', 'SafeFormatter', 'format_string',
-           'get_template_vars']
+           'contains_sentence', 'extract_noun_phrases', 'md_to_df', 'html_to_df', 'df_to_md', 'SafeFormatter',
+           'format_string', 'get_template_vars']
 
 # %% ../nbs/02_utils.ipynb 3
 import os
