@@ -1109,20 +1109,13 @@ class ElasticsearchSparseStore(SparseStore):
         
         q = self._preprocess_query(query)
         
-        # Build Elasticsearch query
-        if len(fields) == 1:
-            es_query = {
-                "match": {
-                    fields[0]: q
-                }
+        es_query = {
+            "query_string": {
+                "query": q,
+                "fields": fields,
+                "default_operator": "OR"
             }
-        else:
-            es_query = {
-                "multi_match": {
-                    "query": q,
-                    "fields": fields
-                }
-            }
+        }
         
         # Add additional document filter
         if where_document:

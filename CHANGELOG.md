@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - add additional available options to VectorStoreFactory (#205)
+- use query_string in Elasticsearch queries (#206)
 
 ### fixed:
 - N/A
