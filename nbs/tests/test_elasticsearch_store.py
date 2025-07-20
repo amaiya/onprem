@@ -288,9 +288,8 @@ def test_elasticsearch_dual_store():
         try:
             assert hasattr(store, 'hybrid_search'), "ElasticsearchDualStore should have hybrid_search method"
             hybrid_results = store.hybrid_search("machine learning AI", limit=2, weights=[0.6, 0.4])
-            assert hybrid_results['total_hits'] > 0, "Hybrid search should return hits"
-            assert 'hits' in hybrid_results, "Hybrid search results should contain 'hits' key"
-            print(f"✓ hybrid_search() returned {hybrid_results['total_hits']} hits")
+            assert len(hybrid_results) > 0, "Hybrid search should return hits"
+            print(f"✓ hybrid_search() returned {len(hybrid_results)} hits")
         except Exception as e:
             print(f"⚠ hybrid_search() failed: {e}")
             assert False, f"Hybrid search should not fail: {e}"

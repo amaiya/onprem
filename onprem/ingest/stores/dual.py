@@ -283,7 +283,7 @@ class DualStore(VectorStore):
                 doc_dict['score'] = combined_score  # Update with combined score
                 results.append(doc_dict)
         
-        return {'hits': results, 'total_hits': len(results)}
+        return [doc_from_dict(r) for r in results] 
 
 
 class ElasticsearchStore(DualStore):

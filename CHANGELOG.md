@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.16.3 (TBD)
+## 0.16.3 (2025-07-20)
 
 ### new:
 - N/A
@@ -18,6 +18,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - fixes/improvements to `semantic_search` on sparse vector stores (#207)
+- fix return value of `hybrid_search` and corresponding notebook (#208)
 
 
 ## 0.16.2 (2025-07-18)
