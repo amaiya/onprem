@@ -13,11 +13,11 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - add additional available options to VectorStoreFactory (#205)
-- use query_string in Elasticsearch queries (#206)
+- use `query_string` in Elasticsearch queries (#206)
 - `extract_noun_phrases` added to `utils` module
 
 ### fixed:
-- N/A
+- fixes/improvements to `semantic_search` on sparse vector stores (#207)
 
 
 ## 0.16.2 (2025-07-18)

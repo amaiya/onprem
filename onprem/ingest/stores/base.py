@@ -192,9 +192,9 @@ class VectorStore(ABC):
         pass
 
     @abstractmethod
-    def query(self, query, limit=4):
+    def search(self, query, limit=4):
         """
-        Queries the vector store.
+        Searches the vector store.
         For sparse stores, this is simply a keyword-search.
         For dense stores, this is equivalent to semantic_search except results
         are in the form of dictionary with keys 'hits' and 'total_hits'.
@@ -211,9 +211,9 @@ class VectorStore(ABC):
         """
         pass
 
-    def search(self, query: str, **kwargs):
+    def query(self, query: str, **kwargs):
         """
-        Generic search method that invokes the store's query method.
+        Generic query method that invokes the store's search method.
         This provides a consistent interface across all store types.
         """
-        return self.query(query, **kwargs)
+        return self.search(query, **kwargs)

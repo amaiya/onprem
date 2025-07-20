@@ -202,11 +202,11 @@ class DualStore(VectorStore):
         sparse_erased = self.sparse_store.erase(confirm=False)  # Second confirmation not needed
         return dense_erased and sparse_erased
     
-    def query(self, q: str, **kwargs):
+    def search(self, q: str, **kwargs):
         """
         Query using the sparse store.
         """
-        return self.sparse_store.query(q, **kwargs)
+        return self.sparse_store.search(q, **kwargs)
     
     def semantic_search(self, query: str, **kwargs):
         """
@@ -237,11 +237,11 @@ class DualStore(VectorStore):
         search_limit = limit * 10  # Get more candidates for better fusion
         
         # Get dense results
-        dense_results = self.dense_store.query(query, limit=search_limit, **kwargs)
+        dense_results = self.dense_store.search(query, limit=search_limit, **kwargs)
         dense_hits = dense_results.get('hits', [])
         
         # Get sparse results  
-        sparse_results = self.sparse_store.query(query, limit=search_limit, return_dict=True, **kwargs)
+        sparse_results = self.sparse_store.search(query, limit=search_limit, return_dict=True, **kwargs)
         sparse_hits = sparse_results.get('hits', [])
         
         # Combine scores using hybrid approach

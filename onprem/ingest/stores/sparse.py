@@ -53,12 +53,8 @@ class SparseStore(VectorStore):
             raise ValueError(f"Unknown SparseStore type: {kind}")
 
 
-    def _augment_query(self, query:str):
-        """
-        Augments query for better search ranking
-        """
 
-    def is_boolean_or_phrase_query(self, query: str) -> bool:
+    def _is_boolean_or_phrase_query(self, query: str) -> bool:
         """
         Returns True if the query looks like a Boolean or phrase query.
         """
@@ -79,7 +75,7 @@ class SparseStore(VectorStore):
         """
         from onprem.utils import extract_noun_phrases
 
-        if self.is_boolean_or_phrase_query(query):
+        if self._is_boolean_or_phrase_query(query):
             return query  # Don't modify Boolean/phrase queries
 
         noun_phrases = extract_noun_phrases(query)
@@ -111,6 +107,7 @@ class SparseStore(VectorStore):
         args = list(args)
         query = args[0] # for semantic search
         args[0] = self.augment_query(args[0]) # for keyword search
+        args = tuple(args)
 
         limit = kwargs.get('limit', 4)
         n_candidates = kwargs.pop('n_candidates', limit * 10)
@@ -120,13 +117,13 @@ class SparseStore(VectorStore):
         query_kwargs = kwargs.copy()
         query_kwargs['limit'] = n_candidates
         
-        results = self.query(*args, **query_kwargs)['hits']
+        results = self.search(*args, **query_kwargs)['hits']
         
         # If no results but we have filters/where_document, try a broader search
         if not results and (kwargs.get('filters') or kwargs.get('where_document')):
             # Try with a wildcard query to get all documents, then filter
             wildcard_args = ('*',) + args[1:]  # Replace query with wildcard
-            results = self.query(*wildcard_args, **query_kwargs)['hits']
+            results = self.search(*wildcard_args, **query_kwargs)['hits']
         
         if not results: return []
         
@@ -610,7 +607,7 @@ class WhooshStore(SparseStore):
         """
         Get an indexed record by ID
         """
-        r = self.query(f'id:{id}', return_dict=True)
+        r = self.search(f'id:{id}', return_dict=True)
         return r['hits'][0] if len(r['hits']) > 0 else None
 
 
@@ -646,7 +643,7 @@ class WhooshStore(SparseStore):
         return False
 
 
-    def query(
+    def search(
             self,
             query: str,
             fields: Sequence = ["page_content"],
@@ -1131,7 +1128,7 @@ class ElasticsearchSparseStore(SparseStore):
                 return False
         return False
 
-    def query(self,
+    def search(self,
               query: str,
               fields: Sequence = None,
               highlight: bool = True,

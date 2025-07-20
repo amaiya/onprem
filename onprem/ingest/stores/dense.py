@@ -280,7 +280,7 @@ class ChromaStore(DenseStore):
         return False
 
 
-    def query(self,
+    def search(self,
               query:str, # query string
               limit:int = 4, # max number of results to return
               filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
@@ -308,7 +308,7 @@ class ChromaStore(DenseStore):
         """
         Perform a semantic search of the vector DB. Returns results as LangChain Document objects.
         """
-        return self.query(*args, return_dict=False, **kwargs)
+        return self.search(*args, return_dict=False, **kwargs)
     
 
 class ElasticsearchDenseStore(DenseStore):
@@ -464,7 +464,7 @@ class ElasticsearchDenseStore(DenseStore):
         """Erase all documents"""
         return self.es_store.erase(confirm=confirm)
     
-    def query(self, query: str, limit: int = 4, **kwargs):
+    def search(self, query: str, limit: int = 4, **kwargs):
         """Perform semantic search (alias for semantic_search)"""
         return self.semantic_search(query, limit=limit, return_dict=True, **kwargs)
     
