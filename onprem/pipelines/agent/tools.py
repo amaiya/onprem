@@ -119,7 +119,7 @@ def createtool(target, config=None):
         return ToolFactory.fromdocs(target, config if config else {})
 
 # %% ../../../nbs/04_pipelines.agent.tools.ipynb 5
-from ...ingest.base import VectorStore
+from ...ingest.stores.base import VectorStore
 
 class VectorStoreTool(Tool):
     """

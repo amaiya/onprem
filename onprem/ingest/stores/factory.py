@@ -7,7 +7,7 @@ __all__ = ['VectorStoreFactory']
 
 # %% ../../../nbs/01_ingest.stores.factory.ipynb 3
 from .dense import DenseStore, ChromaStore
-from .sparse import SparseStore, WhooshStore
+from .sparse import SparseStore, WhooshStore, ElasticsearchSparseStore
 from .dual import DualStore, ElasticsearchStore
 
 class VectorStoreFactory:
@@ -32,7 +32,9 @@ class VectorStoreFactory:
             kind: Type of store to create. One of:
                   - 'chroma' (default): ChromaStore for dense vector search
                   - 'whoosh': WhooshStore for sparse text search  
+                  - 'chroma+-whoosh': a DualStore using  ChromaStore and WhooshStore 
                   - 'elasticsearch': ElasticsearchStore for unified dense + sparse
+                  - 'elasticsearch_sparse': For use with pre-existing Elasticsearch indices without dense vectors
             persist_location: Where to store the index/database
             **kwargs: Additional arguments passed to the store constructor
             
@@ -55,8 +57,21 @@ class VectorStoreFactory:
             return ChromaStore(persist_location=persist_location, **kwargs)
         elif kind == 'whoosh':
             return WhooshStore(persist_location=persist_location, **kwargs)
+        elif kind== 'chroma+whoosh':
+            dense_path = os.path.join(self.vectordb_path, 'dense')
+            sparse_path = os.path.join(self.vectordb_path, 'sparse')
+            return DualStore(
+                    sparse_persist_location=sparse_path,
+                    dense_persist_location=dense_path,
+                    **kwargs
+                )
         elif kind == 'elasticsearch':
             return ElasticsearchStore(persist_location=persist_location, **kwargs)
+        elif kind == 'elasticsearch_sparse':
+            return ElasticsearchSparseStore(
+                        persist_location=persist_location, # 'https://localhost:9200'
+                        **kwargs                           # e.g., index_name, basic_auth, etc.
+                    )
         else:
-            raise ValueError(f"Unknown store kind: {kind}. Supported: 'chroma', 'whoosh', 'elasticsearch'")
+            raise ValueError(f"Unknown store kind: {kind}. Supported vector store types: 'chroma', 'whoosh', 'chroma-whoosh', 'elasticsearch', 'elasticsearch-sparse")
 

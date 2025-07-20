@@ -6,7 +6,7 @@
 __all__ = ['COLLECTION_NAME', 'DenseStore', 'ChromaStore', 'ElasticsearchDenseStore']
 
 # %% ../../../nbs/01_ingest.stores.dense.ipynb 3
-from ..base import VectorStore
+from .base import VectorStore
 
 
 class DenseStore(VectorStore):

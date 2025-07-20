@@ -11,7 +11,7 @@ from typing import List, Optional, Callable, Dict, Sequence, Union
 from tqdm import tqdm
 from langchain_core.documents import Document
 
-from ..base import VectorStore
+from .base import VectorStore
 from .dense import DenseStore
 from .sparse import SparseStore, ElasticsearchSparseStore, ELASTICSEARCH_INSTALLED
 from ..helpers import doc_from_dict

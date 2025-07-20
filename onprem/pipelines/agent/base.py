@@ -9,7 +9,7 @@ __all__ = ['Agent']
 import onprem
 from typing import Callable
 import warnings
-from ...ingest.base import VectorStore
+from ...ingest.stores.base import VectorStore
 
 from smolagents import PythonInterpreterTool, WebSearchTool, VisitWebpageTool, Tool as SA_Tool
 from smolagents import ToolCallingAgent, CodeAgent

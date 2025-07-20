@@ -6,7 +6,7 @@
 __all__ = ['DEFAULT_SCHEMA', 'SparseStore', 'default_schema', 'WhooshStore', 'ElasticsearchSparseStore']
 
 # %% ../../../nbs/01_ingest.stores.sparse.ipynb 3
-from ..base import VectorStore
+from .base import VectorStore
 from ..helpers import doc_from_dict
 
 
