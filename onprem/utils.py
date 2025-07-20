@@ -183,6 +183,50 @@ def contains_sentence(sentence, text):
     return re.search(pattern, text, flags=re.IGNORECASE) is not None
 
 
+def extract_noun_phrases(text:str):
+    """
+    Extracts noun phrases from text
+    """
+    import nltk
+    from nltk import word_tokenize, pos_tag, RegexpParser
+
+    RESOURCE_PATHS = {
+        'punkt': 'tokenizers/punkt',
+        'averaged_perceptron_tagger': 'taggers/averaged_perceptron_tagger'
+    }
+
+    def safe_nltk_download(resource_id):
+        path = RESOURCE_PATHS[resource_id]
+        try:
+            nltk.data.find(path)
+        except LookupError:
+            with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
+                nltk.download(resource_id, quiet=True)
+
+    safe_nltk_download("punkt")
+    safe_nltk_download("averaged_perceptron_tagger")
+
+    tokens = word_tokenize(text)
+    tagged = pos_tag(tokens)
+
+    # Grammar includes VBG to handle gerunds in noun phrases
+    grammar = r"""
+      NP: {<JJ.*>*<NN.*|VBG>+}
+    """
+
+    chunker = RegexpParser(grammar)
+    tree = chunker.parse(tagged)
+
+    noun_phrases = [
+        " ".join(word for word, tag in subtree.leaves())
+        for subtree in tree.subtrees()
+        if subtree.label() == "NP"
+    ]
+    return noun_phrases
+
+
+
+
 from typing import Any
 
 from io import StringIO
