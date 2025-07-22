@@ -1,4 +1,4 @@
-__version__ = "0.16.3"
+__version__ = "0.16.4"
 
 # reference: https://stackoverflow.com/questions/74918614/error-importing-seaborn-module-attributeerror/76760670#76760670
 import numpy as np

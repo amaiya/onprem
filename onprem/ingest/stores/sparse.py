@@ -87,7 +87,24 @@ class SparseStore(VectorStore):
 
         return f"({query}) OR ({or_clause})"
 
+    def _preprocess_query(self, query):
+        """
+        Removes question marks at the end of queries.
+        This essentially disables using the question mark
+        wildcard at end of search term so legitimate
+        questions are not treated differntly depending
+        on existence of question mark.
+        """
+        # Replace question marks at the end of the query
+        if query.endswith('?'):
+            query = query[:-1]
 
+        # Handle quoted phrases with question marks at the end
+        import re
+        # Match question marks at the end of words or at the end of quoted phrases
+        query = re.sub(r'(\w)\?([\s\"]|$)', r'\1\2', query)
+        return query
+    
     def semantic_search(self, *args, **kwargs):
         """
         Any subclass of SparseStore can inherit this method for on-the-fly semantic searches.
@@ -435,17 +452,6 @@ class WhooshStore(SparseStore):
         return ix
 
 
-    def normalize_text(self, text):
-        """
-        normalize text (e.g., from "classiﬁcation" to "classification")
-        """
-        import unicodedata
-        try:
-            return unicodedata.normalize('NFKC', text)
-        except:
-            return text
-
-
     def doc2dict(self, doc:Document):
         """
         Convert LangChain Document to expected format
@@ -489,24 +495,6 @@ class WhooshStore(SparseStore):
             else:
                 return 0
 
-
-    def _preprocess_query(self, query):
-        """
-        Removes question marks at the end of queries.
-        This essentially disables using the question mark
-        wildcard at end of search term so legitimate
-        questions are not treated differntly depending
-        on existence of question mark.
-        """
-        # Replace question marks at the end of the query
-        if query.endswith('?'):
-            query = query[:-1]
-
-        # Handle quoted phrases with question marks at the end
-        import re
-        # Match question marks at the end of words or at the end of quoted phrases
-        query = re.sub(r'(\w)\?([\s\"]|$)', r'\1\2', query)
-        return query
         
     
     #------------------------------
@@ -949,15 +937,6 @@ class ElasticsearchSparseStore(SparseStore):
         store = cls(persist_location=elasticsearch_url, index_name=index_name)
         return store.es
 
-    def normalize_text(self, text):
-        """
-        normalize text (e.g., from "classiﬁcation" to "classification")
-        """
-        import unicodedata
-        try:
-            return unicodedata.normalize('NFKC', text)
-        except:
-            return text
 
     def doc2dict(self, doc: Document):
         """
@@ -994,16 +973,6 @@ class ElasticsearchSparseStore(SparseStore):
         response = self.es.delete_by_query(index=self.index_name, body=query)
         return response.get('deleted', 0)
 
-    def _preprocess_query(self, query):
-        """
-        Preprocess query for Elasticsearch
-        """
-        if query.endswith('?'):
-            query = query[:-1]
-        
-        import re
-        query = re.sub(r'(\w)\?([\s\"]|$)', r'\1\2', query)
-        return query
 
     # overrides of abstract methods
     def exists(self):

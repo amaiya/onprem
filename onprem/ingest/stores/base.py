@@ -125,6 +125,16 @@ class VectorStore(ABC):
                             'Please invoke the `ingest` method or `add_document` method.')
 
 
+    def normalize_text(self, text):
+        """
+        normalize text (e.g., from "classiﬁcation" to "classification")
+        """
+        import unicodedata
+        try:
+            return unicodedata.normalize('NFKC', text)
+        except:
+            return text
+ 
 
     @abstractmethod
     def exists(self):
