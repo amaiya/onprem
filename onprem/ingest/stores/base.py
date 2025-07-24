@@ -180,12 +180,6 @@ class VectorStore(ABC):
         """
         pass
 
-    @abstractmethod
-    def get_doc(self, id):
-        """
-        Retrieve a document by ID
-        """
-        pass
 
     @abstractmethod
     def get_size(self):
@@ -200,6 +194,15 @@ class VectorStore(ABC):
         Removes all documents in vector store
         """
         pass
+
+
+    @abstractmethod
+    def get_doc(self, id):
+        """
+        Retrieve a document by ID
+        """
+        pass
+
 
     @abstractmethod
     def search(self, query, limit=4):
