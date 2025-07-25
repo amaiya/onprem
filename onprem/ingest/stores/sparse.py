@@ -136,7 +136,6 @@ class SparseStore(VectorStore):
         query = args[0] # for semantic search
         args[0] = self.augment_query(args[0]) # for keyword search
         args = tuple(args)
-        print(args[0])
 
         limit = kwargs.get('limit', 4)
         n_candidates = kwargs.pop('n_candidates', getattr(self, 'n_candidates', limit * 10)) # check instance attribute first
