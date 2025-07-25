@@ -183,26 +183,45 @@ def contains_sentence(sentence, text):
     return re.search(pattern, text, flags=re.IGNORECASE) is not None
 
 
-def extract_noun_phrases(text:str):
+
+def extract_noun_phrases(text: str):
     """
-    Extracts noun phrases from text
+    Extracts noun phrases from text, including coordinated phrases like
+    "generative AI and live fire testing", and removes subphrases like "AI"
+    if "generative AI" is also found.
+    Example:
+    text = "Natural language processing (NLP) is a field of computer science, artificial intelligence, "
+           "and computational linguistics concerned with the interactions between computers and human "
+           "(natural) languages."
+    extract_noun_phrases(text)
+    ['Natural language processing',
+	 'NLP',
+	 'field',
+	 'computer science',
+	 'artificial intelligence',
+	 'computational linguistics',
+	 'interactions',
+	 'computers',
+	 'languages',
+	 'human']
     """
     import nltk
     from nltk import word_tokenize, pos_tag, RegexpParser
+    import contextlib
 
+    # Ensure NLTK data is available
     RESOURCE_PATHS = {
         'punkt': 'tokenizers/punkt',
         'averaged_perceptron_tagger': 'taggers/averaged_perceptron_tagger'
     }
 
     def safe_nltk_download(resource_id):
-        import contextlib
         path = RESOURCE_PATHS[resource_id]
         try:
             nltk.data.find(path)
         except LookupError:
             with contextlib.redirect_stdout(None), contextlib.redirect_stderr(None):
-                nltk.download(resource_id, quiet=False)
+                nltk.download(resource_id, quiet=True)
 
     safe_nltk_download("punkt")
     safe_nltk_download("averaged_perceptron_tagger")
@@ -210,21 +229,64 @@ def extract_noun_phrases(text:str):
     tokens = word_tokenize(text)
     tagged = pos_tag(tokens)
 
-    # Grammar includes VBG to handle gerunds in noun phrases
+    # Grammar: includes compound nouns, gerunds, and adjectives
     grammar = r"""
-      NP: {<JJ.*>*<NN.*|VBG>+}
+        NP:
+            {<JJ.*>*<NN.*>+}           # adjectives followed by nouns
+            {<NN.*>+<NN.*>}            # noun-noun compounds
+            {<JJ.*>*<VBG><NN.*>?}      # gerund-based phrases
     """
 
     chunker = RegexpParser(grammar)
     tree = chunker.parse(tagged)
 
-    noun_phrases = [
+    # Extract basic NPs
+    raw_noun_phrases = [
         " ".join(word for word, tag in subtree.leaves())
         for subtree in tree.subtrees()
         if subtree.label() == "NP"
     ]
-    return noun_phrases
 
+    # Recover coordinated phrases: X and Y => ["X", "Y"]
+    def recover_coord_phrases(tagged_tokens):
+        phrases = []
+        buffer = []
+        for word, tag in tagged_tokens:
+            if tag.startswith('JJ') or tag.startswith('NN') or tag == 'VBG':
+                buffer.append(word)
+            elif word.lower() == 'and' and buffer:
+                phrases.append(" ".join(buffer))
+                buffer = []
+            else:
+                if buffer:
+                    phrases.append(" ".join(buffer))
+                    buffer = []
+        if buffer:
+            phrases.append(" ".join(buffer))
+        return phrases
+
+    fuzzy_phrases = recover_coord_phrases(tagged)
+
+    # Merge and deduplicate
+    seen = set()
+    all_phrases = []
+    for phrase in raw_noun_phrases + fuzzy_phrases:
+        phrase = phrase.strip()
+        lower = phrase.lower()
+        if lower not in seen:
+            seen.add(lower)
+            all_phrases.append(phrase)
+
+    # Remove subphrases of longer phrases
+    final_phrases = []
+    for phrase in all_phrases:
+        if not any(
+            phrase != other and phrase.lower() in other.lower()
+            for other in all_phrases
+        ):
+            final_phrases.append(phrase)
+
+    return final_phrases
 
 
 

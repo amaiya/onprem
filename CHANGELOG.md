@@ -9,7 +9,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.16.4 (TBD)
 
 ### new:
-- N/A
+- Support for RAG with SharePoint (#210)
 
 ### changed
 - N/A

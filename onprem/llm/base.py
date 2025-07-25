@@ -776,7 +776,7 @@ class LLM:
             contexts:Optional[list]=None, # optional lists of contexts to answer question. If None, retrieve from vectordb.
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
-            where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+            where_document = None, # filter sources by document content (syntax varies by store type)
             folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
             limit:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
@@ -831,7 +831,7 @@ class LLM:
             selfask:bool=False, # If True, use an agentic Self-Ask prompting strategy.
             qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
             filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
-            where_document:Optional[Dict[str, str]] = None, # filter sources by document content in Chroma syntax (e.g., {"$contains": "Canada"})
+            where_document = None, # filter sources by document content (syntax varies by store type)
             folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
             limit:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
             score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
