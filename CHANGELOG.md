@@ -16,6 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - move query preprocessing to base classes (#209)
+- fixed extra kwargs handling for LangChain LLMs (#186)
 
 
 ## 0.16.3 (2025-07-20)

@@ -88,9 +88,7 @@ class LLM:
         **kwargs,
     ):
         """
-        LLM Constructor.  Extra `kwargs` (e.g., temperature) are fed directly
-        to `langchain.llms.LlamaCpp`  (if `model_url` is supplied) or
-        `transformers.pipeline` (if `model_id` is supplied).
+        LLM Constructor.  Extra `kwargs` (e.g., temperature) are fed directly the LangChain LLM or Transformer Pipeline.
 
         **Args:**
 
@@ -427,6 +425,46 @@ class LLM:
             )
         return model_path
 
+    def _prepare_llm_kwargs(self, llm_class):
+        """
+        Inspect the LLM class signature and separate direct parameters from model_kwargs.
+        Parameters that are in the class __init__ signature stay as direct parameters.
+        Parameters not in the signature get moved to model_kwargs.
+        """
+        import inspect
+        
+        # Get the class constructor signature
+        direct_param_names = set()
+        
+        # Check if it's a Pydantic model (most LangChain classes are)
+        if hasattr(llm_class, 'model_fields'):
+            # Pydantic v2
+            direct_param_names = set(llm_class.model_fields.keys())
+        elif hasattr(llm_class, '__fields__'):
+            # Pydantic v1
+            direct_param_names = set(llm_class.__fields__.keys())
+        else:
+            # Try traditional signature inspection
+            try:
+                sig = inspect.signature(llm_class.__init__)
+                direct_param_names = set(sig.parameters.keys()) - {'self', 'args', 'kwargs'}
+            except Exception as e:
+                direct_param_names = set()
+        
+        # Start with a copy of extra_kwargs
+        kwargs = self.extra_kwargs.copy()
+        
+        # If model_kwargs doesn't exist, create it
+        if 'model_kwargs' not in kwargs:
+            kwargs['model_kwargs'] = {}
+        
+        # Move parameters not in the class signature to model_kwargs
+        for param_name in list(kwargs.keys()):
+            if param_name != 'model_kwargs' and param_name not in direct_param_names:
+                kwargs['model_kwargs'][param_name] = kwargs.pop(param_name)
+        
+        return kwargs
+
     def load_llm(self):
         """
         Loads the LLM from the model path.
@@ -434,33 +472,37 @@ class LLM:
 
 
         if not self.llm and self.is_openai_model():
+            kwargs = self._prepare_llm_kwargs(ChatOpenAI)
             self.llm = ChatOpenAI(model_name=self.model_name, 
                                   callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  model_kwargs=self.extra_kwargs)
+                                  **kwargs)
         elif not self.llm and\
                 self.process_service(self.model_url) and\
                 not self.check_model(silent=True):
+            kwargs = self._prepare_llm_kwargs(ChatLiteLLM)
             self.llm = ChatLiteLLM(model=self.process_service(self.model_url),
                                   callbacks=self.callbacks,
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  model_kwargs=self.extra_kwargs)
+                                  **kwargs)
         elif not self.llm and self.is_azure():
+            kwargs = self._prepare_llm_kwargs(AzureChatOpenAI)
             self.llm = AzureChatOpenAI(azure_deployment=self.model_name, 
                                   callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  model_kwargs=self.extra_kwargs)
+                                  **kwargs)
 
         elif not self.llm and self.is_local_api():
+            kwargs = self._prepare_llm_kwargs(ChatOpenAI)
             self.llm = ChatOpenAI(base_url=self.model_url,
                                   #model_name=self.model_name, 
                                   callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
-                                  model_kwargs=self.extra_kwargs)
+                                  **kwargs)
         elif not self.llm and self.is_hf():
             from transformers import pipeline, TextStreamer, AutoTokenizer
             from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
@@ -503,6 +545,7 @@ class LLM:
             if self.check_model_download and os.path.getsize(model_path) < MIN_MODEL_SIZE:
                 raise ValueError(f'The model file ({model_path} is less than {MIN_MODEL_SIZE} bytes. ' +\
                                  'It may not have been fully downloaded. Please delete the file and start again. ')
+            kwargs = self._prepare_llm_kwargs(LlamaCpp)
             self.llm = LlamaCpp(
                 model_path=model_path,
                 max_tokens=self.max_tokens,
@@ -511,8 +554,7 @@ class LLM:
                 verbose=self.verbose,
                 n_gpu_layers=self.n_gpu_layers,
                 n_ctx=self.n_ctx,
-                model_kwargs=self.extra_kwargs,
-            )
+                **kwargs)
 
         return self.llm
 
