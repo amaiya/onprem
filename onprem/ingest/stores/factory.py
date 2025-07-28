@@ -7,7 +7,7 @@ __all__ = ['VectorStoreFactory']
 
 # %% ../../../nbs/01_ingest.stores.factory.ipynb 3
 from .dense import DenseStore, ChromaStore
-from .sparse import SparseStore, WhooshStore, ElasticsearchSparseStore
+from .sparse import SparseStore, WhooshStore, ElasticsearchSparseStore, SharePointStore
 from .dual import DualStore, ElasticsearchStore
 
 class VectorStoreFactory:
@@ -72,6 +72,9 @@ class VectorStoreFactory:
                         persist_location=persist_location, # 'https://localhost:9200'
                         **kwargs                           # e.g., index_name, basic_auth, etc.
                     )
+        elif kind=='sharepoint':
+            return SharePointStore(persist_location=persist_location, # https://sharepoint.your-company.com
+                                   **kwargs)
         else:
             raise ValueError(f"Unknown store kind: {kind}. Supported vector store types: 'chroma', 'whoosh', 'chroma-whoosh', 'elasticsearch', 'elasticsearch-sparse")
 
