@@ -48,7 +48,8 @@ class SparseStore(VectorStore):
             return WhooshStore(persist_location=persist_location, **kwargs)
         elif kind == 'elasticsearch':
             if not ELASTICSEARCH_INSTALLED:
-                raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
+                raise ImportError("Please install the elasticsearch package version for your "
+                                  "Elasticsearch instance: e.g., pip install elasticsearch==9")
             return ElasticsearchSparseStore(persist_location=persist_location, **kwargs)
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
@@ -1245,7 +1246,8 @@ class ElasticsearchSparseStore(SparseStore):
         - *elasticsearch_url*: Elasticsearch URL (e.g., 'http://localhost:9200')
         """
         if not ELASTICSEARCH_INSTALLED:
-            raise ImportError('Please install elasticsearch packages: pip install onprem[elasticsearch]')
+            raise ImportError("Please install the elasticsearch package version for your "
+                              "Elasticsearch instance: e.g., pip install elasticsearch==9)")
         
         es = Elasticsearch([elasticsearch_url])
         return es.indices.exists(index=index_name)

@@ -19,6 +19,7 @@ Most recent releases are shown at the top. Each release shows:
 - fixed extra kwargs handling for LangChain LLMs (#186)
 - Make keyword fields in WhooshStore case insensitive. (#211)
 - `doc_from_dict` is modifying the original dictionary (#211)
+- fix `elasticsearch` install message
 
 
 ## 0.16.3 (2025-07-20)
