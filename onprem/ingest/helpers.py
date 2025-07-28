@@ -215,14 +215,13 @@ METADATA = {'source':None,
             'document_title' : '',
            }
 
-def doc_from_dict(d:dict):
+def doc_from_dict(d:dict, content_field='page_content'):
     """
     Create LangChain Document from dicationary
     """
-    page_content = d.get('page_content', '')
-    if 'page_content' in d:
-        del d['page_content']
-    return create_document(page_content, only_required_metadata=False, **d)
+    metadata = d.copy()
+    page_content = metadata.pop(content_field, '')
+    return create_document(page_content, only_required_metadata=False, **metadata)
 
 
 def dict_from_doc(doc, content_field = 'page_content'):
@@ -241,6 +240,7 @@ def create_document(page_content:str,
     Create document with required metadata keys from `METADATA`.
     """
     metadata = {k: v for k, v in kwargs.items() if k in METADATA} if only_required_metadata else kwargs
+    if 'source' not in metadata: metadata['source'] = ''
     return Document(page_content=page_content, 
                     metadata=metadata)
 
