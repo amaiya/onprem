@@ -12,7 +12,7 @@ Most recent releases are shown at the top. Each release shows:
 - Support for RAG with SharePoint (#210)
 
 ### changed
-- N/A
+- Add vectorstore argument to LLM (#212)
 
 ### fixed:
 - move query preprocessing to base classes (#209)

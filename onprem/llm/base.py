@@ -66,12 +66,13 @@ class LLM:
         model_id:Optional[str] = None,
         default_model:str  = DEFAULT_MODEL,
         default_engine:str = DEFAULT_ENGINE,
-        n_gpu_layers: Optional[int] = None,
         prompt_template: Optional[str] = None,
         model_download_path: Optional[str] = None,
         vectordb_path: Optional[str] = None,
         store_type:str='dense',
+        vectorstore=None,
         max_tokens: int = 512,
+        n_gpu_layers: Optional[int] = None,
         n_ctx: int = 3900,
         n_batch: int = 1024,
         stop:list=[],
@@ -100,7 +101,6 @@ class LLM:
         - *model_id*: Name of or path to Hugging Face model (e.g., in SafeTensor format). Hugging Face Transformers is used for LLM generation instead of **llama-cpp-python**. Mutually-exclusive with `model_url` and `default_model`. The `n_gpu_layers` and `model_download_path` parameters are ignored if `model_id` is supplied.
         - *default_model*: One of {'mistral', 'zephyr', 'llama'}, where mistral is Mistral-Instruct-7B-v0.2, zephyr is Zephyr-7B-beta, and llama is Llama-3.1-8B.
         - *default_engine*: The engine used to run the `default_model`. One of {'llama.cpp', 'transformers'}.
-        - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`.
         - *prompt_template*: Optional prompt template (must have a variable named "prompt"). Prompt templates are not typically needed when using the `model_id` parameter, as transformers sets it automatically.
         - *model_download_path*: Path to download model. Default is `onprem_data` in user's home directory.
         - *vectordb_path*: Path to vector database (created if it doesn't exist).
@@ -109,12 +109,14 @@ class LLM:
                         `sparse` for the sparse vector store (i.e., a keyword search engine).  
                         (Documents stored in sparse vector databases are converted to dense vectors at inference time 
                         when used with `LLM.ask`.)
+        - *vectorstore*: an onprem.ingest.stores.base.VectorStore instance.
         - *max_tokens*: The maximum number of tokens to generate.
+        - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`. Only used for llama-cpp backend.
         - *n_ctx*: Token context window. Only used for llama-cpp backend.
                    For Ollama backend, explicitly supply `num_ctx` instead which is passed to LiteLLM.
                    Hugging Face Transformers backend (i.e., when using the model_id parameter)
                    sets context window automatically.
-        - *n_batch*: Number of tokens to process in parallel.
+        - *n_batch*: Number of tokens to process in parallel. Only used for llama-cpp backend.
         - *stop*: a list of strings to stop generation when encountered (applied to all calls to `LLM.prompt`)
         - *mute_stream*: Mute ChatGPT-like token stream output during generation
         - *callbacks*: Callbacks to supply model
@@ -180,8 +182,8 @@ class LLM:
         self.prompt_template = prompt_template
         self.vectordb_path = vectordb_path or os.path.join(get_datadir(), DEFAULT_DB)
         self.store_type = store_type  # one of 'dense', 'sparse', or 'dual'
+        self.vectorstore = vectorstore   # set automatically if missing
         self.llm = None
-        self.vectorstore = None
         self.qa = None
         self.chatbot = None
         self.n_gpu_layers = n_gpu_layers
