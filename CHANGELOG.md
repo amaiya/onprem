@@ -10,6 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - Support for RAG with SharePoint (#210)
+- `load_web_document` function (#213)
 
 ### changed
 - Add vectorstore argument to LLM (#212)

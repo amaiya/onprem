@@ -6,7 +6,7 @@
 __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK_SIZE', 'CHROMA_MAX', 'PDFOCR', 'PDFMD', 'PDF',
            'PDF_EXTS', 'OCR_CHAR_THRESH', 'LOADER_MAPPING', 'MyElmLoader', 'MyUnstructuredPDFLoader',
            'PDF2MarkdownLoader', 'load_single_document', 'load_documents', 'process_folder', 'chunk_documents',
-           'does_vectorstore_exist', 'batchify_chunks']
+           'does_vectorstore_exist', 'batchify_chunks', 'load_web_document']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm.helpers import summarize_tables, extract_title
@@ -494,6 +494,81 @@ def batchify_chunks(texts, batch_size=CHROMA_MAX):
     total_chunks = sum(1 for _ in batch_list(texts, batch_size))
     return split_docs_chunked, total_chunks
 
+
+def load_web_document(url, username=None, password=None):
+    """
+    Download and extract text from a web document using load_single_document.
+    
+    Args:
+        url: The URL to download from
+        username: Optional username for authentication (e.g., for SharePoint)
+        password: Optional password for authentication (e.g., for SharePoint)
+    
+    Returns:
+        List of Document objects
+    """
+    import tempfile
+    import os
+    import requests
+    from urllib.parse import urlparse
+    
+    # Parse URL to get file extension if available
+    parsed_url = urlparse(url)
+    path_parts = parsed_url.path.split('/')
+    filename = path_parts[-1] if path_parts else 'document'
+    
+    # Set up authentication if credentials provided
+    auth = None
+    if username and password:
+        try:
+            from requests_ntlm import HttpNtlmAuth
+            auth = HttpNtlmAuth(username, password)
+        except ImportError:
+            # Fall back to basic auth if requests_ntlm not available
+            from requests.auth import HTTPBasicAuth
+            auth = HTTPBasicAuth(username, password)
+    
+    # If no extension, try to determine from Content-Type header
+    if '.' not in filename:
+        try:
+            response = requests.head(url, timeout=10, auth=auth)
+            content_type = response.headers.get('content-type', '').lower()
+            if 'pdf' in content_type:
+                filename += '.pdf'
+            elif 'html' in content_type:
+                filename += '.html'
+            elif 'text' in content_type:
+                filename += '.txt'
+            else:
+                filename += '.html'  # Default fallback
+        except:
+            filename += '.html'  # Default fallback
+    
+    # Download the file to a temporary location
+    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
+        try:
+            response = requests.get(url, timeout=30, auth=auth)
+            response.raise_for_status()
+            temp_file.write(response.content)
+            temp_path = temp_file.name
+            
+            # Use load_single_document to extract text
+            docs = load_single_document(temp_path)
+            
+            # Update source to original URL
+            if docs:
+                for doc in docs:
+                    doc.metadata['source'] = url
+                    doc.metadata['original_source'] = url
+            
+            return docs
+            
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
 
 
 

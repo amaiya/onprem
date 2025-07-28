@@ -391,64 +391,13 @@ class SparseStore(VectorStore):
         """
         Download and extract text from a web document using load_single_document.
         """
-        from ..base import load_single_document
-        import tempfile
-        import os
-        import requests
-        from urllib.parse import urlparse
+        from ..base import load_web_document
         
-        # Parse URL to get file extension if available
-        parsed_url = urlparse(url)
-        path_parts = parsed_url.path.split('/')
-        filename = path_parts[-1] if path_parts else 'document'
+        # Get credentials from SharePointStore instance if available
+        username = getattr(self, 'username', None)
+        password = getattr(self, 'password', None)
         
-        # Get authentication from SharePointStore instance
-        auth = None
-        if hasattr(self, 'username') and hasattr(self, 'password'):
-            from requests_ntlm import HttpNtlmAuth
-            auth = HttpNtlmAuth(self.username, self.password)
-        
-        # If no extension, try to determine from Content-Type header
-        if '.' not in filename:
-            try:
-                response = requests.head(url, timeout=10, auth=auth)
-                content_type = response.headers.get('content-type', '').lower()
-                if 'pdf' in content_type:
-                    filename += '.pdf'
-                elif 'html' in content_type:
-                    filename += '.html'
-                elif 'text' in content_type:
-                    filename += '.txt'
-                else:
-                    filename += '.html'  # Default fallback
-            except:
-                filename += '.html'  # Default fallback
-        
-        # Download the file to a temporary location
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
-            try:
-                response = requests.get(url, timeout=30, auth=auth)
-                response.raise_for_status()
-                temp_file.write(response.content)
-                temp_path = temp_file.name
-                
-                # Use load_single_document to extract text
-                docs = load_single_document(temp_path)
-                
-                # Update source to original URL
-                if docs:
-                    for doc in docs:
-                        doc.metadata['source'] = url
-                        doc.metadata['original_source'] = url
-                
-                return docs
-                
-            finally:
-                # Clean up temporary file
-                try:
-                    os.unlink(temp_path)
-                except:
-                    pass
+        return load_web_document(url, username=username, password=password)
 
 # %% ../../../nbs/01_ingest.stores.sparse.ipynb 6
 class ReadOnlySparseStore(SparseStore):
