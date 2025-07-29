@@ -83,6 +83,10 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 *Latest News* 🔥
 
+- \[2025/07\] v0.17.0 released and now allows you to connect directly to
+  SharePoint for search and RAG. See the [example notebook on vector
+  stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html#rag-with-sharepoint-documents)
+  for more information.
 - \[2025/07\] v0.16.0 released and now includes out-of-the-box support
   for **Elasticsearch** as a vector store for RAG and semantic search in
   addition to other vector store backends. See the [example notebook on
