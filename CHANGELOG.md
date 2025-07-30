@@ -6,6 +6,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
+## 0.17.2 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- updated min version to 3.10 due to `smolagents`
+
+
 ## 0.17.1 (2025-07-29)
 
 ### new:
