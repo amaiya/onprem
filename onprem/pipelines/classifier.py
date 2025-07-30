@@ -198,7 +198,7 @@ class SKClassifier(ClassifierBase):
             # set defaults if necessary        
             if 'ctype' not in kwargs: 
                 kwargs['ctype'] = 'sgdclassifier'
-                kwargs['clf__loss'] = 'hinge'
+                kwargs['clf__loss'] = 'modified_huber'
                 kwargs['clf__penalty'] = 'l2'
                 kwargs['clf__alpha'] = 1e-3
                 kwargs['clf__max_iter'] = 5
@@ -231,7 +231,7 @@ class SKClassifier(ClassifierBase):
         """
         predict label probabilities
         """
-        return self.predict_proba(X, **kwargs)
+        return self.model.predict_proba(X, **kwargs)
     
     def train(self,
               X:List[str],

@@ -5,7 +5,7 @@ ignored and doesn't affect functionality.
 """
 
 from onprem import LLM, utils as U
-import os, tempfile, shutil, argparse
+import os, tempfile, shutil, argparse, numpy as np
 
 
 
@@ -527,7 +527,6 @@ def test_tm(**kwargs):
     """
     Test topic modeling
     """
-    import numpy as np
     import pandas as pd
     from onprem.sk.tm import get_topic_model
     from sklearn.datasets import fetch_20newsgroups
@@ -597,6 +596,7 @@ def test_skclassifier(**kwargs):
     test_doc = "god christ jesus mother mary church sunday lord heaven amen"
     acc = clf.evaluate(x_test, y_test, print_report=False)['accuracy']
     assert(3 == clf.predict(test_doc))  
+    assert(3 == np.argmax(clf.predict_proba(test_doc)))
     assert(acc > 0.85) # should 0.89+ for default SGDClassifier and 0.93 for NBSVM
     print(acc)
 
