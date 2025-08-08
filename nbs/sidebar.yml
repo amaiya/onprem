@@ -24,6 +24,8 @@ website:
         - 00_llm.helpers.ipynb
         - 01_ingest.base.ipynb
         - 01_ingest.helpers.ipynb
+        - 01_ingest.stores.base.ipynb
+        - 01_ingest.stores.factory.ipynb
         - 01_ingest.stores.dense.ipynb
         - 01_ingest.stores.sparse.ipynb
         - 01_ingest.stores.dual.ipynb
