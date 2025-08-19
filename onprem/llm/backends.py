@@ -10,6 +10,7 @@ __all__ = ['ChatGovCloudBedrock']
 Custom LangChain Chat classes for various frameworks and cloud providers.
 """
 
+import boto3
 import json
 import os
 from typing import Any, Dict, Iterator, List, Optional, Union
@@ -100,11 +101,6 @@ class ChatGovCloudBedrock(BaseChatModel):
             client_kwargs["aws_secret_access_key"] = self.aws_secret_access_key
         else:
             client_kwargs["aws_secret_access_key"] = os.environ.get('AWS_SECRET_ACCESS_KEY')
-
-        try:
-            import boto3
-        except ImportError:
-            raise ImportError('Please install boto3: pip install boto3')
         
         self.client = boto3.client(**client_kwargs)
 
