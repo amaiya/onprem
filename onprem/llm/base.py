@@ -18,6 +18,7 @@ from langchain.output_parsers import OutputFixingParser
 from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_litellm import ChatLiteLLM
+from .backends import ChatGovCloudBedrock
 from langchain_core.messages.ai import AIMessage
 from langchain_core.documents import Document
 import os
@@ -251,9 +252,21 @@ class LLM:
                 # conclude that this a standard LiteLLM path (e.g., openai/gpt-4o)
                 # or Ollama model which contain ":"
                 return model_url
+            
+            # Special handling for govcloud-bedrock that supports both :// and / separators
+            if model_url.startswith('govcloud-bedrock'):
+                if '://' in model_url:
+                    return model_url.split('://', 1)[1]
+                elif '/' in model_url:
+                    # For govcloud-bedrock/model-id format, get everything after first /
+                    return model_url.split('/', 1)[1]
+                else:
+                    return os.path.basename(model_url)
+            
             provider = model_url.split(":")[0]
             if provider.startswith('http'):
                 return None
+            
             model = os.path.basename(self.model_url)
             return model if provider == model else f'{provider}/{model}'
         else:
@@ -275,6 +288,9 @@ class LLM:
 
     def is_azure(self):
         return self.model_url and self.model_url.lower().startswith('azure')
+
+    def is_govcloud_bedrock(self):
+        return self.model_url and self.model_url.lower().startswith('govcloud-bedrock')
 
     def update_max_tokens(self, value:int=512):
         """
@@ -480,6 +496,15 @@ class LLM:
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **kwargs)
+        elif not self.llm and self.is_govcloud_bedrock():
+            kwargs = self._prepare_llm_kwargs(ChatGovCloudBedrock)
+            model_id = self.process_service(self.model_url)
+            self.llm = ChatGovCloudBedrock(
+                model_id=model_id,
+                callbacks=self.callbacks,
+                streaming=not self.mute_stream,
+                max_tokens=self.max_tokens,
+                **kwargs)
         elif not self.llm and\
                 self.process_service(self.model_url) and\
                 not self.check_model(silent=True):
@@ -496,7 +521,6 @@ class LLM:
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **kwargs)
-
         elif not self.llm and self.is_local_api():
             kwargs = self._prepare_llm_kwargs(ChatOpenAI)
             self.llm = ChatOpenAI(base_url=self.model_url,
