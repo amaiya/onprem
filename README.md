@@ -83,6 +83,10 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 *Latest News* 🔥
 
+- \[2025/08\] v0.18.0 released and can now be used with AWS GovCloud
+  LLMs. See [this
+  example](https://amaiya.github.io/onprem/llm.backends.html#examples)
+  for more information.
 - \[2025/07\] v0.17.0 released and now allows you to connect directly to
   SharePoint for search and RAG. See the [example notebook on vector
   stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html#rag-with-sharepoint-documents)
@@ -129,22 +133,25 @@ PyTorch](https://pytorch.org/get-started/locally/), you can install
       required for Microsoft Windows)
     - **GPU**: Follow [instructions
       below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference).
-2.  Install **OnPrem.LLM**: `pip install onprem`
+2.  Install **OnPrem.LLM** with Chroma packages:
+    `pip install onprem[chroma]`
 
-For RAG using the [default dense
+For RAG using only a [sparse
 vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database),
-please also install chroma packages: `pip install onprem[chroma]`.
+you can install OnPrem.LLM without the extra chroma packages:
+`pip install onprem`.
 
 **Note:** Installing **llama-cpp-python** is *optional* if any of the
 following is true:
 
+- You are using [Ollama](https://ollama.com/) as the LLM backend.
 - You use Hugging Face Transformers (instead of llama-cpp-python) as the
   LLM backend by supplying the `model_id` parameter when instantiating
   an LLM, as [shown
   here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
   [external REST API](#connecting-to-llms-served-through-rest-apis)
-  (e.g., Ollama, vLLM, OpenLLM).
+  (e.g., vLLM, OpenLLM).
 - You are using **Onprem.LLM** with a cloud LLM (more information
   below).
 
