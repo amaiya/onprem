@@ -22,6 +22,7 @@ website:
         contents:
         - 00_llm.base.ipynb
         - 00_llm.helpers.ipynb
+        - 00_llm.backends.ipynb
         - 01_ingest.base.ipynb
         - 01_ingest.helpers.ipynb
         - 01_ingest.stores.base.ipynb
