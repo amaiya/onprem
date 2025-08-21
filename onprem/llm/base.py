@@ -443,6 +443,39 @@ class LLM:
             )
         return model_path
 
+    def _can_accept_parameter(self, llm_class, param_name):
+        """
+        Test if a parameter can be accepted directly by the LLM class
+        without being moved to model_kwargs.
+        """
+        try:
+            # Create a minimal test instance to see if the parameter is accepted
+            test_kwargs = {param_name: 'test_value'}
+            
+            # Add minimal required parameters for common LLM types
+            if hasattr(llm_class, 'model_fields') and 'openai_api_key' in llm_class.model_fields:
+                test_kwargs['openai_api_key'] = 'dummy'
+            
+            # Suppress warnings during this test
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                # Try to instantiate - we don't care if it fails for other reasons,
+                # only if it fails due to unexpected keyword argument
+                llm_class(**test_kwargs)
+            
+            return True
+            
+        except TypeError as e:
+            # If it's specifically about unexpected keyword argument, parameter not accepted
+            if 'unexpected keyword argument' in str(e):
+                return False
+            # Other TypeErrors (missing required args, etc.) mean parameter is accepted
+            return True
+        except Exception:
+            # Any other exception means the parameter was accepted but something else failed
+            return True
+
     def _prepare_llm_kwargs(self, llm_class):
         """
         Inspect the LLM class signature and separate direct parameters from model_kwargs.
@@ -477,9 +510,17 @@ class LLM:
             kwargs['model_kwargs'] = {}
         
         # Move parameters not in the class signature to model_kwargs
+        # But first check if they can be accepted directly via compatibility layer
         for param_name in list(kwargs.keys()):
             if param_name != 'model_kwargs' and param_name not in direct_param_names:
-                kwargs['model_kwargs'][param_name] = kwargs.pop(param_name)
+                # Check if parameter can be accepted directly despite not being in signature
+                # Only do compatibility check for local APIs
+                if self.is_local_api() and self._can_accept_parameter(llm_class, param_name):
+                    # Keep as direct parameter - compatibility layer can handle it
+                    continue
+                else:
+                    # Move to model_kwargs
+                    kwargs['model_kwargs'][param_name] = kwargs.pop(param_name)
         
         return kwargs
 
