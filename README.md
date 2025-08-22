@@ -152,7 +152,7 @@ following is true:
 - You are using **OnPrem.LLM** with an LLM being served through an
   [external REST API](#connecting-to-llms-served-through-rest-apis)
   (e.g., vLLM, OpenLLM).
-- You are using **Onprem.LLM** with a cloud LLM (more information
+- You are using **OnPrem.LLM** with a cloud LLM (more information
   below).
 
 ### On GPU-Accelerated Inference With `llama-cpp-python`
