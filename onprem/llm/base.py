@@ -515,7 +515,8 @@ class LLM:
             if param_name != 'model_kwargs' and param_name not in direct_param_names:
                 # Check if parameter can be accepted directly despite not being in signature
                 # Only do compatibility check for local APIs
-                if self.is_local_api() and self._can_accept_parameter(llm_class, param_name):
+                if (self.is_local_api() or self.is_openai_model()) and\
+                    self._can_accept_parameter(llm_class, param_name):
                     # Keep as direct parameter - compatibility layer can handle it
                     continue
                 else:
