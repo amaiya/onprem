@@ -6,7 +6,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Changed**: Additional parameters, changes to inputs or outputs, etc
 - **Fixed**: Bug fixes that don't change documented behaviour
 
-## 0.18.1 (TBD)
+## 0.18.1 (2025-08-22)
 
 ### new:
 - N/A
@@ -15,7 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- Fix parameter routing for local APIs (#216)
+- Fix parameter routing for local APIs like vLLM (#216)
 
 
 ## 0.18.0 (2025-08-20)
