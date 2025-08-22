@@ -238,8 +238,13 @@ llm = LLM(verbose=False) # default model and backend are used
 - **Also Ollama**:
   `llm = LLM(model_url='http://localhost:11434/v1', api_key='na', model='llama3.2')`
 
-- **VLLM**:
-  `llm = LLM(model_url='http://localhost:8000/v1', api_key='na', model='Qwen/Qwen2.5-0.5B-Instruct')`
+- **vLLM**:
+  `llm = LLM(model_url='http://localhost:8666/v1', api_key='na', model='Qwen/Qwen2.5-0.5B-Instruct')`
+
+- **Also vLLM**:
+  `llm = LLM('hosted_vllm/served-model-name', api_base="http://localhost:8666/v1", model_kwargs={'api_key':"test123"})`
+  (assumes `served-model-name` parameter is supplied to
+  `vllm.entrypoints.openai.api_server`).
 
 *Cloud Models:* Despite the focus on local LLMs, cloud LLMs are also
 supported:
