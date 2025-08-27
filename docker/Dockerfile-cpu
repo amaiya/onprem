@@ -6,4 +6,4 @@ RUN python3 -m pip install torch torchvision torchaudio \
 RUN python3 -m pip install llama-cpp-python streamlit
 COPY . .
 RUN python3 -m pip install .
-CMD python3
+CMD ["python3"]
