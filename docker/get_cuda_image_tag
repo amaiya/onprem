@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 from sys import argv, exit, stderr
-from typing import Dict, Tuple
+from typing import Tuple
 
 # Supported devel-ubuntu22.04 image CUDA versions
-HUB_IMAGE_VERSIONS = ["11.7.1", "11.8.0", "12.0.1", "12.1.1", "12.2.2", "12.3.0"]
+HUB_IMAGE_VERSIONS = [
+    "11.7.1",
+    "11.8.0",
+    "12.0.1",
+    "12.1.1",
+    "12.2.2",
+    "12.3.2",
+    "12.4.1",
+    "12.5.1",
+    "12.6.3",
+    "12.8.1",
+    "12.9.1",
+    "13.0.0"
+]
 
 
 def get_major_minor(version: str) -> Tuple[int, int]:
@@ -42,11 +55,14 @@ def main(cuda_version: str):
             selected_image_minor = image_minor
             selected_image_version = hub_version
     if selected_image_minor is None:
-        print("Something went wrong. I couldn't find a supported image version to use.\n"
-              "You likely need to update your NVIDIA Device driver.",
-              file=stderr)
+        print(
+            "Something went wrong. I couldn't find a supported image version to use.\n"
+            "You likely need to update your NVIDIA Device driver.",
+            file=stderr,
+        )
         exit(1)
     print(selected_image_version)
+
 
 if __name__ == "__main__":
     if len(argv) != 2:
