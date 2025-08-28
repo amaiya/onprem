@@ -447,10 +447,11 @@ def main():
                 if search_type == "Keyword":
                     # Use query method of vectorstore for keyword search
                     results = vectorstore.query(
-                        q=query_text,
+                        query=query_text,
                         limit=results_limit,
                         filters=filter_options,
                         where_document=where_clause if where_clause else None,
+                        return_dict=False,
                     )
                     hits = results.get('hits', [])
                     total_hits = results.get('total_hits', 0)
