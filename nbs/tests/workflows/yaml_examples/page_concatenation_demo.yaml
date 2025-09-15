@@ -52,7 +52,7 @@ nodes:
       output_path: "full_document_analysis.csv"
 
 connections:
-  # Main pipeline
+  # Storage pipeline - must complete before querying
   - from: pdf_loader
     from_port: documents
     to: full_docs
@@ -63,7 +63,7 @@ connections:
     to: document_store
     to_port: documents
   
-  # Analysis pipeline
+  # Analysis pipeline - query runs after storage is complete
   - from: full_doc_search
     from_port: documents
     to: doc_analysis
@@ -73,3 +73,9 @@ connections:
     from_port: results
     to: analysis_export
     to_port: results
+
+# Note: full_doc_search has no input connections, so it runs independently.
+# This assumes the full_document_index already exists from a previous run.
+# In a real workflow, you might want to split this into separate workflows:
+# 1. Storage workflow (pdf_loader -> full_docs -> document_store)
+# 2. Analysis workflow (full_doc_search -> doc_analysis -> analysis_export)

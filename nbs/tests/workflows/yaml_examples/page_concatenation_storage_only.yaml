@@ -1,0 +1,32 @@
+# Demo: Page concatenation storage only
+nodes:
+  # Load multi-page PDFs
+  pdf_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data"
+      include_patterns: ["*.pdf"]
+      verbose: true
+  
+  # Concatenate pages into single documents
+  full_docs:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true  # Combine multi-page PDFs into single documents
+  
+  # Store concatenated documents
+  document_store:
+    type: WhooshStore
+    config:
+      persist_location: "full_document_index"
+
+connections:
+  - from: pdf_loader
+    from_port: documents
+    to: full_docs
+    to_port: documents
+  
+  - from: full_docs
+    from_port: documents
+    to: document_store
+    to_port: documents

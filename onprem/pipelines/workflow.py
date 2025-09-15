@@ -475,9 +475,12 @@ class QueryWhooshStoreNode(QueryNode):
         
         try:
             store = VectorStoreFactory.create("whoosh", persist_location=persist_location)
-            # Use the search method from the store
-            results = store.similarity_search(query, k=limit)
-            return {"documents": results}
+            # Use the search method with return_dict=False to get Document objects
+            search_results = store.search(query, limit=limit, return_dict=False)
+            
+            # Extract documents from the results structure
+            documents = search_results.get('hits', []) if isinstance(search_results, dict) else search_results
+            return {"documents": documents}
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to query Whoosh: {str(e)}")
 
@@ -539,12 +542,16 @@ class PromptProcessorNode(ProcessorNode):
             
             results = []
             for i, doc in enumerate(documents):
-                # Format the prompt with document content
-                formatted_prompt = prompt_template.format(
-                    content=doc.page_content,
-                    source=doc.metadata.get('source', 'Unknown'),
-                    **doc.metadata
-                )
+                # Format the prompt with document content and metadata
+                format_kwargs = {
+                    'content': doc.page_content,
+                    **doc.metadata  # Include all metadata
+                }
+                # Ensure source is available even if not in metadata
+                if 'source' not in format_kwargs:
+                    format_kwargs['source'] = 'Unknown'
+                
+                formatted_prompt = prompt_template.format(**format_kwargs)
                 
                 # Get LLM response
                 response = llm.prompt(formatted_prompt)

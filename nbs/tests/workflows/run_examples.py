@@ -30,28 +30,28 @@ except ImportError as e:
 
 # Example metadata - describes what each example does and requirements
 EXAMPLES = {
-    "example_workflow.yaml": {
+    "yaml_examples/example_workflow.yaml": {
         "name": "Basic Pipeline",
         "description": "Simple Load → Chunk → Store pipeline using WhooshStore",
         "requirements": ["sample_data/sotu directory"],
         "creates": ["test_whoosh_index/"],
         "difficulty": "Beginner"
     },
-    "advanced_workflow_example.yaml": {
+    "yaml_examples/advanced_workflow_example.yaml": {
         "name": "Multi-Source Pipeline", 
         "description": "Multiple loaders with different chunking strategies",
         "requirements": ["sample_data/sotu", "sample_data/billionaires"],
         "creates": ["unified_search_index/"],
         "difficulty": "Intermediate"
     },
-    "pattern_pdf_only.yaml": {
+    "yaml_examples/pattern_pdf_only.yaml": {
         "name": "Pattern Filtering - PDF Only",
         "description": "Load only PDF files using include_patterns filtering",
         "requirements": ["sample_data/ with PDF files"],
         "creates": ["pdf_documents/"],
         "difficulty": "Intermediate"
     },
-    "query_and_prompt_example.yaml": {
+    "yaml_examples/query_and_prompt_example.yaml": {
         "name": "Query & Prompt Analysis",
         "description": "Query storage index → Apply AI prompt → Export to Excel",
         "requirements": ["existing_search_index/", "LLM API key"],
@@ -59,7 +59,7 @@ EXAMPLES = {
         "difficulty": "Advanced",
         "note": "Requires existing populated index and LLM"
     },
-    "complete_analysis_pipeline.yaml": {
+    "yaml_examples/complete_analysis_pipeline.yaml": {
         "name": "Complete Analysis Pipeline",
         "description": "Full pipeline: Ingest → Store → Query → Process → Export",
         "requirements": ["sample_data/ with PDFs", "LLM API key"],
@@ -67,7 +67,7 @@ EXAMPLES = {
         "difficulty": "Advanced",
         "note": "Query step runs independently - see tutorial for explanation"
     },
-    "simple_analysis_demo.yaml": {
+    "yaml_examples/simple_analysis_demo.yaml": {
         "name": "Simple Analysis Demo",
         "description": "Query existing index → Apply prompt → Export CSV",
         "requirements": ["existing_index/", "LLM API key"],
@@ -75,7 +75,7 @@ EXAMPLES = {
         "difficulty": "Advanced",
         "note": "Requires pre-existing populated index"
     },
-    "complex_prompt_example.yaml": {
+    "yaml_examples/complex_prompt_example.yaml": {
         "name": "Complex Prompt from File",
         "description": "Load complex statute extraction prompt from external file",
         "requirements": ["legal_index/", "LLM API key", "prompts/statute_extraction.txt"],
@@ -83,13 +83,21 @@ EXAMPLES = {
         "difficulty": "Advanced",
         "note": "Demonstrates prompt_file feature for complex prompts"
     },
-    "resume_analysis_example.yaml": {
+    "yaml_examples/resume_analysis_example.yaml": {
         "name": "Resume Analysis Pipeline",
         "description": "Full pipeline: Load resumes → Store → Query → Parse → Export JSON",
         "requirements": ["sample_data/resumes/", "LLM API key", "prompts/resume_extraction.txt"],
         "creates": ["resume_index/", "parsed_resumes.json"],
         "difficulty": "Advanced",
         "note": "Complex JSON extraction using prompt files"
+    },
+    "yaml_examples/page_concatenation_demo.yaml": {
+        "name": "Page Concatenation Demo",
+        "description": "Demonstrates combining multi-page PDFs into single documents",
+        "requirements": ["sample_data/ with PDF files"],
+        "creates": ["full_document_index/", "full_document_analysis.csv"],
+        "difficulty": "Intermediate",
+        "note": "Shows concatenate_pages feature for complete document analysis"
     }
 }
 

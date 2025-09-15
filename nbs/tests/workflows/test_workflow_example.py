@@ -34,7 +34,7 @@ def test_basic_workflow():
     
     try:
         # Execute the workflow
-        workflow_path = "example_workflow.yaml"
+        workflow_path = "yaml_examples/example_workflow.yaml"
         results = execute_workflow(workflow_path, verbose=True)
         
         print(f"\nWorkflow completed successfully!")
