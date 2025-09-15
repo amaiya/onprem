@@ -1,0 +1,28 @@
+nodes:
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "sample_data/sotu"
+      verbose: true
+  
+  text_chunker:
+    type: SplitByCharacterCount
+    config:
+      chunk_size: 300
+      chunk_overlap: 50
+  
+  search_index:
+    type: WhooshStore
+    config:
+      persist_location: "test_whoosh_index"
+
+connections:
+  - from: document_loader
+    from_port: documents
+    to: text_chunker
+    to_port: documents
+  
+  - from: text_chunker
+    from_port: documents
+    to: search_index
+    to_port: documents
