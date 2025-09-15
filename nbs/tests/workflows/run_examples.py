@@ -98,6 +98,14 @@ EXAMPLES = {
         "creates": ["full_document_index/", "full_document_analysis.csv"],
         "difficulty": "Intermediate",
         "note": "Shows concatenate_pages feature for complete document analysis"
+    },
+    "yaml_examples/far_legal_analysis_simple.yaml": {
+        "name": "FAR Legal Analysis",
+        "description": "Extract statutory citations from Federal Acquisition Regulations (Part 9)",
+        "requirements": ["/tmp/far_data/ with FAR HTML files", "LLM API key", "prompts/statute_extraction.txt"],
+        "creates": ["far_statutory_citations_cleaned.xlsx"],
+        "difficulty": "Advanced",
+        "note": "Based on 99j_examples_legal_analysis.ipynb - processes ~106 FAR sections directly"
     }
 }
 

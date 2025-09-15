@@ -42,7 +42,8 @@ nodes:
         Document: {source}
         Page count: {page_count}
         Content: {content}
-      model_name: "gpt-4o-mini"
+      llm:
+        model_url: "openai://gpt-4o-mini"
       batch_size: 1
   
   # Export analysis results

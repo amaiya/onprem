@@ -1,0 +1,83 @@
+# Federal Acquisition Regulation (FAR) Legal Analysis
+# Simplified workflow based on 99j_examples_legal_analysis.ipynb
+# Extracts statutory citations directly from FAR HTML files
+
+nodes:
+  # Load FAR HTML files (Part 9 - contractor qualifications)
+  far_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "/tmp/far_data"  # Directory containing extracted FAR HTML files
+      include_patterns: ["9.*.html"]     # Focus on Part 9 sections
+      verbose: true
+  
+  # Keep each FAR section as complete document (no chunking needed)
+  full_sections:
+    type: KeepFullDocument
+    config: {}
+  
+  # Apply statute extraction prompt directly to all FAR sections
+  statute_extractor:
+    type: PromptProcessor
+    config:
+      prompt_file: "prompts/statute_extraction.txt"  # Uses the existing complex prompt
+      llm:                               # New flexible LLM configuration
+        model_url: "openai://gpt-4o-mini"  # Match notebook's exact choice
+        temperature: 0                   # Deterministic results
+        mute_stream: true               # Quiet processing
+      batch_size: 5                      # Process 5 sections at a time
+  
+  # Clean up the raw LLM responses to extract just the citations
+  citation_cleaner:
+    type: CleanupProcessor
+    config:
+      cleanup_prompt_file: "prompts/statute_cleanup.txt"  # Cleanup prompt
+      llm:                               # Use same LLM configuration
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0
+        mute_stream: true
+  
+  # Export cleaned results to Excel spreadsheet
+  statute_analysis:
+    type: ExcelExporter
+    config:
+      output_path: "far_statutory_citations_cleaned.xlsx"
+      sheet_name: "FAR_Part9_Analysis"
+
+connections:
+  # Pipeline: Load -> Process -> Extract -> Cleanup -> Export
+  - from: far_loader
+    from_port: documents
+    to: full_sections
+    to_port: documents
+  
+  - from: full_sections
+    from_port: documents
+    to: statute_extractor
+    to_port: documents
+  
+  - from: statute_extractor
+    from_port: results
+    to: citation_cleaner
+    to_port: results
+  
+  - from: citation_cleaner
+    from_port: results
+    to: statute_analysis
+    to_port: results
+
+# Data Preparation (run before this workflow):
+# 
+# 1. Download FAR data:
+#    wget https://www.acquisition.gov/sites/default/files/current/far/zip/html/FARHTML.zip
+# 
+# 2. Extract to /tmp/far_data/:
+#    unzip FARHTML.zip -d /tmp/far_data/
+# 
+# 3. Run workflow:
+#    python -m onprem.pipelines.workflow far_legal_analysis_simple.yaml
+# 
+# Expected output:
+# - Excel file with columns: document_id, source, response, metadata
+# - Each row represents a FAR section with extracted statutory citations
+# - Based on notebook: ~26 out of 106 Part 9 sections cite statutes

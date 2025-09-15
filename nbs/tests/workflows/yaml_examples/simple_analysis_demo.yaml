@@ -23,7 +23,8 @@ nodes:
         Content: {content}
         
         Format as: TOPIC: ... | TECH: ... | LEVEL: ...
-      model_name: "gpt-4o-mini"
+      llm:
+        model_url: "openai://gpt-4o-mini"
       batch_size: 3
   
   # Export results to spreadsheet

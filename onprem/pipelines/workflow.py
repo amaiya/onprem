@@ -36,16 +36,12 @@ class NodeType:
 
 # Define valid node type connections
 NODE_TYPES = {
-    "Loader": NodeType("Loader", can_connect_to=["TextSplitter"]),
-    "TextSplitter": NodeType("TextSplitter", can_connect_to=["TextSplitter", "Storage"]),
+    "Loader": NodeType("Loader", can_connect_to=["TextSplitter", "Processor"]),  # Allow direct connection to Processor
+    "TextSplitter": NodeType("TextSplitter", can_connect_to=["TextSplitter", "Storage", "Processor"]),  # Allow direct connection to Processor
     "Storage": NodeType("Storage", is_terminal=True),
     "Query": NodeType("Query", can_connect_to=["Processor"]),
     "Processor": NodeType("Processor", can_connect_to=["Processor", "Exporter"]),
     "Exporter": NodeType("Exporter", is_terminal=True)
-    # Future extensions could easily add:
-    # "Filter": NodeType("Filter", can_connect_to=["TextSplitter", "Filter", "Storage"]),
-    # "Enricher": NodeType("Enricher", can_connect_to=["TextSplitter", "Storage"]),
-    # "Validator": NodeType("Validator", can_connect_to=["TextSplitter", "Storage"])
 }
 
 
@@ -56,12 +52,28 @@ class BaseNode(ABC):
     # Class attribute to be set by subclasses
     NODE_TYPE: str = None
     
-    def __init__(self, node_id: str, config: Dict[str, Any]):
+    def __init__(self, node_id: str, config: Dict[str, Any], workflow_engine=None):
         self.node_id = node_id
         self.config = config
+        self.workflow_engine = workflow_engine
         self.inputs: Dict[str, str] = {}
         self.outputs: Dict[str, str] = {}
         self._result_cache: Optional[Any] = None
+    
+    def get_llm(self, llm_config: Dict[str, Any]) -> Any:
+        """Get LLM instance, using shared instance if available."""
+        if not llm_config:
+            raise NodeExecutionError(f"Node {self.node_id}: No LLM configuration provided")
+        
+        try:
+            if self.workflow_engine:
+                return self.workflow_engine.get_shared_llm(llm_config)
+            else:
+                # Fallback to creating new instance
+                from ..llm.base import LLM
+                return LLM(**llm_config)
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to initialize LLM with config {llm_config}: {str(e)}")
     
     @abstractmethod
     def get_input_types(self) -> Dict[str, str]:
@@ -518,9 +530,10 @@ class PromptProcessorNode(ProcessorNode):
         
         prompt_template = self.config.get("prompt", "")
         prompt_file = self.config.get("prompt_file", "")
-        llm_type = self.config.get("llm_type", "openai")
-        model_name = self.config.get("model_name", "gpt-3.5-turbo")
         batch_size = self.config.get("batch_size", 5)
+        
+        # Get LLM configuration
+        llm_config = self.config.get("llm", {"model_url": "openai://gpt-3.5-turbo"})
         
         # Load prompt from file if specified, otherwise use inline prompt
         if prompt_file:
@@ -536,9 +549,7 @@ class PromptProcessorNode(ProcessorNode):
             raise NodeExecutionError(f"Node {self.node_id}: Either 'prompt' or 'prompt_file' is required")
         
         try:
-            # Initialize LLM (this would need to be adapted based on the available LLM interface)
-            from ..llm.base import LLM
-            llm = LLM(model_name=model_name)
+            llm = self.get_llm(llm_config)
             
             results = []
             for i, doc in enumerate(documents):
@@ -575,6 +586,66 @@ class PromptProcessorNode(ProcessorNode):
             raise NodeExecutionError(f"Node {self.node_id}: Failed to process with prompt: {str(e)}")
 
 
+class CleanupProcessorNode(ProcessorNode):
+    """Cleans and post-processes LLM responses using another LLM call."""
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}  # Takes results from PromptProcessor
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}  # Outputs cleaned results
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"results": []}
+        
+        cleanup_prompt_template = self.config.get("cleanup_prompt", "")
+        cleanup_prompt_file = self.config.get("cleanup_prompt_file", "")
+        
+        # Get LLM configuration
+        llm_config = self.config.get("llm", {"model_url": "openai://gpt-3.5-turbo"})
+        
+        # Load cleanup prompt from file if specified, otherwise use inline prompt
+        if cleanup_prompt_file:
+            if not os.path.exists(cleanup_prompt_file):
+                raise NodeExecutionError(f"Node {self.node_id}: cleanup_prompt_file '{cleanup_prompt_file}' does not exist")
+            try:
+                with open(cleanup_prompt_file, 'r', encoding='utf-8') as f:
+                    cleanup_prompt_template = f.read()
+            except Exception as e:
+                raise NodeExecutionError(f"Node {self.node_id}: Failed to read cleanup_prompt_file '{cleanup_prompt_file}': {str(e)}")
+        
+        if not cleanup_prompt_template:
+            raise NodeExecutionError(f"Node {self.node_id}: Either 'cleanup_prompt' or 'cleanup_prompt_file' is required")
+        
+        try:
+            llm = self.get_llm(llm_config)
+            
+            cleaned_results = []
+            for i, result in enumerate(results):
+                original_response = result.get('response', '')
+                
+                # Format cleanup prompt with the original response
+                cleanup_request = cleanup_prompt_template.format(
+                    original_response=original_response,
+                    **result  # Include all result fields for additional context
+                )
+                
+                # Get cleaned response
+                cleaned_response = llm.prompt(cleanup_request)
+                
+                # Create new result with cleaned response
+                cleaned_result = result.copy()
+                cleaned_result['response'] = cleaned_response.strip()
+                cleaned_result['original_response'] = original_response  # Keep original for reference
+                cleaned_results.append(cleaned_result)
+            
+            return {"results": cleaned_results}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to cleanup responses: {str(e)}")
+
+
 class SummaryProcessorNode(ProcessorNode):
     """Generates summaries for documents."""
     
@@ -584,12 +655,12 @@ class SummaryProcessorNode(ProcessorNode):
             return {"results": []}
         
         max_length = self.config.get("max_length", 150)
-        llm_type = self.config.get("llm_type", "openai")
-        model_name = self.config.get("model_name", "gpt-3.5-turbo")
+        
+        # Get LLM configuration
+        llm_config = self.config.get("llm", {"model_url": "openai://gpt-3.5-turbo"})
         
         try:
-            from ..llm.base import LLM
-            llm = LLM(model_name=model_name)
+            llm = self.get_llm(llm_config)
             
             results = []
             for i, doc in enumerate(documents):
@@ -748,6 +819,7 @@ NODE_REGISTRY = {
     
     # Processors
     "PromptProcessor": PromptProcessorNode,
+    "CleanupProcessor": CleanupProcessorNode,
     "SummaryProcessor": SummaryProcessorNode,
     
     # Exporters
@@ -764,6 +836,24 @@ class WorkflowEngine:
         self.nodes: Dict[str, BaseNode] = {}
         self.connections: List[Dict[str, str]] = []
         self.execution_order: List[str] = []
+        self._shared_llm_cache: Dict[str, Any] = {}  # Cache for shared LLM instances
+    
+    def get_shared_llm(self, llm_config: Dict[str, Any]) -> Any:
+        """Get or create a shared LLM instance based on configuration."""
+        if not llm_config:
+            raise WorkflowValidationError("Empty LLM configuration provided")
+        
+        # Create a cache key from the LLM configuration
+        cache_key = str(sorted(llm_config.items()))
+        
+        if cache_key not in self._shared_llm_cache:
+            try:
+                from ..llm.base import LLM
+                self._shared_llm_cache[cache_key] = LLM(**llm_config)
+            except Exception as e:
+                raise WorkflowValidationError(f"Failed to initialize shared LLM with config {llm_config}: {str(e)}")
+        
+        return self._shared_llm_cache[cache_key]
     
     def load_workflow_from_yaml(self, yaml_path: str) -> None:
         """Load workflow definition from YAML file."""
@@ -799,7 +889,7 @@ class WorkflowEngine:
                 raise WorkflowValidationError(f"Unknown node type: {node_type}")
             
             node_class = NODE_REGISTRY[node_type]
-            node = node_class(node_id, node_config.get("config", {}))
+            node = node_class(node_id, node_config.get("config", {}), self)
             
             if not node.validate_config():
                 raise WorkflowValidationError(f"Invalid configuration for node {node_id}")

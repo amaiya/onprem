@@ -552,17 +552,24 @@ nodes:
         
         Source: {source}
         Content: {content}
-      model_name: "gpt-3.5-turbo"            # Optional: LLM model
-      llm_type: "openai"                     # Optional: LLM provider
+      llm:                                    # New flexible LLM configuration
+        model_url: "openai://gpt-3.5-turbo"  # Model URL specification
+        temperature: 0.7                     # Creativity level
+        max_tokens: 1000                     # Response length limit
       batch_size: 5                          # Optional: Process in batches
 
-  # Alternative: Load complex prompt from file
+  # Alternative: Load complex prompt from file with advanced LLM config
   complex_analyzer:
     type: PromptProcessor
     config:
       prompt_file: "prompts/statute_extraction.txt"  # Option 2: Load from file
-      model_name: "gpt-4"                    # Optional: LLM model
+      llm:                                   # Advanced LLM configuration
+        model_url: "openai://gpt-4o-mini"    # Full model URL specification
+        temperature: 0                       # Deterministic results
+        mute_stream: true                    # Quiet processing
+        timeout: 60                          # Request timeout
       batch_size: 2                          # Optional: Process in batches
+
 ```
 
 **Loading Prompts from Files:**
@@ -591,6 +598,57 @@ config:
 - Reusability across workflows
 - Easier prompt engineering and testing
 
+**LLM Configuration Options:**
+
+The `llm` section accepts all parameters supported by the OnPrem LLM class.
+
+**LLM Instance Sharing:**
+
+The workflow engine automatically shares LLM instances between processors that use identical configurations, improving performance and memory usage:
+
+```yaml
+nodes:
+  extractor:
+    type: PromptProcessor
+    config:
+      prompt_file: "prompts/extraction.txt"
+      llm:
+        model_url: "openai://gpt-4o-mini"  # LLM instance created
+        temperature: 0
+        
+  cleaner:
+    type: CleanupProcessor  
+    config:
+      cleanup_prompt_file: "prompts/cleanup.txt"
+      llm:
+        model_url: "openai://gpt-4o-mini"  # Same instance reused!
+        temperature: 0
+```
+
+**Configuration Options:**
+
+```yaml
+llm:
+  # Model specification
+  model_url: "openai://gpt-4o-mini"      # Model URL (recommended format)
+  
+  # Generation parameters
+  temperature: 0.7                       # Randomness (0.0-2.0)
+  max_tokens: 1500                       # Maximum response length
+  top_p: 0.9                            # Nucleus sampling
+  frequency_penalty: 0.0                 # Repetition penalty
+  presence_penalty: 0.0                  # Topic diversity penalty
+  
+  # Behavior options
+  mute_stream: true                      # Suppress streaming output
+  timeout: 120                          # Request timeout in seconds
+  
+  # Provider-specific options (passed through)
+  api_key: "${OPENAI_API_KEY}"          # API authentication
+  base_url: "https://api.openai.com/v1"  # Custom API endpoint
+```
+
+
 **Prompt Variables:**
 - `{content}` - Document content
 - `{source}` - Document source path
@@ -602,6 +660,47 @@ config:
 
 **Output Ports:**
 - `results`: `List[Dict]` - Analysis results with prompt responses
+
+#### CleanupProcessor
+
+Post-processes and cleans LLM responses using another LLM call.
+
+```yaml
+nodes:
+  response_cleaner:
+    type: CleanupProcessor
+    config:
+      cleanup_prompt: |                  # Inline cleanup instructions
+        Clean up this response by removing XML tags and formatting:
+        {original_response}
+        
+        Return only the essential information.
+      llm:
+        model_url: "openai://gpt-3.5-turbo"
+        temperature: 0               # Deterministic cleanup
+
+  # Alternative: Load cleanup prompt from file
+  citation_cleaner:
+    type: CleanupProcessor
+    config:
+      cleanup_prompt_file: "prompts/statute_cleanup.txt"  # Complex cleanup rules
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0
+        mute_stream: true
+```
+
+**Use Cases:**
+- **Extract structured data** from messy LLM responses
+- **Remove formatting artifacts** like XML tags or unwanted text
+- **Standardize outputs** for consistent data processing
+- **Chain with PromptProcessor** for two-stage processing
+
+**Input Ports:**
+- `results`: `List[Dict]` - Results from PromptProcessor to clean
+
+**Output Ports:**
+- `results`: `List[Dict]` - Cleaned results (original kept in `original_response` field)
 
 #### SummaryProcessor
 

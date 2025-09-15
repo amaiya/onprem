@@ -1,0 +1,14 @@
+Clean up the following response to extract ONLY the statutory citations in a clean format.
+
+Rules:
+1. Remove any XML-like tags (<TEXT>, <STATUTES>, etc.)
+2. Remove "NA" entries 
+3. Extract only actual statute citations (e.g., "10 U.S.C. 2306a", "41 U.S.C. chapter 81")
+4. Put each citation on a separate line
+5. Remove any explanatory text or formatting
+6. If no valid citations exist, return "NONE"
+
+Original response:
+{original_response}
+
+Cleaned citations:
