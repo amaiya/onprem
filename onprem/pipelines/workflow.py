@@ -38,7 +38,10 @@ class NodeType:
 NODE_TYPES = {
     "Loader": NodeType("Loader", can_connect_to=["TextSplitter"]),
     "TextSplitter": NodeType("TextSplitter", can_connect_to=["TextSplitter", "Storage"]),
-    "Storage": NodeType("Storage", is_terminal=True)
+    "Storage": NodeType("Storage", is_terminal=True),
+    "Query": NodeType("Query", can_connect_to=["Processor"]),
+    "Processor": NodeType("Processor", can_connect_to=["Processor", "Exporter"]),
+    "Exporter": NodeType("Exporter", is_terminal=True)
     # Future extensions could easily add:
     # "Filter": NodeType("Filter", can_connect_to=["TextSplitter", "Filter", "Storage"]),
     # "Enricher": NodeType("Enricher", can_connect_to=["TextSplitter", "Storage"]),
@@ -137,6 +140,42 @@ class StorageNode(BaseNode):
         return {"status": "str"}
 
 
+class QueryNode(BaseNode):
+    """Base class for querying storage indexes."""
+    
+    NODE_TYPE = "Query"
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {}  # No inputs - queries existing storage
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"documents": "List[Document]"}
+
+
+class ProcessorNode(BaseNode):
+    """Base class for processing documents (applying prompts, etc.)."""
+    
+    NODE_TYPE = "Processor"
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {"documents": "List[Document]"}
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}
+
+
+class ExporterNode(BaseNode):
+    """Base class for exporting results to various formats."""
+    
+    NODE_TYPE = "Exporter"
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"status": "str"}
+
+
 # Concrete Loader Implementations
 class LoadFromFolderNode(LoaderNode):
     """Loads documents from a folder using ingest.load_documents."""
@@ -153,13 +192,42 @@ class LoadFromFolderNode(LoaderNode):
             raise NodeExecutionError(f"Node {self.node_id}: source_directory '{source_dir}' does not exist")
         
         ignored_files = self.config.get("ignored_files", [])
+        
+        # Handle filename pattern filtering
+        include_patterns = self.config.get("include_patterns", [])
+        exclude_patterns = self.config.get("exclude_patterns", [])
+        
+        ignore_fn = None
+        if include_patterns or exclude_patterns:
+            import fnmatch
+            
+            def pattern_filter(file_path: str) -> bool:
+                """Return True if file should be ignored based on patterns."""
+                filename = os.path.basename(file_path)
+                
+                # If include_patterns specified, file must match at least one
+                if include_patterns:
+                    if not any(fnmatch.fnmatch(filename, pattern) for pattern in include_patterns):
+                        return True  # Ignore - doesn't match any include pattern
+                
+                # If exclude_patterns specified, file must not match any
+                if exclude_patterns:
+                    if any(fnmatch.fnmatch(filename, pattern) for pattern in exclude_patterns):
+                        return True  # Ignore - matches an exclude pattern
+                
+                return False  # Don't ignore
+            
+            ignore_fn = pattern_filter
+        
+        # Extract parameters for ingest.load_documents, excluding our custom ones
         kwargs = {k: v for k, v in self.config.items() 
-                 if k not in ["source_directory", "ignored_files"]}
+                 if k not in ["source_directory", "ignored_files", "include_patterns", "exclude_patterns"]}
         
         try:
             documents = list(ingest.load_documents(
                 source_dir, 
-                ignored_files=ignored_files, 
+                ignored_files=ignored_files,
+                ignore_fn=ignore_fn,
                 **kwargs
             ))
             self._result_cache = documents
@@ -336,6 +404,254 @@ class ElasticsearchStoreNode(StorageNode):
             raise NodeExecutionError(f"Node {self.node_id}: Failed to store in Elasticsearch: {str(e)}")
 
 
+# Concrete Query Implementations
+class QueryWhooshStoreNode(QueryNode):
+    """Queries documents from a Whoosh search index."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        persist_location = self.config.get("persist_location")
+        query = self.config.get("query", "")
+        limit = self.config.get("limit", 100)
+        
+        if not persist_location:
+            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
+        if not query:
+            raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        
+        try:
+            store = VectorStoreFactory.create("whoosh", persist_location=persist_location)
+            # Use the search method from the store
+            results = store.similarity_search(query, k=limit)
+            return {"documents": results}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to query Whoosh: {str(e)}")
+
+
+class QueryChromaStoreNode(QueryNode):
+    """Queries documents from a ChromaDB vector store."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        persist_location = self.config.get("persist_location")
+        query = self.config.get("query", "")
+        limit = self.config.get("limit", 10)
+        
+        if not persist_location:
+            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
+        if not query:
+            raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        
+        try:
+            store = VectorStoreFactory.create("chroma", persist_location=persist_location)
+            # Use the similarity search method
+            results = store.similarity_search(query, k=limit)
+            return {"documents": results}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to query Chroma: {str(e)}")
+
+
+# Concrete Processor Implementations
+class PromptProcessorNode(ProcessorNode):
+    """Applies a prompt to documents using an LLM."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        documents = inputs.get("documents", [])
+        if not documents:
+            return {"results": []}
+        
+        prompt_template = self.config.get("prompt", "")
+        llm_type = self.config.get("llm_type", "openai")
+        model_name = self.config.get("model_name", "gpt-3.5-turbo")
+        batch_size = self.config.get("batch_size", 5)
+        
+        if not prompt_template:
+            raise NodeExecutionError(f"Node {self.node_id}: prompt is required")
+        
+        try:
+            # Initialize LLM (this would need to be adapted based on the available LLM interface)
+            from ..llm.base import LLM
+            llm = LLM(model_name=model_name)
+            
+            results = []
+            for i, doc in enumerate(documents):
+                # Format the prompt with document content
+                formatted_prompt = prompt_template.format(
+                    content=doc.page_content,
+                    source=doc.metadata.get('source', 'Unknown'),
+                    **doc.metadata
+                )
+                
+                # Get LLM response
+                response = llm.prompt(formatted_prompt)
+                
+                # Create result record
+                result = {
+                    'document_id': i,
+                    'source': doc.metadata.get('source', 'Unknown'),
+                    'prompt': formatted_prompt,
+                    'response': response,
+                    'metadata': doc.metadata
+                }
+                results.append(result)
+                
+                # Progress indication
+                if (i + 1) % batch_size == 0:
+                    print(f"Processed {i + 1}/{len(documents)} documents")
+            
+            return {"results": results}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to process with prompt: {str(e)}")
+
+
+class SummaryProcessorNode(ProcessorNode):
+    """Generates summaries for documents."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        documents = inputs.get("documents", [])
+        if not documents:
+            return {"results": []}
+        
+        max_length = self.config.get("max_length", 150)
+        llm_type = self.config.get("llm_type", "openai")
+        model_name = self.config.get("model_name", "gpt-3.5-turbo")
+        
+        try:
+            from ..llm.base import LLM
+            llm = LLM(model_name=model_name)
+            
+            results = []
+            for i, doc in enumerate(documents):
+                prompt = f"Summarize the following text in {max_length} words or less:\n\n{doc.page_content}"
+                summary = llm.prompt(prompt)
+                
+                result = {
+                    'document_id': i,
+                    'source': doc.metadata.get('source', 'Unknown'),
+                    'original_length': len(doc.page_content),
+                    'summary': summary,
+                    'summary_length': len(summary),
+                    'metadata': doc.metadata
+                }
+                results.append(result)
+            
+            return {"results": results}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to generate summaries: {str(e)}")
+
+
+# Concrete Exporter Implementations
+class CSVExporterNode(ExporterNode):
+    """Exports results to CSV format."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "results.csv")
+        columns = self.config.get("columns", None)  # If None, use all keys from first result
+        
+        try:
+            import csv
+            
+            # Determine columns
+            if columns is None:
+                columns = list(results[0].keys()) if results else []
+            
+            # Flatten nested metadata if present
+            flattened_results = []
+            for result in results:
+                flat_result = {}
+                for key, value in result.items():
+                    if key == 'metadata' and isinstance(value, dict):
+                        # Flatten metadata with prefix
+                        for meta_key, meta_value in value.items():
+                            flat_result[f"meta_{meta_key}"] = str(meta_value)
+                    else:
+                        flat_result[key] = str(value) if value is not None else ""
+                flattened_results.append(flat_result)
+            
+            # Update columns to include flattened metadata
+            if flattened_results:
+                all_columns = set()
+                for result in flattened_results:
+                    all_columns.update(result.keys())
+                if columns is None or 'metadata' in columns:
+                    columns = sorted(list(all_columns))
+            
+            # Write CSV
+            with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=columns)
+                writer.writeheader()
+                for result in flattened_results:
+                    # Only include columns that exist in the result
+                    row = {col: result.get(col, "") for col in columns}
+                    writer.writerow(row)
+            
+            return {"status": f"Exported {len(results)} results to {output_path}"}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export CSV: {str(e)}")
+
+
+class ExcelExporterNode(ExporterNode):
+    """Exports results to Excel format."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "results.xlsx")
+        sheet_name = self.config.get("sheet_name", "Results")
+        
+        try:
+            import pandas as pd
+            
+            # Flatten results similar to CSV exporter
+            flattened_results = []
+            for result in results:
+                flat_result = {}
+                for key, value in result.items():
+                    if key == 'metadata' and isinstance(value, dict):
+                        for meta_key, meta_value in value.items():
+                            flat_result[f"meta_{meta_key}"] = meta_value
+                    else:
+                        flat_result[key] = value
+                flattened_results.append(flat_result)
+            
+            # Create DataFrame and export
+            df = pd.DataFrame(flattened_results)
+            df.to_excel(output_path, sheet_name=sheet_name, index=False)
+            
+            return {"status": f"Exported {len(results)} results to {output_path}"}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export Excel: {str(e)}")
+
+
+class JSONExporterNode(ExporterNode):
+    """Exports results to JSON format."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "results.json")
+        pretty_print = self.config.get("pretty_print", True)
+        
+        try:
+            import json
+            
+            with open(output_path, 'w', encoding='utf-8') as jsonfile:
+                if pretty_print:
+                    json.dump(results, jsonfile, indent=2, ensure_ascii=False)
+                else:
+                    json.dump(results, jsonfile, ensure_ascii=False)
+            
+            return {"status": f"Exported {len(results)} results to {output_path}"}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export JSON: {str(e)}")
+
+
 # Node Registry
 NODE_REGISTRY = {
     # Loaders
@@ -352,6 +668,19 @@ NODE_REGISTRY = {
     "ChromaStore": ChromaStoreNode,
     "WhooshStore": WhooshStoreNode,
     "ElasticsearchStore": ElasticsearchStoreNode,
+    
+    # Query
+    "QueryWhooshStore": QueryWhooshStoreNode,
+    "QueryChromaStore": QueryChromaStoreNode,
+    
+    # Processors
+    "PromptProcessor": PromptProcessorNode,
+    "SummaryProcessor": SummaryProcessorNode,
+    
+    # Exporters
+    "CSVExporter": CSVExporterNode,
+    "ExcelExporter": ExcelExporterNode,
+    "JSONExporter": JSONExporterNode,
 }
 
 
@@ -551,3 +880,18 @@ def execute_workflow(yaml_path: str, verbose: bool = True) -> Dict[str, Any]:
     """Convenience function to load and execute a workflow from YAML file."""
     engine = load_workflow(yaml_path)
     return engine.execute(verbose=verbose)
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) != 2:
+        print("Usage: python -m onprem.pipelines.workflow <workflow.yaml>")
+        sys.exit(1)
+    
+    workflow_file = sys.argv[1]
+    try:
+        results = execute_workflow(workflow_file, verbose=True)
+        print(f"\n✅ Workflow completed successfully!")
+    except Exception as e:
+        print(f"❌ Workflow failed: {e}")
+        sys.exit(1)

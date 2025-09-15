@@ -2,7 +2,7 @@ nodes:
   document_loader:
     type: LoadFromFolder
     config:
-      source_directory: "sample_data/sotu"
+      source_directory: "../sample_data/sotu"
       verbose: true
   
   text_chunker:
