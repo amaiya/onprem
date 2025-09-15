@@ -339,11 +339,66 @@ class SplitByParagraphNode(TextSplitterNode):
 
 
 class KeepFullDocumentNode(TextSplitterNode):
-    """Passes documents through without any splitting or chunking."""
+    """Passes documents through without any splitting or chunking.
+    
+    Optionally concatenates multi-page documents into single documents.
+    """
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         documents = inputs.get("documents", [])
-        return {"documents": documents}
+        
+        concatenate_pages = self.config.get("concatenate_pages", False)
+        
+        if not concatenate_pages:
+            return {"documents": documents}
+        
+        # Group documents by source file and concatenate pages
+        try:
+            source_groups = {}
+            
+            for doc in documents:
+                source = doc.metadata.get('source', 'unknown')
+                if source not in source_groups:
+                    source_groups[source] = []
+                source_groups[source].append(doc)
+            
+            concatenated_docs = []
+            
+            for source, doc_pages in source_groups.items():
+                if len(doc_pages) == 1:
+                    # Single page document - keep as is
+                    concatenated_docs.append(doc_pages[0])
+                else:
+                    # Multi-page document - concatenate
+                    # Sort by page number if available
+                    doc_pages.sort(key=lambda x: x.metadata.get('page', 0))
+                    
+                    # Combine content with page breaks
+                    combined_content = '\n\n--- PAGE BREAK ---\n\n'.join(
+                        doc.page_content for doc in doc_pages
+                    )
+                    
+                    # Create new document with combined metadata
+                    combined_metadata = doc_pages[0].metadata.copy()
+                    combined_metadata['page'] = -1  # Indicate full document
+                    combined_metadata['page_count'] = len(doc_pages)
+                    combined_metadata['concatenated'] = True
+                    
+                    # Include page range if available
+                    pages = [doc.metadata.get('page', 0) for doc in doc_pages if doc.metadata.get('page', 0) > 0]
+                    if pages:
+                        combined_metadata['page_range'] = f"{min(pages)}-{max(pages)}"
+                    
+                    combined_doc = Document(
+                        page_content=combined_content,
+                        metadata=combined_metadata
+                    )
+                    concatenated_docs.append(combined_doc)
+            
+            return {"documents": concatenated_docs}
+            
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to concatenate pages: {str(e)}")
 
 
 # Concrete Storage Implementations
@@ -459,12 +514,23 @@ class PromptProcessorNode(ProcessorNode):
             return {"results": []}
         
         prompt_template = self.config.get("prompt", "")
+        prompt_file = self.config.get("prompt_file", "")
         llm_type = self.config.get("llm_type", "openai")
         model_name = self.config.get("model_name", "gpt-3.5-turbo")
         batch_size = self.config.get("batch_size", 5)
         
+        # Load prompt from file if specified, otherwise use inline prompt
+        if prompt_file:
+            if not os.path.exists(prompt_file):
+                raise NodeExecutionError(f"Node {self.node_id}: prompt_file '{prompt_file}' does not exist")
+            try:
+                with open(prompt_file, 'r', encoding='utf-8') as f:
+                    prompt_template = f.read()
+            except Exception as e:
+                raise NodeExecutionError(f"Node {self.node_id}: Failed to read prompt_file '{prompt_file}': {str(e)}")
+        
         if not prompt_template:
-            raise NodeExecutionError(f"Node {self.node_id}: prompt is required")
+            raise NodeExecutionError(f"Node {self.node_id}: Either 'prompt' or 'prompt_file' is required")
         
         try:
             # Initialize LLM (this would need to be adapted based on the available LLM interface)

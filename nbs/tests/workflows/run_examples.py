@@ -74,6 +74,22 @@ EXAMPLES = {
         "creates": ["ai_document_analysis.csv"],
         "difficulty": "Advanced",
         "note": "Requires pre-existing populated index"
+    },
+    "complex_prompt_example.yaml": {
+        "name": "Complex Prompt from File",
+        "description": "Load complex statute extraction prompt from external file",
+        "requirements": ["legal_index/", "LLM API key", "prompts/statute_extraction.txt"],
+        "creates": ["extracted_statutes.xlsx"],
+        "difficulty": "Advanced",
+        "note": "Demonstrates prompt_file feature for complex prompts"
+    },
+    "resume_analysis_example.yaml": {
+        "name": "Resume Analysis Pipeline",
+        "description": "Full pipeline: Load resumes → Store → Query → Parse → Export JSON",
+        "requirements": ["sample_data/resumes/", "LLM API key", "prompts/resume_extraction.txt"],
+        "creates": ["resume_index/", "parsed_resumes.json"],
+        "difficulty": "Advanced",
+        "note": "Complex JSON extraction using prompt files"
     }
 }
 

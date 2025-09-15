@@ -1,0 +1,35 @@
+# Example: Using complex prompts loaded from files
+nodes:
+  # Query for legal/regulatory documents
+  legal_search:
+    type: QueryWhooshStore
+    config:
+      persist_location: "legal_index"  # Assumes you have a legal document index
+      query: "federal acquisition regulations statute law"
+      limit: 15
+  
+  # Apply complex statute extraction prompt from file
+  statute_extractor:
+    type: PromptProcessor
+    config:
+      prompt_file: "prompts/statute_extraction.txt"  # Load complex prompt from file
+      model_name: "gpt-4"  # Use more capable model for complex extraction
+      batch_size: 2  # Process fewer at a time for complex prompts
+  
+  # Export extracted statutes to spreadsheet
+  statute_results:
+    type: ExcelExporter
+    config:
+      output_path: "extracted_statutes.xlsx"
+      sheet_name: "Statute_Extraction"
+
+connections:
+  - from: legal_search
+    from_port: documents
+    to: statute_extractor
+    to_port: documents
+  
+  - from: statute_extractor
+    from_port: results
+    to: statute_results
+    to_port: results

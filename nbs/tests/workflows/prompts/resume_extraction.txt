@@ -1,0 +1,47 @@
+Analyze the resume below and extract the relevant details. Format the response in JSON according to the specified structure below. 
+Only return the JSON response, with no additional text or explanations.
+
+Ensure to:
+- Format the full name in proper case.
+- Remove any spaces and country code from the contact number.
+- Format dates as "dd-mm-yyyy" if given in a more complex format, or retain the year if only the year is present.
+- Do not make up a phone number. 
+- Extract only the first two jobs for Work Experience.
+
+Use the following JSON structure:
+
+```json
+{
+ "Personal Information": {
+    "Name": " ",
+    "Contact Number": " ",
+    "Address": " ",
+    "Email": " ",
+    "Date of Birth": " "
+  },
+  "Education": [
+    {
+      "Degree": " ",
+      "Institution": " ",
+      "Year": " "
+    }
+  ],
+  "Work Experience": [
+    {
+      "Position": " ",
+      "Organization": " ",
+      "Duration": " ",
+      "Responsibilities": " "
+    }
+  ],
+  "Skills": [
+  {
+    "Skills": " "
+  }
+  ]
+}
+```
+
+Here is the text of the resume:
+
+{content}

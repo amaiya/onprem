@@ -387,20 +387,43 @@ nodes:
 
 #### KeepFullDocument
 
-Passes documents through without any chunking (useful for small documents).
+Passes documents through without any chunking. Optionally concatenates multi-page documents into single documents.
 
 ```yaml
 nodes:
   no_split:
     type: KeepFullDocument
-    config: {}  # No configuration needed
+    config: {}  # No configuration needed - keeps documents as-is
+  
+  # For multi-page documents (PDFs, etc.) - combine into single document
+  full_document:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true    # Optional: Combine pages into single document
 ```
 
+**Page Concatenation:**
+
+When `concatenate_pages: true`, multi-page documents are combined:
+- Pages sorted by page number
+- Content joined with `--- PAGE BREAK ---` separators
+- Metadata preserved from first page plus additional fields:
+  - `page: -1` (indicates full document)
+  - `page_count: N` (number of pages combined)
+  - `page_range: "1-5"` (original page range)
+  - `concatenated: true` (flag indicating concatenation)
+
+**Use Cases:**
+- **Resume Processing** - Combine multi-page resumes into single document
+- **Contract Analysis** - Process entire contracts as one unit
+- **Report Analysis** - Analyze complete reports without page boundaries
+- **Legal Documents** - Preserve document structure while enabling full-text analysis
+
 **Input Ports:**
-- `documents`: `List[Document]` - Documents to pass through
+- `documents`: `List[Document]` - Documents to pass through or concatenate
 
 **Output Ports:**
-- `documents`: `List[Document]` - Unchanged documents
+- `documents`: `List[Document]` - Unchanged or concatenated documents
 
 ### Storage Nodes
 
@@ -521,7 +544,7 @@ nodes:
   document_analyzer:
     type: PromptProcessor
     config:
-      prompt: |                               # Required: Prompt template
+      prompt: |                               # Option 1: Inline prompt template
         Analyze this document and provide:
         1. Main topic: 
         2. Key findings:
@@ -532,7 +555,41 @@ nodes:
       model_name: "gpt-3.5-turbo"            # Optional: LLM model
       llm_type: "openai"                     # Optional: LLM provider
       batch_size: 5                          # Optional: Process in batches
+
+  # Alternative: Load complex prompt from file
+  complex_analyzer:
+    type: PromptProcessor
+    config:
+      prompt_file: "prompts/statute_extraction.txt"  # Option 2: Load from file
+      model_name: "gpt-4"                    # Optional: LLM model
+      batch_size: 2                          # Optional: Process in batches
 ```
+
+**Loading Prompts from Files:**
+
+For complex prompts, you can store them in separate text files and reference them with `prompt_file`:
+
+```yaml
+# File: prompts/resume_parser.txt
+Analyze the resume and extract details in JSON format:
+{
+  "name": "...",
+  "skills": ["...", "..."],
+  "experience": [...]
+}
+
+Resume text: {content}
+
+# Workflow configuration
+config:
+  prompt_file: "prompts/resume_parser.txt"
+```
+
+**Benefits of External Prompt Files:**
+- Better organization for complex prompts
+- Version control and collaboration
+- Reusability across workflows
+- Easier prompt engineering and testing
 
 **Prompt Variables:**
 - `{content}` - Document content

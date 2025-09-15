@@ -1,0 +1,33 @@
+Given text from the Federal Acquisition Regulations (FAR), extract a list of explicitly cited statutes.
+If there are no explicitly cited statutes, return NA.  If there are, return a list of cited statutes with each statute on a separate line.  
+Do not include references to the FAR itself which are numbers with dots or dashes (e.g., 1.102-1, 3.104).
+
+# Example 1:
+
+<TEXT>
+(2)A violation, as determined by the Secretary of Commerce, of any agreement of the group known as the "Coordination Committee" for purposes of the Export Administration Act of 1979 (50 U.S.C. App. 2401, et seq.) or any similar bilateral or multilateral export control agreement.
+
+<STATUTES>
+50 U.S.C. App. 2401 
+
+# Example 2:
+
+<TEXT>
+9.400 Scope of subpart.
+(a) This subpart-
+
+(1) Prescribes policies and procedures governing the debarment and suspension of contractors by agencies for the causes given in 9.406-2 and 9.407-2;
+
+(2) Provides for the listing of contractors debarred, suspended, proposed for debarment, and declared ineligible (see the definition of "ineligible" in 2.101); and
+
+(3) Sets forth the consequences of this listing.
+
+<STATUTES>
+NA
+
+# Example 3:
+
+<TEXT>
+{content}
+
+<STATUTES>
