@@ -86,7 +86,7 @@ class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
             texts = [d.page_content for d in docs if d.metadata.get('text_as_html', None) is None]
 
             page_content = '\n'.join(texts)
-            docs = [helpers.create_document(page_content, self.file_path)]
+            docs = [helpers.create_document(page_content, source=self.file_path)]
             table_docs = [helpers.create_document(t, source=self.file_path, table=True) for t in tables]
             docs.extend(table_docs)
             return docs
@@ -125,7 +125,7 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
             md_text = pymupdf4llm.to_markdown(self.file_path, show_progress=False)
             if not md_text.strip():
                 raise Exception('Document had no content. ')
-            doc = helpers.create_document(md_text, self.file_path, markdown=True)
+            doc = helpers.create_document(md_text, source=self.file_path, markdown=True)
             docs = [doc]
             if self.parser.text_kwargs.get('infer_table_structure', False):
                 docs = helpers.extract_tables(docs=docs)

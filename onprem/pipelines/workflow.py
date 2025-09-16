@@ -205,41 +205,15 @@ class LoadFromFolderNode(LoaderNode):
         
         ignored_files = self.config.get("ignored_files", [])
         
-        # Handle filename pattern filtering
-        include_patterns = self.config.get("include_patterns", [])
-        exclude_patterns = self.config.get("exclude_patterns", [])
-        
-        ignore_fn = None
-        if include_patterns or exclude_patterns:
-            import fnmatch
-            
-            def pattern_filter(file_path: str) -> bool:
-                """Return True if file should be ignored based on patterns."""
-                filename = os.path.basename(file_path)
-                
-                # If include_patterns specified, file must match at least one
-                if include_patterns:
-                    if not any(fnmatch.fnmatch(filename, pattern) for pattern in include_patterns):
-                        return True  # Ignore - doesn't match any include pattern
-                
-                # If exclude_patterns specified, file must not match any
-                if exclude_patterns:
-                    if any(fnmatch.fnmatch(filename, pattern) for pattern in exclude_patterns):
-                        return True  # Ignore - matches an exclude pattern
-                
-                return False  # Don't ignore
-            
-            ignore_fn = pattern_filter
-        
-        # Extract parameters for ingest.load_documents, excluding our custom ones
+        # Use built-in pattern filtering instead of custom ignore_fn to preserve metadata
+        # Extract parameters for ingest.load_documents, only excluding source_directory
         kwargs = {k: v for k, v in self.config.items() 
-                 if k not in ["source_directory", "ignored_files", "include_patterns", "exclude_patterns"]}
+                 if k not in ["source_directory"]}
         
         try:
             documents = list(ingest.load_documents(
                 source_dir, 
                 ignored_files=ignored_files,
-                ignore_fn=ignore_fn,
                 **kwargs
             ))
             self._result_cache = documents
@@ -512,8 +486,8 @@ class QueryChromaStoreNode(QueryNode):
         
         try:
             store = VectorStoreFactory.create("chroma", persist_location=persist_location)
-            # Use the similarity search method
-            results = store.similarity_search(query, k=limit)
+            # Use the search method (similar to WhooshStore)
+            results = store.search(query, limit=limit, return_dict=False)
             return {"documents": results}
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to query Chroma: {str(e)}")
