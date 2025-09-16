@@ -1,166 +1,213 @@
-# Workflow Examples
+# OnPrem Workflow Engine
 
-This directory contains comprehensive examples and tools for the OnPrem workflow system.
+The OnPrem workflow engine allows you to create automated document processing pipelines using simple YAML configuration files. Instead of writing code, you visually design workflows by connecting different types of nodes.
 
-## Quick Start
+## Quick Start - Three Core Examples
+
+The workflow engine provides three essential patterns that cover the most common document processing scenarios:
+
+### 1. 🔄 Ingest PDFs to Vector Store (`1_ingest_pdfs.yaml`)
+
+**Purpose**: Load PDF files, chunk them, and store in a vector database for later retrieval.
 
 ```bash
-# List all available examples
+# Run from the workflows directory
+python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
+```
+
+**What it does:**
+- Loads PDF files from `../sample_data/`
+- Converts PDFs to markdown for better processing
+- Chunks documents into 800-character pieces with 80-character overlap
+- Stores in ChromaDB vector database at `document_vectors/`
+
+**Requirements**: PDF files in the sample_data directory
+
+### 2. 🔍 Analyze from Vector Store (`2_analyze_from_vectorstore.yaml`)
+
+**Purpose**: Query an existing vector database, apply AI analysis, and export results.
+
+```bash
+# Requires: Run example 1 first + set OPENAI_API_KEY
+python -m onprem.pipelines.workflow yaml_examples/2_analyze_from_vectorstore.yaml
+```
+
+**What it does:**
+- Searches the vector database created in example 1
+- Applies AI analysis to find documents about "artificial intelligence machine learning"
+- Uses GPT-3.5-turbo to analyze each document for topic, key points, and relevance
+- Exports results to `document_analysis_results.xlsx`
+
+**Requirements**: 
+- Run example 1 first to create `document_vectors/`
+- Set `OPENAI_API_KEY` environment variable
+
+### 3. 📄 Direct Document Analysis (`3_direct_analysis.yaml`)
+
+**Purpose**: Analyze documents directly without a vector database using two-stage AI processing.
+
+```bash
+# Requires: set OPENAI_API_KEY  
+python -m onprem.pipelines.workflow yaml_examples/3_direct_analysis.yaml
+```
+
+**What it does:**
+- Loads documents directly from `../sample_data/`
+- Processes complete documents (combines multi-page PDFs)
+- Applies AI analysis to extract document type, topic, entities, summary, and recommendations
+- Uses ResponseCleaner for consistent formatting
+- Exports results to `document_analysis_summary.csv`
+
+**Requirements**: 
+- Documents in sample_data directory
+- Set `OPENAI_API_KEY` environment variable
+
+## Command-Line Usage
+
+### Basic Execution
+```bash
+python -m onprem.pipelines.workflow <workflow.yaml>
+```
+
+### Available Options
+```bash
+# Show help and examples
+python -m onprem.pipelines.workflow --help
+
+# Validate workflow without running
+python -m onprem.pipelines.workflow --validate workflow.yaml
+
+# List all available node types
+python -m onprem.pipelines.workflow --list-nodes
+
+# Run quietly (suppress progress output)
+python -m onprem.pipelines.workflow --quiet workflow.yaml
+
+# Show version
+python -m onprem.pipelines.workflow --version
+```
+
+### Example Commands
+```bash
+# Run the PDF ingestion workflow
+python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
+
+# Validate a workflow before running
+python -m onprem.pipelines.workflow --validate yaml_examples/2_analyze_from_vectorstore.yaml
+
+# See all available node types
+python -m onprem.pipelines.workflow --list-nodes
+```
+
+## Workflow Patterns
+
+The three core examples demonstrate the main workflow patterns:
+
+### Pattern 1: Data Ingestion (Example 1)
+```
+Documents → Chunking → Vector Store
+```
+Use this pattern to build searchable databases from your document collections.
+
+### Pattern 2: Retrieval + Analysis (Example 2)
+```
+Vector Store → Query → AI Analysis → Export
+```
+Use this pattern to analyze specific topics from large document collections using semantic search.
+
+### Pattern 3: Direct Processing (Example 3)
+```  
+Documents → Full Processing → AI Analysis → Cleanup → Export
+```
+Use this pattern for comprehensive analysis of entire document collections without intermediate storage.
+
+## Available Node Types
+
+### 📁 Loaders
+- **LoadFromFolder** - Load all documents from a directory
+- **LoadSingleDocument** - Load a specific file
+- **LoadWebDocument** - Download and load from URL
+
+### ✂️ TextSplitters
+- **SplitByCharacterCount** - Chunk by character count
+- **SplitByParagraph** - Chunk by paragraphs (preserves structure)
+- **KeepFullDocument** - Keep documents whole, optionally concatenate pages
+
+### 🗄️ Storage  
+- **ChromaStore** - Vector database for semantic search
+- **WhooshStore** - Full-text search index
+- **ElasticsearchStore** - Hybrid search capabilities
+
+### 🔍 Query
+- **QueryChromaStore** - Search vector database
+- **QueryWhooshStore** - Search text index
+
+### 🤖 Processors
+- **PromptProcessor** - Apply AI analysis using custom prompts
+- **ResponseCleaner** - Clean and format AI responses
+- **SummaryProcessor** - Generate document summaries
+
+### 💾 Exporters
+- **CSVExporter** - Export to CSV format
+- **ExcelExporter** - Export to Excel format  
+- **JSONExporter** - Export to JSON format
+
+## Example Helper Scripts
+
+### List All Examples
+```bash
 python run_examples.py --list
+```
 
-# Run a basic example
-python run_examples.py --run example_workflow.yaml
-
-# Validate all workflows without running them
+### Validate All Workflows
+```bash
 python run_examples.py --validate all
-
-# Clean up output files
-python run_examples.py --cleanup
 ```
 
-## Files Overview
+### Run Specific Example
+```bash
+python run_examples.py --run 1_ingest_pdfs.yaml
+```
 
-### 📚 Documentation
-- `workflow_tutorial.md` - Complete tutorial with all node types and examples
-- `workflow_examples_README.md` - Original examples documentation  
-- `README.md` - This file
+## Troubleshooting
 
-### 🚀 Example Workflows
+### Common Issues
 
-| File | Difficulty | Description |
-|------|------------|-------------|
-| `example_workflow.yaml` | Beginner | Basic Load → Chunk → Store pipeline |
-| `advanced_workflow_example.yaml` | Intermediate | Multi-source processing with different chunking |
-| `pattern_filtering_examples.yaml` | Intermediate | Filename pattern filtering examples |
-| `query_and_prompt_example.yaml` | Advanced | Query storage → Apply AI prompts → Export Excel |
-| `complete_analysis_pipeline.yaml` | Advanced | Full pipeline with analysis and export |
-| `simple_analysis_demo.yaml` | Advanced | Simple query → prompt → CSV export |
+**File not found errors:**
+- Use absolute paths or ensure you're in the correct directory
+- Check that `../sample_data/` exists and contains documents
 
-### 🛠️ Tools
-- `run_examples.py` - Interactive example runner and validator
-- `dev_testing_reference.py` - Development reference for testing new nodes
+**API key errors:**
+- Set your OpenAI API key: `export OPENAI_API_KEY="your-key-here"`
+- Examples 2 and 3 require LLM access
 
-## Running Examples
+**Module import errors:**
+- Ensure you're running from the project root or have the correct PYTHONPATH
+- Install OnPrem with: `pip install onprem[chroma]`
 
-### Prerequisites
+**Validation errors:**
+- Use `--validate` to check workflows before running
+- Check that all required configuration parameters are provided
 
-1. **Sample Data**: Ensure `../sample_data/` exists with documents
-2. **LLM Access**: Set API keys for advanced examples (OPENAI_API_KEY, etc.)
-3. **Dependencies**: OnPrem package properly installed
-
-### Basic Examples (No LLM Required)
+### Getting Help
 
 ```bash
-# Simple document ingestion
-python run_examples.py --run example_workflow
+# Show detailed help
+python -m onprem.pipelines.workflow --help
 
-# Multi-source processing  
-python run_examples.py --run advanced_workflow
+# Validate before running
+python -m onprem.pipelines.workflow --validate your_workflow.yaml
 
-# Pattern filtering (validate only - contains multiple workflows)
-python run_examples.py --validate pattern_filtering_examples.yaml
+# List examples with requirements
+python run_examples.py --list
 ```
 
-### Advanced Examples (Require LLM)
+## Next Steps
 
-```bash
-# First create a search index with basic examples, then:
-python run_examples.py --run query_and_prompt_example
-python run_examples.py --run simple_analysis_demo
-```
+1. **Start with Example 1** - Build your first document database
+2. **Try Example 2** - Learn retrieval-based analysis  
+3. **Explore Example 3** - Master direct document processing
+4. **Check the Archive** - See advanced patterns in `yaml_examples/archive/`
+5. **Read the Tutorial** - Full documentation in `workflow_tutorial.md`
 
-### Validation and Testing
-
-```bash
-# Check if all workflows are valid
-python run_examples.py --validate all
-
-# Dry run (validate without executing)  
-python run_examples.py --dry-run complete_analysis_pipeline.yaml
-
-# Clean up output files after testing
-python run_examples.py --cleanup
-```
-
-## Example Output
-
-### List Examples
-```
-$ python run_examples.py --list
-
-📋 Available Workflow Examples:
-
- 1. ✅ Basic Pipeline (Beginner)
-     File: example_workflow.yaml
-     Description: Simple Load → Chunk → Store pipeline using WhooshStore
-     Requirements: sample_data/sotu directory
-
- 2. ✅ Query & Prompt Analysis (Advanced)  
-     File: query_and_prompt_example.yaml
-     Description: Query storage index → Apply AI prompt → Export to Excel
-     Requirements: existing_search_index/, LLM API key
-     Note: Requires existing populated index and LLM
-```
-
-### Run Example
-```
-$ python run_examples.py --run example_workflow
-
-🚀 Running workflow: example_workflow.yaml
-Executing node: document_loader
-  -> Processed 1 documents
-Executing node: text_chunker  
-  -> Processed 170 documents
-Executing node: search_index
-  -> Successfully stored 170 documents in WhooshStore
-
-✅ Workflow completed successfully!
-
-📁 Files/directories created:
-   ✅ test_whoosh_index/
-```
-
-## Node Types Available
-
-The workflow system supports these node categories:
-
-- **Loaders** (3): `LoadFromFolder`, `LoadSingleDocument`, `LoadWebDocument`
-- **TextSplitters** (3): `SplitByCharacterCount`, `SplitByParagraph`, `KeepFullDocument`  
-- **Storage** (3): `ChromaStore`, `WhooshStore`, `ElasticsearchStore`
-- **Query** (2): `QueryWhooshStore`, `QueryChromaStore`
-- **Processors** (2): `PromptProcessor`, `SummaryProcessor`
-- **Exporters** (3): `CSVExporter`, `ExcelExporter`, `JSONExporter`
-
-## Common Issues
-
-### Missing Sample Data
-```bash
-# Ensure sample data exists
-ls ../sample_data/sotu/
-ls ../sample_data/billionaires/
-```
-
-### LLM API Keys
-```bash
-# Set environment variables
-export OPENAI_API_KEY="your-key-here"
-```
-
-### Missing Dependencies
-```bash
-# Install required packages
-pip install pandas openpyxl  # For Excel export
-```
-
-## Creating Your Own Workflows
-
-1. Start with `example_workflow.yaml` as a template
-2. Refer to `workflow_tutorial.md` for complete node documentation
-3. Use `run_examples.py --validate your_workflow.yaml` to check syntax
-4. Test with `run_examples.py --dry-run your_workflow.yaml`
-
-## Development
-
-- See `dev_testing_reference.py` for testing new node types
-- All workflows use the registry-based validation system
-- New node types can be added by extending the base classes in `workflow.py`
+The three core examples provide a complete learning path from basic ingestion to advanced AI-powered analysis!

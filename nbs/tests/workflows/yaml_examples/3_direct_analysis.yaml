@@ -1,0 +1,107 @@
+# Example 3: Direct Document Analysis (No Vector Store)
+# This workflow processes documents directly from files, applies AI analysis, and exports results
+# Based on the FAR legal analysis example but generalized for any document type
+
+nodes:
+  # Load documents directly from folder
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data"       # Directory containing documents
+      include_patterns: ["*.pdf", "*.txt", "*.html"]  # Multiple file types
+      verbose: true
+      pdf_markdown: true                       # Convert PDFs for better analysis
+      store_file_dates: true                   # Include timestamps
+  
+  # Keep documents whole for comprehensive analysis
+  full_document_processor:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true                  # Combine multi-page documents
+  
+  # Apply AI analysis to extract key information
+  document_analyzer:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Please analyze this document and extract the following information:
+        
+        **DOCUMENT TYPE**: What type of document is this? (report, article, manual, etc.)
+        **MAIN TOPIC**: What is the primary subject matter?
+        **KEY ENTITIES**: List any important names, organizations, or technical terms
+        **SUMMARY**: Provide a 2-3 sentence summary of the main content
+        **RECOMMENDATIONS**: Any action items or recommendations mentioned
+        
+        If any category doesn't apply, write "N/A"
+        
+        Document: {source}
+        Content: {content}
+      llm:
+        model_url: "openai://gpt-4o-mini"      # Good balance of quality and speed
+        temperature: 0.2                       # Focused, consistent analysis
+        mute_stream: true
+      batch_size: 2                           # Process 2 documents at a time
+  
+  # Clean up the responses to ensure consistent formatting
+  response_cleaner:
+    type: ResponseCleaner
+    config:
+      cleanup_prompt: |
+        Clean up this analysis response to ensure consistent formatting:
+        {original_response}
+        
+        Requirements:
+        - Keep all content but fix any formatting issues
+        - Ensure each section header (**DOCUMENT TYPE**, etc.) is on its own line
+        - Remove any redundant text or artifacts
+        - If a section says "N/A", keep it as "N/A"
+      llm:
+        model_url: "openai://gpt-3.5-turbo"   # Fast cleanup
+        temperature: 0
+        mute_stream: true
+  
+  # Export to CSV for easy analysis and filtering
+  results_export:
+    type: CSVExporter
+    config:
+      output_path: "document_analysis_summary.csv"
+
+connections:
+  # Pipeline: Load → Keep Full → Analyze → Clean → Export
+  - from: document_loader
+    from_port: documents
+    to: full_document_processor
+    to_port: documents
+  
+  - from: full_document_processor
+    from_port: documents
+    to: document_analyzer
+    to_port: documents
+  
+  - from: document_analyzer
+    from_port: results
+    to: response_cleaner
+    to_port: results
+  
+  - from: response_cleaner
+    from_port: results
+    to: results_export
+    to_port: results
+
+# Prerequisites:
+# 1. Documents in ../sample_data/ directory
+# 2. Set your OPENAI_API_KEY environment variable
+#
+# Usage:
+# python -m onprem.pipelines.workflow 3_direct_analysis.yaml
+#
+# Expected output:
+# - document_analysis_summary.csv with comprehensive analysis of each document
+# - Two-stage processing: initial extraction + response cleanup
+# - Suitable for any document collection that needs structured analysis
+#
+# Benefits of direct analysis:
+# - No vector store setup required
+# - Processes complete documents for full context
+# - Good for systematic analysis of entire document collections
+# - Faster setup than vector store approach

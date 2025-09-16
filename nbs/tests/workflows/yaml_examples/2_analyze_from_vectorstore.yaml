@@ -1,0 +1,66 @@
+# Example 2: Query and Analyze Documents from Vector Store
+# This workflow queries a pre-existing vector store, applies AI analysis, and exports results
+
+nodes:
+  # Query the vector database for relevant documents
+  document_search:
+    type: QueryChromaStore
+    config:
+      persist_location: "document_vectors"     # Use database created by example 1
+      query: "artificial intelligence machine learning technology research"  # Search terms
+      limit: 10                               # Return top 10 most relevant chunks
+  
+  # Analyze each retrieved document chunk using AI
+  content_analyzer:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Analyze this document excerpt and provide a structured summary:
+        
+        **TOPIC**: What is the main subject/topic?
+        **KEY POINTS**: List 2-3 most important points
+        **RELEVANCE**: How relevant is this to AI/ML research? (High/Medium/Low)
+        **SUMMARY**: One sentence summary
+        
+        Document source: {source}
+        Content: {content}
+        
+        Please format your response clearly with the headers above.
+      llm:
+        model_url: "openai://gpt-3.5-turbo"   # Fast, cost-effective model
+        temperature: 0.3                       # Slightly creative but focused
+        max_tokens: 300                        # Concise responses
+        mute_stream: true                      # Quiet processing
+      batch_size: 3                           # Process 3 documents at once
+  
+  # Export analysis results to Excel for review
+  analysis_export:
+    type: ExcelExporter
+    config:
+      output_path: "document_analysis_results.xlsx"
+      sheet_name: "AI_ML_Analysis"
+
+connections:
+  # Pipeline: Query Vector Store → Analyze → Export to Excel
+  - from: document_search
+    from_port: documents
+    to: content_analyzer
+    to_port: documents
+  
+  - from: content_analyzer
+    from_port: results
+    to: analysis_export
+    to_port: results
+
+# Prerequisites:
+# 1. Run example 1 first to create the "document_vectors" database
+# 2. Set your OPENAI_API_KEY environment variable
+#
+# Usage:
+# python -m onprem.pipelines.workflow 2_analyze_from_vectorstore.yaml
+#
+# Expected output:
+# - document_analysis_results.xlsx with columns:
+#   - document_id, source, response (analysis), metadata
+#   - Each row contains AI analysis of a document chunk
+# - Console output showing processing progress

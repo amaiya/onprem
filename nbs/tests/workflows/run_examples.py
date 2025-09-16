@@ -30,101 +30,166 @@ except ImportError as e:
 
 # Example metadata - describes what each example does and requirements
 EXAMPLES = {
+    # Core Examples - Three essential workflows
+    "yaml_examples/1_ingest_pdfs.yaml": {
+        "name": "🔄 Ingest PDFs to Vector Store",
+        "description": "Load PDF files, chunk them, and store in vector database for later analysis",
+        "requirements": ["sample_data/ with PDF files"],
+        "creates": ["document_vectors/"],
+        "difficulty": "Beginner",
+        "category": "Core"
+    },
+    "yaml_examples/2_analyze_from_vectorstore.yaml": {
+        "name": "🔍 Analyze from Vector Store", 
+        "description": "Query existing vector store, apply AI analysis, and export results",
+        "requirements": ["document_vectors/ (run example 1 first)", "LLM API key"],
+        "creates": ["document_analysis_results.xlsx"],
+        "difficulty": "Intermediate",
+        "category": "Core"
+    },
+    "yaml_examples/3_direct_analysis.yaml": {
+        "name": "📄 Direct Document Analysis",
+        "description": "Analyze documents directly without vector store - two-stage AI processing",
+        "requirements": ["sample_data/ with documents", "LLM API key"], 
+        "creates": ["document_analysis_summary.csv"],
+        "difficulty": "Intermediate",
+        "category": "Core"
+    },
+    
+    # Legacy Examples - Archived but still functional
     "yaml_examples/example_workflow.yaml": {
-        "name": "Basic Pipeline",
+        "name": "Basic Pipeline (Legacy)",
         "description": "Simple Load → Chunk → Store pipeline using WhooshStore",
         "requirements": ["sample_data/sotu directory"],
         "creates": ["test_whoosh_index/"],
-        "difficulty": "Beginner"
+        "difficulty": "Beginner",
+        "category": "Legacy"
     },
-    "yaml_examples/advanced_workflow_example.yaml": {
+    "yaml_examples/archive/advanced_workflow_example.yaml": {
         "name": "Multi-Source Pipeline", 
         "description": "Multiple loaders with different chunking strategies",
         "requirements": ["sample_data/sotu", "sample_data/billionaires"],
         "creates": ["unified_search_index/"],
-        "difficulty": "Intermediate"
+        "difficulty": "Intermediate",
+        "category": "Archive"
     },
-    "yaml_examples/pattern_pdf_only.yaml": {
+    "yaml_examples/archive/pattern_pdf_only.yaml": {
         "name": "Pattern Filtering - PDF Only",
         "description": "Load only PDF files using include_patterns filtering",
         "requirements": ["sample_data/ with PDF files"],
         "creates": ["pdf_documents/"],
-        "difficulty": "Intermediate"
+        "difficulty": "Intermediate",
+        "category": "Archive"
     },
-    "yaml_examples/query_and_prompt_example.yaml": {
+    "yaml_examples/archive/query_and_prompt_example.yaml": {
         "name": "Query & Prompt Analysis",
         "description": "Query storage index → Apply AI prompt → Export to Excel",
         "requirements": ["existing_search_index/", "LLM API key"],
         "creates": ["document_analysis_results.xlsx"],
         "difficulty": "Advanced",
+        "category": "Archive",
         "note": "Requires existing populated index and LLM"
     },
-    "yaml_examples/complete_analysis_pipeline.yaml": {
+    "yaml_examples/archive/complete_analysis_pipeline.yaml": {
         "name": "Complete Analysis Pipeline",
         "description": "Full pipeline: Ingest → Store → Query → Process → Export",
         "requirements": ["sample_data/ with PDFs", "LLM API key"],
         "creates": ["analysis_index/", "research_summaries.csv"],
         "difficulty": "Advanced",
+        "category": "Archive",
         "note": "Query step runs independently - see tutorial for explanation"
     },
-    "yaml_examples/simple_analysis_demo.yaml": {
+    "yaml_examples/archive/simple_analysis_demo.yaml": {
         "name": "Simple Analysis Demo",
         "description": "Query existing index → Apply prompt → Export CSV",
         "requirements": ["existing_index/", "LLM API key"],
         "creates": ["ai_document_analysis.csv"],
         "difficulty": "Advanced",
+        "category": "Archive",
         "note": "Requires pre-existing populated index"
     },
-    "yaml_examples/complex_prompt_example.yaml": {
+    "yaml_examples/archive/complex_prompt_example.yaml": {
         "name": "Complex Prompt from File",
         "description": "Load complex statute extraction prompt from external file",
         "requirements": ["legal_index/", "LLM API key", "prompts/statute_extraction.txt"],
         "creates": ["extracted_statutes.xlsx"],
         "difficulty": "Advanced",
+        "category": "Archive",
         "note": "Demonstrates prompt_file feature for complex prompts"
     },
-    "yaml_examples/resume_analysis_example.yaml": {
+    "yaml_examples/archive/resume_analysis_example.yaml": {
         "name": "Resume Analysis Pipeline",
         "description": "Full pipeline: Load resumes → Store → Query → Parse → Export JSON",
         "requirements": ["sample_data/resumes/", "LLM API key", "prompts/resume_extraction.txt"],
         "creates": ["resume_index/", "parsed_resumes.json"],
         "difficulty": "Advanced",
+        "category": "Archive",
         "note": "Complex JSON extraction using prompt files"
     },
-    "yaml_examples/page_concatenation_demo.yaml": {
+    "yaml_examples/archive/page_concatenation_demo.yaml": {
         "name": "Page Concatenation Demo",
         "description": "Demonstrates combining multi-page PDFs into single documents",
         "requirements": ["sample_data/ with PDF files"],
         "creates": ["full_document_index/", "full_document_analysis.csv"],
         "difficulty": "Intermediate",
+        "category": "Archive",
         "note": "Shows concatenate_pages feature for complete document analysis"
     },
     "yaml_examples/far_legal_analysis_simple.yaml": {
-        "name": "FAR Legal Analysis",
-        "description": "Extract statutory citations from Federal Acquisition Regulations (Part 9)",
+        "name": "⚖️ FAR Legal Analysis (Specialized)",
+        "description": "Extract statutory citations from Federal Acquisition Regulations - demonstrates ResponseCleaner",
         "requirements": ["/tmp/far_data/ with FAR HTML files", "LLM API key", "prompts/statute_extraction.txt"],
         "creates": ["far_statutory_citations_cleaned.xlsx"],
         "difficulty": "Advanced",
-        "note": "Based on 99j_examples_legal_analysis.ipynb - processes ~106 FAR sections directly"
+        "category": "Specialized",
+        "note": "Based on 99j_examples_legal_analysis.ipynb - shows two-stage LLM processing"
     }
 }
 
 
 def list_examples():
-    """List all available workflow examples."""
-    print("📋 Available Workflow Examples:\n")
+    """List all available workflow examples organized by category."""
+    print("📋 OnPrem Workflow Examples\n")
     
-    for i, (filename, info) in enumerate(EXAMPLES.items(), 1):
-        status = "✅" if os.path.exists(filename) else "❌"
-        print(f"{i:2d}. {status} {info['name']} ({info['difficulty']})")
-        print(f"     File: {filename}")
-        print(f"     Description: {info['description']}")
+    # Group examples by category
+    categories = {}
+    for filename, info in EXAMPLES.items():
+        category = info.get('category', 'Other')
+        if category not in categories:
+            categories[category] = []
+        categories[category].append((filename, info))
+    
+    # Display core examples first
+    category_order = ['Core', 'Specialized', 'Legacy', 'Archive', 'Other']
+    
+    for category in category_order:
+        if category not in categories:
+            continue
+            
+        print(f"{'='*20} {category.upper()} EXAMPLES {'='*20}")
         
-        if info['requirements']:
-            print(f"     Requirements: {', '.join(info['requirements'])}")
+        if category == 'Core':
+            print("Start here! These three examples cover the main workflow patterns:\n")
+        elif category == 'Specialized':
+            print("Domain-specific examples for advanced use cases:\n")
+        elif category == 'Legacy':
+            print("Original examples (still functional):\n")
+        elif category == 'Archive':
+            print("Additional examples moved to archive folder:\n")
         
-        if info.get('note'):
-            print(f"     Note: {info['note']}")
+        for i, (filename, info) in enumerate(categories[category], 1):
+            status = "✅" if os.path.exists(filename) else "❌"
+            print(f"{i}. {status} {info['name']} ({info['difficulty']})")
+            print(f"   📁 {filename}")
+            print(f"   📝 {info['description']}")
+            
+            if info.get('requirements'):
+                print(f"   📋 Requirements: {', '.join(info['requirements'])}")
+            
+            if info.get('note'):
+                print(f"   💡 {info['note']}")
+            
+            print()
         
         print()
 

@@ -1,0 +1,52 @@
+# Example 1: Ingest PDF Documents into Vector Store
+# This workflow loads PDF files, chunks them, and stores them in a vector database for later retrieval
+
+nodes:
+  # Load PDF documents from a directory
+  pdf_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data"        # Directory containing PDF files
+      include_patterns: ["*.pdf"]               # Only process PDF files
+      pdf_markdown: true                        # Convert PDFs to markdown for better chunking
+      verbose: true                             # Show progress
+      store_md5: true                          # Store document hashes for deduplication
+      store_file_dates: true                   # Include file dates in metadata
+  
+  # Chunk documents for optimal retrieval
+  document_chunker:
+    type: SplitByCharacterCount
+    config:
+      chunk_size: 800                          # ~800 chars per chunk (good for most use cases)
+      chunk_overlap: 80                        # 10% overlap to maintain context
+      preserve_paragraphs: true                # Try to keep paragraphs intact
+  
+  # Store in ChromaDB vector database for semantic search
+  vector_store:
+    type: ChromaStore
+    config:
+      persist_location: "document_vectors"     # Directory to store the database
+      collection_name: "pdf_documents"        # Collection name in ChromaDB
+
+connections:
+  # Pipeline: Load PDFs → Chunk → Store in Vector DB
+  - from: pdf_loader
+    from_port: documents
+    to: document_chunker
+    to_port: documents
+  
+  - from: document_chunker
+    from_port: documents
+    to: vector_store
+    to_port: documents
+
+# Usage:
+# python -m onprem.pipelines.workflow 1_ingest_pdfs.yaml
+#
+# This creates a "document_vectors/" directory containing your vector database.
+# You can then use example 2 to query and analyze these documents.
+#
+# Expected output:
+# - Creates document_vectors/chroma.sqlite3 and related files
+# - Processes all PDFs in ../sample_data/ 
+# - Status message showing number of documents stored
