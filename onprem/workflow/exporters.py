@@ -1,0 +1,143 @@
+"""
+Exporter node implementations for workflow pipelines.
+
+This module contains exporter nodes that export processed results to various
+formats including CSV, Excel, and JSON.
+"""
+
+from typing import Dict, Any
+
+from .base import ExporterNode
+from .exceptions import NodeExecutionError
+
+
+class CSVExporterNode(ExporterNode):
+    """Exports results to CSV format."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "results.csv")
+        columns = self.config.get("columns", None)  # If None, use all keys from first result
+        
+        try:
+            import csv
+            
+            def clean_text_for_csv(text):
+                """Clean text content for proper CSV formatting."""
+                if text is None:
+                    return ""
+                text = str(text)
+                # Normalize line endings and replace problematic characters
+                text = text.replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
+                # Replace multiple spaces with single space
+                text = ' '.join(text.split())
+                # Limit length to prevent Excel issues
+                if len(text) > 32000:  # Excel cell limit is ~32,767 characters
+                    text = text[:32000] + "... [truncated]"
+                return text
+            
+            # Determine columns
+            if columns is None:
+                columns = list(results[0].keys()) if results else []
+            
+            # Flatten nested metadata if present
+            flattened_results = []
+            for result in results:
+                flat_result = {}
+                for key, value in result.items():
+                    if key == 'metadata' and isinstance(value, dict):
+                        # Flatten metadata with prefix
+                        for meta_key, meta_value in value.items():
+                            flat_result[f"meta_{meta_key}"] = clean_text_for_csv(meta_value)
+                    else:
+                        flat_result[key] = clean_text_for_csv(value)
+                flattened_results.append(flat_result)
+            
+            # Update columns to include flattened metadata
+            if flattened_results:
+                all_columns = set()
+                for result in flattened_results:
+                    all_columns.update(result.keys())
+                if columns is None or 'metadata' in columns:
+                    columns = sorted(list(all_columns))
+            
+            # Write CSV with proper quoting for Excel compatibility
+            with open(output_path, 'w', newline='', encoding='utf-8-sig') as csvfile:  # utf-8-sig for Excel BOM
+                writer = csv.DictWriter(
+                    csvfile, 
+                    fieldnames=columns,
+                    quoting=csv.QUOTE_ALL,  # Quote all fields for better Excel compatibility
+                    lineterminator='\n'     # Use Unix line endings consistently
+                )
+                writer.writeheader()
+                for result in flattened_results:
+                    # Only include columns that exist in the result
+                    row = {col: result.get(col, "") for col in columns}
+                    writer.writerow(row)
+            
+            return {"status": f"Exported {len(results)} results to {output_path}"}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export CSV: {str(e)}")
+
+
+class ExcelExporterNode(ExporterNode):
+    """Exports results to Excel format."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "results.xlsx")
+        sheet_name = self.config.get("sheet_name", "Results")
+        
+        try:
+            import pandas as pd
+            
+            # Flatten results similar to CSV exporter
+            flattened_results = []
+            for result in results:
+                flat_result = {}
+                for key, value in result.items():
+                    if key == 'metadata' and isinstance(value, dict):
+                        for meta_key, meta_value in value.items():
+                            flat_result[f"meta_{meta_key}"] = meta_value
+                    else:
+                        flat_result[key] = value
+                flattened_results.append(flat_result)
+            
+            # Create DataFrame and export
+            df = pd.DataFrame(flattened_results)
+            df.to_excel(output_path, sheet_name=sheet_name, index=False)
+            
+            return {"status": f"Exported {len(results)} results to {output_path}"}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export Excel: {str(e)}")
+
+
+class JSONExporterNode(ExporterNode):
+    """Exports results to JSON format."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "results.json")
+        pretty_print = self.config.get("pretty_print", True)
+        
+        try:
+            import json
+            
+            with open(output_path, 'w', encoding='utf-8') as jsonfile:
+                if pretty_print:
+                    json.dump(results, jsonfile, indent=2, ensure_ascii=False)
+                else:
+                    json.dump(results, jsonfile, ensure_ascii=False)
+            
+            return {"status": f"Exported {len(results)} results to {output_path}"}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export JSON: {str(e)}")
