@@ -20,7 +20,7 @@ import shutil
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
 
-from onprem.pipelines.workflow import execute_workflow, WorkflowEngine
+from onprem.workflow import execute_workflow, WorkflowEngine
 
 
 def test_basic_workflow():

@@ -25,7 +25,7 @@ The workflow engine provides three essential patterns that cover the most common
 
 ```bash
 # Run from the workflows directory
-python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
+python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
 ```
 
 **What it does:**
@@ -42,7 +42,7 @@ python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
 
 ```bash
 # Requires: Run example 1 first + set OPENAI_API_KEY
-python -m onprem.pipelines.workflow yaml_examples/2_analyze_from_vectorstore.yaml
+python -m onprem.workflow yaml_examples/2_analyze_from_vectorstore.yaml
 ```
 
 **What it does:**
@@ -61,7 +61,7 @@ python -m onprem.pipelines.workflow yaml_examples/2_analyze_from_vectorstore.yam
 
 ```bash
 # Requires: set OPENAI_API_KEY  
-python -m onprem.pipelines.workflow yaml_examples/3_direct_analysis.yaml
+python -m onprem.workflow yaml_examples/3_direct_analysis.yaml
 ```
 
 **What it does:**
@@ -79,37 +79,37 @@ python -m onprem.pipelines.workflow yaml_examples/3_direct_analysis.yaml
 
 ### Basic Execution
 ```bash
-python -m onprem.pipelines.workflow <workflow.yaml>
+python -m onprem.workflow <workflow.yaml>
 ```
 
 ### Available Options
 ```bash
 # Show help and examples
-python -m onprem.pipelines.workflow --help
+python -m onprem.workflow --help
 
 # Validate workflow without running
-python -m onprem.pipelines.workflow --validate workflow.yaml
+python -m onprem.workflow --validate workflow.yaml
 
 # List all available node types
-python -m onprem.pipelines.workflow --list-nodes
+python -m onprem.workflow --list-nodes
 
 # Run quietly (suppress progress output)
-python -m onprem.pipelines.workflow --quiet workflow.yaml
+python -m onprem.workflow --quiet workflow.yaml
 
 # Show version
-python -m onprem.pipelines.workflow --version
+python -m onprem.workflow --version
 ```
 
 ### Example Commands
 ```bash
 # Run the PDF ingestion workflow
-python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
+python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
 
 # Validate a workflow before running
-python -m onprem.pipelines.workflow --validate yaml_examples/2_analyze_from_vectorstore.yaml
+python -m onprem.workflow --validate yaml_examples/2_analyze_from_vectorstore.yaml
 
 # See all available node types
-python -m onprem.pipelines.workflow --list-nodes
+python -m onprem.workflow --list-nodes
 ```
 
 ## Workflow Patterns
@@ -205,7 +205,7 @@ connections:
 ### 2. Run the Workflow
 
 ```python
-from onprem.pipelines.workflow import execute_workflow
+from onprem.workflow import execute_workflow
 
 # Execute the workflow
 results = execute_workflow("my_workflow.yaml", verbose=True)
@@ -214,7 +214,7 @@ results = execute_workflow("my_workflow.yaml", verbose=True)
 Or programmatically:
 
 ```python
-from onprem.pipelines.workflow import WorkflowEngine
+from onprem.workflow import WorkflowEngine
 
 engine = WorkflowEngine()
 engine.load_workflow_from_yaml("my_workflow.yaml")
@@ -1454,7 +1454,7 @@ nodes:
 Enable verbose output to see detailed execution:
 
 ```python
-from onprem.pipelines.workflow import execute_workflow
+from onprem.workflow import execute_workflow
 
 # Detailed logging
 results = execute_workflow("workflow.yaml", verbose=True)
@@ -1467,7 +1467,7 @@ for node_id, result in results.items():
 Validate before execution:
 
 ```python
-from onprem.pipelines.workflow import WorkflowEngine
+from onprem.workflow import WorkflowEngine
 
 engine = WorkflowEngine()
 try:
@@ -1483,7 +1483,7 @@ Track processing times and document counts:
 
 ```python
 import time
-from onprem.pipelines.workflow import execute_workflow
+from onprem.workflow import execute_workflow
 
 start_time = time.time()
 results = execute_workflow("workflow.yaml", verbose=True)
@@ -1504,4 +1504,4 @@ print(f"Total documents processed: {total_docs}")
 
 ---
 
-This tutorial covers all aspects of the OnPrem workflow engine. For more examples, see the files in `nbs/tests/`. For API reference, check the source code in `onprem/pipelines/workflow.py`.
+This tutorial covers all aspects of the OnPrem workflow engine. For more examples, see the files in `nbs/tests/`. For API reference, check the source code in `onprem/workflow.py`.

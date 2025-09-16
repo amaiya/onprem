@@ -57,7 +57,7 @@ connections:
 # 2. Set your OPENAI_API_KEY environment variable
 #
 # Usage:
-# python -m onprem.pipelines.workflow 2_analyze_from_vectorstore.yaml
+# python -m onprem.workflow 2_analyze_from_vectorstore.yaml
 #
 # Expected output:
 # - document_analysis_results.xlsx with columns:

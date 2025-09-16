@@ -75,7 +75,7 @@ connections:
 #    unzip FARHTML.zip -d /tmp/far_data/
 # 
 # 3. Run workflow:
-#    python -m onprem.pipelines.workflow far_legal_analysis_simple.yaml
+#    python -m onprem.workflow far_legal_analysis_simple.yaml
 # 
 # Expected output:
 # - Excel file with columns: document_id, source, response, metadata

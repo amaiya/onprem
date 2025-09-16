@@ -41,7 +41,7 @@ connections:
     to_port: documents
 
 # Usage:
-# python -m onprem.pipelines.workflow 1_ingest_pdfs.yaml
+# python -m onprem.workflow 1_ingest_pdfs.yaml
 #
 # This creates a "document_vectors/" directory containing your vector database.
 # You can then use example 2 to query and analyze these documents.

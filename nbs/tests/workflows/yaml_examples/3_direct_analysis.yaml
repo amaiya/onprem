@@ -93,7 +93,7 @@ connections:
 # 2. Set your OPENAI_API_KEY environment variable
 #
 # Usage:
-# python -m onprem.pipelines.workflow 3_direct_analysis.yaml
+# python -m onprem.workflow 3_direct_analysis.yaml
 #
 # Expected output:
 # - document_analysis_summary.csv with comprehensive analysis of each document

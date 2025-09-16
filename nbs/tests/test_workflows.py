@@ -28,7 +28,7 @@ def sample_doc_file(temp_dir):
 
 def test_loader_nodes(temp_dir, sample_doc_file):
     """Test all loader node types."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     
     # Test LoadFromFolder
     workflow = {
@@ -73,7 +73,7 @@ def test_loader_nodes(temp_dir, sample_doc_file):
 
 def test_textsplitter_nodes(sample_doc_file):
     """Test all text splitter node types."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     
     # Test SplitByCharacterCount
     workflow = {
@@ -113,7 +113,7 @@ def test_textsplitter_nodes(sample_doc_file):
 
 def test_storage_nodes(temp_dir, sample_doc_file):
     """Test storage node types."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     
     # Test WhooshStore (need splitter between loader and storage)
     whoosh_path = os.path.join(temp_dir, "test_whoosh")
@@ -152,7 +152,7 @@ def test_storage_nodes(temp_dir, sample_doc_file):
 
 def test_query_nodes(temp_dir, sample_doc_file):
     """Test query node types."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     
     # First create a Whoosh store
     whoosh_path = os.path.join(temp_dir, "test_whoosh_query")
@@ -210,7 +210,7 @@ def test_query_nodes(temp_dir, sample_doc_file):
 
 def test_exporter_nodes(temp_dir, sample_doc_file):
     """Test exporter node types."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     
     # Create mock results data
     mock_results = [
@@ -257,7 +257,7 @@ def test_exporter_nodes(temp_dir, sample_doc_file):
 
 def test_processor_nodes(temp_dir, sample_doc_file):
     """Test processor node types with mock LLM."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     from unittest.mock import patch, MagicMock
     
     # Mock LLM response
@@ -358,7 +358,7 @@ def test_processor_nodes(temp_dir, sample_doc_file):
 
 def test_processor_inheritance():
     """Test processor node inheritance hierarchy."""
-    from onprem.pipelines.workflow import NODE_REGISTRY, DocumentProcessor, ResultProcessor
+    from onprem.workflow import NODE_REGISTRY, DocumentProcessor, ResultProcessor
     
     # Test PromptProcessor is DocumentProcessor
     prompt_node = NODE_REGISTRY["PromptProcessor"]("test", {})
@@ -380,7 +380,7 @@ def test_processor_inheritance():
 
 def test_workflow_validation():
     """Test workflow validation functionality."""
-    from onprem.pipelines.workflow import WorkflowEngine
+    from onprem.workflow import WorkflowEngine
     
     # Test valid workflow
     valid_workflow = {
