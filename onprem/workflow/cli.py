@@ -53,7 +53,8 @@ Node Types:
   Storage:        ChromaStore, WhooshStore, ElasticsearchStore
   Query:          QueryWhooshStore (sparse, semantic), QueryChromaStore (semantic), 
                   QueryElasticsearchStore (sparse, semantic, hybrid)
-  Processors:     PromptProcessor, ResponseCleaner, SummaryProcessor
+  Processors:     PromptProcessor, ResponseCleaner, SummaryProcessor,
+                  PythonDocumentProcessor, PythonResultProcessor
   Exporters:      CSVExporter, ExcelExporter, JSONExporter
 
 For detailed documentation, see: nbs/tests/workflows/workflow_tutorial.md
@@ -112,7 +113,8 @@ For detailed documentation, see: nbs/tests/workflows/workflow_tutorial.md
                 "QueryChromaStore (search_type: semantic)", 
                 "QueryElasticsearchStore (search_type: sparse, semantic, hybrid)"
             ],
-            "Processor Nodes": ["PromptProcessor", "ResponseCleaner", "SummaryProcessor"],
+            "Processor Nodes": ["PromptProcessor", "ResponseCleaner", "SummaryProcessor", 
+                               "PythonDocumentProcessor", "PythonResultProcessor"],
             "Exporter Nodes": ["CSVExporter", "ExcelExporter", "JSONExporter"]
         }
         

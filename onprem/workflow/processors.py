@@ -13,6 +13,63 @@ from .base import DocumentProcessor, ResultProcessor
 from .exceptions import NodeExecutionError
 
 
+class PythonCodeMixin:
+    """Shared functionality for executing Python code safely in workflow nodes."""
+    
+    def _load_code(self, node_id: str, config: Dict[str, Any]) -> str:
+        """Load Python code from config or file."""
+        python_code = config.get("code", "")
+        code_file = config.get("code_file", "")
+        
+        # Load code from file if specified
+        if code_file:
+            if not os.path.exists(code_file):
+                raise NodeExecutionError(f"Node {node_id}: code_file '{code_file}' does not exist")
+            try:
+                with open(code_file, 'r', encoding='utf-8') as f:
+                    python_code = f.read()
+            except Exception as e:
+                raise NodeExecutionError(f"Node {node_id}: Failed to read code_file '{code_file}': {str(e)}")
+        
+        if not python_code:
+            raise NodeExecutionError(f"Node {node_id}: Either 'code' or 'code_file' is required")
+            
+        return python_code
+    
+    def _create_safe_globals(self) -> Dict[str, Any]:
+        """Create a safe execution environment with restricted builtins."""
+        return {
+            '__builtins__': {
+                # Basic operations
+                'len': len, 'str': str, 'int': int, 'float': float, 'bool': bool,
+                'list': list, 'dict': dict, 'tuple': tuple, 'set': set,
+                'min': min, 'max': max, 'sum': sum, 'abs': abs,
+                'round': round, 'sorted': sorted, 'reversed': reversed,
+                'enumerate': enumerate, 'zip': zip, 'range': range,
+                # String and iteration
+                'print': print,  # For debugging
+                'any': any, 'all': all,
+            },
+            # Safe modules (pre-imported, no __import__ needed)
+            're': __import__('re'),
+            'json': __import__('json'), 
+            'math': __import__('math'),
+            'datetime': __import__('datetime'),
+            # Provide Document class for creating new documents
+            'Document': Document,
+        }
+    
+    def _execute_code_safely(self, node_id: str, code: str, local_vars: Dict[str, Any], item_id: int, item_type: str = "item") -> Dict[str, Any]:
+        """Execute Python code safely and return the result."""
+        safe_globals = self._create_safe_globals()
+        
+        try:
+            exec(code, safe_globals, local_vars)
+            return local_vars
+        except Exception as e:
+            raise NodeExecutionError(f"Node {node_id}: Error executing Python code for {item_type} {item_id}: {str(e)}")
+
+
 class PromptProcessorNode(DocumentProcessor):
     """Applies a prompt to documents using an LLM."""
     
@@ -167,3 +224,106 @@ class SummaryProcessorNode(DocumentProcessor):
             return {"results": results}
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to generate summaries: {str(e)}")
+
+
+class PythonDocumentProcessorNode(DocumentProcessor, PythonCodeMixin):
+    """Executes custom Python code on documents with proper security controls."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        documents = inputs.get("documents", [])
+        if not documents:
+            return {"results": []}
+        
+        # Load Python code
+        python_code = self._load_code(self.node_id, self.config)
+        
+        try:
+            results = []
+            for i, doc in enumerate(documents):
+                # Set up local variables for this document
+                local_vars = {
+                    'doc': doc,
+                    'document': doc,  # Alias
+                    'content': doc.page_content,
+                    'metadata': doc.metadata,
+                    'document_id': i,
+                    'source': doc.metadata.get('source', 'Unknown'),
+                    'result': {}  # For the user to populate
+                }
+                
+                # Execute the user's Python code
+                executed_vars = self._execute_code_safely(
+                    self.node_id, python_code, local_vars, i, "document"
+                )
+                
+                # Get the result from executed variables
+                result = executed_vars.get('result', {})
+                
+                # Ensure result is a dictionary and add metadata
+                if not isinstance(result, dict):
+                    result = {'output': result}
+                
+                # Add standard fields if missing
+                result.setdefault('document_id', i)
+                result.setdefault('source', doc.metadata.get('source', 'Unknown'))
+                result.setdefault('metadata', doc.metadata)
+                    
+                results.append(result)
+            
+            return {"results": results}
+            
+        except Exception as e:
+            if "Error executing Python code" in str(e):
+                raise  # Re-raise execution errors as-is
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to execute Python code: {str(e)}")
+
+
+class PythonResultProcessorNode(ResultProcessor, PythonCodeMixin):
+    """Executes custom Python code on processing results with proper security controls."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"results": []}
+        
+        # Load Python code
+        python_code = self._load_code(self.node_id, self.config)
+        
+        try:
+            processed_results = []
+            for i, result in enumerate(results):
+                # Set up local variables for this result
+                local_vars = {
+                    'result': result.copy(),  # Original result (modifiable copy)
+                    'original_result': result,  # Read-only reference to original
+                    'result_id': i,
+                    'processed_result': {}  # For the user to populate
+                }
+                
+                # Execute the user's Python code
+                executed_vars = self._execute_code_safely(
+                    self.node_id, python_code, local_vars, i, "result"
+                )
+                
+                # Get the processed result
+                processed_result = executed_vars.get('processed_result', {})
+                
+                # If processed_result is empty, use the modified 'result'
+                if not processed_result:
+                    processed_result = executed_vars.get('result', result)
+                
+                # Ensure processed_result is a dictionary
+                if not isinstance(processed_result, dict):
+                    processed_result = {'output': processed_result}
+                
+                # Add result metadata
+                processed_result.setdefault('result_id', i)
+                    
+                processed_results.append(processed_result)
+            
+            return {"results": processed_results}
+            
+        except Exception as e:
+            if "Error executing Python code" in str(e):
+                raise  # Re-raise execution errors as-is
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to execute Python code: {str(e)}")

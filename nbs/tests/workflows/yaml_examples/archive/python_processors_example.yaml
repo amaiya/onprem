@@ -1,0 +1,154 @@
+# Example workflow demonstrating custom Python code processors
+# This shows how to implement custom document and result processing logic
+
+nodes:
+  # Load sample documents
+  document_loader:
+    type: LoadSingleDocument
+    config:
+      file_path: "../sample_data/test_doc.txt"
+
+  # Keep documents full for processing
+  document_keeper:
+    type: KeepFullDocument
+    config: {}
+
+  # Custom Python processing on documents
+  python_doc_processor:
+    type: PythonDocumentProcessor
+    config:
+      code: |
+        # Available variables:
+        # - doc: Document object
+        # - content: doc.page_content (string)
+        # - metadata: doc.metadata (dict)
+        # - document_id: index of document (int)
+        # - source: source file path (string)
+        # - result: dictionary to populate (dict)
+        
+        # Note: re, json, math, datetime modules are pre-imported
+        
+        # Example 1: Extract key information
+        word_count = len(content.split())
+        sentence_count = len(re.findall(r'[.!?]+', content))
+        
+        # Example 2: Find specific patterns
+        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        emails = re.findall(email_pattern, content)
+        
+        # Example 3: Extract keywords (simple approach)
+        words = re.findall(r'\b\w+\b', content.lower())
+        keyword_counts = {}
+        for word in words:
+            if len(word) > 4:  # Only longer words
+                keyword_counts[word] = keyword_counts.get(word, 0) + 1
+        
+        # Top 5 keywords
+        top_keywords = sorted(keyword_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        # Populate the result dictionary
+        result['analysis'] = {
+            'word_count': word_count,
+            'sentence_count': sentence_count, 
+            'emails_found': emails,
+            'top_keywords': [{'word': word, 'count': count} for word, count in top_keywords],
+            'document_length': len(content),
+            'has_long_sentences': any(len(sent.split()) > 20 for sent in content.split('.'))
+        }
+        
+        # Add custom processing status
+        result['processing_status'] = 'completed'
+        result['processor_type'] = 'python_document_analysis'
+
+  # Custom Python processing on results  
+  python_result_processor:
+    type: PythonResultProcessor
+    config:
+      code: |
+        # Available variables:
+        # - result: original result dictionary (modifiable copy)
+        # - original_result: read-only original result
+        # - result_id: index of result (int)
+        # - processed_result: dictionary to populate (dict)
+        
+        # Example: Enhance and categorize the analysis
+        analysis = result.get('analysis', {})
+        word_count = analysis.get('word_count', 0)
+        
+        # Categorize document by length
+        if word_count < 100:
+            category = 'short'
+        elif word_count < 500:
+            category = 'medium'
+        else:
+            category = 'long'
+        
+        # Create enhanced result
+        processed_result['enhanced_analysis'] = {
+            'original_analysis': analysis,
+            'document_category': category,
+            'complexity_score': min(10, word_count // 50),  # Simple complexity metric
+            'has_emails': len(analysis.get('emails_found', [])) > 0,
+            'keyword_density': len(analysis.get('top_keywords', [])) / max(1, word_count) * 100
+        }
+        
+        # Add summary
+        processed_result['summary'] = f"Document categorized as '{category}' with {word_count} words"
+        
+        # Preserve original metadata
+        processed_result['original_source'] = result.get('source', 'Unknown')
+        processed_result['processing_chain'] = ['document_analysis', 'result_enhancement']
+
+  # Export results
+  json_exporter:
+    type: JSONExporter
+    config:
+      output_path: "python_processing_results.json"
+
+connections:
+  - from: document_loader
+    from_port: documents
+    to: document_keeper
+    to_port: documents
+
+  - from: document_keeper
+    from_port: documents
+    to: python_doc_processor
+    to_port: documents
+
+  - from: python_doc_processor
+    from_port: results
+    to: python_result_processor
+    to_port: results
+
+  - from: python_result_processor
+    from_port: results
+    to: json_exporter
+    to_port: results
+
+# Usage Examples:
+#
+# 1. Run with inline code (as shown above):
+#    python -m onprem.workflow python_processors_example.yaml
+#
+# 2. Use external Python files:
+#    python_doc_processor:
+#      type: PythonDocumentProcessor
+#      config:
+#        code_file: "scripts/document_analyzer.py"
+#
+# 3. Available Python environment includes:
+#    - Basic types: str, int, float, bool, list, dict, tuple, set
+#    - Built-in functions: len, min, max, sum, sorted, etc.
+#    - Safe modules: re, json, math, datetime
+#    - Document class for creating new documents
+#
+# 4. Security notes:
+#    - File I/O operations are not available (except for code_file loading)
+#    - Network operations are not available
+#    - System operations are restricted
+#    - Only safe built-in functions and modules are provided
+#
+# 5. Variable naming conventions:
+#    Document Processor: populate 'result' dictionary
+#    Result Processor: populate 'processed_result' dictionary

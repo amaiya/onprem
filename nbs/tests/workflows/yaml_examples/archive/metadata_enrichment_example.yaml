@@ -1,0 +1,61 @@
+# Simple Metadata Enrichment Example
+#
+# This workflow shows how to add custom metadata to documents for easy
+# categorization and retrieval. Perfect for organizing document collections
+# by project, meeting, department, etc.
+
+nodes:
+  # Load documents from a folder
+  load_meeting_docs:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data/"
+      include_patterns: ["*.pdf", "*.docx", "*.txt"]
+      verbose: true
+
+  # Add project metadata for easy categorization
+  tag_project_alpha:
+    type: AddMetadata
+    config:
+      metadata:
+        project: "Project Alpha"
+        meeting_date: "2025-01-01" 
+        attendees: "engineering_team"
+        status: "active"
+        priority: "high"
+        department: "engineering"
+
+  # Chunk the documents for better retrieval
+  chunk_documents:
+    type: SplitByCharacterCount
+    config:
+      chunk_size: 800
+      chunk_overlap: 80
+
+  # Store in searchable index
+  store_tagged_docs:
+    type: WhooshStore
+    config:
+      persist_location: "project_alpha_docs"
+
+connections:
+  - from: load_meeting_docs
+    from_port: documents
+    to: tag_project_alpha
+    to_port: documents
+
+  - from: tag_project_alpha
+    from_port: documents
+    to: chunk_documents
+    to_port: documents
+
+  - from: chunk_documents
+    from_port: documents
+    to: store_tagged_docs
+    to_port: documents
+
+# Usage:
+# 1. Run: python -m onprem.workflow yaml_examples/metadata_enrichment_example.yaml
+# 2. All documents will now have project="Project Alpha" metadata
+# 3. You can later query for all Project Alpha documents using the metadata
+# 4. Great for organizing documents by meetings, projects, departments, etc.

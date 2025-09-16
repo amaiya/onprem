@@ -26,6 +26,180 @@ def sample_doc_file(temp_dir):
     doc_path.write_text(TEST_TEXT_CONTENT)
     return str(doc_path)
 
+def test_document_transformer_nodes(temp_dir, sample_doc_file):
+    """Test all document transformer node types."""
+    from onprem.workflow import WorkflowEngine
+    
+    # Test AddMetadata node
+    workflow = {
+        "nodes": {
+            "loader": {
+                "type": "LoadFromFolder",
+                "config": {
+                    "source_directory": temp_dir,
+                    "include_patterns": ["*.txt"]
+                }
+            },
+            "add_metadata": {
+                "type": "AddMetadata", 
+                "config": {
+                    "metadata": {
+                        "category": "meeting20251001",
+                        "department": "engineering",
+                        "priority": "high"
+                    }
+                }
+            }
+        },
+        "connections": [
+            {
+                "from": "loader",
+                "from_port": "documents",
+                "to": "add_metadata",
+                "to_port": "documents"
+            }
+        ]
+    }
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow)
+    results = engine.execute()
+    
+    # Verify metadata was added
+    documents = results["add_metadata"]["documents"]
+    assert len(documents) > 0
+    doc = documents[0]
+    assert doc.metadata.get("category") == "meeting20251001"
+    assert doc.metadata.get("department") == "engineering"
+    assert doc.metadata.get("priority") == "high"
+    
+    # Test ContentPrefix node
+    workflow_prefix = {
+        "nodes": {
+            "loader": {
+                "type": "LoadFromFolder",
+                "config": {
+                    "source_directory": temp_dir,
+                    "include_patterns": ["*.txt"]
+                }
+            },
+            "add_prefix": {
+                "type": "ContentPrefix",
+                "config": {
+                    "prefix": "[CONFIDENTIAL]",
+                    "separator": " "
+                }
+            }
+        },
+        "connections": [
+            {
+                "from": "loader",
+                "from_port": "documents", 
+                "to": "add_prefix",
+                "to_port": "documents"
+            }
+        ]
+    }
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow_prefix)
+    results = engine.execute()
+    
+    # Verify prefix was added
+    documents = results["add_prefix"]["documents"]
+    assert len(documents) > 0
+    assert documents[0].page_content.startswith("[CONFIDENTIAL] ")
+    
+    # Test DocumentFilter node
+    workflow_filter = {
+        "nodes": {
+            "loader": {
+                "type": "LoadFromFolder",
+                "config": {
+                    "source_directory": temp_dir,
+                    "include_patterns": ["*.txt"]
+                }
+            },
+            "filter_docs": {
+                "type": "DocumentFilter",
+                "config": {
+                    "content_contains": ["test"],
+                    "min_length": 10
+                }
+            }
+        },
+        "connections": [
+            {
+                "from": "loader",
+                "from_port": "documents",
+                "to": "filter_docs", 
+                "to_port": "documents"
+            }
+        ]
+    }
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow_filter)
+    results = engine.execute()
+    
+    # Verify filtering worked
+    documents = results["filter_docs"]["documents"]
+    assert len(documents) > 0  # Should pass filter (contains "test" and > 10 chars)
+    
+    # Test PythonDocumentTransformer node
+    workflow_python = {
+        "nodes": {
+            "loader": {
+                "type": "LoadFromFolder", 
+                "config": {
+                    "source_directory": temp_dir,
+                    "include_patterns": ["*.txt"]
+                }
+            },
+            "python_transform": {
+                "type": "PythonDocumentTransformer",
+                "config": {
+                    "code": """
+# Add word count to metadata and uppercase content
+word_count = len(content.split())
+metadata['word_count'] = word_count
+metadata['processed_by'] = 'python_transformer'
+
+# Transform content to uppercase
+content = content.upper()
+
+# Set the transformed document
+transformed_doc = Document(
+    page_content=content,
+    metadata=metadata
+)
+"""
+                }
+            }
+        },
+        "connections": [
+            {
+                "from": "loader",
+                "from_port": "documents",
+                "to": "python_transform",
+                "to_port": "documents"
+            }
+        ]
+    }
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow_python)
+    results = engine.execute()
+    
+    # Verify Python transformation worked
+    documents = results["python_transform"]["documents"]
+    assert len(documents) > 0
+    doc = documents[0]
+    assert doc.page_content == TEST_TEXT_CONTENT.upper()
+    assert doc.metadata.get("word_count") == len(TEST_TEXT_CONTENT.split())
+    assert doc.metadata.get("processed_by") == "python_transformer"
+
+
 def test_loader_nodes(temp_dir, sample_doc_file):
     """Test all loader node types."""
     from onprem.workflow import WorkflowEngine
@@ -533,6 +707,130 @@ def test_query_search_types():
     print("✓ ElasticsearchStore supports sparse, semantic, and hybrid search types")
 
 
+def test_python_processors():
+    """Test custom Python code processor nodes."""
+    from onprem.workflow import NODE_REGISTRY
+    from langchain_core.documents import Document
+    
+    # Test PythonDocumentProcessor
+    PythonDocNode = NODE_REGISTRY["PythonDocumentProcessor"]
+    
+    # Test basic document processing
+    node = PythonDocNode("test", {
+        "code": """
+# Simple document analysis
+word_count = len(content.split())
+char_count = len(content)
+first_word = content.split()[0] if content else ''
+
+result['analysis'] = {
+    'word_count': word_count,
+    'char_count': char_count, 
+    'first_word': first_word,
+    'has_test': 'test' in content.lower()
+}
+result['processor'] = 'python_document'
+"""
+    })
+    
+    # Create test document
+    test_doc = Document(
+        page_content="This is a test document for Python processing",
+        metadata={"source": "test.txt", "type": "sample"}
+    )
+    
+    results = node.execute({"documents": [test_doc]})
+    assert "results" in results
+    assert len(results["results"]) == 1
+    
+    result = results["results"][0]
+    assert result["analysis"]["word_count"] == 8
+    assert result["analysis"]["first_word"] == "This"
+    assert result["analysis"]["has_test"] == True
+    assert result["processor"] == "python_document"
+    assert result["source"] == "test.txt"
+    print("✓ PythonDocumentProcessor basic functionality")
+    
+    # Test error handling
+    error_node = PythonDocNode("test", {
+        "code": "invalid_variable_that_does_not_exist"
+    })
+    
+    try:
+        error_node.execute({"documents": [test_doc]})
+        assert False, "Should raise error for invalid code"
+    except Exception as e:
+        assert "Error executing Python code" in str(e)
+    print("✓ PythonDocumentProcessor error handling")
+    
+    # Test PythonResultProcessor
+    PythonResNode = NODE_REGISTRY["PythonResultProcessor"]
+    
+    # Test basic result processing
+    node = PythonResNode("test", {
+        "code": """
+# Enhance analysis results
+original_analysis = result.get('analysis', {})
+word_count = original_analysis.get('word_count', 0)
+
+processed_result['enhanced_analysis'] = {
+    'original_word_count': word_count,
+    'doubled_word_count': word_count * 2,
+    'category': 'short' if word_count < 10 else 'long',
+    'processing_time': '2023-01-01'
+}
+processed_result['processor_chain'] = ['document', 'result']
+processed_result['status'] = 'enhanced'
+"""
+    })
+    
+    # Use result from document processor test
+    test_results = [{
+        "analysis": {"word_count": 8, "first_word": "This"},
+        "processor": "python_document",
+        "source": "test.txt"
+    }]
+    
+    results = node.execute({"results": test_results})
+    assert "results" in results
+    assert len(results["results"]) == 1
+    
+    result = results["results"][0]
+    assert result["enhanced_analysis"]["original_word_count"] == 8
+    assert result["enhanced_analysis"]["doubled_word_count"] == 16
+    assert result["enhanced_analysis"]["category"] == "short"
+    assert result["status"] == "enhanced"
+    print("✓ PythonResultProcessor basic functionality")
+    
+    # Test missing code configuration
+    try:
+        invalid_node = PythonDocNode("test", {})  # No code provided
+        invalid_node.execute({"documents": [test_doc]})
+        assert False, "Should raise error for missing code"
+    except Exception as e:
+        assert "Either 'code' or 'code_file' is required" in str(e)
+    print("✓ Python processors require code configuration")
+    
+    # Test safe execution environment
+    safe_node = PythonDocNode("test", {
+        "code": """
+# Test available safe operations (modules are pre-imported)
+result['regex_test'] = bool(re.search(r'test', content))
+result['json_test'] = json.dumps({'key': 'value'})
+result['math_test'] = math.sqrt(16)
+result['builtin_test'] = len(content.split())
+"""
+    })
+    
+    results = safe_node.execute({"documents": [test_doc]})
+    result = results["results"][0]
+    assert result["regex_test"] == True
+    assert '"key": "value"' in result["json_test"]
+    assert result["math_test"] == 4.0
+    assert result["builtin_test"] == 8
+    print("✓ Python processors safe execution environment")
+
+
 def test_workflow_validation():
     """Test workflow validation functionality."""
     from onprem.workflow import WorkflowEngine
@@ -612,6 +910,9 @@ def run_all_tests():
         
         print("\n🔍 Testing Query Search Types:")
         test_query_search_types()
+        
+        print("\n🐍 Testing Python Processors:")
+        test_python_processors()
         
         print("\n✅ Testing Workflow Validation:")
         test_workflow_validation()

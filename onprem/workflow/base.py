@@ -20,10 +20,11 @@ class NodeType:
 
 # Define valid node type connections
 NODE_TYPES = {
-    "Loader": NodeType("Loader", can_connect_to=["TextSplitter", "Processor"]),
-    "TextSplitter": NodeType("TextSplitter", can_connect_to=["TextSplitter", "Storage", "Processor"]),
+    "Loader": NodeType("Loader", can_connect_to=["TextSplitter", "DocumentTransformer", "Processor"]),
+    "TextSplitter": NodeType("TextSplitter", can_connect_to=["TextSplitter", "DocumentTransformer", "Storage", "Processor"]),
+    "DocumentTransformer": NodeType("DocumentTransformer", can_connect_to=["TextSplitter", "DocumentTransformer", "Storage", "Processor"]),
     "Storage": NodeType("Storage", is_terminal=True),
-    "Query": NodeType("Query", can_connect_to=["Processor"]),
+    "Query": NodeType("Query", can_connect_to=["DocumentTransformer", "Processor"]),
     "Processor": NodeType("Processor", can_connect_to=["Processor", "Exporter"]),
     "Exporter": NodeType("Exporter", is_terminal=True)
 }
@@ -172,6 +173,18 @@ class ResultProcessor(ProcessorNode):
     
     def get_output_types(self) -> Dict[str, str]:
         return {"results": "List[Dict]"}
+
+
+class DocumentTransformerNode(BaseNode):
+    """Base class for transforming documents (metadata, content, filtering, etc.)."""
+    
+    NODE_TYPE = "DocumentTransformer"
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {"documents": "List[Document]"}
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"documents": "List[Document]"}
 
 
 class ExporterNode(BaseNode):

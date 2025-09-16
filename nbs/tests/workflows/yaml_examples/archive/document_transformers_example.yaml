@@ -1,0 +1,158 @@
+# Document Transformer Examples
+# 
+# This workflow demonstrates the new DocumentTransformer nodes that allow 
+# document-to-document transformations including metadata enrichment,
+# content modification, filtering, and custom Python transformations.
+
+nodes:
+  # Load documents
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data/"
+      include_patterns: ["*.txt", "*.pdf", "*.md"]
+      verbose: true
+
+  # 1. Add static metadata to categorize documents 
+  categorize_docs:
+    type: AddMetadata
+    config:
+      metadata:
+        batch_id: "meeting20251001"
+        department: "engineering" 
+        classification: "internal"
+        processed_date: "2025-01-16"
+
+  # 2. Add confidential prefix to content
+  mark_confidential:
+    type: ContentPrefix
+    config:
+      prefix: "[CONFIDENTIAL - INTERNAL USE ONLY]"
+      separator: "\n\n"
+
+  # 3. Filter documents based on criteria
+  filter_relevant:
+    type: DocumentFilter
+    config:
+      # Only keep documents that contain certain keywords
+      content_contains: ["project", "meeting", "analysis"]
+      # And have reasonable length
+      min_length: 50
+      max_length: 10000
+      # Filter by metadata if needed
+      metadata_filters: {}
+
+  # 4. Use Python to extract and enrich metadata
+  extract_metadata:
+    type: PythonDocumentTransformer
+    config:
+      code: |
+        # Extract useful information from content
+        import re
+        
+        # Count various elements
+        word_count = len(content.split())
+        sentence_count = len(re.findall(r'[.!?]+', content))
+        paragraph_count = len([p for p in content.split('\n\n') if p.strip()])
+        
+        # Look for email addresses and URLs
+        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+        
+        emails = re.findall(email_pattern, content)
+        urls = re.findall(url_pattern, content)
+        
+        # Determine document type based on content
+        if 'meeting' in content.lower() and 'agenda' in content.lower():
+            doc_type = 'meeting_agenda'
+        elif 'action items' in content.lower() or 'todo' in content.lower():
+            doc_type = 'action_items'
+        elif 'analysis' in content.lower() and 'results' in content.lower():
+            doc_type = 'analysis_report'
+        else:
+            doc_type = 'general_document'
+        
+        # Enrich metadata
+        metadata.update({
+            'word_count': word_count,
+            'sentence_count': sentence_count, 
+            'paragraph_count': paragraph_count,
+            'email_count': len(emails),
+            'url_count': len(urls),
+            'document_type': doc_type,
+            'has_contact_info': len(emails) > 0,
+            'complexity_score': min(10, word_count // 100),  # Simple complexity metric
+        })
+        
+        # Add a summary line to the beginning of content
+        summary_line = f"[SUMMARY: {doc_type.replace('_', ' ').title()} - {word_count} words - Complexity: {metadata['complexity_score']}/10]"
+        content = summary_line + "\n\n" + content
+        
+        # Set the transformed document
+        transformed_doc = Document(
+            page_content=content,
+            metadata=metadata
+        )
+
+  # 5. Add footer with processing info
+  add_footer:
+    type: ContentSuffix
+    config:
+      suffix: |
+        
+        ---
+        Document processed by OnPrem Workflow Engine
+        Processing completed: 2025-01-16
+        For questions, contact: workflow-admin@company.com
+      separator: "\n"
+
+  # 6. Final filtering - only keep documents that passed all transformations
+  final_filter:
+    type: DocumentFilter
+    config:
+      # Only documents with reasonable complexity
+      metadata_filters:
+        classification: "internal"
+      min_length: 100  # After all transformations
+
+  # Store the transformed documents
+  document_store:
+    type: WhooshStore
+    config:
+      persist_location: "transformed_documents_index"
+
+connections:
+  - from: document_loader
+    from_port: documents
+    to: categorize_docs
+    to_port: documents
+
+  - from: categorize_docs
+    from_port: documents
+    to: mark_confidential
+    to_port: documents
+
+  - from: mark_confidential
+    from_port: documents
+    to: filter_relevant
+    to_port: documents
+
+  - from: filter_relevant
+    from_port: documents
+    to: extract_metadata
+    to_port: documents
+
+  - from: extract_metadata
+    from_port: documents
+    to: add_footer
+    to_port: documents
+
+  - from: add_footer
+    from_port: documents
+    to: final_filter
+    to_port: documents
+
+  - from: final_filter
+    from_port: documents
+    to: document_store
+    to_port: documents

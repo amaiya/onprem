@@ -146,6 +146,13 @@ Use this pattern for comprehensive analysis of entire document collections witho
 - **SplitByParagraph** - Chunk by paragraphs (preserves structure)
 - **KeepFullDocument** - Keep documents whole, optionally concatenate pages
 
+### 🔧 DocumentTransformers
+- **AddMetadata** - Add custom metadata fields to documents
+- **ContentPrefix** - Prepend text to document content
+- **ContentSuffix** - Append text to document content
+- **DocumentFilter** - Filter documents by metadata or content criteria
+- **PythonDocumentTransformer** - Custom Python transformations
+
 ### 🗄️ Storage  
 - **ChromaStore** - Vector database for semantic search
 - **WhooshStore** - Full-text search index
@@ -597,6 +604,239 @@ When `max_words: N` is specified, documents are truncated to the first N words:
 **Output Ports:**
 - `documents`: `List[Document]` - Unchanged or concatenated documents
 
+### DocumentTransformer Nodes
+
+DocumentTransformer nodes transform documents while preserving the `List[Document]` → `List[Document]` flow. They can add metadata, modify content, filter documents, or apply custom transformations. These nodes can be placed anywhere in the document pipeline.
+
+#### AddMetadata
+
+Adds static metadata fields to all documents for categorization and organization.
+
+```yaml
+nodes:
+  categorize_meeting:
+    type: AddMetadata
+    config:
+      metadata:
+        category: "meeting20251001"
+        department: "engineering"
+        priority: "high"
+        project: "Project Alpha"
+        classification: "internal"
+```
+
+**Use Cases:**
+- **Meeting Organization** - Tag all documents from a specific meeting
+- **Project Tracking** - Add project identifiers to document collections
+- **Department Categorization** - Organize documents by department or team
+- **Classification** - Mark documents as confidential, internal, or public
+- **Batch Processing** - Add consistent metadata to large document collections
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to enrich
+
+**Output Ports:**
+- `documents`: `List[Document]` - Documents with added metadata
+
+#### ContentPrefix
+
+Prepends text to the page_content of all documents.
+
+```yaml
+nodes:
+  mark_confidential:
+    type: ContentPrefix
+    config:
+      prefix: "[CONFIDENTIAL - INTERNAL USE ONLY]"
+      separator: "\n\n"  # Optional: separator between prefix and content (default: "\n\n")
+  
+  add_header:
+    type: ContentPrefix
+    config:
+      prefix: "Project Alpha Documentation"
+      separator: "\n---\n"
+```
+
+**Use Cases:**
+- **Confidentiality Markings** - Add confidential headers to sensitive documents
+- **Document Headers** - Add consistent headers to document collections
+- **Processing Stamps** - Mark documents as processed by specific workflows
+- **Context Addition** - Add contextual information to document beginnings
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to modify
+
+**Output Ports:**
+- `documents`: `List[Document]` - Documents with prefixed content
+
+#### ContentSuffix
+
+Appends text to the page_content of all documents.
+
+```yaml
+nodes:
+  add_footer:
+    type: ContentSuffix
+    config:
+      suffix: |
+        ---
+        Document processed by OnPrem Workflow Engine
+        Processing date: 2025-01-16
+        For questions, contact: admin@company.com
+      separator: "\n"  # Optional: separator between content and suffix (default: "\n\n")
+```
+
+**Use Cases:**
+- **Processing Information** - Add processing timestamps and contact info
+- **Legal Disclaimers** - Append legal text to documents
+- **Document Footers** - Add consistent footers to document collections
+- **Attribution** - Add source or processing attribution
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to modify
+
+**Output Ports:**
+- `documents`: `List[Document]` - Documents with appended content
+
+#### DocumentFilter
+
+Filters documents based on metadata criteria, content patterns, or length requirements.
+
+```yaml
+nodes:
+  filter_engineering:
+    type: DocumentFilter
+    config:
+      # Filter by metadata
+      metadata_filters:
+        department: "engineering"
+        status: "active"
+      # Filter by content
+      content_contains: ["project", "analysis", "results"]
+      content_excludes: ["draft", "template"]
+      # Filter by length
+      min_length: 100
+      max_length: 10000
+  
+  # Simple content filtering
+  relevant_docs_only:
+    type: DocumentFilter
+    config:
+      content_contains: ["machine learning", "AI", "neural network"]
+      min_length: 50
+```
+
+**Filter Options:**
+- `metadata_filters`: Dictionary of metadata key-value pairs that must match exactly
+- `content_contains`: List of terms - document must contain at least one
+- `content_excludes`: List of terms - document must not contain any
+- `min_length`: Minimum content length in characters
+- `max_length`: Maximum content length in characters
+
+**Use Cases:**
+- **Relevance Filtering** - Keep only documents containing specific keywords
+- **Quality Control** - Remove documents that are too short or too long
+- **Content Curation** - Filter out drafts, templates, or irrelevant content
+- **Metadata-based Selection** - Keep only documents matching specific criteria
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to filter
+
+**Output Ports:**
+- `documents`: `List[Document]` - Filtered documents
+
+#### PythonDocumentTransformer
+
+Executes custom Python code to transform documents with full flexibility and security controls.
+
+```yaml
+nodes:
+  extract_document_info:
+    type: PythonDocumentTransformer
+    config:
+      code: |
+        # Available variables:
+        # - doc: Document object
+        # - content: doc.page_content (string)
+        # - metadata: doc.metadata (mutable copy)
+        # - document_id: index of document (int)
+        # - source: source file path (string)
+        
+        # Extract information from content
+        import re
+        
+        word_count = len(content.split())
+        sentence_count = len(re.findall(r'[.!?]+', content))
+        
+        # Find email addresses
+        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        emails = re.findall(email_pattern, content)
+        
+        # Determine document type
+        if 'meeting' in content.lower() and 'agenda' in content.lower():
+            doc_type = 'meeting_agenda'
+        elif 'analysis' in content.lower():
+            doc_type = 'analysis_report'
+        else:
+            doc_type = 'general_document'
+        
+        # Enrich metadata
+        metadata.update({
+            'word_count': word_count,
+            'sentence_count': sentence_count,
+            'email_count': len(emails),
+            'document_type': doc_type,
+            'complexity_score': min(10, word_count // 100)
+        })
+        
+        # Add summary to content
+        summary = f"[{doc_type.upper()}: {word_count} words, Complexity: {metadata['complexity_score']}/10]"
+        content = summary + "\n\n" + content
+        
+        # Create transformed document
+        transformed_doc = Document(
+            page_content=content,
+            metadata=metadata
+        )
+
+  # Load transformation from external file
+  complex_transform:
+    type: PythonDocumentTransformer
+    config:
+      code_file: "scripts/document_enricher.py"
+```
+
+**Available Python Environment:**
+- **Built-in functions**: `len`, `str`, `int`, `float`, `bool`, `list`, `dict`, `min`, `max`, etc.
+- **Safe modules**: `re`, `json`, `math`, `datetime` (pre-imported)
+- **Document class**: Available for creating new Document objects
+- **Security**: No file I/O, network access, or system operations
+
+**Variable Reference:**
+- `doc`: Original Document object (read-only)
+- `content`: Document content (modifiable string)
+- `metadata`: Document metadata (modifiable dictionary copy)
+- `document_id`: Index of current document (int)
+- `source`: Source file path (string)
+- `transformed_doc`: Set this to a Document object for the output (optional)
+
+**Transformation Options:**
+1. **Modify Variables**: Change `content` and `metadata`, let the system create the Document
+2. **Explicit Creation**: Create and set `transformed_doc` explicitly
+
+**Use Cases:**
+- **Content Analysis** - Extract key information and add to metadata
+- **Document Classification** - Automatically categorize documents by content
+- **Data Extraction** - Find emails, URLs, phone numbers, etc.
+- **Content Transformation** - Modify content based on complex rules
+- **Custom Enrichment** - Add calculated metrics or derived information
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to transform
+
+**Output Ports:**
+- `documents`: `List[Document]` - Transformed documents
+
 ### Storage Nodes
 
 Storage nodes save documents to various backends and return status messages.
@@ -970,6 +1210,111 @@ nodes:
 **Output Ports:**
 - `results`: `List[Dict]` - Summaries with metadata
 
+#### PythonDocumentProcessor
+
+Executes custom Python code on documents with proper security controls, allowing unlimited customization of document processing logic.
+
+```yaml
+nodes:
+  # Inline Python code
+  custom_analyzer:
+    type: PythonDocumentProcessor
+    config:
+      code: |
+        # Available variables:
+        # - doc: Document object
+        # - content: doc.page_content (string)
+        # - metadata: doc.metadata (dict) 
+        # - document_id: index of document (int)
+        # - source: source file path (string)
+        # - result: dictionary to populate (dict)
+        
+        # Extract key information (re module is pre-imported)
+        word_count = len(content.split())
+        sentence_count = len(re.findall(r'[.!?]+', content))
+        
+        # Find email addresses
+        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        emails = re.findall(email_pattern, content)
+        
+        # Populate result dictionary
+        result['analysis'] = {
+            'word_count': word_count,
+            'sentence_count': sentence_count,
+            'emails_found': emails,
+            'document_length': len(content)
+        }
+        result['processing_status'] = 'completed'
+
+  # Load Python code from external file
+  external_processor:
+    type: PythonDocumentProcessor
+    config:
+      code_file: "scripts/document_analyzer.py"
+```
+
+**Available Python Environment:**
+- **Built-in functions**: `len`, `str`, `int`, `float`, `bool`, `list`, `dict`, `min`, `max`, etc.
+- **Safe modules**: `re`, `json`, `math`, `datetime` (pre-imported)
+- **Document class**: Available for creating new Document objects
+- **Security**: No file I/O, network access, or system operations
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to process
+
+**Output Ports:**
+- `results`: `List[Dict]` - Processing results with custom analysis
+
+#### PythonResultProcessor
+
+Executes custom Python code on processing results, enabling post-processing and enhancement of analysis results.
+
+```yaml
+nodes:
+  result_enhancer:
+    type: PythonResultProcessor
+    config:
+      code: |
+        # Available variables:
+        # - result: original result dictionary (modifiable copy)
+        # - original_result: read-only original result
+        # - result_id: index of result (int) 
+        # - processed_result: dictionary to populate (dict)
+        
+        # Enhance analysis results
+        analysis = result.get('analysis', {})
+        word_count = analysis.get('word_count', 0)
+        
+        # Categorize document by length
+        if word_count < 100:
+            category = 'short'
+        elif word_count < 500:
+            category = 'medium'
+        else:
+            category = 'long'
+        
+        # Create enhanced result
+        processed_result['enhanced_analysis'] = {
+            'original_analysis': analysis,
+            'document_category': category,
+            'complexity_score': min(10, word_count // 50),
+            'has_emails': len(analysis.get('emails_found', [])) > 0
+        }
+        
+        # Add summary
+        processed_result['summary'] = f"Document categorized as '{category}'"
+```
+
+**Variable Naming Conventions:**
+- **Document Processor**: Populate the `result` dictionary with your analysis
+- **Result Processor**: Populate the `processed_result` dictionary with enhanced data
+
+**Input Ports:**
+- `results`: `List[Dict]` - Results to process
+
+**Output Ports:**
+- `results`: `List[Dict]` - Enhanced processing results
+
 ### Exporter Nodes
 
 Exporter nodes save processed results to various file formats.
@@ -1235,6 +1580,176 @@ connections:
     to_port: documents
 ```
 
+### Document Organization and Enrichment
+
+Process documents with comprehensive metadata enrichment and content transformation:
+
+```yaml
+nodes:
+  # Load meeting documents
+  meeting_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "meeting_docs/"
+      include_patterns: ["*.pdf", "*.docx", "*.txt"]
+      
+  # Tag all documents with meeting metadata
+  tag_meeting_info:
+    type: AddMetadata
+    config:
+      metadata:
+        meeting_id: "meeting20251001"
+        department: "engineering"
+        project: "Project Alpha"
+        classification: "internal"
+        attendees: "team_leads"
+        
+  # Add confidential header to all documents
+  mark_confidential:
+    type: ContentPrefix
+    config:
+      prefix: "[CONFIDENTIAL - PROJECT ALPHA TEAM ONLY]"
+      separator: "\n\n"
+      
+  # Extract key information and enrich metadata
+  analyze_content:
+    type: PythonDocumentTransformer
+    config:
+      code: |
+        # Analyze document content for key information
+        import re
+        
+        # Basic statistics
+        word_count = len(content.split())
+        paragraph_count = len([p for p in content.split('\n\n') if p.strip()])
+        
+        # Look for action items and decisions
+        action_items = len(re.findall(r'(?:action item|todo|task):', content, re.IGNORECASE))
+        decisions = len(re.findall(r'(?:decision|resolved|agreed):', content, re.IGNORECASE))
+        
+        # Find mentions of team members
+        team_members = re.findall(r'@(\w+)', content)
+        
+        # Classify document type
+        content_lower = content.lower()
+        if 'agenda' in content_lower:
+            doc_type = 'meeting_agenda'
+        elif action_items > 0 or 'action' in content_lower:
+            doc_type = 'action_items'
+        elif 'minutes' in content_lower or 'notes' in content_lower:
+            doc_type = 'meeting_minutes'
+        else:
+            doc_type = 'meeting_document'
+        
+        # Update metadata with extracted information
+        metadata.update({
+            'word_count': word_count,
+            'paragraph_count': paragraph_count,
+            'action_items_count': action_items,
+            'decisions_count': decisions,
+            'mentioned_members': list(set(team_members)),
+            'document_type': doc_type,
+            'priority_score': min(10, (action_items * 2) + decisions),
+            'has_action_items': action_items > 0,
+            'complexity': 'high' if word_count > 1000 else 'medium' if word_count > 300 else 'low'
+        })
+        
+        # Add document summary at the beginning
+        summary = f"[{doc_type.upper()}: {word_count} words, {action_items} action items, Priority: {metadata['priority_score']}/10]"
+        content = summary + "\n\n" + content
+        
+        # Create enriched document
+        transformed_doc = Document(
+            page_content=content,
+            metadata=metadata
+        )
+        
+  # Filter to keep only relevant documents
+  filter_important:
+    type: DocumentFilter
+    config:
+      metadata_filters:
+        classification: "internal"
+      # Keep documents with action items or decisions
+      content_contains: ["action", "decision", "task", "todo"]
+      min_length: 100
+      
+  # Add processing footer
+  add_footer:
+    type: ContentSuffix
+    config:
+      suffix: |
+        
+        ---
+        Document processed: 2025-01-16
+        Meeting ID: meeting20251001
+        Next review: 2025-01-23
+        Contact: project-alpha-admin@company.com
+        
+  # Chunk for storage
+  chunk_docs:
+    type: SplitByParagraph
+    config:
+      chunk_size: 1000
+      chunk_overlap: 100
+      
+  # Store enriched documents
+  meeting_store:
+    type: WhooshStore
+    config:
+      persist_location: "meeting_20251001_index"
+
+connections:
+  - from: meeting_loader
+    from_port: documents
+    to: tag_meeting_info
+    to_port: documents
+    
+  - from: tag_meeting_info
+    from_port: documents
+    to: mark_confidential
+    to_port: documents
+    
+  - from: mark_confidential
+    from_port: documents
+    to: analyze_content
+    to_port: documents
+    
+  - from: analyze_content
+    from_port: documents
+    to: filter_important
+    to_port: documents
+    
+  - from: filter_important
+    from_port: documents
+    to: add_footer
+    to_port: documents
+    
+  - from: add_footer
+    from_port: documents
+    to: chunk_docs
+    to_port: documents
+    
+  - from: chunk_docs
+    from_port: documents
+    to: meeting_store
+    to_port: documents
+```
+
+This example demonstrates the power of DocumentTransformer nodes:
+
+1. **Metadata Tagging** - Organizes documents by meeting, project, and department
+2. **Content Marking** - Adds confidential headers for security
+3. **Intelligent Analysis** - Extracts action items, decisions, and team mentions
+4. **Quality Filtering** - Keeps only documents with actionable content
+5. **Processing Attribution** - Adds footer with processing information
+6. **Searchable Storage** - Creates indexed, searchable document collection
+
+The enriched metadata enables powerful queries like:
+- "Find all documents from meeting20251001 with action items"
+- "Show high-priority engineering documents from Project Alpha"
+- "List all documents mentioning specific team members"
+
 ## Validation and Error Handling
 
 The workflow engine performs comprehensive validation:
@@ -1245,9 +1760,15 @@ The workflow engine performs comprehensive validation:
 - **Type Compatibility**: Ensures data types match between connections
 - **Node Compatibility**: Enforces valid connection patterns:
   - ✅ Loader → TextSplitter
+  - ✅ Loader → DocumentTransformer
   - ✅ TextSplitter → TextSplitter  
+  - ✅ TextSplitter → DocumentTransformer
   - ✅ TextSplitter → Storage
-  - ❌ Loader → Storage (must have TextSplitter in between)
+  - ✅ DocumentTransformer → TextSplitter
+  - ✅ DocumentTransformer → DocumentTransformer  
+  - ✅ DocumentTransformer → Storage
+  - ✅ Query → DocumentTransformer
+  - ❌ Loader → Storage (must have TextSplitter or DocumentTransformer in between)
   - ❌ Storage → Any (Storage nodes are terminal)
 
 ### Runtime Validation

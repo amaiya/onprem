@@ -9,7 +9,7 @@ of nodes (Loader, TextSplitter, Storage, Processor, Exporter) in a pipeline.
 # Import base classes and exceptions
 from .base import (
     BaseNode, LoaderNode, TextSplitterNode, StorageNode, QueryNode, 
-    ProcessorNode, DocumentProcessor, ResultProcessor, ExporterNode,
+    ProcessorNode, DocumentProcessor, ResultProcessor, DocumentTransformerNode, ExporterNode,
     NODE_TYPES
 )
 from .exceptions import WorkflowValidationError, NodeExecutionError
@@ -27,7 +27,7 @@ from . import cli
 __all__ = [
     # Base classes
     "BaseNode", "LoaderNode", "TextSplitterNode", "StorageNode", "QueryNode",
-    "ProcessorNode", "DocumentProcessor", "ResultProcessor", "ExporterNode",
+    "ProcessorNode", "DocumentProcessor", "ResultProcessor", "DocumentTransformerNode", "ExporterNode",
     
     # Type system
     "NODE_TYPES",

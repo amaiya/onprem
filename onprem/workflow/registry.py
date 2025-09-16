@@ -8,9 +8,13 @@ from .textsplitters import SplitByCharacterCountNode, SplitByParagraphNode, Keep
 from .storage import ChromaStoreNode, WhooshStoreNode, ElasticsearchStoreNode
 from .query import QueryWhooshStoreNode, QueryChromaStoreNode, QueryElasticsearchStoreNode
 
+# Document Transformer implementations
+from .document_transformers import (AddMetadataNode, ContentPrefixNode, ContentSuffixNode, 
+                                   DocumentFilterNode, PythonDocumentTransformerNode)
 
 # Processor and Exporter implementations
-from .processors import PromptProcessorNode, ResponseCleanerNode, SummaryProcessorNode
+from .processors import (PromptProcessorNode, ResponseCleanerNode, SummaryProcessorNode,
+                        PythonDocumentProcessorNode, PythonResultProcessorNode)
 from .exporters import CSVExporterNode, ExcelExporterNode, JSONExporterNode
 
 
@@ -26,6 +30,13 @@ NODE_REGISTRY = {
     "SplitByParagraph": SplitByParagraphNode,
     "KeepFullDocument": KeepFullDocumentNode,
     
+    # Document Transformers
+    "AddMetadata": AddMetadataNode,
+    "ContentPrefix": ContentPrefixNode,
+    "ContentSuffix": ContentSuffixNode,
+    "DocumentFilter": DocumentFilterNode,
+    "PythonDocumentTransformer": PythonDocumentTransformerNode,
+    
     # Storage
     "ChromaStore": ChromaStoreNode,
     "WhooshStore": WhooshStoreNode,
@@ -40,6 +51,8 @@ NODE_REGISTRY = {
     "PromptProcessor": PromptProcessorNode,
     "ResponseCleaner": ResponseCleanerNode,
     "SummaryProcessor": SummaryProcessorNode,
+    "PythonDocumentProcessor": PythonDocumentProcessorNode,
+    "PythonResultProcessor": PythonResultProcessorNode,
     
     # Exporters
     "CSVExporter": CSVExporterNode,
