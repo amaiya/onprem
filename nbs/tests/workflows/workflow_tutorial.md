@@ -527,7 +527,7 @@ nodes:
 
 #### KeepFullDocument
 
-Passes documents through without any chunking. Optionally concatenates multi-page documents into single documents.
+Passes documents through without any chunking. Optionally concatenates multi-page documents and/or truncates documents to a maximum word count.
 
 ```yaml
 nodes:
@@ -540,6 +540,19 @@ nodes:
     type: KeepFullDocument
     config:
       concatenate_pages: true    # Optional: Combine pages into single document
+  
+  # Truncate documents to first N words (useful for LLM context limits)
+  truncated_document:
+    type: KeepFullDocument
+    config:
+      max_words: 500            # Optional: Truncate to first 500 words
+  
+  # Both concatenation and truncation (applied in that order)
+  combined_processing:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true   # First: combine multi-page documents
+      max_words: 1000          # Then: truncate to first 1000 words
 ```
 
 **Page Concatenation:**
@@ -553,11 +566,30 @@ When `concatenate_pages: true`, multi-page documents are combined:
   - `page_range: "1-5"` (original page range)
   - `concatenated: true` (flag indicating concatenation)
 
+**Document Truncation:**
+
+When `max_words: N` is specified, documents are truncated to the first N words:
+- Word boundaries are preserved (no partial words)
+- Metadata is enriched with truncation information:
+  - `original_word_count: 2500` (original document length)
+  - `truncated: true` (indicates truncation occurred)
+  - `truncated_word_count: 500` (target truncation size)
+- Documents shorter than `max_words` are passed through unchanged
+- Processing order: concatenation first, then truncation
+
 **Use Cases:**
-- **Resume Processing** - Combine multi-page resumes into single document
-- **Contract Analysis** - Process entire contracts as one unit
-- **Report Analysis** - Analyze complete reports without page boundaries
-- **Legal Documents** - Preserve document structure while enabling full-text analysis
+- **Page Concatenation:**
+  - Resume Processing - Combine multi-page resumes into single document
+  - Contract Analysis - Process entire contracts as one unit
+  - Report Analysis - Analyze complete reports without page boundaries
+  - Legal Documents - Preserve document structure while enabling full-text analysis
+
+- **Document Truncation:**
+  - LLM Context Management - Fit long documents within token limits
+  - Cost Control - Reduce processing costs for very long documents
+  - Preview Generation - Create document summaries from beginnings
+  - Performance Optimization - Speed up processing of large documents
+  - Classification Tasks - Use document openings for categorization
 
 **Input Ports:**
 - `documents`: `List[Document]` - Documents to pass through or concatenate
@@ -1448,6 +1480,64 @@ nodes:
       # Increase timeouts if needed
       timeout: 30
 ```
+
+### Document Length Management
+
+Control document size for LLM processing and cost optimization:
+
+```yaml
+nodes:
+  # Load large documents
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "large_documents/"
+  
+  # Keep full documents but truncate to manageable size
+  size_control:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true    # First combine multi-page documents
+      max_words: 2000           # Then truncate to first 2000 words
+  
+  # Analyze the controlled-size documents
+  quick_analysis:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Analyze this document excerpt (first 2000 words):
+        
+        Source: {source}
+        Content: {content}
+        
+        Provide:
+        1. Document type and purpose
+        2. Main topics covered
+        3. Key findings or conclusions
+        4. Whether this appears to be the beginning, middle, or complete document
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0.1
+        max_tokens: 500
+
+connections:
+  - from: document_loader
+    from_port: documents
+    to: size_control
+    to_port: documents
+    
+  - from: size_control
+    from_port: documents
+    to: quick_analysis
+    to_port: documents
+```
+
+**Benefits:**
+- **Cost Control** - Process only document beginnings instead of entire files
+- **Speed** - Faster analysis with consistent processing times
+- **Context Management** - Ensure documents fit within LLM context windows
+- **Preview Analysis** - Get quick insights from document openings
+- **Metadata Tracking** - Know original document size and truncation status
 
 ### Debugging Workflows
 

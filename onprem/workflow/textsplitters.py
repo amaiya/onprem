@@ -2,7 +2,7 @@
 Text splitter node implementations for the workflow engine.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 from langchain_core.documents import Document
 
 from .. import ingest
@@ -65,16 +65,64 @@ class SplitByParagraphNode(TextSplitterNode):
 class KeepFullDocumentNode(TextSplitterNode):
     """Passes documents through without any splitting or chunking.
     
-    Optionally concatenates multi-page documents into single documents.
+    Optionally concatenates multi-page documents into single documents
+    and/or truncates documents to a maximum number of words.
+    
+    Configuration options:
+    - concatenate_pages: bool - Combine multi-page documents into single documents
+    - max_words: int - Truncate document content to first N words (applied after concatenation)
     """
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         documents = inputs.get("documents", [])
         
         concatenate_pages = self.config.get("concatenate_pages", False)
+        max_words = self.config.get("max_words", None)
         
-        if not concatenate_pages:
-            return {"documents": documents}
+        # First handle concatenation if requested
+        if concatenate_pages:
+            documents = self._concatenate_pages(documents)
+        
+        # Then handle word truncation if requested
+        if max_words and max_words > 0:
+            documents = self._truncate_documents(documents, max_words)
+        
+        return {"documents": documents}
+    
+    def _truncate_documents(self, documents: List[Any], max_words: int) -> List[Any]:
+        """Truncate documents to maximum number of words."""
+        truncated_docs = []
+        
+        for doc in documents:
+            content = doc.page_content
+            words = content.split()
+            
+            if len(words) > max_words:
+                # Truncate to max_words
+                truncated_content = ' '.join(words[:max_words])
+                
+                # Create new document with truncated content
+                new_metadata = doc.metadata.copy()
+                new_metadata['original_word_count'] = len(words)
+                new_metadata['truncated'] = True
+                new_metadata['truncated_word_count'] = max_words
+                
+                from langchain_core.documents import Document
+                truncated_doc = Document(
+                    page_content=truncated_content,
+                    metadata=new_metadata
+                )
+                truncated_docs.append(truncated_doc)
+            else:
+                # Document is already under the limit
+                truncated_docs.append(doc)
+        
+        return truncated_docs
+    
+    def _concatenate_pages(self, documents: List[Any]) -> List[Any]:
+        """Concatenate multi-page documents by source file."""
+        if not documents:
+            return documents
         
         # Group documents by source file and concatenate pages
         try:
@@ -113,13 +161,14 @@ class KeepFullDocumentNode(TextSplitterNode):
                     if pages:
                         combined_metadata['page_range'] = f"{min(pages)}-{max(pages)}"
                     
+                    from langchain_core.documents import Document
                     combined_doc = Document(
                         page_content=combined_content,
                         metadata=combined_metadata
                     )
                     concatenated_docs.append(combined_doc)
             
-            return {"documents": concatenated_docs}
+            return concatenated_docs
             
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to concatenate pages: {str(e)}")

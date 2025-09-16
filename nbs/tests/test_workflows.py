@@ -111,6 +111,60 @@ def test_textsplitter_nodes(sample_doc_file):
     assert len(results["splitter"]["documents"]) >= 1
     print("✓ KeepFullDocument")
 
+
+def test_document_truncation(sample_doc_file):
+    """Test document truncation functionality."""
+    from onprem.workflow import WorkflowEngine
+    
+    # Create a longer test document for truncation (100 words)
+    long_text = " ".join([f"word{i}" for i in range(100)])
+    Path(sample_doc_file).write_text(long_text)
+    
+    # Test truncation to 50 words
+    workflow = {
+        "nodes": {
+            "loader": {
+                "type": "LoadSingleDocument",
+                "config": {"file_path": sample_doc_file}
+            },
+            "truncate": {
+                "type": "KeepFullDocument", 
+                "config": {"max_words": 50}
+            }
+        },
+        "connections": [
+            {"from": "loader", "from_port": "documents", "to": "truncate", "to_port": "documents"}
+        ]
+    }
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow)
+    results = engine.execute(verbose=False)
+    
+    truncated_doc = results["truncate"]["documents"][0]
+    word_count = len(truncated_doc.page_content.split())
+    
+    # Verify truncation worked
+    assert word_count == 50, f"Expected 50 words, got {word_count}"
+    assert truncated_doc.metadata.get("truncated") == True
+    assert truncated_doc.metadata.get("original_word_count") == 100
+    assert truncated_doc.metadata.get("truncated_word_count") == 50
+    print("✓ Document truncation (50 words)")
+    
+    # Test no truncation when document is shorter than limit
+    workflow["nodes"]["truncate"]["config"]["max_words"] = 200
+    engine.load_workflow_from_dict(workflow)
+    results = engine.execute(verbose=False)
+    
+    no_truncate_doc = results["truncate"]["documents"][0]
+    no_truncate_word_count = len(no_truncate_doc.page_content.split())
+    
+    # Should keep all words when under limit
+    assert no_truncate_word_count == 100, f"Expected 100 words, got {no_truncate_word_count}"
+    assert not no_truncate_doc.metadata.get("truncated", False)
+    print("✓ No truncation when under limit")
+
+
 def test_storage_nodes(temp_dir, sample_doc_file):
     """Test storage node types."""
     from onprem.workflow import WorkflowEngine
@@ -378,6 +432,37 @@ def test_processor_inheritance():
     assert not isinstance(summary_node, ResultProcessor)
     print("✓ SummaryProcessor inherits from DocumentProcessor")
 
+
+def test_query_node_registry():
+    """Test that all query nodes are properly registered."""
+    from onprem.workflow import NODE_REGISTRY, QueryNode
+    
+    # Test QueryWhooshStore
+    whoosh_node = NODE_REGISTRY["QueryWhooshStore"]("test", {
+        "persist_location": "/tmp/test",
+        "query": "test"
+    })
+    assert isinstance(whoosh_node, QueryNode)
+    print("✓ QueryWhooshStore properly registered")
+    
+    # Test QueryChromaStore  
+    chroma_node = NODE_REGISTRY["QueryChromaStore"]("test", {
+        "persist_location": "/tmp/test",
+        "query": "test" 
+    })
+    assert isinstance(chroma_node, QueryNode)
+    print("✓ QueryChromaStore properly registered")
+    
+    # Test QueryElasticsearchStore
+    es_node = NODE_REGISTRY["QueryElasticsearchStore"]("test", {
+        "persist_location": "http://localhost:9200",
+        "index_name": "test_index",
+        "query": "test"
+    })
+    assert isinstance(es_node, QueryNode)
+    print("✓ QueryElasticsearchStore properly registered")
+
+
 def test_workflow_validation():
     """Test workflow validation functionality."""
     from onprem.workflow import WorkflowEngine
@@ -434,6 +519,9 @@ def run_all_tests():
         print("\n✂️ Testing TextSplitter Nodes:")  
         test_textsplitter_nodes(sample_file)
         
+        print("\n📏 Testing Document Truncation:")
+        test_document_truncation(sample_file)
+        
         print("\n🗄️ Testing Storage Nodes:")
         test_storage_nodes(temp_dir, sample_file)
         
@@ -448,6 +536,9 @@ def run_all_tests():
         
         print("\n🏗️ Testing Processor Inheritance:")
         test_processor_inheritance()
+        
+        print("\n🔍 Testing Query Node Registry:")
+        test_query_node_registry()
         
         print("\n✅ Testing Workflow Validation:")
         test_workflow_validation()

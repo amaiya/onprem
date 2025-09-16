@@ -625,6 +625,216 @@ def test_dynamic_chunking():
         print(f"✗ Error during dynamic chunking test: {e}")
         return False
 
+def test_query_elasticsearch_node():
+    """Test QueryElasticsearchStore workflow node"""
+    print("\n" + "="*50)
+    print("Testing QueryElasticsearchStore Workflow Node...")
+    print("="*50)
+    
+    # Get configuration from environment
+    config = get_elastic_env()
+    config['index'] = config['index'] + '_query_node'  # Use different index
+    
+    print(f"Connecting to: {config['host']}")
+    print(f"Index: {config['index']}")
+    
+    try:
+        from onprem.workflow import WorkflowEngine
+        
+        # Create a workflow that stores documents and then queries them
+        workflow = {
+            "nodes": {
+                # First, create some test data
+                "storage": {
+                    "type": "ElasticsearchStore",
+                    "config": {
+                        "persist_location": config['host'],
+                        "index_name": config['index'],
+                        "verify_certs": config['verify_certs'],
+                        "timeout": config['timeout']
+                    }
+                },
+                # Query with sparse (text) search
+                "query_sparse": {
+                    "type": "QueryElasticsearchStore", 
+                    "config": {
+                        "persist_location": config['host'],
+                        "index_name": config['index'],
+                        "query": "machine learning algorithms",
+                        "search_type": "sparse",
+                        "limit": 5,
+                        "verify_certs": config['verify_certs'],
+                        "timeout": config['timeout']
+                    }
+                },
+                # Query with semantic search
+                "query_semantic": {
+                    "type": "QueryElasticsearchStore",
+                    "config": {
+                        "persist_location": config['host'], 
+                        "index_name": config['index'],
+                        "query": "artificial intelligence",
+                        "search_type": "semantic",
+                        "limit": 3,
+                        "verify_certs": config['verify_certs'],
+                        "timeout": config['timeout']
+                    }
+                },
+                # Query with hybrid search
+                "query_hybrid": {
+                    "type": "QueryElasticsearchStore",
+                    "config": {
+                        "persist_location": config['host'],
+                        "index_name": config['index'], 
+                        "query": "deep learning neural networks",
+                        "search_type": "hybrid",
+                        "weights": [0.7, 0.3],  # Favor text search slightly
+                        "limit": 3,
+                        "verify_certs": config['verify_certs'],
+                        "timeout": config['timeout']
+                    }
+                }
+            },
+            "connections": []  # No connections - these are independent tests
+        }
+        
+        # Add authentication if configured
+        if config['basic_auth']:
+            workflow["nodes"]["storage"]["config"]["basic_auth"] = config['basic_auth']
+            workflow["nodes"]["query_sparse"]["config"]["basic_auth"] = config['basic_auth']
+            workflow["nodes"]["query_semantic"]["config"]["basic_auth"] = config['basic_auth'] 
+            workflow["nodes"]["query_hybrid"]["config"]["basic_auth"] = config['basic_auth']
+        
+        if config['ca_certs']:
+            workflow["nodes"]["storage"]["config"]["ca_certs"] = config['ca_certs']
+            workflow["nodes"]["query_sparse"]["config"]["ca_certs"] = config['ca_certs']
+            workflow["nodes"]["query_semantic"]["config"]["ca_certs"] = config['ca_certs']
+            workflow["nodes"]["query_hybrid"]["config"]["ca_certs"] = config['ca_certs']
+        
+        # First, prepare test data by adding documents directly
+        from onprem.ingest.stores import VectorStoreFactory
+        from langchain_core.documents import Document
+        
+        store_params = {
+            "kind": "elasticsearch",
+            "persist_location": config['host'],
+            "index_name": config['index'],
+            "verify_certs": config['verify_certs'],
+            "timeout": config['timeout']
+        }
+        
+        if config['basic_auth']:
+            store_params["basic_auth"] = config['basic_auth']
+        if config['ca_certs']:
+            store_params["ca_certs"] = config['ca_certs']
+        
+        # Create store and add test documents
+        store = VectorStoreFactory.create(**store_params)
+        
+        # Clear any existing data
+        if store.exists():
+            store.erase(confirm=False)
+            print("✓ Cleared existing test data")
+        
+        # Add test documents
+        test_docs = [
+            Document(
+                page_content="Machine learning algorithms are used to build predictive models from data",
+                metadata={"source": "ml_basics.txt", "topic": "machine_learning", "difficulty": "beginner"}
+            ),
+            Document(
+                page_content="Deep learning neural networks with multiple layers can learn complex patterns",
+                metadata={"source": "deep_learning.txt", "topic": "deep_learning", "difficulty": "advanced"} 
+            ),
+            Document(
+                page_content="Artificial intelligence encompasses machine learning and other computational approaches",
+                metadata={"source": "ai_overview.txt", "topic": "artificial_intelligence", "difficulty": "intermediate"}
+            ),
+            Document(
+                page_content="Natural language processing enables computers to understand human language", 
+                metadata={"source": "nlp_intro.txt", "topic": "nlp", "difficulty": "intermediate"}
+            )
+        ]
+        
+        store.add_documents(test_docs)
+        print(f"✓ Added {len(test_docs)} test documents to index")
+        
+        # Now test the workflow nodes
+        engine = WorkflowEngine()
+        engine.load_workflow_from_dict(workflow)
+        
+        # Test sparse search
+        print("\nTesting sparse (text) search...")
+        results = engine.nodes["query_sparse"].execute({})
+        
+        assert "documents" in results, "Sparse search should return documents key"
+        assert len(results["documents"]) > 0, "Sparse search should find documents"
+        print(f"✓ Sparse search returned {len(results['documents'])} documents")
+        
+        # Check that results contain relevant content
+        found_relevant = False
+        for doc in results["documents"]:
+            if "machine" in doc.page_content.lower() or "learning" in doc.page_content.lower():
+                found_relevant = True
+                break
+        assert found_relevant, "Sparse search should return relevant documents"
+        print("✓ Sparse search returned relevant documents")
+        
+        # Test semantic search
+        print("\nTesting semantic search...")
+        results = engine.nodes["query_semantic"].execute({})
+        
+        assert "documents" in results, "Semantic search should return documents key"
+        assert len(results["documents"]) > 0, "Semantic search should find documents"
+        print(f"✓ Semantic search returned {len(results['documents'])} documents")
+        
+        # Test hybrid search
+        print("\nTesting hybrid search...")
+        results = engine.nodes["query_hybrid"].execute({})
+        
+        assert "documents" in results, "Hybrid search should return documents key"
+        assert len(results["documents"]) > 0, "Hybrid search should find documents"  
+        print(f"✓ Hybrid search returned {len(results['documents'])} documents")
+        
+        # Test error handling
+        print("\nTesting error handling...")
+        
+        # Test missing query
+        try:
+            bad_node_config = workflow["nodes"]["query_sparse"]["config"].copy()
+            bad_node_config["query"] = ""
+            
+            from onprem.workflow import QueryElasticsearchStoreNode
+            bad_node = QueryElasticsearchStoreNode("test", bad_node_config)
+            bad_node.execute({})
+            assert False, "Should raise error for empty query"
+        except Exception as e:
+            assert "query is required" in str(e)
+            print("✓ Correctly handles missing query")
+        
+        # Test invalid search type
+        try:
+            bad_node_config = workflow["nodes"]["query_sparse"]["config"].copy()
+            bad_node_config["search_type"] = "invalid_type"
+            
+            bad_node = QueryElasticsearchStoreNode("test", bad_node_config)
+            bad_node.execute({})
+            assert False, "Should raise error for invalid search type"
+        except Exception as e:
+            assert "Unknown search_type" in str(e)
+            print("✓ Correctly handles invalid search type")
+        
+        # Clean up
+        store.erase(confirm=False)
+        print("✓ Test index cleaned up")
+        
+        return True
+        
+    except Exception as e:
+        print(f"✗ QueryElasticsearchStore test failed: {e}")
+        return False
+
+
 if __name__ == "__main__":
     # Test ElasticsearchStore (sparse only)
     success1 = test_elasticsearch_store()
@@ -635,12 +845,16 @@ if __name__ == "__main__":
     # Test dynamic chunking feature
     success3 = test_dynamic_chunking()
     
-    if success1 and success2 and success3:
+    # Test QueryElasticsearchStore workflow node
+    success4 = test_query_elasticsearch_node()
+    
+    if success1 and success2 and success3 and success4:
         print("\n🎉 All tests passed!")
         print("\nSUMMARY:")
         print("✓ ElasticsearchSparseStore (sparse text search)")
         print("✓ ElasticsearchStore (unified dense + sparse)")
         print("✓ Dynamic chunking for semantic search")
+        print("✓ QueryElasticsearchStore workflow node")
     else:
         print("\n❌ Some tests failed")
         if not success1:
@@ -649,6 +863,8 @@ if __name__ == "__main__":
             print("✗ ElasticsearchStore test failed")
         if not success3:
             print("✗ Dynamic chunking test failed")
+        if not success4:
+            print("✗ QueryElasticsearchStore workflow node test failed")
     
         # Example of testing with specific parameters
         print("\n" + "="*50)

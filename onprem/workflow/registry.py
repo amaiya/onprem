@@ -6,7 +6,7 @@ Node registry for the workflow engine.
 from .loaders import LoadFromFolderNode, LoadSingleDocumentNode, LoadWebDocumentNode
 from .textsplitters import SplitByCharacterCountNode, SplitByParagraphNode, KeepFullDocumentNode
 from .storage import ChromaStoreNode, WhooshStoreNode, ElasticsearchStoreNode
-from .query import QueryWhooshStoreNode, QueryChromaStoreNode
+from .query import QueryWhooshStoreNode, QueryChromaStoreNode, QueryElasticsearchStoreNode
 
 
 # Processor and Exporter implementations
@@ -34,6 +34,7 @@ NODE_REGISTRY = {
     # Query
     "QueryWhooshStore": QueryWhooshStoreNode,
     "QueryChromaStore": QueryChromaStoreNode,
+    "QueryElasticsearchStore": QueryElasticsearchStoreNode,
     
     # Processors
     "PromptProcessor": PromptProcessorNode,

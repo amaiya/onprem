@@ -1,0 +1,95 @@
+# Example workflow demonstrating Elasticsearch storage and querying
+# This workflow shows how to store documents in Elasticsearch and then query them
+# using different search types (sparse, semantic, hybrid)
+
+nodes:
+  # Load sample documents
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data/"
+      file_pattern: "*.txt"
+
+  # Keep documents full (no chunking for this example)
+  document_processor:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true
+
+  # Store documents in Elasticsearch
+  elasticsearch_storage:
+    type: ElasticsearchStore
+    config:
+      persist_location: "http://localhost:9200"  # Elasticsearch URL
+      index_name: "workflow_demo"               # Index name
+      # Optional authentication (uncomment if needed):
+      # basic_auth: ["username", "password"]
+      # verify_certs: false
+
+  # Query 1: Sparse (traditional text) search
+  sparse_search:
+    type: QueryElasticsearchStore
+    config:
+      persist_location: "http://localhost:9200"
+      index_name: "workflow_demo"
+      query: "machine learning algorithms"
+      search_type: "sparse"                    # Traditional BM25 text search
+      limit: 5
+      # Same optional auth as storage node
+
+  # Query 2: Semantic search (if embeddings are available)
+  semantic_search:
+    type: QueryElasticsearchStore
+    config:
+      persist_location: "http://localhost:9200"
+      index_name: "workflow_demo"
+      query: "artificial intelligence concepts"
+      search_type: "semantic"                  # Dense vector search
+      limit: 3
+
+  # Query 3: Hybrid search (combines sparse + semantic)
+  hybrid_search:
+    type: QueryElasticsearchStore
+    config:
+      persist_location: "http://localhost:9200"
+      index_name: "workflow_demo"
+      query: "deep learning neural networks"
+      search_type: "hybrid"                    # Best of both worlds
+      weights: [0.6, 0.4]                     # Favor text search 60%, semantic 40%
+      limit: 5
+
+  # Export results for analysis
+  export_results:
+    type: JSONExporter
+    config:
+      output_path: "elasticsearch_search_results.json"
+
+connections:
+  # Storage pipeline
+  - from: document_loader
+    from_port: documents
+    to: document_processor
+    to_port: documents
+
+  - from: document_processor
+    from_port: documents
+    to: elasticsearch_storage
+    to_port: documents
+
+  # Note: Query nodes don't need input connections - they query existing data
+  # Results can be exported independently or used in further processing
+
+# Usage:
+# 1. Ensure Elasticsearch is running on localhost:9200
+# 2. Run: python -m onprem.workflow elasticsearch_query_example.yaml
+#
+# This will:
+# - Load and store documents in Elasticsearch
+# - Perform three different types of searches
+# - Each search demonstrates different capabilities:
+#   * Sparse: Traditional keyword matching (BM25)
+#   * Semantic: Meaning-based matching (requires embeddings)
+#   * Hybrid: Combines both approaches for best results
+#
+# Search results are available in the workflow execution results
+# and can be further processed or exported as needed
