@@ -19,7 +19,7 @@ Create automated document processing pipelines using simple YAML configuration f
 
 The workflow engine provides three essential patterns that cover the most common document processing scenarios:
 
-### 1. 🔄 Ingest PDFs to Vector Store (`1_ingest_pdfs.yaml`)
+### 1. 🔄 Ingest PDFs to Vector Store ([`1_ingest_pdfs.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/1_ingest_pdfs.yaml))
 
 **Purpose**: Load PDF files, chunk them, and store in a vector database for later retrieval.
 
@@ -36,7 +36,7 @@ python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
 
 **Requirements**: PDF files in the sample_data directory
 
-### 2. 🔍 Analyze from Vector Store (`2_analyze_from_vectorstore.yaml`)
+### 2. 🔍 Analyze from Vector Store ([`2_analyze_from_vectorstore.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/2_analyze_from_vectorstore.yaml))
 
 **Purpose**: Query an existing vector database, apply AI analysis, and export results.
 
@@ -55,7 +55,7 @@ python -m onprem.workflow yaml_examples/2_analyze_from_vectorstore.yaml
 - Run example 1 first to create `document_vectors/`
 - Set `OPENAI_API_KEY` environment variable
 
-### 3. 📄 Direct Document Analysis (`3_direct_analysis.yaml`)
+### 3. 📄 Direct Document Analysis ([`3_direct_analysis.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/3_direct_analysis.yaml))
 
 **Purpose**: Analyze documents directly without a vector database using two-stage AI processing.
 
