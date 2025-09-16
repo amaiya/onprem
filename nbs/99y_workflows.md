@@ -2185,4 +2185,4 @@ print(f"Total documents processed: {total_docs}")
 
 ---
 
-This tutorial covers all aspects of the OnPrem workflow engine. For more examples, see the files in `nbs/tests/`. For API reference, check the source code in `onprem/workflow.py`.
+This tutorial covers all aspects of the OnPrem workflow engine.
