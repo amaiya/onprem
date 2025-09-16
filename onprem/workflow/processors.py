@@ -9,7 +9,7 @@ import os
 from typing import Dict, List, Any
 from langchain_core.documents import Document
 
-from .base import DocumentProcessor, ResultProcessor
+from .base import DocumentProcessor, ResultProcessor, AggregatorProcessor
 from .exceptions import NodeExecutionError
 
 
@@ -327,3 +327,111 @@ class PythonResultProcessorNode(ResultProcessor, PythonCodeMixin):
             if "Error executing Python code" in str(e):
                 raise  # Re-raise execution errors as-is
             raise NodeExecutionError(f"Node {self.node_id}: Failed to execute Python code: {str(e)}")
+
+
+class AggregatorNode(AggregatorProcessor):
+    """Aggregates multiple results into a single result using LLM-based processing."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"result": {}}
+        
+        prompt_template = self.config.get("prompt", "")
+        prompt_file = self.config.get("prompt_file", "")
+        
+        # Get LLM configuration
+        llm_config = self.config.get("llm", {"model_url": "openai://gpt-3.5-turbo"})
+        
+        # Load prompt from file if specified, otherwise use inline prompt
+        if prompt_file:
+            if not os.path.exists(prompt_file):
+                raise NodeExecutionError(f"Node {self.node_id}: prompt_file '{prompt_file}' does not exist")
+            try:
+                with open(prompt_file, 'r', encoding='utf-8') as f:
+                    prompt_template = f.read()
+            except Exception as e:
+                raise NodeExecutionError(f"Node {self.node_id}: Failed to read prompt_file '{prompt_file}': {str(e)}")
+        
+        if not prompt_template:
+            raise NodeExecutionError(f"Node {self.node_id}: Either 'prompt' or 'prompt_file' is required")
+        
+        try:
+            llm = self.get_llm(llm_config)
+            
+            # Prepare aggregation data
+            responses = []
+            for i, result in enumerate(results):
+                # Extract the main response/content from each result
+                response = result.get('response', result.get('summary', result.get('output', str(result))))
+                responses.append(response)
+            
+            # Create context for the aggregation prompt
+            aggregation_context = {
+                'num_results': len(results),
+                'responses': '\n\n'.join([f"Response {i+1}: {resp}" for i, resp in enumerate(responses)]),
+                'results': results,  # Full results for advanced templating
+                'response_list': responses  # Just the responses as a list
+            }
+            
+            # Format the prompt
+            formatted_prompt = prompt_template.format(**aggregation_context)
+            
+            # Get aggregated response from LLM
+            aggregated_response = llm.prompt(formatted_prompt)
+            
+            # Create aggregated result
+            aggregated_result = {
+                'aggregated_response': aggregated_response,
+                'source_count': len(results),
+                'aggregation_method': 'llm_prompt',
+                'original_results': results  # Keep reference to source data
+            }
+            
+            return {"result": aggregated_result}
+            
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to aggregate results: {str(e)}")
+
+
+class PythonAggregatorNode(AggregatorProcessor, PythonCodeMixin):
+    """Aggregates multiple results into a single result using custom Python code."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        results = inputs.get("results", [])
+        if not results:
+            return {"result": {}}
+        
+        # Load Python code
+        python_code = self._load_code(self.node_id, self.config)
+        
+        try:
+            # Set up local variables for aggregation
+            local_vars = {
+                'results': results,
+                'num_results': len(results),
+                'result': {}  # For the user to populate with aggregated result
+            }
+            
+            # Execute the user's Python code
+            executed_vars = self._execute_code_safely(
+                self.node_id, python_code, local_vars, 0, "aggregation"
+            )
+            
+            # Get the aggregated result
+            aggregated_result = executed_vars.get('result', {})
+            
+            # Ensure result is a dictionary
+            if not isinstance(aggregated_result, dict):
+                aggregated_result = {'output': aggregated_result}
+            
+            # Add metadata
+            aggregated_result.setdefault('source_count', len(results))
+            aggregated_result.setdefault('aggregation_method', 'python_code')
+            
+            return {"result": aggregated_result}
+            
+        except Exception as e:
+            if "Error executing Python code" in str(e):
+                raise  # Re-raise execution errors as-is
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to execute aggregation code: {str(e)}")

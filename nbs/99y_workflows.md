@@ -166,6 +166,8 @@ Use this pattern for comprehensive analysis of entire document collections witho
 - **PromptProcessor** - Apply AI analysis using custom prompts (DocumentProcessor)
 - **ResponseCleaner** - Clean and format AI responses (ResultProcessor)
 - **SummaryProcessor** - Generate document summaries (DocumentProcessor)
+- **AggregatorNode** - Aggregate multiple results into single result using LLM (AggregatorProcessor)
+- **PythonAggregatorNode** - Aggregate multiple results using custom Python code (AggregatorProcessor)
 
 ### 💾 Exporters
 - **CSVExporter** - Export to CSV format
@@ -306,6 +308,27 @@ Document(
 **Used by:**
 - All Processor → Exporter connections
 
+#### 📋 `Dict` - Single Aggregated Result
+**Aggregated analysis** - Contains a single dictionary with consolidated results from multiple inputs.
+
+```python
+# Aggregated result structure
+{
+    "aggregated_response": "Top 3 topics: AI (80%), automation (65%), data science (45%)",
+    "source_count": 12,
+    "aggregation_method": "llm_prompt",
+    "topic_analysis": {
+        "top_topics": ["AI", "automation", "data science"],
+        "coverage_percentage": 75.5
+    },
+    "original_results": [...]  # Reference to source data
+}
+```
+
+**Used by:**
+- AggregatorNode and PythonAggregatorNode outputs
+- Can be exported using Exporter nodes (converted to single-row format)
+
 #### ✅ `str` - Status Messages
 **Completion status** - Simple text messages indicating operation results.
 
@@ -331,6 +354,11 @@ Alternative analysis path:
 Index → List[Document] → List[Dict] → str  
   ↓         ↓              ↓         ↓
 Query   Processor      Exporter  Status
+
+New aggregation path:
+Index → List[Document] → List[Dict] → Dict → str
+  ↓         ↓              ↓         ↓      ↓
+Query   Processor     Aggregator Export Status
 ```
 
 ### Connection Validation
@@ -376,6 +404,7 @@ The workflow engine validates that connected ports have **matching types**:
 
 - **`documents`** - Always contains `List[Document]` objects
 - **`results`** - Always contains `List[Dict]` with analysis results  
+- **`result`** - Always contains `Dict` with single aggregated result (AggregatorProcessor output)
 - **`status`** - Always contains `str` with completion messages
 
 ### Metadata Preservation
@@ -1314,6 +1343,184 @@ nodes:
 
 **Output Ports:**
 - `results`: `List[Dict]` - Enhanced processing results
+
+#### AggregatorNode
+
+Aggregates multiple processing results into a single collapsed result using LLM-based analysis. Perfect for creating summaries of summaries, extracting top themes from multiple responses, or producing executive summaries from document collections.
+
+```yaml
+nodes:
+  # Topic aggregation - analyze topic keywords across documents
+  topic_aggregator:
+    type: AggregatorNode
+    config:
+      prompt: |
+        Analyze these {num_results} topic keywords from different documents and identify the top 5 most important topics:
+        
+        {responses}
+        
+        Please provide:
+        1. TOP TOPICS: List the 5 most important topics with frequency
+        2. TRENDS: What patterns do you see across documents?
+        3. SUMMARY: One sentence summary of the overall theme
+        
+        Format your response clearly with headings.
+      llm:
+        model_url: "openai://gpt-3.5-turbo"
+        temperature: 0.3
+        max_tokens: 500
+
+  # Summary aggregation - create summary of summaries
+  meta_summarizer:
+    type: AggregatorNode
+    config:
+      prompt_file: "prompts/summary_aggregation.txt"  # Load from file
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0.1
+```
+
+**Use Cases:**
+- **Topic Analysis** - Individual documents → topic keywords → top themes across collection
+- **Executive Summaries** - Document summaries → executive summary of key findings
+- **Survey Analysis** - Individual responses → overall trends and insights
+- **Meeting Analysis** - Multiple meeting notes → key decisions and action items
+- **Research Synthesis** - Paper summaries → research landscape overview
+
+**Input Ports:**
+- `results`: `List[Dict]` - Multiple results to aggregate (from PromptProcessor, SummaryProcessor, etc.)
+
+**Output Ports:**  
+- `result`: `Dict` - Single aggregated result containing:
+  - `aggregated_response`: LLM's aggregated analysis
+  - `source_count`: Number of original results processed
+  - `aggregation_method`: "llm_prompt"
+  - `original_results`: Reference to source data
+
+#### PythonAggregatorNode
+
+Aggregates multiple processing results using custom Python code for precise control over aggregation logic. Ideal for statistical analysis, data consolidation, and algorithmic aggregation.
+
+```yaml
+nodes:
+  # Topic frequency analysis
+  topic_frequency_analyzer:
+    type: PythonAggregatorNode
+    config:
+      code: |
+        # Available variables:
+        # - results: list of all result dictionaries
+        # - num_results: number of results
+        # - result: dictionary to populate with aggregated result
+        
+        # Count topic frequency across all responses
+        topic_counts = {}
+        total_responses = 0
+        
+        for res in results:
+            response = res.get('response', '')
+            if response:
+                topics = [t.strip() for t in response.split(',') if t.strip()]
+                total_responses += 1
+                for topic in topics:
+                    topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        
+        # Get top topics by frequency
+        sorted_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+        top_topics = sorted_topics[:5]
+        
+        # Calculate statistics
+        result['topic_analysis'] = {
+            'top_topics': [
+                {'topic': topic, 'frequency': count, 'percentage': round(count/total_responses*100, 1)}
+                for topic, count in top_topics
+            ],
+            'total_unique_topics': len(topic_counts),
+            'total_documents': total_responses,
+            'coverage': f"{len([t for t in topic_counts.values() if t > 1])} topics appear in multiple documents"
+        }
+        
+        result['aggregation_summary'] = f"Analyzed {total_responses} documents, found {len(topic_counts)} unique topics"
+
+  # Statistical summary aggregator  
+  statistical_aggregator:
+    type: PythonAggregatorNode
+    config:
+      code: |
+        # Aggregate numerical metrics from document analysis
+        import json
+        import math
+        
+        word_counts = []
+        sentiment_scores = []
+        complexity_scores = []
+        
+        for res in results:
+            # Extract metrics from results
+            metadata = res.get('metadata', {})
+            analysis = res.get('analysis', {})
+            
+            if 'word_count' in metadata:
+                word_counts.append(metadata['word_count'])
+            
+            if 'sentiment_score' in analysis:
+                sentiment_scores.append(analysis['sentiment_score'])
+                
+            if 'complexity_score' in analysis:
+                complexity_scores.append(analysis['complexity_score'])
+        
+        # Calculate statistics
+        def calc_stats(values):
+            if not values:
+                return {}
+            return {
+                'count': len(values),
+                'mean': sum(values) / len(values),
+                'median': sorted(values)[len(values)//2],
+                'min': min(values),
+                'max': max(values),
+                'std_dev': math.sqrt(sum((x - sum(values)/len(values))**2 for x in values) / len(values))
+            }
+        
+        result['statistical_summary'] = {
+            'document_metrics': {
+                'total_documents': len(results),
+                'word_count_stats': calc_stats(word_counts),
+                'sentiment_stats': calc_stats(sentiment_scores),
+                'complexity_stats': calc_stats(complexity_scores)
+            },
+            'data_quality': {
+                'documents_with_word_count': len(word_counts),
+                'documents_with_sentiment': len(sentiment_scores),
+                'documents_with_complexity': len(complexity_scores)
+            }
+        }
+        
+        # Create readable summary
+        avg_words = result['statistical_summary']['document_metrics']['word_count_stats'].get('mean', 0)
+        result['executive_summary'] = f"Processed {len(results)} documents, average length: {avg_words:.0f} words"
+```
+
+**Use Cases:**
+- **Topic Frequency Analysis** - Count and rank topics across document collections
+- **Statistical Aggregation** - Calculate means, medians, distributions from analysis results
+- **Data Consolidation** - Merge and deduplicate information from multiple sources
+- **Custom Scoring** - Apply business logic to rank or categorize results
+- **Format Conversion** - Transform aggregated data into specific output formats
+
+**Available Python Environment:**
+- **Built-in functions**: `len`, `str`, `int`, `float`, `bool`, `list`, `dict`, `min`, `max`, `sum`, etc.
+- **Safe modules**: `re`, `json`, `math`, `datetime` (pre-imported)
+- **Security**: No file I/O, network access, or system operations
+
+**Input Ports:**
+- `results`: `List[Dict]` - Multiple results to aggregate
+
+**Output Ports:**
+- `result`: `Dict` - Single aggregated result containing:
+  - Custom fields based on your aggregation logic
+  - `source_count`: Number of original results processed
+  - `aggregation_method`: "python_code"
 
 ### Exporter Nodes
 

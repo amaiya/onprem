@@ -175,6 +175,16 @@ class ResultProcessor(ProcessorNode):
         return {"results": "List[Dict]"}
 
 
+class AggregatorProcessor(ProcessorNode):
+    """Base class for processors that aggregate multiple results into a single result."""
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"result": "Dict"}
+
+
 class DocumentTransformerNode(BaseNode):
     """Base class for transforming documents (metadata, content, filtering, etc.)."""
     

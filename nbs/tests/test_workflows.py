@@ -831,6 +831,183 @@ result['builtin_test'] = len(content.split())
     print("✓ Python processors safe execution environment")
 
 
+def test_aggregator_nodes():
+    """Test aggregator node types."""
+    from onprem.workflow import NODE_REGISTRY, AggregatorProcessor
+    from unittest.mock import patch, MagicMock
+    
+    # Mock LLM response
+    mock_llm = MagicMock()
+    mock_llm.prompt.return_value = "Top topics: technology, AI, automation (appearing in 80% of documents)"
+    
+    with patch('onprem.llm.base.LLM') as mock_llm_class:
+        mock_llm_class.return_value = mock_llm
+        
+        # Test AggregatorNode (LLM-based aggregation)
+        AggregatorNodeClass = NODE_REGISTRY["AggregatorNode"]
+        
+        # Test basic aggregation
+        node = AggregatorNodeClass("test", {
+            "prompt": "Analyze these {num_results} responses and identify the top topics:\n{responses}",
+            "llm": {"model_url": "test://mock"}
+        })
+        
+        # Create test results (topic keywords per document)
+        test_results = [
+            {"response": "technology, AI, machine learning"},
+            {"response": "automation, robotics, AI"},
+            {"response": "data science, AI, technology"},
+            {"response": "machine learning, automation"}
+        ]
+        
+        results = node.execute({"results": test_results})
+        assert "result" in results
+        result = results["result"]
+        assert "aggregated_response" in result
+        assert result["source_count"] == 4
+        assert result["aggregation_method"] == "llm_prompt"
+        assert "original_results" in result
+        
+        # Verify mock LLM was called with correct prompt structure
+        mock_llm.prompt.assert_called()
+        call_args = mock_llm.prompt.call_args[0][0]
+        assert "Analyze these 4 responses" in call_args
+        assert "Response 1: technology, AI, machine learning" in call_args
+        print("✓ AggregatorNode basic functionality")
+        
+        # Test with different result formats
+        diverse_results = [
+            {"summary": "Document discusses AI trends"},
+            {"output": "Key finding: automation benefits"},
+            {"response": "Main topic: robotics"}, 
+            {"custom_field": "value", "other": "data"}  # Will use str() conversion
+        ]
+        
+        results = node.execute({"results": diverse_results})
+        result = results["result"]
+        assert result["source_count"] == 4
+        print("✓ AggregatorNode handles diverse result formats")
+        
+        # Test empty results
+        results = node.execute({"results": []})
+        assert results["result"] == {}
+        print("✓ AggregatorNode handles empty results")
+        
+        # Test inheritance
+        assert isinstance(node, AggregatorProcessor)
+        assert node.get_input_types() == {"results": "List[Dict]"}
+        assert node.get_output_types() == {"result": "Dict"}
+        print("✓ AggregatorNode correct inheritance and types")
+
+
+def test_python_aggregator_node():
+    """Test PythonAggregatorNode functionality."""
+    from onprem.workflow import NODE_REGISTRY, AggregatorProcessor
+    
+    PythonAggregatorClass = NODE_REGISTRY["PythonAggregatorNode"]
+    
+    # Test topic frequency aggregation
+    node = PythonAggregatorClass("test", {
+        "code": """
+# Count topic frequency across all responses
+topic_counts = {}
+for res in results:
+    response = res.get('response', '')
+    topics = [t.strip() for t in response.split(',') if t.strip()]
+    for topic in topics:
+        topic_counts[topic] = topic_counts.get(topic, 0) + 1
+
+# Get top 3 most frequent topics
+sorted_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+top_topics = sorted_topics[:3]
+
+result['top_topics'] = [{'topic': topic, 'frequency': count} for topic, count in top_topics]
+result['total_unique_topics'] = len(topic_counts)
+result['aggregation_type'] = 'frequency_analysis'
+"""
+    })
+    
+    # Create test results (topic keywords)
+    test_results = [
+        {"response": "AI, machine learning, technology"},
+        {"response": "AI, automation, robotics"},  
+        {"response": "technology, AI, data science"},
+        {"response": "automation, machine learning"}
+    ]
+    
+    results = node.execute({"results": test_results})
+    assert "result" in results
+    result = results["result"]
+    
+    # Verify aggregation worked correctly
+    assert "top_topics" in result
+    assert len(result["top_topics"]) == 3
+    
+    # AI should be most frequent (appears 3 times)
+    top_topic = result["top_topics"][0]
+    assert top_topic["topic"] == "AI"
+    assert top_topic["frequency"] == 3
+    
+    assert result["total_unique_topics"] == 6
+    assert result["aggregation_type"] == "frequency_analysis" 
+    assert result["source_count"] == 4
+    assert result["aggregation_method"] == "python_code"
+    print("✓ PythonAggregatorNode topic frequency analysis")
+    
+    # Test summary aggregation
+    summary_node = PythonAggregatorClass("test", {
+        "code": """
+# Aggregate summaries into key themes
+all_summaries = []
+total_length = 0
+
+for res in results:
+    summary = res.get('summary', res.get('response', ''))
+    all_summaries.append(summary)
+    total_length += len(summary)
+
+# Simple aggregation stats
+result['combined_summary'] = ' | '.join(all_summaries)
+result['num_summaries'] = len(all_summaries)
+result['avg_summary_length'] = total_length // len(all_summaries) if all_summaries else 0
+result['themes'] = ['research', 'development', 'implementation']  # Mock themes
+"""
+    })
+    
+    summary_results = [
+        {"summary": "Research shows promising results"},
+        {"summary": "Development phase completed successfully"},
+        {"summary": "Implementation requires careful planning"}
+    ]
+    
+    results = summary_node.execute({"results": summary_results})
+    result = results["result"]
+    
+    assert "combined_summary" in result
+    assert result["num_summaries"] == 3
+    assert result["avg_summary_length"] > 0
+    assert len(result["themes"]) == 3
+    print("✓ PythonAggregatorNode summary aggregation")
+    
+    # Test inheritance and types
+    assert isinstance(summary_node, AggregatorProcessor)
+    assert summary_node.get_input_types() == {"results": "List[Dict]"}
+    assert summary_node.get_output_types() == {"result": "Dict"}
+    print("✓ PythonAggregatorNode correct inheritance and types")
+    
+    # Test error handling
+    error_node = PythonAggregatorClass("test", {
+        "code": "undefined_variable_causes_error"
+    })
+    
+    try:
+        error_node.execute({"results": test_results})
+        assert False, "Should raise error for invalid code"
+    except Exception as e:
+        assert "Error executing Python code" in str(e)
+    print("✓ PythonAggregatorNode error handling")
+
+
 def test_workflow_validation():
     """Test workflow validation functionality."""
     from onprem.workflow import WorkflowEngine
@@ -913,6 +1090,12 @@ def run_all_tests():
         
         print("\n🐍 Testing Python Processors:")
         test_python_processors()
+        
+        print("\n🔄 Testing Aggregator Nodes:")
+        test_aggregator_nodes()
+        
+        print("\n🐍 Testing Python Aggregator Node:")
+        test_python_aggregator_node()
         
         print("\n✅ Testing Workflow Validation:")
         test_workflow_validation()
