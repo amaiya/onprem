@@ -7,6 +7,17 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.19.0 (TBD)
+
+### new:
+- Support for workflows
+
+### changed
+- N/A
+
+### fixed:
+- Resolved issue with `source` in Document objects being empty when `pdf_markdown=True`.
+
 ## 0.18.2 (2025-08-28)
 
 ### new:

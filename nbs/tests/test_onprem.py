@@ -467,6 +467,7 @@ def test_loading(**kwargs):
     assert(docs[0].metadata['extension'] == 'pdf')
     assert(docs[0].metadata['md5'] == 'c562b02005810b05f6ac4b17732ab4b0')
     assert(docs[0].metadata.get('createdate', None) is not None)
+    assert(docs[0].metadata['source'] == fpath)
 
     # test table inference
     docs = load_single_document(fpath, infer_table_structure=True)
