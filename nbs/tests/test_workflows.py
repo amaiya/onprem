@@ -463,6 +463,76 @@ def test_query_node_registry():
     print("✓ QueryElasticsearchStore properly registered")
 
 
+def test_query_search_types():
+    """Test search_type parameter validation for all query nodes."""
+    from onprem.workflow import NODE_REGISTRY
+    
+    # Test WhooshStore search types
+    WhooshNode = NODE_REGISTRY["QueryWhooshStore"]
+    
+    # Valid search types for WhooshStore
+    for search_type in ["sparse", "semantic"]:
+        node = WhooshNode("test", {
+            "persist_location": "/tmp/test", 
+            "query": "test",
+            "search_type": search_type
+        })
+        assert node.config["search_type"] == search_type
+    print("✓ WhooshStore supports sparse and semantic search types")
+    
+    # Invalid search type for WhooshStore
+    try:
+        node = WhooshNode("test", {
+            "persist_location": "/tmp/test",
+            "query": "test", 
+            "search_type": "hybrid"
+        })
+        node.execute({})
+        assert False, "Should raise error for unsupported search_type"
+    except Exception as e:
+        assert "does not support hybrid search" in str(e)
+    print("✓ WhooshStore correctly rejects hybrid search type")
+    
+    # Test ChromaStore search types
+    ChromaNode = NODE_REGISTRY["QueryChromaStore"]
+    
+    # Valid search type for ChromaStore (only semantic)
+    node = ChromaNode("test", {
+        "persist_location": "/tmp/test",
+        "query": "test",
+        "search_type": "semantic"
+    })
+    assert node.config["search_type"] == "semantic"
+    print("✓ ChromaStore supports semantic search type")
+    
+    # Invalid search type for ChromaStore
+    try:
+        node = ChromaNode("test", {
+            "persist_location": "/tmp/test",
+            "query": "test",
+            "search_type": "sparse"
+        })
+        node.execute({})
+        assert False, "Should raise error for unsupported search_type"
+    except Exception as e:
+        assert "does not support sparse search" in str(e)
+    print("✓ ChromaStore correctly rejects sparse search type")
+    
+    # Test ElasticsearchStore search types
+    ElasticsearchNode = NODE_REGISTRY["QueryElasticsearchStore"]
+    
+    # Valid search types for ElasticsearchStore
+    for search_type in ["sparse", "semantic", "hybrid"]:
+        node = ElasticsearchNode("test", {
+            "persist_location": "http://localhost:9200",
+            "index_name": "test",
+            "query": "test",
+            "search_type": search_type
+        })
+        assert node.config["search_type"] == search_type
+    print("✓ ElasticsearchStore supports sparse, semantic, and hybrid search types")
+
+
 def test_workflow_validation():
     """Test workflow validation functionality."""
     from onprem.workflow import WorkflowEngine
@@ -539,6 +609,9 @@ def run_all_tests():
         
         print("\n🔍 Testing Query Node Registry:")
         test_query_node_registry()
+        
+        print("\n🔍 Testing Query Search Types:")
+        test_query_search_types()
         
         print("\n✅ Testing Workflow Validation:")
         test_workflow_validation()

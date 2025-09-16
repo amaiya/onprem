@@ -804,7 +804,8 @@ def test_query_elasticsearch_node():
             bad_node_config = workflow["nodes"]["query_sparse"]["config"].copy()
             bad_node_config["query"] = ""
             
-            from onprem.workflow import QueryElasticsearchStoreNode
+            from onprem.workflow import NODE_REGISTRY
+            QueryElasticsearchStoreNode = NODE_REGISTRY["QueryElasticsearchStore"]
             bad_node = QueryElasticsearchStoreNode("test", bad_node_config)
             bad_node.execute({})
             assert False, "Should raise error for empty query"
@@ -817,6 +818,8 @@ def test_query_elasticsearch_node():
             bad_node_config = workflow["nodes"]["query_sparse"]["config"].copy()
             bad_node_config["search_type"] = "invalid_type"
             
+            from onprem.workflow import NODE_REGISTRY
+            QueryElasticsearchStoreNode = NODE_REGISTRY["QueryElasticsearchStore"]
             bad_node = QueryElasticsearchStoreNode("test", bad_node_config)
             bad_node.execute({})
             assert False, "Should raise error for invalid search type"

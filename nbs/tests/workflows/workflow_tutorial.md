@@ -665,17 +665,32 @@ Query nodes search existing storage indexes and return matching documents.
 
 #### QueryWhooshStore
 
-Searches documents in a Whoosh full-text search index.
+Searches documents in a Whoosh full-text search index with support for different search types.
 
 ```yaml
 nodes:
-  document_search:
+  # Sparse search (pure keyword matching)
+  keyword_search:
     type: QueryWhooshStore
     config:
       persist_location: "/path/to/whoosh_index" # Required: Index path
       query: "artificial intelligence ML"        # Required: Search terms
+      search_type: "sparse"                     # Optional: "sparse" or "semantic" (default: sparse)
       limit: 20                                 # Optional: Max results (default: 100)
+      
+  # Semantic search (keyword + embedding re-ranking)  
+  smart_search:
+    type: QueryWhooshStore
+    config:
+      persist_location: "/path/to/whoosh_index"
+      query: "machine learning concepts"
+      search_type: "semantic"                   # Uses keyword search + semantic re-ranking
+      limit: 10
 ```
+
+**Search Types:**
+- `sparse`: Pure keyword/full-text search using Whoosh
+- `semantic`: Keyword search followed by embedding-based re-ranking
 
 **Input Ports:**
 - None (queries existing storage directly)
@@ -694,14 +709,69 @@ nodes:
     config:
       persist_location: "/path/to/chromadb"    # Required: Database path
       query: "machine learning algorithms"     # Required: Search query
+      search_type: "semantic"                  # Optional: Only "semantic" supported (default)
       limit: 10                               # Optional: Max results (default: 10)
 ```
+
+**Search Types:**
+- `semantic`: Vector similarity search (only supported type)
 
 **Input Ports:**
 - None (queries existing storage directly)
 
 **Output Ports:**
 - `documents`: `List[Document]` - Similar documents
+
+#### QueryElasticsearchStore
+
+Searches documents in an Elasticsearch index with full support for all search types.
+
+```yaml
+nodes:
+  # Sparse search (BM25 text matching)
+  text_search:
+    type: QueryElasticsearchStore
+    config:
+      persist_location: "http://localhost:9200" # Required: Elasticsearch URL
+      index_name: "my_index"                    # Required: Index name
+      query: "artificial intelligence"          # Required: Search query
+      search_type: "sparse"                     # Optional: "sparse", "semantic", or "hybrid"
+      limit: 5                                  # Optional: Max results (default: 10)
+      
+  # Semantic search (vector similarity)
+  vector_search:
+    type: QueryElasticsearchStore
+    config:
+      persist_location: "https://my-es:9200"
+      index_name: "documents"
+      query: "machine learning concepts" 
+      search_type: "semantic"                   # Dense vector search
+      limit: 3
+      basic_auth: ["user", "password"]          # Optional: Authentication
+      verify_certs: false                       # Optional: SSL verification
+      
+  # Hybrid search (combines text + vector)
+  best_search:
+    type: QueryElasticsearchStore
+    config:
+      persist_location: "http://localhost:9200"
+      index_name: "knowledge_base"
+      query: "deep learning neural networks"
+      search_type: "hybrid"                     # Best of both worlds
+      weights: [0.7, 0.3]                      # Optional: [text_weight, vector_weight]
+      limit: 5
+```
+
+**Search Types:**
+- `sparse`: Traditional BM25 text search
+- `semantic`: Dense vector similarity search  
+- `hybrid`: Weighted combination of sparse + semantic results
+
+**Input Ports:**
+- None (queries existing storage directly)
+
+**Output Ports:**
+- `documents`: `List[Document]` - Matching documents
 
 ### Processor Nodes
 

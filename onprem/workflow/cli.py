@@ -51,7 +51,8 @@ Node Types:
   Loaders:        LoadFromFolder, LoadSingleDocument, LoadWebDocument
   TextSplitters:  SplitByCharacterCount, SplitByParagraph, KeepFullDocument
   Storage:        ChromaStore, WhooshStore, ElasticsearchStore
-  Query:          QueryWhooshStore, QueryChromaStore, QueryElasticsearchStore
+  Query:          QueryWhooshStore (sparse, semantic), QueryChromaStore (semantic), 
+                  QueryElasticsearchStore (sparse, semantic, hybrid)
   Processors:     PromptProcessor, ResponseCleaner, SummaryProcessor
   Exporters:      CSVExporter, ExcelExporter, JSONExporter
 
@@ -106,7 +107,11 @@ For detailed documentation, see: nbs/tests/workflows/workflow_tutorial.md
             "Loader Nodes": ["LoadFromFolder", "LoadSingleDocument", "LoadWebDocument"],
             "TextSplitter Nodes": ["SplitByCharacterCount", "SplitByParagraph", "KeepFullDocument"], 
             "Storage Nodes": ["ChromaStore", "WhooshStore", "ElasticsearchStore"],
-            "Query Nodes": ["QueryWhooshStore", "QueryChromaStore", "QueryElasticsearchStore"],
+            "Query Nodes": [
+                "QueryWhooshStore (search_type: sparse, semantic)", 
+                "QueryChromaStore (search_type: semantic)", 
+                "QueryElasticsearchStore (search_type: sparse, semantic, hybrid)"
+            ],
             "Processor Nodes": ["PromptProcessor", "ResponseCleaner", "SummaryProcessor"],
             "Exporter Nodes": ["CSVExporter", "ExcelExporter", "JSONExporter"]
         }

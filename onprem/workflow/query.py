@@ -14,20 +14,35 @@ class QueryWhooshStoreNode(QueryNode):
         persist_location = self.config.get("persist_location")
         query = self.config.get("query", "")
         limit = self.config.get("limit", 100)
+        search_type = self.config.get("search_type", "sparse")  # sparse or semantic
         
         if not persist_location:
             raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
         if not query:
             raise NodeExecutionError(f"Node {self.node_id}: query is required")
         
+        # Validate search_type - WhooshStore supports sparse and semantic only
+        valid_search_types = ["sparse", "semantic"]
+        if search_type not in valid_search_types:
+            if search_type == "hybrid":
+                raise NodeExecutionError(f"Node {self.node_id}: WhooshStore does not support hybrid search. Use ElasticsearchStore for hybrid search.")
+            else:
+                raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. WhooshStore supports 'sparse' or 'semantic'")
+        
         try:
             store = VectorStoreFactory.create("whoosh", persist_location=persist_location)
-            # Use the search method with return_dict=False to get Document objects
-            search_results = store.search(query, limit=limit, return_dict=False)
             
-            # Extract documents from the results structure
-            documents = search_results.get('hits', []) if isinstance(search_results, dict) else search_results
-            return {"documents": documents}
+            # Perform search based on search_type
+            if search_type == "sparse":
+                # Pure keyword/full-text search
+                search_results = store.search(query, limit=limit, return_dict=False)
+                documents = search_results.get('hits', []) if isinstance(search_results, dict) else search_results
+                return {"documents": documents}
+            elif search_type == "semantic":
+                # Semantic search (keyword + embedding re-ranking)
+                results = store.semantic_search(query, limit=limit)
+                return {"documents": results}
+                
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to query Whoosh: {str(e)}")
 
@@ -39,15 +54,25 @@ class QueryChromaStoreNode(QueryNode):
         persist_location = self.config.get("persist_location")
         query = self.config.get("query", "")
         limit = self.config.get("limit", 10)
+        search_type = self.config.get("search_type", "semantic")  # semantic only
         
         if not persist_location:
             raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
         if not query:
             raise NodeExecutionError(f"Node {self.node_id}: query is required")
         
+        # Validate search_type - ChromaStore supports semantic only
+        if search_type != "semantic":
+            if search_type == "sparse":
+                raise NodeExecutionError(f"Node {self.node_id}: ChromaStore does not support sparse search. Use WhooshStore or ElasticsearchStore for sparse search.")
+            elif search_type == "hybrid":
+                raise NodeExecutionError(f"Node {self.node_id}: ChromaStore does not support hybrid search. Use ElasticsearchStore for hybrid search.")
+            else:
+                raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. ChromaStore supports 'semantic' only")
+        
         try:
             store = VectorStoreFactory.create("chroma", persist_location=persist_location)
-            # Use the search method (similar to WhooshStore)
+            # ChromaStore: search() == semantic_search()
             results = store.search(query, limit=limit, return_dict=False)
             return {"documents": results}
         except Exception as e:
@@ -67,6 +92,11 @@ class QueryElasticsearchStoreNode(QueryNode):
             raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
         if not query:
             raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        
+        # Validate search_type early, before connecting to Elasticsearch
+        valid_search_types = ["sparse", "semantic", "hybrid"]
+        if search_type not in valid_search_types:
+            raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. Use 'sparse', 'semantic', or 'hybrid'")
         
         try:
             # Extract additional Elasticsearch-specific parameters
@@ -100,9 +130,11 @@ class QueryElasticsearchStoreNode(QueryNode):
             
             # Perform search based on search_type
             if search_type == "sparse":
-                # Standard text search
-                results = store.search(query, limit=limit, return_dict=False)
-                return {"documents": results}
+                # Standard text search - use exact same approach as WhooshStore
+                search_results = store.search(query, limit=limit, return_dict=False)
+                # Extract documents from the results structure (consistent with WhooshStore)
+                documents = search_results.get('hits', []) if isinstance(search_results, dict) else search_results
+                return {"documents": documents}
             elif search_type == "semantic":
                 # Semantic/dense search
                 results = store.semantic_search(query, limit=limit, return_dict=False)
@@ -117,8 +149,6 @@ class QueryElasticsearchStoreNode(QueryNode):
                     # Fallback to semantic search
                     results = store.semantic_search(query, limit=limit, return_dict=False)
                     return {"documents": results}
-            else:
-                raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. Use 'sparse', 'semantic', or 'hybrid'")
                 
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to query Elasticsearch: {str(e)}")
