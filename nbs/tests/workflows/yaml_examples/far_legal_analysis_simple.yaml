@@ -29,7 +29,7 @@ nodes:
   
   # Clean up the raw LLM responses to extract just the citations
   citation_cleaner:
-    type: CleanupProcessor
+    type: ResponseCleaner
     config:
       cleanup_prompt_file: "prompts/statute_cleanup.txt"  # Cleanup prompt
       llm:                               # Use same LLM configuration

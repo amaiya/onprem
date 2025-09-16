@@ -617,7 +617,7 @@ nodes:
         temperature: 0
         
   cleaner:
-    type: CleanupProcessor  
+    type: ResponseCleaner  
     config:
       cleanup_prompt_file: "prompts/cleanup.txt"
       llm:
@@ -661,14 +661,14 @@ llm:
 **Output Ports:**
 - `results`: `List[Dict]` - Analysis results with prompt responses
 
-#### CleanupProcessor
+#### ResponseCleaner
 
 Post-processes and cleans LLM responses using another LLM call.
 
 ```yaml
 nodes:
   response_cleaner:
-    type: CleanupProcessor
+    type: ResponseCleaner
     config:
       cleanup_prompt: |                  # Inline cleanup instructions
         Clean up this response by removing XML tags and formatting:
@@ -681,7 +681,7 @@ nodes:
 
   # Alternative: Load cleanup prompt from file
   citation_cleaner:
-    type: CleanupProcessor
+    type: ResponseCleaner
     config:
       cleanup_prompt_file: "prompts/statute_cleanup.txt"  # Complex cleanup rules
       llm:
