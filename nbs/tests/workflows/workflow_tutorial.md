@@ -1,11 +1,11 @@
-# OnPrem Workflow Tutorial
+# OnPrem Workflow Engine
 
-A comprehensive guide to using the OnPrem workflow engine for automated document processing pipelines.
+Create automated document processing pipelines using simple YAML configuration files. Instead of writing code, you visually design workflows by connecting different types of nodes.
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Quick Start](#quick-start)
+1. [Quick Start - Three Core Examples](#quick-start---three-core-examples)
+2. [Command-Line Usage](#command-line-usage)
 3. [Workflow Structure](#workflow-structure)
 4. [Port Types and Data Flow](#port-types-and-data-flow)
 5. [Node Types Reference](#node-types-reference)
@@ -15,19 +15,159 @@ A comprehensive guide to using the OnPrem workflow engine for automated document
 9. [Best Practices](#best-practices)
 10. [Troubleshooting](#troubleshooting)
 
-## Overview
+## Quick Start - Three Core Examples
 
-The OnPrem workflow engine allows you to define automated document processing pipelines using YAML configuration files. Instead of writing code, you visually design workflows by connecting different types of nodes:
+The workflow engine provides three essential patterns that cover the most common document processing scenarios:
 
-- **Loader Nodes** - Load documents from various sources
-- **TextSplitter Nodes** - Process and chunk documents  
-- **Storage Nodes** - Store processed documents in vector databases or search indices
+### 1. 🔄 Ingest PDFs to Vector Store (`1_ingest_pdfs.yaml`)
 
-The engine validates connections, ensures proper data flow, and executes nodes in the correct order.
+**Purpose**: Load PDF files, chunk them, and store in a vector database for later retrieval.
 
-## Quick Start
+```bash
+# Run from the workflows directory
+python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
+```
 
-### 1. Create a Simple Workflow
+**What it does:**
+- Loads PDF files from `../sample_data/`
+- Converts PDFs to markdown for better processing
+- Chunks documents into 800-character pieces with 80-character overlap
+- Stores in ChromaDB vector database at `document_vectors/`
+
+**Requirements**: PDF files in the sample_data directory
+
+### 2. 🔍 Analyze from Vector Store (`2_analyze_from_vectorstore.yaml`)
+
+**Purpose**: Query an existing vector database, apply AI analysis, and export results.
+
+```bash
+# Requires: Run example 1 first + set OPENAI_API_KEY
+python -m onprem.pipelines.workflow yaml_examples/2_analyze_from_vectorstore.yaml
+```
+
+**What it does:**
+- Searches the vector database created in example 1
+- Applies AI analysis to find documents about "artificial intelligence machine learning"
+- Uses GPT-3.5-turbo to analyze each document for topic, key points, and relevance
+- Exports results to `document_analysis_results.xlsx`
+
+**Requirements**: 
+- Run example 1 first to create `document_vectors/`
+- Set `OPENAI_API_KEY` environment variable
+
+### 3. 📄 Direct Document Analysis (`3_direct_analysis.yaml`)
+
+**Purpose**: Analyze documents directly without a vector database using two-stage AI processing.
+
+```bash
+# Requires: set OPENAI_API_KEY  
+python -m onprem.pipelines.workflow yaml_examples/3_direct_analysis.yaml
+```
+
+**What it does:**
+- Loads documents directly from `../sample_data/`
+- Processes complete documents (combines multi-page PDFs)
+- Applies AI analysis to extract document type, topic, entities, summary, and recommendations
+- Uses ResponseCleaner for consistent formatting
+- Exports results to `document_analysis_summary.csv`
+
+**Requirements**: 
+- Documents in sample_data directory
+- Set `OPENAI_API_KEY` environment variable
+
+## Command-Line Usage
+
+### Basic Execution
+```bash
+python -m onprem.pipelines.workflow <workflow.yaml>
+```
+
+### Available Options
+```bash
+# Show help and examples
+python -m onprem.pipelines.workflow --help
+
+# Validate workflow without running
+python -m onprem.pipelines.workflow --validate workflow.yaml
+
+# List all available node types
+python -m onprem.pipelines.workflow --list-nodes
+
+# Run quietly (suppress progress output)
+python -m onprem.pipelines.workflow --quiet workflow.yaml
+
+# Show version
+python -m onprem.pipelines.workflow --version
+```
+
+### Example Commands
+```bash
+# Run the PDF ingestion workflow
+python -m onprem.pipelines.workflow yaml_examples/1_ingest_pdfs.yaml
+
+# Validate a workflow before running
+python -m onprem.pipelines.workflow --validate yaml_examples/2_analyze_from_vectorstore.yaml
+
+# See all available node types
+python -m onprem.pipelines.workflow --list-nodes
+```
+
+## Workflow Patterns
+
+The three core examples demonstrate the main workflow patterns:
+
+### Pattern 1: Data Ingestion (Example 1)
+```
+Documents → Chunking → Vector Store
+```
+Use this pattern to build searchable databases from your document collections.
+
+### Pattern 2: Retrieval + Analysis (Example 2)
+```
+Vector Store → Query → AI Analysis → Export
+```
+Use this pattern to analyze specific topics from large document collections using semantic search.
+
+### Pattern 3: Direct Processing (Example 3)
+```  
+Documents → Full Processing → AI Analysis → Cleanup → Export
+```
+Use this pattern for comprehensive analysis of entire document collections without intermediate storage.
+
+## Available Node Types Summary
+
+### 📁 Loaders
+- **LoadFromFolder** - Load all documents from a directory
+- **LoadSingleDocument** - Load a specific file
+- **LoadWebDocument** - Download and load from URL
+
+### ✂️ TextSplitters
+- **SplitByCharacterCount** - Chunk by character count
+- **SplitByParagraph** - Chunk by paragraphs (preserves structure)
+- **KeepFullDocument** - Keep documents whole, optionally concatenate pages
+
+### 🗄️ Storage  
+- **ChromaStore** - Vector database for semantic search
+- **WhooshStore** - Full-text search index
+- **ElasticsearchStore** - Hybrid search capabilities
+
+### 🔍 Query
+- **QueryChromaStore** - Search vector database
+- **QueryWhooshStore** - Search text index
+
+### 🤖 Processors
+- **PromptProcessor** - Apply AI analysis using custom prompts (DocumentProcessor)
+- **ResponseCleaner** - Clean and format AI responses (ResultProcessor)
+- **SummaryProcessor** - Generate document summaries (DocumentProcessor)
+
+### 💾 Exporters
+- **CSVExporter** - Export to CSV format
+- **ExcelExporter** - Export to Excel format  
+- **JSONExporter** - Export to JSON format
+
+## Workflow Structure
+
+### Basic Workflow YAML Format
 
 Create a file called `my_workflow.yaml`:
 

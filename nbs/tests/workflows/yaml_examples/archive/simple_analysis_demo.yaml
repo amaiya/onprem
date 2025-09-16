@@ -1,0 +1,46 @@
+# Simple demo: Query existing index -> Apply prompt -> Export to CSV  
+# (This assumes you already have a populated Whoosh index)
+nodes:
+  # Query existing documents from a search index
+  search_query:
+    type: QueryWhooshStore
+    config:
+      persist_location: "existing_index"  # Path to existing Whoosh index
+      query: "machine learning artificial intelligence"  # Search terms
+      limit: 10  # Number of results to retrieve
+  
+  # Apply analysis prompt to each document
+  ai_analysis:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Please analyze this document excerpt and provide:
+        1. Main topic (one sentence)
+        2. Key technologies mentioned 
+        3. Complexity level (Beginner/Intermediate/Advanced)
+        
+        Document: {source}
+        Content: {content}
+        
+        Format as: TOPIC: ... | TECH: ... | LEVEL: ...
+      llm:
+        model_url: "openai://gpt-4o-mini"
+      batch_size: 3
+  
+  # Export results to spreadsheet
+  results_export:
+    type: CSVExporter
+    config:
+      output_path: "ai_document_analysis.csv"
+      columns: ["document_id", "source", "response", "meta_extension"]
+
+connections:
+  - from: search_query
+    from_port: documents  
+    to: ai_analysis
+    to_port: documents
+  
+  - from: ai_analysis
+    from_port: results
+    to: results_export
+    to_port: results

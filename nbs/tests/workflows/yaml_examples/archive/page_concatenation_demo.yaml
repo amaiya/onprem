@@ -1,0 +1,82 @@
+# Demo: Page concatenation for multi-page documents
+nodes:
+  # Load multi-page PDFs
+  pdf_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data"
+      include_patterns: ["*.pdf"]
+      verbose: true
+  
+  # Concatenate pages into single documents
+  full_docs:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true  # Combine multi-page PDFs into single documents
+  
+  # Store concatenated documents
+  document_store:
+    type: WhooshStore
+    config:
+      persist_location: "full_document_index"
+  
+  # Query the concatenated documents
+  full_doc_search:
+    type: QueryWhooshStore
+    config:
+      persist_location: "full_document_index"
+      query: "machine learning artificial intelligence"
+      limit: 5
+  
+  # Apply analysis to full documents
+  doc_analysis:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Analyze this complete document and provide:
+        1. Document type (research paper, report, manual, etc.)
+        2. Main topic in one sentence
+        3. Document length assessment (short/medium/long)
+        4. Key sections identified
+        
+        Document: {source}
+        Page count: {page_count}
+        Content: {content}
+      llm:
+        model_url: "openai://gpt-4o-mini"
+      batch_size: 1
+  
+  # Export analysis results
+  analysis_export:
+    type: CSVExporter
+    config:
+      output_path: "full_document_analysis.csv"
+
+connections:
+  # Storage pipeline - must complete before querying
+  - from: pdf_loader
+    from_port: documents
+    to: full_docs
+    to_port: documents
+  
+  - from: full_docs
+    from_port: documents
+    to: document_store
+    to_port: documents
+  
+  # Analysis pipeline - query runs after storage is complete
+  - from: full_doc_search
+    from_port: documents
+    to: doc_analysis
+    to_port: documents
+  
+  - from: doc_analysis
+    from_port: results
+    to: analysis_export
+    to_port: results
+
+# Note: full_doc_search has no input connections, so it runs independently.
+# This assumes the full_document_index already exists from a previous run.
+# In a real workflow, you might want to split this into separate workflows:
+# 1. Storage workflow (pdf_loader -> full_docs -> document_store)
+# 2. Analysis workflow (full_doc_search -> doc_analysis -> analysis_export)

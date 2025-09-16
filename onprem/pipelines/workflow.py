@@ -165,12 +165,26 @@ class QueryNode(BaseNode):
 
 
 class ProcessorNode(BaseNode):
-    """Base class for processing documents (applying prompts, etc.)."""
+    """Base class for processing nodes."""
     
     NODE_TYPE = "Processor"
+
+
+class DocumentProcessor(ProcessorNode):
+    """Base class for processors that work with raw documents."""
     
     def get_input_types(self) -> Dict[str, str]:
         return {"documents": "List[Document]"}
+    
+    def get_output_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}
+
+
+class ResultProcessor(ProcessorNode):
+    """Base class for processors that work with processed results."""
+    
+    def get_input_types(self) -> Dict[str, str]:
+        return {"results": "List[Dict]"}
     
     def get_output_types(self) -> Dict[str, str]:
         return {"results": "List[Dict]"}
@@ -494,7 +508,7 @@ class QueryChromaStoreNode(QueryNode):
 
 
 # Concrete Processor Implementations
-class PromptProcessorNode(ProcessorNode):
+class PromptProcessorNode(DocumentProcessor):
     """Applies a prompt to documents using an LLM."""
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -560,14 +574,8 @@ class PromptProcessorNode(ProcessorNode):
             raise NodeExecutionError(f"Node {self.node_id}: Failed to process with prompt: {str(e)}")
 
 
-class ResponseCleanerNode(ProcessorNode):
+class ResponseCleanerNode(ResultProcessor):
     """Cleans and post-processes LLM responses using another LLM call."""
-    
-    def get_input_types(self) -> Dict[str, str]:
-        return {"results": "List[Dict]"}  # Takes results from PromptProcessor
-    
-    def get_output_types(self) -> Dict[str, str]:
-        return {"results": "List[Dict]"}  # Outputs cleaned results
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         results = inputs.get("results", [])
@@ -620,7 +628,7 @@ class ResponseCleanerNode(ProcessorNode):
             raise NodeExecutionError(f"Node {self.node_id}: Failed to cleanup responses: {str(e)}")
 
 
-class SummaryProcessorNode(ProcessorNode):
+class SummaryProcessorNode(DocumentProcessor):
     """Generates summaries for documents."""
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:

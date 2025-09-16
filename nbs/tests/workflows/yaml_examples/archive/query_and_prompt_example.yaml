@@ -1,0 +1,50 @@
+# Example workflow: Query storage, apply prompt, export to spreadsheet
+nodes:
+  # Query documents from an existing Whoosh index
+  document_query:
+    type: QueryWhooshStore
+    config:
+      persist_location: "existing_search_index"
+      query: "artificial intelligence machine learning"
+      limit: 20
+  
+  # Apply a custom prompt to analyze each document
+  analysis_prompt:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Analyze the following document and answer these questions:
+        1. What is the main topic?
+        2. What are the key findings or conclusions?
+        3. Rate the technical complexity (1-5 scale)
+        4. Identify any mentioned technologies or tools
+        
+        Document source: {source}
+        Content: {content}
+        
+        Please format your response as:
+        TOPIC: [main topic]
+        FINDINGS: [key findings]  
+        COMPLEXITY: [1-5]
+        TECHNOLOGIES: [list of technologies]
+      llm_type: "openai"
+      model_name: "gpt-3.5-turbo"
+      batch_size: 5
+  
+  # Export results to Excel spreadsheet
+  spreadsheet_export:
+    type: ExcelExporter
+    config:
+      output_path: "document_analysis_results.xlsx"
+      sheet_name: "AI_ML_Analysis"
+
+connections:
+  - from: document_query
+    from_port: documents
+    to: analysis_prompt
+    to_port: documents
+  
+  - from: analysis_prompt
+    from_port: results
+    to: spreadsheet_export
+    to_port: results

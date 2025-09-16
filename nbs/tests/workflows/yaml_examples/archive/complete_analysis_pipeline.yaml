@@ -1,0 +1,68 @@
+# Complete pipeline: Ingest -> Store -> Query -> Process -> Export
+nodes:
+  # Step 1: Load documents
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data"
+      include_patterns: ["*.pdf"]
+      verbose: true
+  
+  # Step 2: Chunk documents
+  document_chunker:
+    type: SplitByCharacterCount
+    config:
+      chunk_size: 800
+      chunk_overlap: 80
+  
+  # Step 3: Store in searchable index
+  document_storage:
+    type: WhooshStore
+    config:
+      persist_location: "analysis_index"
+  
+  # Step 4: Query for specific content
+  content_query:
+    type: QueryWhooshStore
+    config:
+      persist_location: "analysis_index"
+      query: "research methodology results conclusion"
+      limit: 15
+  
+  # Step 5: Generate summaries
+  document_summaries:
+    type: SummaryProcessor
+    config:
+      max_length: 100
+      llm_type: "openai"
+      model_name: "gpt-3.5-turbo"
+  
+  # Step 6: Export to CSV for analysis
+  csv_export:
+    type: CSVExporter
+    config:
+      output_path: "research_summaries.csv"
+      columns: ["document_id", "source", "original_length", "summary", "summary_length"]
+
+connections:
+  # Ingestion pipeline
+  - from: document_loader
+    from_port: documents
+    to: document_chunker
+    to_port: documents
+  
+  - from: document_chunker
+    from_port: documents
+    to: document_storage
+    to_port: documents
+  
+  # Analysis pipeline (runs after storage)
+  - from: content_query
+    from_port: documents
+    to: document_summaries
+    to_port: documents
+  
+  - from: document_summaries
+    from_port: results
+    to: csv_export
+    to_port: results
