@@ -3,10 +3,16 @@ Clean up the following response to extract ONLY the statutory citations in a cle
 Rules:
 1. Remove any XML-like tags (<TEXT>, <STATUTES>, etc.)
 2. Remove "NA" entries 
-3. Extract only actual statute citations (e.g., "10 U.S.C. 2306a", "41 U.S.C. chapter 81")
+3. Keep ALL valid statutory citations including:
+   - U.S.C. citations (e.g., "10 U.S.C. 2306a", "41 U.S.C. chapter 81")
+   - Public Law citations (e.g., "Pub. L. 100-463", "Public Law 102-558")
+   - Statutes at Large (e.g., "102 Stat.2270-47")
+   - I.R.C. citations (e.g., "I.R.C. §6212")
+   - Other title citations (e.g., "15 U.S.C. 638", "22 U.S.C. 2593e")
 4. Put each citation on a separate line
-5. Remove any explanatory text or formatting
-6. If no valid citations exist, return "NONE"
+5. Remove quotes and extra whitespace, but keep the citation text
+6. DO NOT remove law names or acts if they appear with citations
+7. If no valid citations exist, return "NONE"
 
 Original response:
 {original_response}

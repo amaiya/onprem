@@ -671,10 +671,10 @@ nodes:
     type: ResponseCleaner
     config:
       cleanup_prompt: |                  # Inline cleanup instructions
-        Clean up this response by removing XML tags and formatting:
+        Remove XML tags and clean up formatting while preserving all valid content:
         {original_response}
         
-        Return only the essential information.
+        Keep all important information, just remove formatting artifacts.
       llm:
         model_url: "openai://gpt-3.5-turbo"
         temperature: 0               # Deterministic cleanup
@@ -692,9 +692,15 @@ nodes:
 
 **Use Cases:**
 - **Extract structured data** from messy LLM responses
-- **Remove formatting artifacts** like XML tags or unwanted text
+- **Remove formatting artifacts** like XML tags or unwanted text  
+- **Clean statutory citations** while preserving all valid references (U.S.C., Public Laws, etc.)
 - **Standardize outputs** for consistent data processing
 - **Chain with PromptProcessor** for two-stage processing
+
+**Important Notes:**
+- Cleanup prompts should be carefully designed to avoid over-aggressive cleaning
+- Always test with representative examples to ensure valid data isn't removed
+- Consider the specific domain and format of your LLM responses
 
 **Input Ports:**
 - `results`: `List[Dict]` - Results from PromptProcessor to clean
