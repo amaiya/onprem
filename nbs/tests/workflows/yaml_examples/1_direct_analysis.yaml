@@ -1,4 +1,4 @@
-# Example 3: Direct Document Analysis (No Vector Store)
+# Example 1: Direct Document Analysis (No Vector Store)
 # This workflow processes documents directly from files, applies AI analysis, and exports results
 # Based on the FAR legal analysis example but generalized for any document type
 

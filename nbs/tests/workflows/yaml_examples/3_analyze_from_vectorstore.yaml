@@ -1,4 +1,4 @@
-# Example 2: Query and Analyze Documents from Vector Store
+# Example 3: Query and Analyze Documents from Vector Store
 # This workflow queries a pre-existing vector store, applies AI analysis, and exports results
 
 nodes:
@@ -6,7 +6,7 @@ nodes:
   document_search:
     type: QueryChromaStore
     config:
-      persist_location: "document_vectors"     # Use database created by example 1
+      persist_location: "document_vectors"     # Use database created by example 2
       query: "artificial intelligence machine learning technology research"  # Search terms
       limit: 10                               # Return top 10 most relevant chunks
   
@@ -53,11 +53,11 @@ connections:
     to_port: results
 
 # Prerequisites:
-# 1. Run example 1 first to create the "document_vectors" database
+# 1. Run example 2 first to create the "document_vectors" database
 # 2. Set your OPENAI_API_KEY environment variable
 #
 # Usage:
-# python -m onprem.workflow 2_analyze_from_vectorstore.yaml
+# python -m onprem.workflow 3_analyze_from_vectorstore.yaml
 #
 # Expected output:
 # - document_analysis_results.xlsx with columns:

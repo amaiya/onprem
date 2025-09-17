@@ -1,4 +1,4 @@
-# Example 1: Ingest PDF Documents into Vector Store
+# Example 2: Ingest PDF Documents into Vector Store
 # This workflow loads PDF files, chunks them, and stores them in a vector database for later retrieval
 
 nodes:
@@ -41,10 +41,10 @@ connections:
     to_port: documents
 
 # Usage:
-# python -m onprem.workflow 1_ingest_pdfs.yaml
+# python -m onprem.workflow 2_ingest_pdfs.yaml
 #
 # This creates a "document_vectors/" directory containing your vector database.
-# You can then use example 2 to query and analyze these documents.
+# You can then use example 3 to query and analyze these documents.
 #
 # Expected output:
 # - Creates document_vectors/chroma.sqlite3 and related files

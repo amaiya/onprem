@@ -23,43 +23,7 @@ Create orchestrated document-processing pipelines using simple YAML configuratio
 
 The workflow engine provides three essential patterns that cover the most common document processing scenarios:
 
-### 1. 🔄 Ingest PDFs to Vector Store ([`1_ingest_pdfs.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/1_ingest_pdfs.yaml))
-
-**Purpose**: Load PDF files, chunk them, and store in a vector database for later retrieval.
-
-```bash
-# Run from the workflows directory
-python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
-```
-
-**What it does:**
-- Loads PDF files from `../sample_data/`
-- Converts PDFs to markdown for better processing
-- Chunks documents into 800-character pieces with 80-character overlap
-- Stores in ChromaDB vector database at `document_vectors/`
-
-**Requirements**: PDF files in the sample_data directory
-
-### 2. 🔍 Analyze from Vector Store ([`2_analyze_from_vectorstore.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/2_analyze_from_vectorstore.yaml))
-
-**Purpose**: Query an existing vector database, apply AI analysis, and export results.
-
-```bash
-# Requires: Run example 1 first + set OPENAI_API_KEY
-python -m onprem.workflow yaml_examples/2_analyze_from_vectorstore.yaml
-```
-
-**What it does:**
-- Searches the vector database created in example 1
-- Applies AI analysis to find documents about "artificial intelligence machine learning"
-- Uses GPT-3.5-turbo to analyze each document for topic, key points, and relevance
-- Exports results to `document_analysis_results.xlsx`
-
-**Requirements**: 
-- Run example 1 first to create `document_vectors/`
-- Set `OPENAI_API_KEY` environment variable
-
-### 3. 📄 Direct Document Analysis ([`3_direct_analysis.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/3_direct_analysis.yaml))
+### 1. 📄 Direct Document Analysis ([`1_direct_analysis.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/1_direct_analysis.yaml))
 
 **Purpose**: Analyze documents directly without a vector database using two-stage AI processing.
 
@@ -78,6 +42,44 @@ python -m onprem.workflow yaml_examples/3_direct_analysis.yaml
 **Requirements**: 
 - Documents in sample_data directory
 - Set `OPENAI_API_KEY` environment variable
+
+
+### 2. 🔄 Ingest PDFs to Vector Store ([`2_ingest_pdfs.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/2_ingest_pdfs.yaml))
+
+**Purpose**: Load PDF files, chunk them, and store in a vector database for later retrieval.
+
+```bash
+# Run from the workflows directory
+python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
+```
+
+**What it does:**
+- Loads PDF files from `../sample_data/`
+- Converts PDFs to markdown for better processing
+- Chunks documents into 800-character pieces with 80-character overlap
+- Stores in ChromaDB vector database at `document_vectors/`
+
+**Requirements**: PDF files in the sample_data directory
+
+### 3. 🔍 Analyze from Vector Store ([`3_analyze_from_vectorstore.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/3_analyze_from_vectorstore.yaml))
+
+**Purpose**: Query an existing vector database, apply AI analysis, and export results.
+
+```bash
+# Requires: Run example 1 first + set OPENAI_API_KEY
+python -m onprem.workflow yaml_examples/2_analyze_from_vectorstore.yaml
+```
+
+**What it does:**
+- Searches the vector database created in example 1
+- Applies AI analysis to find documents about "artificial intelligence machine learning"
+- Uses GPT-3.5-turbo to analyze each document for topic, key points, and relevance
+- Exports results to `document_analysis_results.xlsx`
+
+**Requirements**: 
+- Run example 2 first to create `document_vectors/`
+- Set `OPENAI_API_KEY` environment variable
+
 
 ## Command-Line Usage
 
