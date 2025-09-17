@@ -17,6 +17,8 @@ website:
         - 99k_examples_agent.ipynb
         - 99x_examples_openai.ipynb
         - 99l_examples_vectorstore_factory.ipynb
+        - text: Building Workflows
+          href: nbs/99y_workflows.md
         - 99z_webapp.ipynb
       - section: Source
         contents:
