@@ -6,7 +6,7 @@
 __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK_SIZE', 'CHROMA_MAX', 'PDFOCR', 'PDFMD', 'PDF',
            'PDF_EXTS', 'OCR_CHAR_THRESH', 'LOADER_MAPPING', 'MyElmLoader', 'MyUnstructuredPDFLoader',
            'PDF2MarkdownLoader', 'load_single_document', 'load_documents', 'process_folder', 'chunk_documents',
-           'does_vectorstore_exist', 'batchify_chunks', 'load_web_document']
+           'does_vectorstore_exist', 'batchify_chunks', 'load_web_document', 'load_spreadsheet_documents']
 
 # %% ../../nbs/01_ingest.base.ipynb 3
 from ..llm.helpers import summarize_tables, extract_title
@@ -569,6 +569,99 @@ def load_web_document(url, username=None, password=None):
                 os.unlink(temp_path)
             except:
                 pass
+
+
+def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sheet_name=None):
+    """
+    Load documents from a spreadsheet where each row becomes a document.
+    
+    Args:
+        file_path: Path to the spreadsheet file (.xlsx, .xls, .csv)
+        text_column: Name of the column containing the text content
+        metadata_columns: List of column names to include as metadata (default: all other columns)
+        sheet_name: For Excel files, name of the sheet to read (default: first sheet)
+    
+    Returns:
+        List of Document objects, one per row
+    """
+    try:
+        import pandas as pd
+    except ImportError:
+        raise ImportError("pandas is required for spreadsheet loading. Install with: pip install pandas")
+    
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Spreadsheet file not found: {file_path}")
+    
+    # Determine file type and load accordingly
+    file_ext = os.path.splitext(file_path)[1].lower()
+    
+    try:
+        if file_ext == '.csv':
+            df = pd.read_csv(file_path)
+        elif file_ext in ['.xlsx', '.xls']:
+            df = pd.read_excel(file_path, sheet_name=sheet_name)
+        else:
+            raise ValueError(f"Unsupported file format: {file_ext}. Supported formats: .csv, .xlsx, .xls")
+    except Exception as e:
+        raise RuntimeError(f"Failed to read spreadsheet: {str(e)}")
+    
+    if df.empty:
+        logger.warning(f"Spreadsheet is empty: {file_path}")
+        return []
+    
+    # Validate text column exists
+    if text_column not in df.columns:
+        raise ValueError(f"Text column '{text_column}' not found. Available columns: {list(df.columns)}")
+    
+    # Determine metadata columns
+    if metadata_columns is None:
+        # Use all columns except the text column
+        metadata_columns = [col for col in df.columns if col != text_column]
+    else:
+        # Validate specified metadata columns exist
+        missing_cols = [col for col in metadata_columns if col not in df.columns]
+        if missing_cols:
+            raise ValueError(f"Metadata columns not found: {missing_cols}. Available columns: {list(df.columns)}")
+    
+    documents = []
+    
+    for idx, row in df.iterrows():
+        # Get text content
+        text_content = str(row[text_column]) if pd.notna(row[text_column]) else ""
+        
+        if not text_content.strip():
+            logger.warning(f"Row {idx + 1}: Empty text content in column '{text_column}', skipping")
+            continue
+        
+        # Build metadata
+        metadata = {
+            'source': file_path,
+            'row_number': idx + 1,  # 1-based row numbering
+            'text_column': text_column,
+        }
+        
+        # Add metadata from other columns
+        for col in metadata_columns:
+            value = row[col]
+            # Handle NaN values
+            if pd.isna(value):
+                metadata[col] = None
+            else:
+                # Convert numpy/pandas types to Python types for JSON serialization
+                if hasattr(value, 'item'):  # numpy scalar
+                    metadata[col] = value.item()
+                else:
+                    metadata[col] = value
+        
+        # Create document
+        doc = Document(
+            page_content=text_content,
+            metadata=metadata
+        )
+        documents.append(doc)
+    
+    logger.info(f"Loaded {len(documents)} documents from spreadsheet: {file_path}")
+    return documents
 
 
 

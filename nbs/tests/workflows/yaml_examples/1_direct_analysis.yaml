@@ -1,138 +1,162 @@
-# Example 1: Direct Document Analysis (No Vector Store)
-# This workflow processes documents directly from files, applies AI analysis, and exports results
-# Based on the FAR legal analysis example but generalized for any document type
+# Example 1: State of the Union Thematic Analysis
+# This workflow downloads the State of the Union address, chunks it, and performs thematic analysis
 
 nodes:
-  # Load documents directly from folder
+  # Download the State of the Union document from GitHub
   document_loader:
-    type: LoadFromFolder
+    type: LoadWebDocument
     config:
-      source_directory: "../sample_data"       # Directory containing documents
-      include_patterns: ["*.pdf", "*.txt", "*.html"]  # Multiple file types
-      verbose: true
-      pdf_markdown: true                       # Convert PDFs for better analysis
-      store_file_dates: true                   # Include timestamps
+      url: "https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/sample_data/sotu/state_of_the_union.txt"
   
-  # Keep documents whole for comprehensive analysis
-  full_document_processor:
-    type: KeepFullDocument
+  # Chunk the document into 500-character pieces for detailed analysis
+  text_chunker:
+    type: SplitByCharacterCount
     config:
-      concatenate_pages: true                  # Combine multi-page documents
+      chunk_size: 1000                          # 1000 characters per chunk
+      chunk_overlap: 100                        # 100 character overlap between chunks
   
-  # Apply AI analysis to extract key information
-  document_analyzer:
+  # Extract thematic topics from each chunk
+  thematic_analyzer:
     type: PromptProcessor
     config:
       prompt: |
-        "Provide a single short keyword or keyphrase that captures the topic of the following text from {source} (only output the keyphrase without quotes and nothing else): {content}"
+        Analyze this excerpt from the State of the Union address and identify the main theme or policy area discussed. Provide only a single keyword or short phrase (2-3 words max) that captures the primary theme:
+
+        {content}
+        
+        Theme:
       llm:
         model_url: "openai://gpt-4o-mini"      # Good balance of quality and speed
-        temperature: 0.2                       # Focused, consistent analysis
+        temperature: 0.3                       # Some creativity for theme identification
         mute_stream: true
-      batch_size: 2                           # Process 2 documents at a time
+      batch_size: 3                           # Process 3 chunks at a time
   
-  # Clean up the responses to ensure consistent formatting
-  response_cleaner:
+  # Clean up theme responses for consistency
+  theme_cleaner:
     type: ResponseCleaner
     config:
       cleanup_prompt: |
-        Clean up this analysis response to ensure consistent formatting:
+        Clean up this State of the Union theme response to ensure consistent formatting:
         {original_response}
         
         Requirements:
-        - Ensure the response is a single short keyword or keyphrase that captures the topic and nothing else.
+        - Remove any extraneous text like "Theme:" or "The theme is"
+        - Ensure the response is only a single keyword or short phrase (2-3 words max)
+        - Capitalize properly (e.g., "Economic Policy" not "economic policy")
+        - Remove quotes, periods, or other punctuation
       llm:
         model_url: "openai://gpt-4o-mini"
-        temperature: 0
+        temperature: 0                         # Deterministic cleanup
         mute_stream: true
   
-  # Aggregate all topics into a comprehensive analysis
-  topic_aggregator:
+  # Aggregate themes into comprehensive State of the Union analysis
+  sotu_aggregator:
     type: AggregatorNode
     config:
       prompt: |
-        Analyze these {num_results} topic keywords from different documents and provide a comprehensive topic analysis:
+        Analyze these {num_results} thematic keywords extracted from chunks of a State of the Union address and provide a comprehensive analysis:
         
+        Themes identified:
         {responses}
         
-        Please provide your analysis in the following structure:
-        1. TOP TOPICS: List the 5 most frequently mentioned topics with their frequency counts
-        2. TOPIC CATEGORIES: Group related topics into broader categories (e.g., Technology, Business, etc.)
-        3. COVERAGE ANALYSIS: What percentage of documents cover each major theme?
-        4. INSIGHTS: What patterns or trends do you observe across the document collection?
-        5. EXECUTIVE SUMMARY: One paragraph summarizing the overall thematic landscape
+        Please provide your analysis in this structure:
         
-        Format your response with clear headings and bullet points for easy reading.
+        ## STATE OF THE UNION THEMATIC ANALYSIS
+        
+        ### 1. PRIMARY POLICY AREAS
+        List the 5-7 most prominent policy themes with their frequency/emphasis
+        
+        ### 2. POLICY CATEGORIES
+        Group related themes into major areas (e.g., Domestic Policy, Foreign Policy, Economic Policy, Social Issues)
+        
+        ### 3. SPEECH FOCUS
+        What percentage of the speech is devoted to each major policy category?
+        
+        ### 4. THEMATIC INSIGHTS
+        - What are the administration's key priorities based on theme frequency?
+        - Are there any surprising or underemphasized themes?
+        - What narrative does the thematic structure tell?
+        
+        ### 5. EXECUTIVE SUMMARY
+        One paragraph summarizing the overall thematic priorities and focus of this State of the Union address.
+        
+        Use clear formatting with bullet points and percentages where appropriate.
       llm:
         model_url: "openai://gpt-4o-mini"
-        temperature: 0.3
-        max_tokens: 1000
+        temperature: 0.4                       # Allow for analytical creativity
+        max_tokens: 1500                       # More space for comprehensive analysis
         mute_stream: true
   
-  # Export individual document topics to CSV for detailed analysis
-  individual_topics_export:
+  # Export individual chunk themes to CSV for detailed analysis
+  chunk_themes_export:
     type: CSVExporter
     config:
-      output_path: "document_analysis_summary.csv"
+      output_path: "sotu_chunk_themes.csv"
   
-  # Export aggregated analysis to JSON for programmatic access
-  aggregated_export:
+  # Export comprehensive SOTU analysis to JSON
+  sotu_analysis_export:
     type: JSONExporter
     config:
-      output_path: "document_topic_analysis.json"
+      output_path: "sotu_thematic_analysis.json"
       pretty_print: true
 
 connections:
-  # Pipeline: Load → Keep Full → Analyze → Clean → Export Individual + Aggregate
+  # Pipeline: Download → Chunk → Analyze Themes → Clean → Export Individual + Aggregate
   - from: document_loader
     from_port: documents
-    to: full_document_processor
+    to: text_chunker
     to_port: documents
   
-  - from: full_document_processor
+  - from: text_chunker
     from_port: documents
-    to: document_analyzer
+    to: thematic_analyzer
     to_port: documents
   
-  - from: document_analyzer
+  - from: thematic_analyzer
     from_port: results
-    to: response_cleaner
+    to: theme_cleaner
     to_port: results
   
-  # Export individual document topics to CSV
-  - from: response_cleaner
+  # Export individual chunk themes to CSV
+  - from: theme_cleaner
     from_port: results
-    to: individual_topics_export
+    to: chunk_themes_export
     to_port: results
   
-  # Aggregate topics for comprehensive analysis
-  - from: response_cleaner
+  # Aggregate themes for comprehensive SOTU analysis
+  - from: theme_cleaner
     from_port: results
-    to: topic_aggregator
+    to: sotu_aggregator
     to_port: results
   
-  # Export aggregated analysis to JSON
-  - from: topic_aggregator
+  # Export comprehensive analysis to JSON
+  - from: sotu_aggregator
     from_port: result
-    to: aggregated_export
+    to: sotu_analysis_export
     to_port: result
 
 # Prerequisites:
-# 1. Documents in ../sample_data/ directory
-# 2. Set your OPENAI_API_KEY environment variable
+# - Set your OPENAI_API_KEY environment variable
+# - Internet connection to download the State of the Union text
 #
 # Usage:
-# python -m onprem.workflow 3_direct_analysis.yaml
+# python -m onprem.workflow 1_direct_analysis.yaml
 #
 # Expected output:
-# - document_analysis_summary.csv with individual document topic keywords
-# - document_topic_analysis.json with aggregated topic analysis across all documents
-# - Two-stage processing: initial extraction + response cleanup + aggregation
-# - Suitable for any document collection that needs both detailed and summary analysis
+# - sotu_chunk_themes.csv: Individual themes from each 500-character chunk
+# - sotu_thematic_analysis.json: Comprehensive analysis of State of the Union themes
+#
+# What this workflow does:
+# 1. Downloads the State of the Union address from GitHub
+# 2. Chunks it into 500-character segments with 50-character overlap
+# 3. Extracts thematic keywords from each chunk using AI analysis
+# 4. Cleans and standardizes the theme responses
+# 5. Aggregates all themes into a comprehensive policy analysis
+# 6. Exports both granular (CSV) and summary (JSON) results
 #
 # Benefits of this approach:
-# - No vector store setup required
-# - Processes complete documents for full context
-# - Provides both individual document insights AND collection-wide topic analysis
-# - JSON output enables programmatic access to aggregated insights
-# - CSV output allows detailed filtering and analysis of individual documents
+# - No local files required - downloads document automatically
+# - Demonstrates chunking strategy for long documents
+# - Shows thematic analysis of political speech
+# - Provides both detailed chunk-level themes and high-level insights
+# - Perfect example of aggregation workflow for content analysis

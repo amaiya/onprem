@@ -23,25 +23,26 @@ Create orchestrated document-processing pipelines using simple YAML configuratio
 
 The workflow engine provides three essential patterns that cover the most common document processing scenarios:
 
-### 1. 📄 Direct Document Analysis ([`1_direct_analysis.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/1_direct_analysis.yaml))
+### 1. 🎯 State of the Union Thematic Analysis ([`1_direct_analysis.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/1_direct_analysis.yaml))
 
-**Purpose**: Analyze documents directly without a vector database using two-stage AI processing.
+**Purpose**: Download and perform thematic analysis of the State of the Union address using chunking and aggregation.
 
 ```bash
 # Requires: set OPENAI_API_KEY  
-python -m onprem.workflow yaml_examples/3_direct_analysis.yaml
+python -m onprem.workflow yaml_examples/1_direct_analysis.yaml
 ```
 
 **What it does:**
-- Loads documents directly from `../sample_data/`
-- Processes complete documents (combines multi-page PDFs)
-- Applies AI analysis to extract document type, topic, entities, summary, and recommendations
-- Uses ResponseCleaner for consistent formatting
-- Exports results to `document_analysis_summary.csv`
+- Downloads the State of the Union text automatically from GitHub
+- Chunks the speech into 1000-character segments with 100-character overlap
+- Extracts thematic keywords from each chunk (policy areas, topics)
+- Cleans and standardizes theme responses for consistency
+- Aggregates all themes into comprehensive political analysis
+- Exports both detailed themes (CSV) and summary analysis (JSON)
 
 **Requirements**: 
-- Documents in sample_data directory
 - Set `OPENAI_API_KEY` environment variable
+- Internet connection for document download
 
 
 ### 2. 🔄 Ingest PDFs to Vector Store ([`2_ingest_pdfs.yaml`](https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/workflows/yaml_examples/2_ingest_pdfs.yaml))
@@ -50,7 +51,7 @@ python -m onprem.workflow yaml_examples/3_direct_analysis.yaml
 
 ```bash
 # Run from the workflows directory
-python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
+python -m onprem.workflow yaml_examples/2_ingest_pdfs.yaml
 ```
 
 **What it does:**
@@ -67,7 +68,7 @@ python -m onprem.workflow yaml_examples/1_ingest_pdfs.yaml
 
 ```bash
 # Requires: Run example 1 first + set OPENAI_API_KEY
-python -m onprem.workflow yaml_examples/2_analyze_from_vectorstore.yaml
+python -m onprem.workflow yaml_examples/3_analyze_from_vectorstore.yaml
 ```
 
 **What it does:**
@@ -146,6 +147,7 @@ Use this pattern for comprehensive analysis of entire document collections witho
 - **LoadFromFolder** - Load all documents from a directory
 - **LoadSingleDocument** - Load a specific file
 - **LoadWebDocument** - Download and load from URL
+- **LoadSpreadsheet** - Load text from spreadsheet rows with metadata
 
 ### ✂️ TextSplitters
 - **SplitByCharacterCount** - Chunk by character count
@@ -521,6 +523,57 @@ nodes:
 
 **Output Ports:**
 - `documents`: `List[Document]` - Downloaded document
+
+#### LoadSpreadsheet
+
+Loads documents from spreadsheet files where each row becomes a document with text content and metadata.
+
+```yaml
+nodes:
+  spreadsheet_loader:
+    type: LoadSpreadsheet
+    config:
+      file_path: "/path/to/data.xlsx"          # Required: Path to spreadsheet (.xlsx, .xls, .csv)
+      text_column: "description"               # Required: Column containing text content
+      metadata_columns: ["id", "category", "priority"]  # Optional: Specific columns as metadata
+      sheet_name: "Sheet1"                     # Optional: Excel sheet name (default: first sheet)
+  
+  # Use all other columns as metadata (default behavior)
+  auto_metadata:
+    type: LoadSpreadsheet
+    config:
+      file_path: "survey_responses.csv"
+      text_column: "feedback"                  # Only specify text column
+      # metadata_columns not specified = use all other columns
+```
+
+**Use Cases:**
+- **Survey Analysis** - Load feedback text with respondent demographics as metadata
+- **Product Reviews** - Load review text with ratings, dates, and categories
+- **Customer Support** - Load ticket descriptions with priority, department, and status
+- **Content Management** - Load article text with tags, authors, and publication dates
+- **Research Data** - Load interview transcripts with participant information
+
+**File Format Support:**
+- **CSV files** (`.csv`) - Comma-separated values
+- **Excel files** (`.xlsx`, `.xls`) - Microsoft Excel format
+- **Automatic detection** based on file extension
+
+**Metadata Handling:**
+- **Automatic metadata** - By default, all columns except `text_column` become metadata
+- **Custom metadata** - Specify `metadata_columns` to select only certain fields
+- **Standard fields** - Always includes `source`, `row_number`, and `text_column` in metadata
+- **Data types** - Automatically converts pandas/numpy types to JSON-serializable Python types
+- **Null handling** - Empty cells become `None` in metadata
+
+**Error Handling:**
+- Validates text column exists
+- Validates metadata columns exist (if specified)
+- Skips rows with empty text content
+- Provides helpful error messages for missing files or columns
+
+**Output Ports:**
+- `documents`: `List[Document]` - Documents created from spreadsheet rows
 
 ### TextSplitter Nodes
 

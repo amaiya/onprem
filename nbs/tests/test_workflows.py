@@ -245,6 +245,73 @@ def test_loader_nodes(temp_dir, sample_doc_file):
     assert len(results["single_loader"]["documents"]) == 1
     print("✓ LoadSingleDocument")
 
+def test_spreadsheet_loader(temp_dir):
+    """Test LoadSpreadsheet node."""
+    from onprem.workflow import WorkflowEngine
+    import csv
+    
+    # Create test CSV file
+    csv_path = Path(temp_dir) / "test_data.csv"
+    test_data = [
+        {"id": 1, "text": "First document text", "category": "A", "priority": "high"},
+        {"id": 2, "text": "Second document content", "category": "B", "priority": "low"},
+        {"id": 3, "text": "Third document info", "category": "A", "priority": "medium"}
+    ]
+    
+    with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=["id", "text", "category", "priority"])
+        writer.writeheader()
+        writer.writerows(test_data)
+    
+    # Test basic spreadsheet loading
+    workflow = {
+        "nodes": {
+            "spreadsheet_loader": {
+                "type": "LoadSpreadsheet",
+                "config": {
+                    "file_path": str(csv_path),
+                    "text_column": "text"
+                    # metadata_columns not specified = use all other columns
+                }
+            }
+        },
+        "connections": []
+    }
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow)
+    results = engine.execute()
+    
+    # Verify results
+    assert "spreadsheet_loader" in results
+    documents = results["spreadsheet_loader"]["documents"]
+    assert len(documents) == 3
+    
+    # Check first document
+    doc = documents[0]
+    assert doc.page_content == "First document text"
+    assert doc.metadata["id"] == 1
+    assert doc.metadata["category"] == "A"
+    assert doc.metadata["priority"] == "high"
+    assert doc.metadata["row_number"] == 1
+    assert doc.metadata["text_column"] == "text"
+    assert doc.metadata["source"] == str(csv_path)
+    
+    print("✓ LoadSpreadsheet basic functionality")
+    
+    # Test with custom metadata columns
+    workflow["nodes"]["spreadsheet_loader"]["config"]["metadata_columns"] = ["id", "category"]
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow)
+    results = engine.execute()
+    
+    doc = results["spreadsheet_loader"]["documents"][0]
+    assert "id" in doc.metadata
+    assert "category" in doc.metadata
+    assert "priority" not in doc.metadata  # Should be excluded
+    print("✓ LoadSpreadsheet custom metadata columns")
+
 def test_textsplitter_nodes(sample_doc_file):
     """Test all text splitter node types."""
     from onprem.workflow import WorkflowEngine
@@ -1060,6 +1127,9 @@ def run_all_tests():
         
         print("\n📁 Testing Loader Nodes:")
         test_loader_nodes(temp_dir, sample_file)
+        
+        print("\n📊 Testing Spreadsheet Loader:")
+        test_spreadsheet_loader(temp_dir)
         
         print("\n✂️ Testing TextSplitter Nodes:")  
         test_textsplitter_nodes(sample_file)

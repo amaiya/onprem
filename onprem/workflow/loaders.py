@@ -91,3 +91,34 @@ class LoadWebDocumentNode(LoaderNode):
             return {"documents": documents}
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to load web document: {str(e)}")
+
+
+class LoadSpreadsheetNode(LoaderNode):
+    """Loads documents from a spreadsheet using ingest.load_spreadsheet_documents."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        if self._result_cache is not None:
+            return {"documents": self._result_cache}
+        
+        file_path = self.config.get("file_path")
+        if not file_path:
+            raise NodeExecutionError(f"Node {self.node_id}: file_path is required")
+        
+        text_column = self.config.get("text_column")
+        if not text_column:
+            raise NodeExecutionError(f"Node {self.node_id}: text_column is required")
+        
+        metadata_columns = self.config.get("metadata_columns")
+        sheet_name = self.config.get("sheet_name")
+        
+        try:
+            documents = ingest.load_spreadsheet_documents(
+                file_path=file_path,
+                text_column=text_column,
+                metadata_columns=metadata_columns,
+                sheet_name=sheet_name
+            )
+            self._result_cache = documents
+            return {"documents": documents}
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to load spreadsheet: {str(e)}")

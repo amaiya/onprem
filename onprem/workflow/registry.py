@@ -3,7 +3,7 @@ Node registry for the workflow engine.
 """
 
 # Import all node implementations
-from .loaders import LoadFromFolderNode, LoadSingleDocumentNode, LoadWebDocumentNode
+from .loaders import LoadFromFolderNode, LoadSingleDocumentNode, LoadWebDocumentNode, LoadSpreadsheetNode
 from .textsplitters import SplitByCharacterCountNode, SplitByParagraphNode, KeepFullDocumentNode
 from .storage import ChromaStoreNode, WhooshStoreNode, ElasticsearchStoreNode
 from .query import QueryWhooshStoreNode, QueryChromaStoreNode, QueryElasticsearchStoreNode
@@ -25,6 +25,7 @@ NODE_REGISTRY = {
     "LoadFromFolder": LoadFromFolderNode,
     "LoadSingleDocument": LoadSingleDocumentNode,
     "LoadWebDocument": LoadWebDocumentNode,
+    "LoadSpreadsheet": LoadSpreadsheetNode,
     
     # Text Splitters
     "SplitByCharacterCount": SplitByCharacterCountNode,
