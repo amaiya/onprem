@@ -4,7 +4,7 @@ title: "Buildling Workflows"
 
 # OnPrem Workflow Engine
 
-Create orchestrated document-processing pipelines using simple YAML configuration files. Instead of writing code, you visually design workflows by connecting different types of nodes.
+Create orchestrated document-processing pipelines using simple YAML configuration files. Instead of writing code, you design workflows by connecting and chaining together different types of nodes. Allows you to solve problems by assembling pre-designed building blocks.
 
 ## Table of Contents
 
