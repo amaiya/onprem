@@ -16,7 +16,7 @@ from .document_transformers import (AddMetadataNode, ContentPrefixNode, ContentS
 from .processors import (PromptProcessorNode, ResponseCleanerNode, SummaryProcessorNode,
                         PythonDocumentProcessorNode, PythonResultProcessorNode,
                         AggregatorNode, PythonAggregatorNode)
-from .exporters import CSVExporterNode, ExcelExporterNode, JSONExporterNode
+from .exporters import CSVExporterNode, ExcelExporterNode, JSONExporterNode, JSONResponseExporterNode
 
 
 # Node Registry - maps node type names to node classes
@@ -62,4 +62,5 @@ NODE_REGISTRY = {
     "CSVExporter": CSVExporterNode,
     "ExcelExporter": ExcelExporterNode,
     "JSONExporter": JSONExporterNode,
+    "JSONResponseExporter": JSONResponseExporterNode,
 }

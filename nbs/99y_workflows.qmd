@@ -181,6 +181,7 @@ Use this pattern for comprehensive analysis of entire document collections witho
 - **CSVExporter** - Export to CSV format
 - **ExcelExporter** - Export to Excel format  
 - **JSONExporter** - Export to JSON format
+- **JSONResponseExporter** - Extract and export JSON from LLM responses
 
 ## Workflow Structure
 
@@ -1643,6 +1644,50 @@ nodes:
 **Output Ports:**
 - `status`: `str` - Export status message
 
+#### JSONResponseExporter
+
+Extracts JSON content from LLM responses and exports as clean JSON array. Ideal for structured data extraction workflows where LLM responses contain JSON objects that need to be exported without metadata.
+
+```yaml
+nodes:
+  extract_resume_data:
+    type: JSONResponseExporter
+    config:
+      output_path: "extracted_resumes.json"     # Optional: Output file (default: extracted_responses.json)
+      pretty_print: true                        # Optional: Format JSON nicely (default: true)
+      response_field: "response"                # Optional: Field containing JSON response (default: "response")
+```
+
+**Key Features:**
+- **JSON Extraction**: Uses `llm.helpers.extract_json` to parse JSON from text responses
+- **Field Flexibility**: Searches multiple response fields ("response", "aggregated_response", "output")
+- **Error Handling**: Includes raw response and error info when JSON extraction fails
+- **Clean Output**: Exports only the extracted JSON data, removing all metadata
+
+**Input Ports:**
+- `results`: `List[Dict]` - Multiple results with JSON responses to extract (from processors)  
+- `result`: `Dict` - Single aggregated result with JSON response to extract (from aggregators)
+
+**Output Ports:**
+- `status`: `str` - Export status message
+
+**Example Use Case - Resume Parsing:**
+```yaml
+# Extract structured data from resume analysis
+extract_structured_resumes:
+  type: JSONResponseExporter
+  config:
+    output_path: "candidate_profiles.json"
+    response_field: "analysis"
+```
+
+Where LLM responses like:
+```json
+{"name": "John Doe", "skills": ["Python", "Machine Learning"], "experience": "5 years"}
+```
+
+Are exported as a clean JSON array without workflow metadata.
+
 ## Configuration Options
 
 ### Common Configuration Patterns
@@ -2016,6 +2061,105 @@ The enriched metadata enables powerful queries like:
 - "Find all documents from meeting20251001 with action items"
 - "Show high-priority engineering documents from Project Alpha"
 - "List all documents mentioning specific team members"
+
+### FAR Legal Analysis Pipeline
+
+A real-world example that extracts statutory citations from Federal Acquisition Regulation (FAR) documents using specialized legal analysis prompts:
+
+```yaml
+# Federal Acquisition Regulation (FAR) Legal Analysis
+# Extracts statutory citations from FAR HTML files using LLM analysis and cleanup
+
+nodes:
+  # Load FAR HTML files (Part 9 - contractor qualifications)
+  far_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "/tmp/far_data"  # Directory containing extracted FAR HTML files
+      include_patterns: ["9.*.html"]     # Focus on Part 9 sections
+      verbose: true
+  
+  # Keep each FAR section as complete document (no chunking needed)
+  full_sections:
+    type: KeepFullDocument
+    config: {}
+  
+  # Apply statute extraction prompt directly to all FAR sections
+  statute_extractor:
+    type: PromptProcessor
+    config:
+      prompt_file: "prompts/statute_extraction.txt"  # Complex legal analysis prompt
+      llm:
+        model_url: "openai://gpt-4o-mini"  # GPT-4o-mini for accurate legal analysis
+        temperature: 0                     # Deterministic results for legal work
+        mute_stream: true                  # Quiet processing
+      batch_size: 5                        # Process 5 sections at a time
+  
+  # Clean up the raw LLM responses to extract just the citations
+  citation_cleaner:
+    type: ResponseCleaner
+    config:
+      cleanup_prompt_file: "prompts/statute_cleanup.txt"  # Specialized cleanup prompt
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0
+        mute_stream: true
+  
+  # Export cleaned results to Excel spreadsheet
+  statute_analysis:
+    type: ExcelExporter
+    config:
+      output_path: "far_statutory_citations_cleaned.xlsx"
+      sheet_name: "FAR_Part9_Analysis"
+
+connections:
+  # Pipeline: Load -> Process -> Extract -> Cleanup -> Export
+  - from: far_loader
+    from_port: documents
+    to: full_sections
+    to_port: documents
+  
+  - from: full_sections
+    from_port: documents
+    to: statute_extractor
+    to_port: documents
+  
+  - from: statute_extractor
+    from_port: results
+    to: citation_cleaner
+    to_port: results
+  
+  - from: citation_cleaner
+    from_port: results
+    to: statute_analysis
+    to_port: results
+```
+
+**Data Preparation** (run before workflow):
+```bash
+# 1. Download FAR data
+wget https://www.acquisition.gov/sites/default/files/current/far/zip/html/FARHTML.zip
+
+# 2. Extract to processing directory
+unzip FARHTML.zip -d /tmp/far_data/
+
+# 3. Run the analysis workflow
+python -m onprem.workflow far_legal_analysis_simple.yaml
+```
+
+**Key Features:**
+- **Specialized Legal Processing**: Uses domain-specific prompts for accurate legal text analysis
+- **Two-Stage LLM Pipeline**: Initial extraction followed by response cleanup for precision
+- **External Prompt Files**: Complex prompts stored in separate files for maintainability
+- **Deterministic Results**: Zero temperature ensures consistent legal analysis
+- **Structured Output**: Excel export with organized columns for legal review
+
+**Expected Results:**
+- Excel file with statutory citations extracted from Part 9 sections
+- Columns: document_id, source, response (cleaned citations), metadata
+- Ready for legal team review and compliance analysis
+
+This example demonstrates how workflow pipelines can handle complex, domain-specific document analysis tasks with multiple LLM processing stages and specialized prompts.
 
 ## Validation and Error Handling
 

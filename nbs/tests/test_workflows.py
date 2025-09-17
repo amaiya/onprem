@@ -549,6 +549,51 @@ def test_exporter_nodes(temp_dir, sample_doc_file):
     assert "status" in results
     assert os.path.exists(json_path)
     print("✓ JSONExporter")
+    
+    # Test JSONResponseExporter
+    json_response_path = os.path.join(temp_dir, "test_json_responses.json")
+    workflow["nodes"]["exporter"]["type"] = "JSONResponseExporter"
+    workflow["nodes"]["exporter"]["config"]["output_path"] = json_response_path
+    
+    # Mock results with JSON-like responses
+    mock_json_results = [
+        {"response": '{"name": "John Doe", "skills": ["Python", "AI"], "experience": 5}'},
+        {"response": '{"name": "Jane Smith", "skills": ["Java", "ML"], "experience": 3}'},
+        {"output": '{"company": "TechCorp", "position": "Engineer", "rating": 4.5}'}
+    ]
+    
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(workflow)
+    
+    # Mock the extract_json function
+    from unittest.mock import patch
+    with patch('onprem.llm.helpers.extract_json') as mock_extract:
+        def mock_extract_side_effect(text):
+            # Simple JSON extraction for test
+            import json
+            try:
+                return json.loads(text)
+            except:
+                return None
+        
+        mock_extract.side_effect = mock_extract_side_effect
+        
+        results = engine.nodes["exporter"].execute({"results": mock_json_results})
+        
+        print(f"JSON Response Exporter result: {results}")
+        assert "status" in results
+        assert os.path.exists(json_response_path)
+        
+        # Verify the exported content
+        with open(json_response_path, 'r') as f:
+            import json
+            exported_data = json.load(f)
+            assert len(exported_data) == 3
+            assert exported_data[0]["name"] == "John Doe"
+            assert exported_data[1]["name"] == "Jane Smith"
+            assert exported_data[2]["company"] == "TechCorp"
+        
+        print("✓ JSONResponseExporter")
 
 def test_processor_nodes(temp_dir, sample_doc_file):
     """Test processor node types with mock LLM."""

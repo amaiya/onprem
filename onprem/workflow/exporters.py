@@ -155,3 +155,85 @@ class JSONExporterNode(ExporterNode):
             return {"status": f"Exported {len(results)} results to {output_path}"}
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to export JSON: {str(e)}")
+
+
+class JSONResponseExporterNode(ExporterNode):
+    """Exports extracted JSON responses from LLM processing, removing metadata and extracting only the JSON content."""
+    
+    def get_input_types(self) -> Dict[str, str]:
+        # Accept both List[Dict] (normal) and Dict (from aggregators)
+        return {"results": "List[Dict]", "result": "Dict"}
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        # Handle both List[Dict] (normal) and Dict (from aggregators)
+        if "results" in inputs:
+            results = inputs["results"]
+            if not results:
+                return {"status": "No results to export"}
+        elif "result" in inputs:
+            # Single result from aggregator - wrap in list
+            result = inputs["result"]
+            if not result:
+                return {"status": "No result to export"}
+            results = [result]
+        else:
+            return {"status": "No results to export"}
+        
+        output_path = self.config.get("output_path", "extracted_responses.json")
+        pretty_print = self.config.get("pretty_print", True)
+        response_field = self.config.get("response_field", "response")  # Field containing the JSON response
+        
+        try:
+            # Import JSON extraction helper
+            from onprem.llm.helpers import extract_json
+            import json
+            
+            extracted_responses = []
+            
+            for result in results:
+                # Get the response text (try different possible fields)
+                response_text = None
+                for field in [response_field, "response", "aggregated_response", "output"]:
+                    if field in result and result[field]:
+                        response_text = result[field]
+                        break
+                
+                if not response_text:
+                    # Skip results without response text
+                    continue
+                
+                # Extract JSON from the response text
+                try:
+                    extracted_json = extract_json(response_text)
+                    if extracted_json:
+                        # If single JSON object, add it directly
+                        if isinstance(extracted_json, dict):
+                            extracted_responses.append(extracted_json)
+                        # If list of JSON objects, extend the list
+                        elif isinstance(extracted_json, list):
+                            extracted_responses.extend(extracted_json)
+                        else:
+                            # Fallback: wrap in object
+                            extracted_responses.append({"extracted_data": extracted_json})
+                    else:
+                        # If no JSON found, include the raw response
+                        extracted_responses.append({"raw_response": response_text})
+                        
+                except Exception as e:
+                    # If JSON extraction fails, include the raw response with error info
+                    extracted_responses.append({
+                        "raw_response": response_text,
+                        "extraction_error": str(e)
+                    })
+            
+            # Export the extracted JSON responses
+            with open(output_path, 'w', encoding='utf-8') as jsonfile:
+                if pretty_print:
+                    json.dump(extracted_responses, jsonfile, indent=2, ensure_ascii=False)
+                else:
+                    json.dump(extracted_responses, jsonfile, ensure_ascii=False)
+            
+            return {"status": f"Exported {len(extracted_responses)} JSON responses to {output_path}"}
+            
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to export JSON responses: {str(e)}")

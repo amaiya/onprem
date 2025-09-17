@@ -11,6 +11,7 @@ from langchain_core.documents import Document
 
 from .base import DocumentProcessor, ResultProcessor, AggregatorProcessor
 from .exceptions import NodeExecutionError
+from ..utils import format_string
 
 
 class PythonCodeMixin:
@@ -112,7 +113,7 @@ class PromptProcessorNode(DocumentProcessor):
                 if 'source' not in format_kwargs:
                     format_kwargs['source'] = 'Unknown'
                 
-                formatted_prompt = prompt_template.format(**format_kwargs)
+                formatted_prompt = format_string(prompt_template, **format_kwargs)
                 
                 # Get LLM response
                 response = llm.prompt(formatted_prompt)
@@ -171,10 +172,12 @@ class ResponseCleanerNode(ResultProcessor):
                 original_response = result.get('response', '')
                 
                 # Format cleanup prompt with the original response
-                cleanup_request = cleanup_prompt_template.format(
-                    original_response=original_response,
+                format_kwargs = {
+                    'original_response': original_response,
+                    'response': original_response,  # Alias for backward compatibility
                     **result  # Include all result fields for additional context
-                )
+                }
+                cleanup_request = format_string(cleanup_prompt_template, **format_kwargs)
                 
                 # Get cleaned response
                 cleaned_response = llm.prompt(cleanup_request)
@@ -375,7 +378,7 @@ class AggregatorNode(AggregatorProcessor):
             }
             
             # Format the prompt
-            formatted_prompt = prompt_template.format(**aggregation_context)
+            formatted_prompt = format_string(prompt_template, **aggregation_context)
             
             # Get aggregated response from LLM
             aggregated_response = llm.prompt(formatted_prompt)
