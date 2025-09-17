@@ -121,9 +121,23 @@ class ExcelExporterNode(ExporterNode):
 class JSONExporterNode(ExporterNode):
     """Exports results to JSON format."""
     
+    def get_input_types(self) -> Dict[str, str]:
+        # Accept both List[Dict] (normal) and Dict (from aggregators)
+        return {"results": "List[Dict]", "result": "Dict"}
+    
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        results = inputs.get("results", [])
-        if not results:
+        # Handle both List[Dict] (normal) and Dict (from aggregators)
+        if "results" in inputs:
+            results = inputs["results"]
+            if not results:
+                return {"status": "No results to export"}
+        elif "result" in inputs:
+            # Single result from aggregator - wrap in list
+            result = inputs["result"]
+            if not result:
+                return {"status": "No result to export"}
+            results = [result]
+        else:
             return {"status": "No results to export"}
         
         output_path = self.config.get("output_path", "results.json")

@@ -46,14 +46,44 @@ nodes:
         temperature: 0
         mute_stream: true
   
-  # Export to CSV for easy analysis and filtering
-  results_export:
+  # Aggregate all topics into a comprehensive analysis
+  topic_aggregator:
+    type: AggregatorNode
+    config:
+      prompt: |
+        Analyze these {num_results} topic keywords from different documents and provide a comprehensive topic analysis:
+        
+        {responses}
+        
+        Please provide your analysis in the following structure:
+        1. TOP TOPICS: List the 5 most frequently mentioned topics with their frequency counts
+        2. TOPIC CATEGORIES: Group related topics into broader categories (e.g., Technology, Business, etc.)
+        3. COVERAGE ANALYSIS: What percentage of documents cover each major theme?
+        4. INSIGHTS: What patterns or trends do you observe across the document collection?
+        5. EXECUTIVE SUMMARY: One paragraph summarizing the overall thematic landscape
+        
+        Format your response with clear headings and bullet points for easy reading.
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0.3
+        max_tokens: 1000
+        mute_stream: true
+  
+  # Export individual document topics to CSV for detailed analysis
+  individual_topics_export:
     type: CSVExporter
     config:
       output_path: "document_analysis_summary.csv"
+  
+  # Export aggregated analysis to JSON for programmatic access
+  aggregated_export:
+    type: JSONExporter
+    config:
+      output_path: "document_topic_analysis.json"
+      pretty_print: true
 
 connections:
-  # Pipeline: Load → Keep Full → Analyze → Clean → Export
+  # Pipeline: Load → Keep Full → Analyze → Clean → Export Individual + Aggregate
   - from: document_loader
     from_port: documents
     to: full_document_processor
@@ -69,10 +99,23 @@ connections:
     to: response_cleaner
     to_port: results
   
+  # Export individual document topics to CSV
   - from: response_cleaner
     from_port: results
-    to: results_export
+    to: individual_topics_export
     to_port: results
+  
+  # Aggregate topics for comprehensive analysis
+  - from: response_cleaner
+    from_port: results
+    to: topic_aggregator
+    to_port: results
+  
+  # Export aggregated analysis to JSON
+  - from: topic_aggregator
+    from_port: result
+    to: aggregated_export
+    to_port: result
 
 # Prerequisites:
 # 1. Documents in ../sample_data/ directory
@@ -82,12 +125,14 @@ connections:
 # python -m onprem.workflow 3_direct_analysis.yaml
 #
 # Expected output:
-# - document_analysis_summary.csv with comprehensive analysis of each document
-# - Two-stage processing: initial extraction + response cleanup
-# - Suitable for any document collection that needs structured analysis
+# - document_analysis_summary.csv with individual document topic keywords
+# - document_topic_analysis.json with aggregated topic analysis across all documents
+# - Two-stage processing: initial extraction + response cleanup + aggregation
+# - Suitable for any document collection that needs both detailed and summary analysis
 #
-# Benefits of direct analysis:
+# Benefits of this approach:
 # - No vector store setup required
 # - Processes complete documents for full context
-# - Good for systematic analysis of entire document collections
-# - Faster setup than vector store approach
+# - Provides both individual document insights AND collection-wide topic analysis
+# - JSON output enables programmatic access to aggregated insights
+# - CSV output allows detailed filtering and analysis of individual documents

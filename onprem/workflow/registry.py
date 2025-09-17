@@ -14,7 +14,8 @@ from .document_transformers import (AddMetadataNode, ContentPrefixNode, ContentS
 
 # Processor and Exporter implementations
 from .processors import (PromptProcessorNode, ResponseCleanerNode, SummaryProcessorNode,
-                        PythonDocumentProcessorNode, PythonResultProcessorNode)
+                        PythonDocumentProcessorNode, PythonResultProcessorNode,
+                        AggregatorNode, PythonAggregatorNode)
 from .exporters import CSVExporterNode, ExcelExporterNode, JSONExporterNode
 
 
@@ -53,6 +54,8 @@ NODE_REGISTRY = {
     "SummaryProcessor": SummaryProcessorNode,
     "PythonDocumentProcessor": PythonDocumentProcessorNode,
     "PythonResultProcessor": PythonResultProcessorNode,
+    "AggregatorNode": AggregatorNode,
+    "PythonAggregatorNode": PythonAggregatorNode,
     
     # Exporters
     "CSVExporter": CSVExporterNode,

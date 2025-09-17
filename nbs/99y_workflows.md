@@ -1566,7 +1566,7 @@ nodes:
 
 #### JSONExporter
 
-Exports results to JSON format for programmatic access.
+Exports results to JSON format for programmatic access. Can handle both regular processing results and single aggregated results.
 
 ```yaml
 nodes:
@@ -1578,7 +1578,8 @@ nodes:
 ```
 
 **Input Ports:**
-- `results`: `List[Dict]` - Results to export
+- `results`: `List[Dict]` - Multiple results to export (from processors)
+- `result`: `Dict` - Single aggregated result to export (from aggregators)
 
 **Output Ports:**
 - `status`: `str` - Export status message
@@ -2058,6 +2059,140 @@ connections:
     to: analysis_report
     to_port: results
 ```
+
+### Document Topic Aggregation Pipeline
+
+Extract individual document topics and create an aggregated analysis:
+
+```yaml
+nodes:
+  # Load documents from directory
+  document_loader:
+    type: LoadFromFolder
+    config:
+      source_directory: "../sample_data"
+      include_patterns: ["*.pdf", "*.txt", "*.html"]
+      pdf_markdown: true
+      store_file_dates: true
+  
+  # Keep documents whole for comprehensive analysis
+  full_document_processor:
+    type: KeepFullDocument
+    config:
+      concatenate_pages: true
+  
+  # Extract topic keyword from each document
+  document_analyzer:
+    type: PromptProcessor
+    config:
+      prompt: |
+        Provide a single short keyword or keyphrase that captures the topic of the following text from {source} (only output the keyphrase without quotes and nothing else): {content}
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0.2
+        mute_stream: true
+      batch_size: 2
+  
+  # Clean up responses for consistency
+  response_cleaner:
+    type: ResponseCleaner
+    config:
+      cleanup_prompt: |
+        Clean up this analysis response to ensure consistent formatting:
+        {original_response}
+        
+        Requirements:
+        - Ensure the response is a single short keyword or keyphrase that captures the topic and nothing else.
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0
+        mute_stream: true
+  
+  # Aggregate all topics into comprehensive analysis
+  topic_aggregator:
+    type: AggregatorNode
+    config:
+      prompt: |
+        Analyze these {num_results} topic keywords from different documents and provide a comprehensive topic analysis:
+        
+        {responses}
+        
+        Please provide your analysis in the following structure:
+        1. TOP TOPICS: List the 5 most frequently mentioned topics with their frequency counts
+        2. TOPIC CATEGORIES: Group related topics into broader categories (e.g., Technology, Business, etc.)
+        3. COVERAGE ANALYSIS: What percentage of documents cover each major theme?
+        4. INSIGHTS: What patterns or trends do you observe across the document collection?
+        5. EXECUTIVE SUMMARY: One paragraph summarizing the overall thematic landscape
+        
+        Format your response with clear headings and bullet points for easy reading.
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0.3
+        max_tokens: 1000
+        mute_stream: true
+  
+  # Export individual document topics to CSV
+  individual_topics_export:
+    type: CSVExporter
+    config:
+      output_path: "document_analysis_summary.csv"
+  
+  # Export aggregated analysis to JSON
+  aggregated_export:
+    type: JSONExporter
+    config:
+      output_path: "document_topic_analysis.json"
+      pretty_print: true
+
+connections:
+  # Pipeline: Load → Process → Analyze → Clean → Export Both Ways
+  - from: document_loader
+    from_port: documents
+    to: full_document_processor
+    to_port: documents
+  
+  - from: full_document_processor
+    from_port: documents
+    to: document_analyzer
+    to_port: documents
+  
+  - from: document_analyzer
+    from_port: results
+    to: response_cleaner
+    to_port: results
+  
+  # Export individual document topics to CSV
+  - from: response_cleaner
+    from_port: results
+    to: individual_topics_export
+    to_port: results
+  
+  # Aggregate topics for comprehensive analysis
+  - from: response_cleaner
+    from_port: results
+    to: topic_aggregator
+    to_port: results
+  
+  # Export aggregated analysis to JSON (note: result → result port)
+  - from: topic_aggregator
+    from_port: result
+    to: aggregated_export
+    to_port: result
+```
+
+This example demonstrates the power of aggregation workflows:
+
+**Benefits:**
+- **Individual Analysis**: CSV file with topic keyword for each document
+- **Collection Insights**: JSON file with aggregated analysis of all topics
+- **Dual Output**: Both granular and summary views of your document collection
+- **Executive Summary**: High-level insights perfect for reporting and decision-making
+
+**Output Files:**
+- `document_analysis_summary.csv` - Individual document topics (one row per document)
+- `document_topic_analysis.json` - Aggregated topic analysis with patterns and insights
+
+**Key Pattern:** `Documents → Individual Analysis → Split → (CSV Export + Aggregation → JSON Export)`
 
 ### Multi-Format Export Pipeline
 
