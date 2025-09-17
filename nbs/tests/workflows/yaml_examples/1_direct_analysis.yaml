@@ -8,7 +8,7 @@ nodes:
     config:
       url: "https://raw.githubusercontent.com/amaiya/onprem/refs/heads/master/nbs/tests/sample_data/sotu/state_of_the_union.txt"
   
-  # Chunk the document into 500-character pieces for detailed analysis
+  # Chunk the document into 1000-character pieces for detailed analysis
   text_chunker:
     type: SplitByCharacterCount
     config:
