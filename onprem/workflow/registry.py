@@ -10,7 +10,7 @@ from .query import QueryWhooshStoreNode, QueryChromaStoreNode, QueryElasticsearc
 
 # Document Transformer implementations
 from .document_transformers import (AddMetadataNode, ContentPrefixNode, ContentSuffixNode, 
-                                   DocumentFilterNode, PythonDocumentTransformerNode)
+                                   DocumentFilterNode, PythonDocumentTransformerNode, DocumentToResultsNode)
 
 # Processor and Exporter implementations
 from .processors import (PromptProcessorNode, ResponseCleanerNode, SummaryProcessorNode,
@@ -38,6 +38,7 @@ NODE_REGISTRY = {
     "ContentSuffix": ContentSuffixNode,
     "DocumentFilter": DocumentFilterNode,
     "PythonDocumentTransformer": PythonDocumentTransformerNode,
+    "DocumentToResults": DocumentToResultsNode,
     
     # Storage
     "ChromaStore": ChromaStoreNode,

@@ -859,6 +859,75 @@ def test_query_dual_store_node():
     print("✓ QueryDualStore inherits from QueryNode")
 
 
+def test_document_to_results_converter():
+    """Test DocumentToResults converter node functionality."""
+    from onprem.workflow import NODE_REGISTRY
+    from langchain_core.documents import Document
+    
+    # Test DocumentToResults registration
+    DocumentToResultsNode = NODE_REGISTRY["DocumentToResults"]
+    
+    # Create test documents
+    test_docs = [
+        Document(
+            page_content="This is a test document about AI.",
+            metadata={"source": "test1.txt", "category": "technology", "page": 1}
+        ),
+        Document(
+            page_content="Second document discussing machine learning.",
+            metadata={"source": "test2.pdf", "author": "John Doe", "page_count": 5}
+        )
+    ]
+    
+    # Test basic conversion
+    node = DocumentToResultsNode("test", {})
+    results = node.execute({"documents": test_docs})
+    
+    assert "results" in results
+    assert len(results["results"]) == 2
+    
+    # Check first result
+    result1 = results["results"][0]
+    assert result1["document_id"] == 0
+    assert result1["source"] == "test1.txt"
+    assert result1["content"] == "This is a test document about AI."
+    assert result1["content_length"] == len("This is a test document about AI.")
+    assert result1["meta_category"] == "technology"
+    assert result1["meta_page"] == 1
+    print("✓ DocumentToResults basic conversion")
+    
+    # Test custom configuration
+    custom_node = DocumentToResultsNode("test", {
+        "include_content": False,
+        "metadata_prefix": "doc_",
+        "custom_fields": {"processed_by": "workflow", "version": "1.0"}
+    })
+    
+    custom_results = custom_node.execute({"documents": test_docs})
+    custom_result = custom_results["results"][0]
+    
+    assert "content" not in custom_result  # Content excluded
+    assert custom_result["doc_category"] == "technology"  # Custom prefix
+    assert custom_result["processed_by"] == "workflow"  # Custom field
+    assert custom_result["version"] == "1.0"  # Custom field
+    print("✓ DocumentToResults custom configuration")
+    
+    # Test input/output types
+    assert node.get_input_types() == {"documents": "List[Document]"}
+    assert node.get_output_types() == {"results": "List[Dict]"}
+    print("✓ DocumentToResults has correct input/output types")
+    
+    # Test that it's properly registered as a DocumentTransformerNode
+    from onprem.workflow.base import DocumentTransformerNode
+    assert isinstance(node, DocumentTransformerNode)
+    print("✓ DocumentToResults inherits from DocumentTransformerNode")
+    
+    # Test empty input handling
+    empty_results = node.execute({"documents": []})
+    assert empty_results["results"] == []
+    print("✓ DocumentToResults handles empty input")
+
+
 def test_python_processors():
     """Test custom Python code processor nodes."""
     from onprem.workflow import NODE_REGISTRY
@@ -1245,6 +1314,9 @@ def run_all_tests():
         
         print("\n🔄 Testing Query Dual Store Node:")
         test_query_dual_store_node()
+        
+        print("\n🔄 Testing Document To Results Converter:")
+        test_document_to_results_converter()
         
         print("\n🐍 Testing Python Processors:")
         test_python_processors()

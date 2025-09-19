@@ -82,9 +82,14 @@ def main():
         # Instructions
         st.markdown("""
         This tool allows you to ingest documents into the vector store.
-        You can upload individual files or a ZIP archive containing multiple documents.
+        You can upload individual files, a ZIP archive containing multiple documents, or spreadsheet data.
         
-        Supported document formats:
+        **Document Upload Options:**
+        - **Individual files**: Upload multiple document files
+        - **ZIP archive**: Upload a ZIP file containing multiple documents
+        - **Spreadsheet data**: Upload CSV or Excel files where each row becomes a document
+        
+        **Supported document formats:**
         - PDF (`.pdf`): Adobe Portable Document Format
         - Word (`.docx`): Microsoft Word documents
         - Text (`.txt`): Plain text files
@@ -94,6 +99,13 @@ def main():
         - PowerPoint (`.pptx`): Microsoft PowerPoint presentations
         - Markdown (`.md`): Markdown text files
         - JSON (`.json`): JavaScript Object Notation files
+        
+        **Spreadsheet ingestion** is ideal for:
+        - Survey responses or feedback data
+        - Product descriptions with metadata
+        - Customer support tickets
+        - Research data with participant information
+        - Content databases with tags and categories
         
         Advanced options under "Ingestion Options" allow you to:
         - Customize chunk size and overlap
@@ -441,7 +453,7 @@ def main():
                 # Create a radio selector to choose file upload type
                 upload_type = st.radio(
                     "What would you like to upload?",
-                    ["Individual files", "ZIP archive"],
+                    ["Individual files", "ZIP archive", "Spreadsheet data"],
                     horizontal=True
                 )
                 
@@ -454,13 +466,82 @@ def main():
                         type=["pdf", "docx", "txt", "csv", "html", "htm", "md", "json", "xlsx", "pptx"]
                     )
                     uploaded_zip = None
-                else:
+                    uploaded_spreadsheet = None
+                elif upload_type == "ZIP archive":
                     # ZIP file upload
                     uploaded_zip = st.file_uploader("Upload ZIP file containing multiple documents", type="zip")
                     uploaded_files = None
+                    uploaded_spreadsheet = None
+                else:
+                    # Spreadsheet data upload
+                    uploaded_spreadsheet = st.file_uploader(
+                        "Upload spreadsheet file (CSV, Excel)", 
+                        type=["csv", "xlsx", "xls"]
+                    )
+                    uploaded_files = None
+                    uploaded_zip = None
+                    
+                    # Initialize variables for spreadsheet configuration
+                    text_column = "text"
+                    sheet_name = None
+                    metadata_columns = ""
+                    
+                    # Spreadsheet configuration
+                    if uploaded_spreadsheet:
+                        st.markdown("**Spreadsheet Configuration:**")
+                        col1_config, col2_config = st.columns(2)
+                        
+                        with col1_config:
+                            text_column = st.text_input(
+                                "Text Column Name", 
+                                value="text", 
+                                help="Name of column containing document text content"
+                            )
+                        
+                        with col2_config:
+                            if uploaded_spreadsheet.name.endswith(('.xlsx', '.xls')):
+                                sheet_name = st.text_input(
+                                    "Sheet Name (Excel only)", 
+                                    value="", 
+                                    help="Leave empty for first sheet"
+                                )
+                                if not sheet_name.strip():
+                                    sheet_name = None
+                            else:
+                                sheet_name = None
+                        
+                        # Metadata columns configuration
+                        metadata_columns = st.text_input(
+                            "Metadata Columns (optional)",
+                            value="",
+                            help="Comma-separated column names to include as metadata. Leave empty to use all columns except text column."
+                        )
+                        
+                        # Show preview if possible
+                        try:
+                            import pandas as pd
+                            import io
+                            
+                            # Create a copy of the file content for preview
+                            file_content = uploaded_spreadsheet.getvalue()
+                            
+                            # Read a preview of the spreadsheet
+                            if uploaded_spreadsheet.name.endswith('.csv'):
+                                df_preview = pd.read_csv(io.BytesIO(file_content), nrows=5)
+                            else:
+                                df_preview = pd.read_excel(io.BytesIO(file_content), nrows=5, sheet_name=sheet_name if sheet_name else 0)
+                            
+                            with st.expander("Spreadsheet Preview (first 5 rows)", expanded=False):
+                                st.dataframe(df_preview)
+                                st.info(f"Available columns: {', '.join(df_preview.columns.tolist())}")
+                                
+                        except Exception as e:
+                            st.warning(f"Could not preview spreadsheet: {str(e)}")
+                            import traceback
+                            st.code(traceback.format_exc())
             
             # Ingest button
-            has_files_to_upload = (uploaded_files and len(uploaded_files) > 0) or uploaded_zip is not None
+            has_files_to_upload = (uploaded_files and len(uploaded_files) > 0) or uploaded_zip is not None or uploaded_spreadsheet is not None
             has_valid_subfolder = target_folder and os.path.exists(target_folder) and target_folder != rag_source_path
             
             upload_button = st.button("Upload and Ingest Documents")
@@ -522,6 +603,118 @@ def main():
                                     st.text(f"Extracting {len(zip_files)} files/folders from ZIP archive...")
                                     zip_ref.extractall(target_folder)
                                     processed_files += len(zip_files)
+                            
+                            # Handle spreadsheet if available
+                            if uploaded_spreadsheet is not None:
+                                st.text("Processing spreadsheet data...")
+                                
+                                # Parse metadata columns
+                                metadata_cols = None
+                                if metadata_columns.strip():
+                                    metadata_cols = [col.strip() for col in metadata_columns.split(',') if col.strip()]
+                                
+                                # Save spreadsheet to temporary file for processing
+                                temp_file_path = os.path.join(temp_dir, uploaded_spreadsheet.name)
+                                with open(temp_file_path, "wb") as f:
+                                    f.write(uploaded_spreadsheet.getvalue())
+                                
+                                # Also save the spreadsheet to the target folder for reference
+                                spreadsheet_path = os.path.join(target_folder, uploaded_spreadsheet.name)
+                                with open(spreadsheet_path, "wb") as f:
+                                    f.write(uploaded_spreadsheet.getvalue())
+                                
+                                # Use load_spreadsheet_documents to process the file
+                                from onprem.ingest.base import load_spreadsheet_documents
+                                
+                                try:
+                                    st.text(f"Loading spreadsheet with text_column='{text_column}', metadata_columns={metadata_cols}, sheet_name='{sheet_name}'")
+                                    
+                                    documents = load_spreadsheet_documents(
+                                        file_path=temp_file_path,
+                                        text_column=text_column,
+                                        metadata_columns=metadata_cols,
+                                        sheet_name=sheet_name
+                                    )
+                                    
+                                    st.text(f"Loaded {len(documents)} documents from spreadsheet")
+                                    
+                                    # Process and chunk documents
+                                    from onprem.ingest.base import chunk_documents
+                                    
+                                    # Apply chunking and preservation settings
+                                    chunked_documents = chunk_documents(
+                                        documents=documents,
+                                        chunk_size=chunk_size,
+                                        chunk_overlap=chunk_overlap,
+                                        preserve_paragraphs=preserve_paragraphs
+                                    )
+                                    
+                                    st.text(f"Created {len(chunked_documents)} document chunks")
+                                    
+                                    # Debug: Show sample metadata
+                                    if chunked_documents:
+                                        sample_doc = chunked_documents[0]
+                                        st.text(f"Sample document metadata keys: {list(sample_doc.metadata.keys())}")
+                                    
+                                    processed_files = len(documents)
+                                    
+                                    # Load LLM and ingest directly using vector store
+                                    llm = load_llm()
+                                    
+                                    # Get the vector store instance  
+                                    vectorstore = llm.load_vectorstore()
+                                    
+                                    # Clean up documents by removing None values from metadata and fixing source path
+                                    from langchain_core.documents import Document
+                                    cleaned_documents = []
+                                    for doc in chunked_documents:
+                                        # Remove None values from metadata
+                                        cleaned_metadata = {k: v for k, v in doc.metadata.items() if v is not None}
+                                        
+                                        # Update the source to point to the uploaded spreadsheet file in the target folder
+                                        spreadsheet_path = os.path.join(target_folder, uploaded_spreadsheet.name)
+                                        cleaned_metadata['source'] = spreadsheet_path
+                                        # Also update meta_source if it exists
+                                        if 'meta_source' in cleaned_metadata:
+                                            cleaned_metadata['meta_source'] = spreadsheet_path
+                                        
+                                        cleaned_doc = Document(
+                                            page_content=doc.page_content,
+                                            metadata=cleaned_metadata
+                                        )
+                                        cleaned_documents.append(cleaned_doc)
+                                    
+                                    # Add documents directly to the vector store
+                                    try:
+                                        vectorstore.add_documents(cleaned_documents)
+                                    except Exception as e:
+                                        st.error(f"Vector store ingestion error: {str(e)}")
+                                        # Try to show more details about the problematic metadata
+                                        if cleaned_documents:
+                                            st.text("Sample cleaned document metadata:")
+                                            sample_metadata = cleaned_documents[0].metadata
+                                            for key, value in sample_metadata.items():
+                                                st.text(f"  {key}: {type(value).__name__} = {str(value)[:100]}")
+                                        raise
+                                    
+                                    # Create result dict similar to llm.ingest output
+                                    result = {"num_added": len(chunked_documents)}
+                                    
+                                    # Show success message
+                                    folder_display = "spreadsheet data"
+                                    st.success(f"Successfully processed and ingested {folder_display}")
+                                    
+                                    # Show stats if available
+                                    if isinstance(result, dict) and "num_added" in result:
+                                        st.info(f"Added {result['num_added']} new document chunks to the vector database")
+                                    
+                                    return  # Exit early since we processed directly
+                                    
+                                except Exception as e:
+                                    st.error(f"Error processing spreadsheet: {str(e)}")
+                                    import traceback
+                                    st.code(traceback.format_exc())
+                                    return
                             
                             folder_display_name = os.path.basename(target_folder) if target_folder != rag_source_path else "main folder"
                             st.text(f"Saved to {folder_display_name} subfolder ({processed_files} files/folders processed)")

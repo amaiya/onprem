@@ -176,6 +176,7 @@ Use this pattern for comprehensive analysis of entire document collections witho
 - **PromptProcessor** - Apply AI analysis using custom prompts (DocumentProcessor)
 - **ResponseCleaner** - Clean and format AI responses (ResultProcessor)
 - **SummaryProcessor** - Generate document summaries (DocumentProcessor)
+- **DocumentToResults** - Convert documents to export-ready results (bridges Query → Exporter)
 - **AggregatorNode** - Aggregate multiple results into single result using LLM (AggregatorProcessor)
 - **PythonAggregatorNode** - Aggregate multiple results using custom Python code (AggregatorProcessor)
 
@@ -365,6 +366,11 @@ Alternative analysis path:
 Index → List[Document] → List[Dict] → str  
   ↓         ↓              ↓         ↓
 Query   Processor      Exporter  Status
+
+New direct export path:
+Index → List[Document] → List[Dict] → str
+  ↓         ↓              ↓         ↓
+Query  DocumentToResults Exporter Status
 
 New aggregation path:
 Index → List[Document] → List[Dict] → Dict → str
@@ -1333,6 +1339,103 @@ nodes:
 
 **Output Ports:**
 - `results`: `List[Dict]` - Summaries with metadata
+
+#### DocumentToResults
+
+Converts `List[Document]` to `List[Dict]` format suitable for Exporter nodes. This node bridges Query nodes (which output documents) to Exporter nodes (which expect processing results), enabling direct export from search results.
+
+```yaml
+nodes:
+  # Basic document-to-results conversion
+  prepare_export:
+    type: DocumentToResults
+    config:
+      include_content: true                      # Optional: Include document content (default: true)
+      include_metadata: true                     # Optional: Include document metadata (default: true)
+      content_field: "content"                   # Optional: Name for content field (default: "content")
+      metadata_prefix: "meta_"                   # Optional: Prefix for metadata fields (default: "meta_")
+      flatten_metadata: true                     # Optional: Flatten metadata with prefix (default: true)
+
+  # Custom conversion configuration
+  custom_export_prep:
+    type: DocumentToResults
+    config:
+      include_content: false                     # Exclude content, metadata only
+      content_field: "document_text"             # Custom content field name
+      metadata_prefix: "doc_"                    # Custom metadata prefix
+      custom_fields:                             # Optional: Add static fields
+        export_date: "2025-01-16"
+        processed_by: "workflow_v2"
+        department: "research"
+```
+
+**Use Cases:**
+- **Direct Query Export** - Query → Convert → Export in 3 nodes
+- **Search Result Analysis** - Export search results with metadata for analysis
+- **Document Cataloging** - Create spreadsheets of document collections
+- **Content Audit** - Export document inventories with metadata
+- **Research Data Collection** - Prepare search results for external analysis tools
+
+**Configuration Options:**
+- `include_content`: Whether to include document text content
+- `include_metadata`: Whether to include document metadata
+- `content_field`: Field name for document content (default: "content")
+- `metadata_prefix`: Prefix for metadata fields (default: "meta_")
+- `flatten_metadata`: Flatten metadata with prefix vs nested object
+- `custom_fields`: Dictionary of static fields to add to all results
+
+**Output Format:**
+Each document becomes a dictionary with:
+- `document_id`: Sequential ID (0, 1, 2, ...)
+- `source`: Document source path
+- `content`: Document content (if included)
+- `content_length`: Length of document content
+- `meta_*`: Flattened metadata fields with prefix
+- Custom fields from configuration
+
+**Example Workflow - Direct Query Export:**
+```yaml
+nodes:
+  search_docs:
+    type: QueryDualStore
+    config:
+      persist_location: "vectordb"
+      query: "artificial intelligence trends"
+      search_type: "hybrid"
+      limit: 20
+
+  prepare_export:
+    type: DocumentToResults
+    config:
+      content_field: "document_text"
+      metadata_prefix: ""  # No prefix for cleaner column names
+      custom_fields:
+        search_query: "artificial intelligence trends"
+        export_date: "2025-01-16"
+
+  export_results:
+    type: ExcelExporter
+    config:
+      output_path: "ai_research_papers.xlsx"
+      sheet_name: "Search_Results"
+
+connections:
+  - from: search_docs
+    from_port: documents
+    to: prepare_export
+    to_port: documents
+    
+  - from: prepare_export
+    from_port: results
+    to: export_results
+    to_port: results
+```
+
+**Input Ports:**
+- `documents`: `List[Document]` - Documents to convert
+
+**Output Ports:**
+- `results`: `List[Dict]` - Export-ready results with content and metadata
 
 #### PythonDocumentProcessor
 
@@ -2431,6 +2534,100 @@ This example demonstrates the power of aggregation workflows:
 - `document_topic_analysis.json` - Aggregated topic analysis with patterns and insights
 
 **Key Pattern:** `Documents → Individual Analysis → Split → (CSV Export + Aggregation → JSON Export)`
+
+### Direct Query-to-Export Pipeline
+
+Export search results directly from vector stores without additional processing, perfect for document cataloging, research data collection, and content audits:
+
+```yaml
+nodes:
+  # Search for documents matching specific criteria
+  research_search:
+    type: QueryDualStore
+    config:
+      persist_location: "~/vectordb"
+      query: "machine learning neural networks deep learning"
+      search_type: "hybrid"
+      limit: 50
+      weights: [0.7, 0.3]  # Favor semantic search
+
+  # Convert documents to export-ready format
+  prepare_export:
+    type: DocumentToResults
+    config:
+      include_content: true
+      content_field: "document_content"
+      metadata_prefix: ""  # No prefix for cleaner column names
+      custom_fields:
+        search_query: "machine learning neural networks deep learning"
+        export_timestamp: "2025-01-16T10:30:00Z"
+        search_type: "hybrid"
+        analyst: "research_team"
+        project: "ML_Literature_Review"
+
+  # Export to Excel for analysis and sharing
+  research_export:
+    type: ExcelExporter
+    config:
+      output_path: "ml_research_documents.xlsx"
+      sheet_name: "Search_Results"
+
+  # Also export to CSV for data processing
+  data_export:
+    type: CSVExporter
+    config:
+      output_path: "ml_research_data.csv"
+
+  # And to JSON for programmatic access
+  json_export:
+    type: JSONExporter
+    config:
+      output_path: "ml_research_index.json"
+      pretty_print: true
+
+connections:
+  # Single search feeds multiple export formats
+  - from: research_search
+    from_port: documents
+    to: prepare_export
+    to_port: documents
+
+  - from: prepare_export
+    from_port: results
+    to: research_export
+    to_port: results
+
+  - from: prepare_export
+    from_port: results
+    to: data_export
+    to_port: results
+
+  - from: prepare_export
+    from_port: results
+    to: json_export
+    to_port: results
+```
+
+**Benefits:**
+- **Simple Pipeline**: Only 3 nodes for Query → Convert → Export
+- **Multiple Formats**: Single search exported to Excel, CSV, and JSON simultaneously
+- **Rich Metadata**: All document metadata preserved and exported
+- **Search Tracking**: Custom fields track search parameters and export details
+- **Ready for Analysis**: Excel format perfect for manual review and annotation
+
+**Output Files:**
+- `ml_research_documents.xlsx` - Formatted spreadsheet for manual analysis
+- `ml_research_data.csv` - Raw data for statistical analysis or import into other tools
+- `ml_research_index.json` - Structured data for programmatic processing
+
+**Use Cases:**
+- **Literature Reviews** - Export relevant papers with metadata for analysis
+- **Document Audits** - Create inventories of document collections
+- **Research Data Collection** - Gather documents matching specific criteria
+- **Content Cataloging** - Build searchable catalogs of document libraries
+- **Compliance Reporting** - Export document lists with metadata for regulatory review
+
+**Key Pattern:** `Query → Convert → Multiple Exports`
 
 ### Multi-Format Export Pipeline
 

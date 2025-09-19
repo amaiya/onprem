@@ -600,6 +600,13 @@ def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sh
             df = pd.read_csv(file_path)
         elif file_ext in ['.xlsx', '.xls']:
             df = pd.read_excel(file_path, sheet_name=sheet_name)
+            # Handle case where pd.read_excel returns a dict of DataFrames
+            if isinstance(df, dict):
+                if sheet_name and sheet_name in df:
+                    df = df[sheet_name]
+                else:
+                    # Take the first sheet if sheet_name not specified or not found
+                    df = list(df.values())[0]
         else:
             raise ValueError(f"Unsupported file format: {file_ext}. Supported formats: .csv, .xlsx, .xls")
     except Exception as e:
