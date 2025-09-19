@@ -152,3 +152,46 @@ class QueryElasticsearchStoreNode(QueryNode):
                 
         except Exception as e:
             raise NodeExecutionError(f"Node {self.node_id}: Failed to query Elasticsearch: {str(e)}")
+
+
+class QueryDualStoreNode(QueryNode):
+    """Queries documents from a dual vector store (combining sparse and dense search)."""
+    
+    def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        persist_location = self.config.get("persist_location")
+        query = self.config.get("query", "")
+        limit = self.config.get("limit", 10)
+        search_type = self.config.get("search_type", "hybrid")  # sparse, semantic, or hybrid
+        
+        if not persist_location:
+            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
+        if not query:
+            raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        
+        # Validate search_type
+        valid_search_types = ["sparse", "semantic", "hybrid"]
+        if search_type not in valid_search_types:
+            raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. Use 'sparse', 'semantic', or 'hybrid'")
+        
+        try:
+            store = VectorStoreFactory.create("dual", persist_location=persist_location)
+            
+            # Perform search based on search_type
+            if search_type == "sparse":
+                # Use sparse search from the dual store
+                results = store.search(query, limit=limit, return_dict=False)
+                # Handle both dict and list return formats
+                documents = results.get('hits', []) if isinstance(results, dict) else results
+                return {"documents": documents}
+            elif search_type == "semantic":
+                # Use semantic search from the dual store
+                results = store.semantic_search(query, limit=limit)
+                return {"documents": results}
+            elif search_type == "hybrid":
+                # Use hybrid search combining both sparse and dense
+                weights = self.config.get("weights", [0.6, 0.4])  # [dense_weight, sparse_weight]
+                results = store.hybrid_search(query, limit=limit, weights=weights)
+                return {"documents": results}
+                
+        except Exception as e:
+            raise NodeExecutionError(f"Node {self.node_id}: Failed to query dual store: {str(e)}")

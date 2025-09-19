@@ -167,8 +167,10 @@ Use this pattern for comprehensive analysis of entire document collections witho
 - **ElasticsearchStore** - Hybrid search capabilities
 
 ### 🔍 Query
+- **QueryDualStore** - Search dual vector store (sparse, semantic, and hybrid search)
 - **QueryChromaStore** - Search vector database
 - **QueryWhooshStore** - Search text index
+- **QueryElasticsearchStore** - Search Elasticsearch index
 
 ### 🤖 Processors
 - **PromptProcessor** - Apply AI analysis using custom prompts (DocumentProcessor)
@@ -1026,6 +1028,39 @@ nodes:
 
 **Output Ports:**
 - `documents`: `List[Document]` - Matching documents
+
+#### QueryDualStore
+
+Searches documents in a dual vector store that combines both sparse (keyword) and dense (semantic) search capabilities with hybrid search option.
+
+```yaml
+nodes:
+  hybrid_search:
+    type: QueryDualStore
+    config:
+      persist_location: "/path/to/dualstore"      # Required: Database path
+      query: "artificial intelligence trends"     # Required: Search query
+      search_type: "hybrid"                       # Optional: sparse/semantic/hybrid (default: hybrid)
+      limit: 15                                  # Optional: Max results (default: 10)
+      weights: [0.6, 0.4]                       # Optional: [dense, sparse] weights for hybrid search
+```
+
+**Search Types:**
+- `sparse`: Keyword/full-text search using sparse vectors
+- `semantic`: Vector similarity search using dense embeddings
+- `hybrid`: Combines sparse and semantic search with configurable weights
+
+**Hybrid Search Configuration:**
+- `weights`: Array of [dense_weight, sparse_weight] (default: [0.6, 0.4])
+- Dense weight controls semantic search influence
+- Sparse weight controls keyword search influence
+- Weights should sum to 1.0 for optimal results
+
+**Input Ports:**
+- None (queries existing storage directly)
+
+**Output Ports:**
+- `documents`: `List[Document]` - Matching documents (ranked by combined score for hybrid)
 
 #### QueryChromaStore
 

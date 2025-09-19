@@ -819,6 +819,46 @@ def test_query_search_types():
     print("✓ ElasticsearchStore supports sparse, semantic, and hybrid search types")
 
 
+def test_query_dual_store_node():
+    """Test QueryDualStore node functionality."""
+    from onprem.workflow import NODE_REGISTRY
+    
+    # Test QueryDualStore registration
+    QueryDualStoreNode = NODE_REGISTRY["QueryDualStore"]
+    
+    # Test all search types
+    for search_type in ["sparse", "semantic", "hybrid"]:
+        node = QueryDualStoreNode("test", {
+            "persist_location": "/tmp/test_dual",
+            "query": "test query",
+            "search_type": search_type,
+            "limit": 5
+        })
+        assert node.config["search_type"] == search_type
+        assert node.config["limit"] == 5
+    print("✓ QueryDualStore supports sparse, semantic, and hybrid search types")
+    
+    # Test hybrid search with weights
+    node = QueryDualStoreNode("test", {
+        "persist_location": "/tmp/test_dual",
+        "query": "test query",
+        "search_type": "hybrid",
+        "weights": [0.7, 0.3]
+    })
+    assert node.config["weights"] == [0.7, 0.3]
+    print("✓ QueryDualStore supports custom weights for hybrid search")
+    
+    # Test input/output types
+    assert node.get_input_types() == {}
+    assert node.get_output_types() == {"documents": "List[Document]"}
+    print("✓ QueryDualStore has correct input/output types")
+    
+    # Test that it's properly registered as a QueryNode
+    from onprem.workflow.base import QueryNode
+    assert isinstance(node, QueryNode)
+    print("✓ QueryDualStore inherits from QueryNode")
+
+
 def test_python_processors():
     """Test custom Python code processor nodes."""
     from onprem.workflow import NODE_REGISTRY
@@ -1202,6 +1242,9 @@ def run_all_tests():
         
         print("\n🔍 Testing Query Search Types:")
         test_query_search_types()
+        
+        print("\n🔄 Testing Query Dual Store Node:")
+        test_query_dual_store_node()
         
         print("\n🐍 Testing Python Processors:")
         test_python_processors()
