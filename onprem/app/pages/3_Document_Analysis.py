@@ -219,6 +219,9 @@ def main():
     Run a custom prompt against document chunks and export the results to Excel.
     """)
     
+    # Note about Workflow Builder for advanced analyses
+    st.info("💡 **Need more advanced document analysis?** Try the **Workflow Builder** for complex multi-step analyses with document transformers, aggregation, and custom Python processing.")
+    
     # Check if vector database exists
     if not VECTORDB_PATH or not os.path.exists(VECTORDB_PATH):
         st.error("No vector database found. Please ingest documents first by going to Manage.")

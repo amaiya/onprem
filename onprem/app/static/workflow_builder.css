@@ -1,0 +1,69 @@
+/* Workflow Builder Styles */
+.workflow-node {
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    background-color: #f8f9fa;
+}
+
+.workflow-node.query {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.workflow-node.processor {
+    border-color: #28a745;
+    background-color: #e7f8ea;
+}
+
+.workflow-node.aggregator {
+    border-color: #ffc107;
+    background-color: #fff8e1;
+}
+
+.workflow-node.exporter {
+    border-color: #dc3545;
+    background-color: #ffeaea;
+}
+
+.workflow-chain {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    padding: 1rem;
+    background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+}
+
+.workflow-arrow {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+
+.node-box {
+    min-width: 120px;
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.config-section {
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 0.25rem;
+}
