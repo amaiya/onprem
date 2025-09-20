@@ -503,7 +503,20 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    st.title("🔧 Visual Workflow Builder")
+    st.markdown("""
+    <h1 style="
+        color: #0068c9;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #0068c9;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.8rem; margin-right: 0.5rem;">🔧</span> 
+        Visual Workflow Builder
+    </h1>
+    """, unsafe_allow_html=True)
+    
     st.markdown("""
     Build workflows visually using your existing vector store. All workflows start with a query node 
     to search your documents, then apply processing, aggregation, and export steps.
