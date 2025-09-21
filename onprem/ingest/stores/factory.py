@@ -58,8 +58,13 @@ class VectorStoreFactory:
         elif kind == 'whoosh':
             return WhooshStore(persist_location=persist_location, **kwargs)
         elif kind== 'chroma+whoosh':
-            dense_path = os.path.join(self.vectordb_path, 'dense')
-            sparse_path = os.path.join(self.vectordb_path, 'sparse')
+            # Let DualStore handle None persist_location with its own defaults
+            if persist_location is not None:
+                dense_path = os.path.join(persist_location, 'dense')
+                sparse_path = os.path.join(persist_location, 'sparse')
+            else:
+                dense_path = None
+                sparse_path = None
             return DualStore(
                     sparse_persist_location=sparse_path,
                     dense_persist_location=dense_path,

@@ -174,7 +174,7 @@ class QueryDualStoreNode(QueryNode):
             raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. Use 'sparse', 'semantic', or 'hybrid'")
         
         try:
-            store = VectorStoreFactory.create("dual", persist_location=persist_location)
+            store = VectorStoreFactory.create("chroma+whoosh", persist_location=persist_location)
             
             # Perform search based on search_type
             if search_type == "sparse":
