@@ -443,7 +443,7 @@ def get_output_port(node_type: str) -> str:
 
 def get_input_port(node_type: str) -> str:
     """Get the primary input port for a node type"""
-    if node_type in ['PromptProcessor', 'SummaryProcessor', 'PythonDocumentProcessor']:
+    if node_type in ['PromptProcessor', 'SummaryProcessor', 'PythonDocumentProcessor', 'DocumentToResults']:
         return 'documents'
     elif node_type in ['ResponseCleaner', 'PythonResultProcessor']:
         return 'results'

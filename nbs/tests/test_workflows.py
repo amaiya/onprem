@@ -917,15 +917,106 @@ def test_document_to_results_converter():
     assert node.get_output_types() == {"results": "List[Dict]"}
     print("✓ DocumentToResults has correct input/output types")
     
-    # Test that it's properly registered as a DocumentTransformerNode
-    from onprem.workflow.base import DocumentTransformerNode
-    assert isinstance(node, DocumentTransformerNode)
-    print("✓ DocumentToResults inherits from DocumentTransformerNode")
+    # Test that it's properly registered as a DocumentProcessor  
+    from onprem.workflow.base import DocumentProcessor
+    assert isinstance(node, DocumentProcessor)
+    print("✓ DocumentToResults inherits from DocumentProcessor")
     
     # Test empty input handling
     empty_results = node.execute({"documents": []})
     assert empty_results["results"] == []
     print("✓ DocumentToResults handles empty input")
+
+
+def test_document_to_results_to_exporter_workflow(temp_dir, sample_doc_file):
+    """Test that DocumentToResults can connect to Exporter nodes without validation errors."""
+    from onprem.workflow import WorkflowEngine
+    
+    # Test complete workflow: Query → DocumentToResults → Exporter
+    csv_path = os.path.join(temp_dir, "test_export.csv")
+    
+    # First create a simple Whoosh store for testing
+    whoosh_path = os.path.join(temp_dir, "test_whoosh_export")
+    store_workflow = {
+        "nodes": {
+            "loader": {
+                "type": "LoadSingleDocument",
+                "config": {"file_path": sample_doc_file}
+            },
+            "splitter": {
+                "type": "KeepFullDocument",
+                "config": {}
+            },
+            "storage": {
+                "type": "WhooshStore", 
+                "config": {"persist_location": whoosh_path}
+            }
+        },
+        "connections": [
+            {
+                "from": "loader", "from_port": "documents",
+                "to": "splitter", "to_port": "documents"
+            },
+            {
+                "from": "splitter", "from_port": "documents",
+                "to": "storage", "to_port": "documents"
+            }
+        ]
+    }
+    
+    # Create the store first
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(store_workflow)
+    engine.execute()
+    
+    # Now test DocumentToResults → Exporter workflow
+    test_workflow = {
+        "nodes": {
+            "query": {
+                "type": "QueryWhooshStore",
+                "config": {
+                    "persist_location": whoosh_path,
+                    "query": "test",
+                    "limit": 5
+                }
+            },
+            "converter": {
+                "type": "DocumentToResults",
+                "config": {
+                    "include_content": True,
+                    "content_field": "content"
+                }
+            },
+            "exporter": {
+                "type": "CSVExporter", 
+                "config": {"output_path": csv_path}
+            }
+        },
+        "connections": [
+            {
+                "from": "query", "from_port": "documents",
+                "to": "converter", "to_port": "documents"
+            },
+            {
+                "from": "converter", "from_port": "results", 
+                "to": "exporter", "to_port": "results"
+            }
+        ]
+    }
+    
+    # This should NOT raise a validation error anymore
+    engine = WorkflowEngine()
+    engine.load_workflow_from_dict(test_workflow)
+    print("✓ DocumentToResults → Exporter connection validation passed")
+    
+    # Execute the workflow
+    results = engine.execute()
+    
+    # Verify the workflow executed successfully
+    assert "exporter" in results
+    assert "status" in results["exporter"] 
+    assert os.path.exists(csv_path)
+    print("✓ DocumentToResults → Exporter workflow execution succeeded")
 
 
 def test_python_processors():
@@ -1317,6 +1408,9 @@ def run_all_tests():
         
         print("\n🔄 Testing Document To Results Converter:")
         test_document_to_results_converter()
+        
+        print("\n🔄 Testing Document To Results → Exporter Workflow:")
+        test_document_to_results_to_exporter_workflow(temp_dir, sample_file)
         
         print("\n🐍 Testing Python Processors:")
         test_python_processors()

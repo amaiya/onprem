@@ -10,12 +10,12 @@ from .query import QueryWhooshStoreNode, QueryChromaStoreNode, QueryElasticsearc
 
 # Document Transformer implementations
 from .document_transformers import (AddMetadataNode, ContentPrefixNode, ContentSuffixNode, 
-                                   DocumentFilterNode, PythonDocumentTransformerNode, DocumentToResultsNode)
+                                   DocumentFilterNode, PythonDocumentTransformerNode)
 
 # Processor and Exporter implementations
 from .processors import (PromptProcessorNode, ResponseCleanerNode, SummaryProcessorNode,
                         PythonDocumentProcessorNode, PythonResultProcessorNode,
-                        AggregatorNode, PythonAggregatorNode)
+                        AggregatorNode, PythonAggregatorNode, DocumentToResultsNode)
 from .exporters import CSVExporterNode, ExcelExporterNode, JSONExporterNode, JSONResponseExporterNode
 
 
@@ -38,7 +38,6 @@ NODE_REGISTRY = {
     "ContentSuffix": ContentSuffixNode,
     "DocumentFilter": DocumentFilterNode,
     "PythonDocumentTransformer": PythonDocumentTransformerNode,
-    "DocumentToResults": DocumentToResultsNode,
     
     # Storage
     "ChromaStore": ChromaStoreNode,
@@ -55,6 +54,7 @@ NODE_REGISTRY = {
     "PromptProcessor": PromptProcessorNode,
     "ResponseCleaner": ResponseCleanerNode,
     "SummaryProcessor": SummaryProcessorNode,
+    "DocumentToResults": DocumentToResultsNode,
     "PythonDocumentProcessor": PythonDocumentProcessorNode,
     "PythonResultProcessor": PythonResultProcessorNode,
     "AggregatorNode": AggregatorNode,
