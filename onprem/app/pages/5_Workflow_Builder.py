@@ -434,7 +434,7 @@ def get_output_port(node_type: str) -> str:
     """Get the primary output port for a node type"""
     if node_type.startswith('Query'):
         return 'documents'
-    elif node_type in ['PromptProcessor', 'SummaryProcessor', 'ResponseCleaner', 'PythonDocumentProcessor', 'PythonResultProcessor']:
+    elif node_type in ['PromptProcessor', 'SummaryProcessor', 'ResponseCleaner', 'PythonDocumentProcessor', 'PythonResultProcessor', 'DocumentToResults']:
         return 'results'
     elif node_type in ['AggregatorNode', 'PythonAggregatorNode']:
         return 'result'

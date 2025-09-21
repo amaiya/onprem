@@ -129,7 +129,8 @@ def main():
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
     3. **Document Analysis**: Apply custom prompts to document chunks and export results
     4. **Search Documents**: Search through your indexed documents using keywords or semantic search
-    5. **Manage**: Upload documents, manage folders, and configure the application settings
+    5. **Workflow Builder**: Create complex multi-step document processing workflows visually
+    6. **Manage**: Upload documents, manage folders, and configure the application settings
     
     Use the sidebar to navigate between these different features.
     """)
@@ -141,7 +142,7 @@ def main():
     
     # Quick links
     st.subheader("Quick Links")
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         if st.button("💬 Use Prompts", use_container_width=True):
@@ -158,6 +159,10 @@ def main():
     with col4:
         if st.button("🔍 Search Documents", use_container_width=True):
             st.switch_page("pages/4_Document_Search.py")
+    
+    with col5:
+        if st.button("🔧 Workflow Builder", use_container_width=True):
+            st.switch_page("pages/5_Workflow_Builder.py")
     
     # Additional information
     st.markdown("---")
