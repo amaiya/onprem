@@ -49,15 +49,11 @@ def get_valid_next_nodes(current_workflow: List[Dict] = None):
         else:
             return []
 
-def get_available_nodes(current_workflow: List[Dict] = None):
-    """Get nodes that work with existing vector stores, filtered by workflow state."""
-    
+def get_all_node_definitions():
+    """Get complete node definitions without filtering - used for templates and node data."""
     # Detect current web app store configuration
     cfg, _ = read_config()
     store_type = cfg.get("llm", {}).get("store_type", "dense")
-    
-    # Get valid next node types based on workflow state
-    valid_node_types = get_valid_next_nodes(current_workflow)
     
     # Define all possible query nodes
     all_query_nodes = {
@@ -118,7 +114,7 @@ def get_available_nodes(current_workflow: List[Dict] = None):
         # Default fallback to dual if unknown store type
         query_nodes['QueryDualStore'] = all_query_nodes['QueryDualStore']
     
-    all_nodes = {
+    return {
         # Query nodes (starting points) - filtered by web app configuration
         'Query': query_nodes,
         # Document transformers
@@ -376,6 +372,15 @@ aggregated_result = {
             }
         }
     }
+
+def get_available_nodes(current_workflow: List[Dict] = None):
+    """Get nodes that work with existing vector stores, filtered by workflow state."""
+    
+    # Get valid next node types based on workflow state
+    valid_node_types = get_valid_next_nodes(current_workflow)
+    
+    # Get all node definitions
+    all_nodes = get_all_node_definitions()
     
     # Filter nodes based on valid next node types using workflow engine logic
     from onprem.workflow.registry import NODE_REGISTRY
@@ -732,26 +737,44 @@ def main():
         st.subheader("📋 Quick Templates")
         
         if st.button("🚀 Document Analysis Template"):
+            # Get complete node definitions for template
+            all_nodes = get_all_node_definitions()
+            
+            # Get appropriate query node type based on store configuration
+            cfg, _ = read_config()
+            store_type = cfg.get("llm", {}).get("store_type", "dense")
+            
+            if store_type == "dual":
+                query_type = 'QueryDualStore'
+            elif store_type == "sparse":
+                query_type = 'QueryWhooshStore'  
+            elif store_type in ["dense", "chroma"]:
+                query_type = 'QueryChromaStore'
+            elif store_type == "elasticsearch":
+                query_type = 'QueryElasticsearchStore'
+            else:
+                query_type = 'QueryDualStore'
+            
             st.session_state.workflow_nodes = [
                 {
                     'id': 'query_docs',
-                    'type': 'QueryDualStore',
+                    'type': query_type,
                     'category': 'Query',
-                    'data': available_nodes['Query']['QueryDualStore'],
+                    'data': all_nodes['Query'][query_type],
                     'config': {'query': 'artificial intelligence', 'limit': 10, 'search_type': 'hybrid'}
                 },
                 {
                     'id': 'analyze_docs',
                     'type': 'PromptProcessor',
                     'category': 'Processors',
-                    'data': available_nodes['Processors']['PromptProcessor'],
+                    'data': all_nodes['Processors']['PromptProcessor'],
                     'config': {'prompt': 'Analyze this document and extract key themes:\n\n{content}'}
                 },
                 {
                     'id': 'export_results',
                     'type': 'CSVExporter',
                     'category': 'Exporters',
-                    'data': available_nodes['Exporters']['CSVExporter'],
+                    'data': all_nodes['Exporters']['CSVExporter'],
                     'config': {'output_path': 'document_analysis.csv'}
                 }
             ]
@@ -759,33 +782,51 @@ def main():
             st.rerun()
         
         if st.button("📊 Summary & Aggregate Template"):
+            # Get complete node definitions for template
+            all_nodes = get_all_node_definitions()
+            
+            # Get appropriate query node type based on store configuration
+            cfg, _ = read_config()
+            store_type = cfg.get("llm", {}).get("store_type", "dense")
+            
+            if store_type == "dual":
+                query_type = 'QueryDualStore'
+            elif store_type == "sparse":
+                query_type = 'QueryWhooshStore'
+            elif store_type in ["dense", "chroma"]:
+                query_type = 'QueryChromaStore'
+            elif store_type == "elasticsearch":
+                query_type = 'QueryElasticsearchStore'
+            else:
+                query_type = 'QueryDualStore'
+                
             st.session_state.workflow_nodes = [
                 {
                     'id': 'search_docs',
-                    'type': 'QueryDualStore',
+                    'type': query_type,
                     'category': 'Query',
-                    'data': available_nodes['Query']['QueryDualStore'],
+                    'data': all_nodes['Query'][query_type],
                     'config': {'query': 'project report', 'limit': 5, 'search_type': 'semantic'}
                 },
                 {
                     'id': 'summarize',
                     'type': 'SummaryProcessor',
                     'category': 'Processors',
-                    'data': available_nodes['Processors']['SummaryProcessor'],
+                    'data': all_nodes['Processors']['SummaryProcessor'],
                     'config': {}
                 },
                 {
                     'id': 'aggregate_summaries',
                     'type': 'AggregatorNode',
                     'category': 'Aggregators',
-                    'data': available_nodes['Aggregators']['AggregatorNode'],
+                    'data': all_nodes['Aggregators']['AggregatorNode'],
                     'config': {'prompt': 'Combine these summaries into a comprehensive overview:\n\n{responses}'}
                 },
                 {
                     'id': 'export_json',
                     'type': 'JSONExporter',
                     'category': 'Exporters',
-                    'data': available_nodes['Exporters']['JSONExporter'],
+                    'data': all_nodes['Exporters']['JSONExporter'],
                     'config': {'output_path': 'aggregated_summary.json'}
                 }
             ]
