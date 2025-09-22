@@ -147,6 +147,52 @@ class QueryNode(BaseNode):
     
     def get_output_types(self) -> Dict[str, str]:
         return {"documents": "List[Document]"}
+    
+    def _extract_common_params(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract and validate common query parameters."""
+        import os
+        
+        persist_location = self.config.get("persist_location")
+        query = self.config.get("query", "")
+        limit = self.config.get("limit", 10)
+        search_type = self.config.get("search_type")
+        
+        # Validate required parameters
+        if not persist_location:
+            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
+        if not query:
+            raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        
+        # Expand tilde (~) in persist_location to full home directory path
+        persist_location = os.path.expanduser(persist_location)
+        
+        return {
+            "persist_location": persist_location,
+            "query": query,
+            "limit": limit,
+            "search_type": search_type
+        }
+    
+    def _validate_search_type(self, search_type: str, valid_types: List[str]) -> None:
+        """Validate search_type against supported types for this store."""
+        if search_type not in valid_types:
+            # Generate helpful error messages for common mismatches
+            error_msg = f"Node {self.node_id}: Unknown search_type '{search_type}'. Use one of: {', '.join(valid_types)}"
+            
+            # Add specific suggestions for common errors
+            if search_type == "hybrid" and "hybrid" not in valid_types:
+                if "elasticsearch" in str(type(self)).lower():
+                    error_msg += ". Note: Use ElasticsearchStore for hybrid search."
+                elif "chroma" in str(type(self)).lower():
+                    error_msg += ". Note: ChromaStore does not support hybrid search. Use ElasticsearchStore for hybrid search."
+                elif "whoosh" in str(type(self)).lower():
+                    error_msg += ". Note: WhooshStore does not support hybrid search. Use ElasticsearchStore for hybrid search."
+            elif search_type == "sparse" and "sparse" not in valid_types:
+                error_msg += ". Note: ChromaStore does not support sparse search. Use WhooshStore or ElasticsearchStore for sparse search."
+            elif search_type == "semantic" and "semantic" not in valid_types:
+                pass  # Most stores support semantic search
+                
+            raise NodeExecutionError(error_msg)
 
 
 class ProcessorNode(BaseNode):

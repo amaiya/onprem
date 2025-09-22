@@ -6,6 +6,7 @@
 __all__ = ['VectorStoreFactory']
 
 # %% ../../../nbs/01_ingest.stores.factory.ipynb 3
+import os
 from .dense import DenseStore, ChromaStore
 from .sparse import SparseStore, WhooshStore, ElasticsearchSparseStore, SharePointStore
 from .dual import DualStore, ElasticsearchStore
@@ -32,7 +33,7 @@ class VectorStoreFactory:
             kind: Type of store to create. One of:
                   - 'chroma' (default): ChromaStore for dense vector search
                   - 'whoosh': WhooshStore for sparse text search  
-                  - 'chroma+-whoosh': a DualStore using  ChromaStore and WhooshStore 
+                  - 'chroma+whoosh': a DualStore using  ChromaStore and WhooshStore 
                   - 'elasticsearch': ElasticsearchStore for unified dense + sparse
                   - 'elasticsearch_sparse': For use with pre-existing Elasticsearch indices without dense vectors
             persist_location: Where to store the index/database
@@ -81,5 +82,5 @@ class VectorStoreFactory:
             return SharePointStore(persist_location=persist_location, # https://sharepoint.your-company.com
                                    **kwargs)
         else:
-            raise ValueError(f"Unknown store kind: {kind}. Supported vector store types: 'chroma', 'whoosh', 'chroma-whoosh', 'elasticsearch', 'elasticsearch-sparse")
+            raise ValueError(f"Unknown store kind: {kind}. Supported vector store types: 'chroma', 'whoosh', 'chroma+whoosh', 'elasticsearch', 'elasticsearch-sparse")
 

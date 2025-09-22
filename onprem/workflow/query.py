@@ -1,5 +1,6 @@
 """Query node implementations for the workflow engine."""
 
+import os
 from typing import Dict, Any
 
 from ..ingest.stores import VectorStoreFactory
@@ -11,23 +12,15 @@ class QueryWhooshStoreNode(QueryNode):
     """Queries documents from a Whoosh search index."""
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        persist_location = self.config.get("persist_location")
-        query = self.config.get("query", "")
-        limit = self.config.get("limit", 100)
-        search_type = self.config.get("search_type", "sparse")  # sparse or semantic
-        
-        if not persist_location:
-            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
-        if not query:
-            raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        # Extract common parameters
+        params = self._extract_common_params(inputs)
+        persist_location = params["persist_location"]
+        query = params["query"]
+        limit = params.get("limit", 100)  # Default limit for Whoosh
+        search_type = params.get("search_type", "sparse")  # Default for Whoosh
         
         # Validate search_type - WhooshStore supports sparse and semantic only
-        valid_search_types = ["sparse", "semantic"]
-        if search_type not in valid_search_types:
-            if search_type == "hybrid":
-                raise NodeExecutionError(f"Node {self.node_id}: WhooshStore does not support hybrid search. Use ElasticsearchStore for hybrid search.")
-            else:
-                raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. WhooshStore supports 'sparse' or 'semantic'")
+        self._validate_search_type(search_type, ["sparse", "semantic"])
         
         try:
             store = VectorStoreFactory.create("whoosh", persist_location=persist_location)
@@ -51,24 +44,15 @@ class QueryChromaStoreNode(QueryNode):
     """Queries documents from a ChromaDB vector store."""
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        persist_location = self.config.get("persist_location")
-        query = self.config.get("query", "")
-        limit = self.config.get("limit", 10)
-        search_type = self.config.get("search_type", "semantic")  # semantic only
-        
-        if not persist_location:
-            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
-        if not query:
-            raise NodeExecutionError(f"Node {self.node_id}: query is required")
+        # Extract common parameters
+        params = self._extract_common_params(inputs)
+        persist_location = params["persist_location"]
+        query = params["query"]
+        limit = params.get("limit", 10)  # Default limit for Chroma
+        search_type = params.get("search_type", "semantic")  # Default for Chroma
         
         # Validate search_type - ChromaStore supports semantic only
-        if search_type != "semantic":
-            if search_type == "sparse":
-                raise NodeExecutionError(f"Node {self.node_id}: ChromaStore does not support sparse search. Use WhooshStore or ElasticsearchStore for sparse search.")
-            elif search_type == "hybrid":
-                raise NodeExecutionError(f"Node {self.node_id}: ChromaStore does not support hybrid search. Use ElasticsearchStore for hybrid search.")
-            else:
-                raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. ChromaStore supports 'semantic' only")
+        self._validate_search_type(search_type, ["semantic"])
         
         try:
             store = VectorStoreFactory.create("chroma", persist_location=persist_location)
@@ -83,20 +67,15 @@ class QueryElasticsearchStoreNode(QueryNode):
     """Queries documents from an Elasticsearch index."""
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        persist_location = self.config.get("persist_location")
-        query = self.config.get("query", "")
-        limit = self.config.get("limit", 10)
-        search_type = self.config.get("search_type", "sparse")  # sparse, semantic, or hybrid
+        # Extract common parameters
+        params = self._extract_common_params(inputs)
+        persist_location = params["persist_location"]
+        query = params["query"]
+        limit = params.get("limit", 10)  # Default limit for Elasticsearch
+        search_type = params.get("search_type", "sparse")  # Default for Elasticsearch
         
-        if not persist_location:
-            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
-        if not query:
-            raise NodeExecutionError(f"Node {self.node_id}: query is required")
-        
-        # Validate search_type early, before connecting to Elasticsearch
-        valid_search_types = ["sparse", "semantic", "hybrid"]
-        if search_type not in valid_search_types:
-            raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. Use 'sparse', 'semantic', or 'hybrid'")
+        # Validate search_type - Elasticsearch supports all types
+        self._validate_search_type(search_type, ["sparse", "semantic", "hybrid"])
         
         try:
             # Extract additional Elasticsearch-specific parameters
@@ -158,23 +137,25 @@ class QueryDualStoreNode(QueryNode):
     """Queries documents from a dual vector store (combining sparse and dense search)."""
     
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        persist_location = self.config.get("persist_location")
-        query = self.config.get("query", "")
-        limit = self.config.get("limit", 10)
-        search_type = self.config.get("search_type", "hybrid")  # sparse, semantic, or hybrid
+        # Extract common parameters
+        params = self._extract_common_params(inputs)
+        persist_location = params["persist_location"]
+        query = params["query"]
+        limit = params.get("limit", 10)  # Default limit for DualStore
+        search_type = params.get("search_type", "hybrid")  # Default for DualStore
         
-        if not persist_location:
-            raise NodeExecutionError(f"Node {self.node_id}: persist_location is required")
-        if not query:
-            raise NodeExecutionError(f"Node {self.node_id}: query is required")
-        
-        # Validate search_type
-        valid_search_types = ["sparse", "semantic", "hybrid"]
-        if search_type not in valid_search_types:
-            raise NodeExecutionError(f"Node {self.node_id}: Unknown search_type '{search_type}'. Use 'sparse', 'semantic', or 'hybrid'")
+        # Validate search_type - DualStore supports all types
+        self._validate_search_type(search_type, ["sparse", "semantic", "hybrid"])
         
         try:
-            store = VectorStoreFactory.create("chroma+whoosh", persist_location=persist_location)
+            # Provide default embedding parameters for DualStore initialization
+            store = VectorStoreFactory.create(
+                "chroma+whoosh", 
+                persist_location=persist_location,
+                embedding_model_name="sentence-transformers/all-MiniLM-L6-v2",
+                embedding_model_kwargs={},
+                embedding_encode_kwargs={"normalize_embeddings": False}
+            )
             
             # Perform search based on search_type
             if search_type == "sparse":

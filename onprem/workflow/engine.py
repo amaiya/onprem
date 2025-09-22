@@ -8,6 +8,7 @@ and execution of YAML-based workflows.
 import yaml
 import os
 from typing import Dict, List, Any, Optional
+import traceback
 
 from .base import BaseNode
 from .exceptions import WorkflowValidationError, NodeExecutionError
@@ -213,6 +214,7 @@ class WorkflowEngine:
                 error_msg = f"Failed to execute node {node_id}: {str(e)}"
                 if verbose:
                     print(f"  -> ERROR: {error_msg}")
+                traceback.print_exc()
                 raise NodeExecutionError(error_msg)
         
         return results

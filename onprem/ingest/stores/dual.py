@@ -38,20 +38,25 @@ class DualStore(VectorStore):
         """
         self.init_embedding_model(**kwargs)  # stored in self.embeddings
         
-        # Initialize both stores
+        # Extract the embedding parameters that were actually used
+        embedding_model_name = kwargs.get('embedding_model_name', "sentence-transformers/all-MiniLM-L6-v2")
+        embedding_model_kwargs = kwargs.get('embedding_model_kwargs')
+        embedding_encode_kwargs = kwargs.get('embedding_encode_kwargs', {"normalize_embeddings": False})
+        
+        # Initialize both stores with consistent embedding parameters
         self.dense_store = DenseStore.create(
             kind=dense_kind,
             persist_location=dense_persist_location,
-            embedding_model_name=kwargs.get('embedding_model_name'),
-            embedding_model_kwargs=kwargs.get('embedding_model_kwargs'),
-            embedding_encode_kwargs=kwargs.get('embedding_encode_kwargs')
+            embedding_model_name=embedding_model_name,
+            embedding_model_kwargs=embedding_model_kwargs,
+            embedding_encode_kwargs=embedding_encode_kwargs
         )
         self.sparse_store = SparseStore.create(
             kind=sparse_kind,
             persist_location=sparse_persist_location,
-            embedding_model_name=kwargs.get('embedding_model_name'),
-            embedding_model_kwargs=kwargs.get('embedding_model_kwargs'),
-            embedding_encode_kwargs=kwargs.get('embedding_encode_kwargs')
+            embedding_model_name=embedding_model_name,
+            embedding_model_kwargs=embedding_model_kwargs,
+            embedding_encode_kwargs=embedding_encode_kwargs
         )
         
         # For compatibility with the VectorStore interface
