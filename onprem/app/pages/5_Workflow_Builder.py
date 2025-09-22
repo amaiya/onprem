@@ -25,12 +25,39 @@ try:
 except ImportError:
     WORKFLOW_AVAILABLE = False
 
-def get_available_nodes():
-    """Get nodes that work with existing vector stores (no loaders needed)"""
+def get_valid_next_nodes(current_workflow: List[Dict] = None):
+    """Get valid next nodes based on current workflow state using workflow engine logic."""
+    from onprem.workflow.base import NODE_TYPES
+    from onprem.workflow.registry import NODE_REGISTRY
+    
+    # If no nodes yet, start with Query nodes (since we work with existing vector stores)
+    if not current_workflow:
+        return ["Query"]
+    else:
+        # Get the last node in the workflow
+        last_node = current_workflow[-1]
+        last_node_name = last_node['type']
+        
+        # Get the actual node class and create a temporary instance to check its NODE_TYPE
+        if last_node_name in NODE_REGISTRY:
+            last_node_class = NODE_REGISTRY[last_node_name]
+            last_node_type = last_node_class.NODE_TYPE
+            
+            # Get valid connection targets from NODE_TYPES
+            node_type_info = NODE_TYPES.get(last_node_type)
+            return node_type_info.can_connect_to if node_type_info else []
+        else:
+            return []
+
+def get_available_nodes(current_workflow: List[Dict] = None):
+    """Get nodes that work with existing vector stores, filtered by workflow state."""
     
     # Detect current web app store configuration
     cfg, _ = read_config()
     store_type = cfg.get("llm", {}).get("store_type", "dense")
+    
+    # Get valid next node types based on workflow state
+    valid_node_types = get_valid_next_nodes(current_workflow)
     
     # Define all possible query nodes
     all_query_nodes = {
@@ -91,7 +118,7 @@ def get_available_nodes():
         # Default fallback to dual if unknown store type
         query_nodes['QueryDualStore'] = all_query_nodes['QueryDualStore']
     
-    return {
+    all_nodes = {
         # Query nodes (starting points) - filtered by web app configuration
         'Query': query_nodes,
         # Document transformers
@@ -255,6 +282,32 @@ def get_available_nodes():
             }
         }
     }
+    
+    # Filter nodes based on valid next node types using workflow engine logic
+    from onprem.workflow.registry import NODE_REGISTRY
+    
+    filtered_categories = {}
+    
+    # Go through each category
+    for category_name, category_nodes in all_nodes.items():
+        filtered_category_nodes = {}
+        
+        # Filter nodes within this category
+        for node_name, node_config in category_nodes.items():
+            # Get the node class and check its NODE_TYPE
+            if node_name in NODE_REGISTRY:
+                node_class = NODE_REGISTRY[node_name]
+                node_type = node_class.NODE_TYPE
+                
+                # Only include if this node type is valid for the current workflow state
+                if node_type in valid_node_types:
+                    filtered_category_nodes[node_name] = node_config
+        
+        # Only include category if it has any valid nodes
+        if filtered_category_nodes:
+            filtered_categories[category_name] = filtered_category_nodes
+    
+    return filtered_categories
 
 def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
     """Render configuration UI for a node and return config"""
@@ -530,44 +583,48 @@ def main():
     if 'node_counter' not in st.session_state:
         st.session_state.node_counter = 1
     
-    # Get available nodes
-    available_nodes = get_available_nodes()
+    # Get available nodes filtered by current workflow state
+    available_nodes = get_available_nodes(st.session_state.workflow_nodes)
     
     col1, col2 = st.columns([1, 2])
     
     with col1:
         st.header("Add Nodes")
         
-        # Node selection
-        selected_category = st.selectbox("Node Category", list(available_nodes.keys()))
-        selected_node_type = st.selectbox(
-            "Node Type", 
-            list(available_nodes[selected_category].keys())
-        )
-        
-        # Show node description
-        node_data = available_nodes[selected_category][selected_node_type]
-        st.info(f"**Description:** {node_data['description']}")
-        
-        # Add node button
-        if st.button("➕ Add Node"):
-            # Validation: Ensure first node is a Query node
-            if not st.session_state.workflow_nodes and selected_category != 'Query':
-                st.error("⚠️ First node must be a Query node to search your documents!")
-            else:
-                node_id = f"node_{st.session_state.node_counter}"
-                st.session_state.node_counter += 1
-                
-                # Add to workflow
-                st.session_state.workflow_nodes.append({
-                    'id': node_id,
-                    'type': selected_node_type,
-                    'category': selected_category,
-                    'data': node_data,
-                    'config': {}
-                })
-                st.success(f"✅ Added {selected_node_type} node!")
-                st.rerun()
+        if not available_nodes:
+            st.info("✅ Workflow is complete! No additional nodes can be added.")
+            st.write("Exporter nodes are terminal - they cannot connect to other nodes.")
+        else:
+            # Node selection
+            selected_category = st.selectbox("Node Category", list(available_nodes.keys()))
+            selected_node_type = st.selectbox(
+                "Node Type", 
+                list(available_nodes[selected_category].keys())
+            )
+            
+            # Show node description
+            node_data = available_nodes[selected_category][selected_node_type]
+            st.info(f"**Description:** {node_data['description']}")
+            
+            # Add node button
+            if st.button("➕ Add Node"):
+                # Validation: Ensure first node is a Query node
+                if not st.session_state.workflow_nodes and selected_category != 'Query':
+                    st.error("⚠️ First node must be a Query node to search your documents!")
+                else:
+                    node_id = f"node_{st.session_state.node_counter}"
+                    st.session_state.node_counter += 1
+                    
+                    # Add to workflow
+                    st.session_state.workflow_nodes.append({
+                        'id': node_id,
+                        'type': selected_node_type,
+                        'category': selected_category,
+                        'data': node_data,
+                        'config': {}
+                    })
+                    st.success(f"✅ Added {selected_node_type} node!")
+                    st.rerun()
         
         # Clear workflow button
         if st.button("🗑️ Clear Workflow"):
