@@ -64,9 +64,9 @@ def get_all_node_definitions():
             'config_fields': {
                 'query': {'type': 'text', 'required': True, 'help': 'Search query'},
                 'limit': {'type': 'number', 'default': 10, 'help': 'Maximum results'},
-                'search_type': {'type': 'select', 'options': ['sparse', 'semantic', 'hybrid'], 'default': 'hybrid'},
-                'dense_weight': {'type': 'number', 'default': 0.6, 'help': 'Weight for semantic search (0.0-1.0)'},
-                'sparse_weight': {'type': 'number', 'default': 0.4, 'help': 'Weight for sparse search (0.0-1.0)'}
+                'search_type': {'type': 'select', 'options': ['sparse', 'semantic', 'hybrid'], 'default': 'sparse'},
+                'dense_weight': {'type': 'number', 'default': 0.6, 'help': 'Weight for semantic search (0.0-1.0)', 'conditional': 'search_type', 'show_when': 'hybrid'},
+                'sparse_weight': {'type': 'number', 'default': 0.4, 'help': 'Weight for sparse search (0.0-1.0)', 'conditional': 'search_type', 'show_when': 'hybrid'}
             }
         },
         'QueryWhooshStore': {
@@ -434,6 +434,26 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
     for field_name, field_config in node_data['config_fields'].items():
         key = f"{node_id}_{field_name}"
         
+        # Check if this field should be conditionally displayed
+        should_show = True
+        if 'conditional' in field_config and 'show_when' in field_config:
+            conditional_field = field_config['conditional']
+            show_when_value = field_config['show_when']
+            
+            # Get the value of the conditional field from the current config
+            conditional_key = f"{node_id}_{conditional_field}"
+            if conditional_key in st.session_state:
+                current_value = st.session_state[conditional_key]
+                should_show = (current_value == show_when_value)
+            else:
+                # If conditional field hasn't been set yet, check default value
+                conditional_field_config = node_data['config_fields'].get(conditional_field, {})
+                default_value = conditional_field_config.get('default', '')
+                should_show = (default_value == show_when_value)
+        
+        if not should_show:
+            continue
+            
         if field_config['type'] == 'text':
             value = st.text_input(
                 field_name.replace('_', ' ').title(),
@@ -761,7 +781,7 @@ def main():
                     'type': query_type,
                     'category': 'Query',
                     'data': all_nodes['Query'][query_type],
-                    'config': {'query': 'artificial intelligence', 'limit': 10, 'search_type': 'hybrid'}
+                    'config': {'query': 'artificial intelligence', 'limit': 10, 'search_type': 'sparse'}
                 },
                 {
                     'id': 'analyze_docs',
