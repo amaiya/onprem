@@ -464,7 +464,7 @@ class DocumentToResultsNode(DocumentProcessor):
         # Configuration options
         include_content = self.config.get("include_content", True)
         include_metadata = self.config.get("include_metadata", True)
-        content_field = self.config.get("content_field", "content")
+        content_field = self.config.get("content_field", "page_content")
         metadata_prefix = self.config.get("metadata_prefix", "meta_")
         flatten_metadata = self.config.get("flatten_metadata", True)
         custom_fields = self.config.get("custom_fields", {})

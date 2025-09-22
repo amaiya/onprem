@@ -171,12 +171,12 @@ def get_available_nodes():
                 }
             },
             'DocumentToResults': {
-                'description': 'Directly onvert documents to export-ready results (without AI analysis)',
+                'description': 'Directly convert documents to export-ready results (without AI analysis)',
                 'inputs': {'documents': 'List[Document]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
                     'include_content': {'type': 'checkbox', 'default': True, 'help': 'Include document content'},
-                    'content_field': {'type': 'text', 'default': 'content', 'help': 'Name for content field'},
+                    'content_field': {'type': 'text', 'default': 'page_content', 'help': 'Name for content field'},
                     'metadata_prefix': {'type': 'text', 'default': 'meta_', 'help': 'Prefix for metadata fields'}
                 }
             },
