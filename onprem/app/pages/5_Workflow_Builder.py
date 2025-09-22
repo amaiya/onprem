@@ -166,7 +166,28 @@ def get_available_nodes(current_workflow: List[Dict] = None):
                 'inputs': {'documents': 'List[Document]'},
                 'outputs': {'documents': 'List[Document]'},
                 'config_fields': {
-                    'code': {'type': 'textarea', 'required': True, 'help': 'Python code to transform documents. Available variables: doc, content, metadata, document_id, source'}
+                    'code': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'Python code to transform documents. Available variables: doc, content, metadata, document_id, source',
+                        'default': '''# PythonDocumentTransformer: Modify document content and metadata
+# Available variables: doc, content, metadata, document_id, source
+# Output: Modified doc object (transforms documents in place)
+
+#----------------
+# EXAMPLE
+#----------------
+# Clean up content
+import re
+content = re.sub(r'\\s+', ' ', content).strip()
+
+# Add metadata
+metadata['word_count'] = len(content.split())
+metadata['doc_type'] = 'email' if '@' in content else 'general'
+
+# Update document content
+doc.page_content = content'''
+                    }
                 }
             }
         },
@@ -212,7 +233,32 @@ def get_available_nodes(current_workflow: List[Dict] = None):
                 'inputs': {'documents': 'List[Document]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
-                    'code': {'type': 'textarea', 'required': True, 'help': 'Python code to process documents. Available variables: doc, content, metadata, document_id, source. Set result_dict for each document.'}
+                    'code': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'Python code to process documents. Available variables: doc, content, metadata, document_id, source. Set result_dict for each document.',
+                        'default': '''# PythonDocumentProcessor: Convert documents to structured results
+# Available variables: doc, content, metadata, document_id, source
+# Output: Set result_dict with extracted information
+
+#----------------
+# EXAMPLE
+#----------------
+
+import re
+
+# Extract information
+emails = re.findall(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', content)
+
+# Set result dictionary for this document
+result_dict = {
+    'source': source,
+    'text_length': len(content),
+    'word_count': len(content.split()),
+    'has_email': len(emails) > 0,
+    'preview': content[:100] + '...' if len(content) > 100 else content
+}'''
+                    }
                 }
             },
             'PythonResultProcessor': {
@@ -220,7 +266,33 @@ def get_available_nodes(current_workflow: List[Dict] = None):
                 'inputs': {'results': 'List[Dict]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
-                    'code': {'type': 'textarea', 'required': True, 'help': 'Python code to process results. Available variables: result, result_id. Modify result dict in place or set new_result.'}
+                    'code': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'Python code to process results. Available variables: result, result_id. Modify result dict in place or set new_result.',
+                        'default': '''# PythonResultProcessor: Enhance and post-process results
+# Available variables: result (dict), result_id
+# Output: Modify result dict in place or set new_result
+
+
+#----------------
+# EXAMPLE
+#----------------
+
+import datetime
+import os
+
+# Add timestamp and metadata
+result['processed_at'] = datetime.datetime.now().isoformat()
+
+# Add confidence score based on text length
+if 'text_length' in result:
+    result['confidence'] = 'high' if result['text_length'] > 1000 else 'low'
+
+# Extract filename from source
+if 'source' in result:
+    result['filename'] = os.path.basename(result['source'])'''
+                    }
                 }
             }
         },
@@ -239,7 +311,29 @@ def get_available_nodes(current_workflow: List[Dict] = None):
                 'inputs': {'results': 'List[Dict]'},
                 'outputs': {'result': 'Dict'},
                 'config_fields': {
-                    'code': {'type': 'textarea', 'required': True, 'help': 'Python aggregation code'}
+                    'code': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'Python aggregation code. Available variables: results (List[Dict]). Set aggregated_result dict.',
+                        'default': '''# PythonAggregatorNode: Combine multiple results into single summary
+# Available variables: results (List[Dict])
+# Output: Set aggregated_result dict
+
+#----------------
+# EXAMPLE
+#----------------
+
+import datetime
+
+# Create aggregated summary
+aggregated_result = {
+    'timestamp': datetime.datetime.now().isoformat(),
+    'total_results': len(results),
+    'total_length': sum(r.get('text_length', 0) for r in results),
+    'sources': [r.get('source', 'Unknown') for r in results],
+    'high_confidence_count': sum(1 for r in results if r.get('confidence') == 'high')
+}'''
+                    }
                 }
             }
         },
