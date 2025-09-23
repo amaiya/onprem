@@ -254,11 +254,11 @@ Provide the cleaned version:'''
                     'code': {
                         'type': 'textarea', 
                         'required': True, 
-                        'help': 'Python code to process documents. Available variables: doc, content, metadata, document_id, source. Set result_dict for each document.',
+                        'help': 'Python code to process documents. Available variables: doc, content, metadata, document_id, source, result. Populate the result dict.',
                         'default': '''# PythonDocumentProcessor: Convert documents to structured results
-# Available variables: doc, content, metadata, document_id, source
+# Available variables: doc, content, metadata, document_id, source, result (empty dict to populate)
 # Pre-available modules: re, json, math, datetime (no import needed)
-# Output: Set result_dict with extracted information
+# Output: Populate the result dict with extracted information
 
 #----------------
 # EXAMPLE
@@ -268,16 +268,14 @@ Provide the cleaned version:'''
 emails = re.findall(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', content)
 phone_numbers = re.findall(r'\\b\\d{3}-\\d{3}-\\d{4}\\b', content)
 
-# Set result dictionary for this document
-result_dict = {
-    'source': source,
-    'text_length': len(content),
-    'word_count': len(content.split()),
-    'has_email': len(emails) > 0,
-    'has_phone': len(phone_numbers) > 0,
-    'timestamp': datetime.datetime.now().isoformat(),
-    'preview': content[:100] + '...' if len(content) > 100 else content
-}'''
+# Populate the result dictionary for this document
+result['source'] = source
+result['text_length'] = len(content)
+result['word_count'] = len(content.split())
+result['has_email'] = len(emails) > 0
+result['has_phone'] = len(phone_numbers) > 0
+result['timestamp'] = datetime.datetime.now().isoformat()
+result['preview'] = content[:100] + '...' if len(content) > 100 else content'''
                     }
                 }
             },
