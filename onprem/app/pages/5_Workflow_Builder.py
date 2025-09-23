@@ -506,13 +506,12 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
     if node_type in ['PromptProcessor', 'SummaryProcessor', 'ResponseCleaner', 'AggregatorNode']:
         st.info("💡 This node will automatically use the same LLM configured for the web app.")
     
-    # Add vector store path for query nodes
+    # Automatically set vector store path for query nodes from web app configuration
     if node_type.startswith('Query'):
         cfg, _ = read_config()
         vectordb_path = cfg.get('vectordb_path', '~/onprem_data/webapp/vectordb')
-        config['persist_location'] = st.text_input("Vector Store Path", value=vectordb_path, 
-                                                  key=f"{node_id}_vectordb_path",
-                                                  help="Path to existing vector store")
+        config['persist_location'] = vectordb_path
+        st.info(f"🔗 Vector store path automatically set to: `{vectordb_path}`")
     
     # Render node-specific config fields
     for field_name, field_config in node_data['config_fields'].items():
