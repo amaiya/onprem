@@ -4,8 +4,11 @@ import json
 import yaml
 import tempfile
 import streamlit as st
+import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Any
+from io import BytesIO
+from datetime import datetime
 
 # Add parent directory to path to allow importing when run directly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -626,6 +629,186 @@ def get_input_port(node_type: str) -> str:
     else:
         return 'documents'
 
+def sanitize_for_excel(text):
+    """Helper function to sanitize text for Excel"""
+    if isinstance(text, str):
+        # Remove control characters and other characters that Excel can't handle
+        chars_to_remove = '\x00-\x08\x0B-\x0C\x0E-\x1F\x7F'
+        import re
+        return re.sub(f'[{chars_to_remove}]', '', text)
+    return text
+
+def format_excel_writer(writer, df):
+    """Apply Excel formatting for better appearance"""
+    # Get the workbook and sheet
+    workbook = writer.book
+    worksheet = writer.sheets['Sheet1']
+    
+    # Create a bold format for headers
+    from openpyxl.styles import Font, Alignment, PatternFill
+    bold_font = Font(bold=True)
+    header_fill = PatternFill(start_color="E0E0E0", end_color="E0E0E0", fill_type="solid")
+    
+    # Apply formatting to headers
+    for col_num, column_title in enumerate(df.columns):
+        cell = worksheet.cell(row=1, column=col_num+1)
+        cell.font = bold_font
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.fill = header_fill
+    
+    # Auto-adjust columns' width to fit content
+    for column_cells in worksheet.columns:
+        length = max(len(str(cell.value) or "") for cell in column_cells)
+        # Add some padding (8 characters)
+        adjusted_width = (length + 8)
+        # Limit maximum width to avoid extremely wide columns
+        column_width = min(adjusted_width, 100)
+        worksheet.column_dimensions[column_cells[0].column_letter].width = column_width
+
+def prepare_excel_file(results_df):
+    """Create a formatted Excel file in memory"""
+    # Apply sanitization to all text columns
+    for col in results_df.columns:
+        results_df[col] = results_df[col].apply(sanitize_for_excel)
+    
+    # Create Excel file in memory with enhanced formatting
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        results_df.to_excel(writer, index=False)
+        # Apply formatting to make the Excel file more readable
+        format_excel_writer(writer, results_df)
+    output.seek(0)
+    
+    return output
+
+def display_workflow_results(results):
+    """Display workflow results following Document Analysis pattern with automatic dataframe display and Excel download"""
+    if not results:
+        st.info("No results to display")
+        return
+    
+    # Get the last node's results
+    if isinstance(results, dict):
+        # Find the highest numbered node (e.g., node_2 is higher than node_1)
+        node_keys = [k for k in results.keys() if k.startswith('node_')]
+        if node_keys:
+            # Sort by node number
+            last_node_key = sorted(node_keys, key=lambda x: int(x.split('_')[1]))[-1]
+            last_node_results = results[last_node_key]
+            
+            st.info(f"📊 Displaying results from final node: **{last_node_key}**")
+        else:
+            # If no node_ keys, just take the first key
+            last_node_key = list(results.keys())[-1]
+            last_node_results = results[last_node_key]
+            st.info(f"📊 Displaying results from: **{last_node_key}**")
+    else:
+        last_node_results = results
+        last_node_key = "results"
+    
+    # Check if the last node results contain exportable data
+    exportable_data = None
+    
+    # Handle nested dict structure (node results contain output ports)
+    if isinstance(last_node_results, dict):
+        for output_key, output_value in last_node_results.items():
+            if isinstance(output_value, list) and output_value:
+                first_item = output_value[0]
+                
+                # Check if it's List[Document] - convert to List[Dict]
+                if hasattr(first_item, 'page_content') and hasattr(first_item, 'metadata'):
+                    exportable_data = []
+                    for i, doc in enumerate(output_value):
+                        doc_dict = {
+                            'document_id': i + 1,
+                            'content': doc.page_content,  # Full content for export
+                            'source': doc.metadata.get('source', 'Unknown'),
+                        }
+                        # Add ALL metadata fields (like ExcelExport/CSVExport would)
+                        for meta_key, meta_value in doc.metadata.items():
+                            if meta_key not in doc_dict:  # Don't overwrite existing keys
+                                doc_dict[meta_key] = meta_value
+                        
+                        exportable_data.append(doc_dict)
+                    break
+                
+                # Check if it's already List[Dict] format
+                elif isinstance(first_item, dict):
+                    exportable_data = output_value
+                    break
+                
+                # Check if it's a list of strings - convert to List[Dict]
+                elif isinstance(first_item, str):
+                    exportable_data = [{'result': item, 'index': i+1} for i, item in enumerate(output_value)]
+                    break
+    
+    # Handle direct list structure
+    elif isinstance(last_node_results, list) and last_node_results:
+        first_item = last_node_results[0]
+        
+        # Check if it's List[Document] - convert to List[Dict]
+        if hasattr(first_item, 'page_content') and hasattr(first_item, 'metadata'):
+            exportable_data = []
+            for i, doc in enumerate(last_node_results):
+                doc_dict = {
+                    'document_id': i + 1,
+                    'content': doc.page_content,  # Full content for export
+                    'source': doc.metadata.get('source', 'Unknown'),
+                }
+                # Add ALL metadata fields (like ExcelExport/CSVExport would)
+                for meta_key, meta_value in doc.metadata.items():
+                    if meta_key not in doc_dict:  # Don't overwrite existing keys
+                        doc_dict[meta_key] = meta_value
+                
+                exportable_data.append(doc_dict)
+        
+        # Check if it's already List[Dict] format
+        elif isinstance(first_item, dict):
+            exportable_data = last_node_results
+        
+        # Check if it's a list of strings - convert to List[Dict]
+        elif isinstance(first_item, str):
+            exportable_data = [{'result': item, 'index': i+1} for i, item in enumerate(last_node_results)]
+    
+    if exportable_data:
+        st.subheader("Workflow Results")
+        
+        # Convert to DataFrame
+        results_df = pd.DataFrame(exportable_data)
+        
+        # Display complete results (following Document Analysis pattern)
+        st.subheader("Results")
+        st.dataframe(results_df, use_container_width=True, height=400)
+        
+        # Create download button (following Document Analysis pattern)
+        col1, col2 = st.columns([4, 1])
+        with col2:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            excel_output = prepare_excel_file(results_df)
+            
+            st.download_button(
+                label="Download Results as Excel",
+                data=excel_output,
+                file_name=f"workflow_results_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        
+        with col1:
+            st.success(f"✅ Generated {len(results_df)} result records from workflow")
+    
+    else:
+        # Display results in a more basic format if no exportable data found
+        st.subheader("Workflow Results")
+        st.warning("No tabular data found - displaying raw results from final node")
+        
+        if isinstance(last_node_results, dict):
+            st.json(last_node_results)
+        elif isinstance(last_node_results, list):
+            for i, item in enumerate(last_node_results):
+                st.write(f"{i+1}. {item}")
+        else:
+            st.write(str(last_node_results))
+
 def main():
     """Visual Workflow Builder main function"""
     if not WORKFLOW_AVAILABLE:
@@ -924,6 +1107,10 @@ def main():
         # Run workflow
         col1, col2 = st.columns(2)
         
+        # Store results in session state to display outside columns
+        if 'workflow_results' not in st.session_state:
+            st.session_state.workflow_results = None
+        
         with col1:
             if st.button("▶️ Run Workflow", type="primary"):
                 try:
@@ -937,21 +1124,13 @@ def main():
                         
                         st.success("✅ Workflow completed successfully!")
                         
-                        # Show results
-                        st.subheader("Results")
-                        for node_id, node_results in results.items():
-                            with st.expander(f"📊 {node_id} Results"):
-                                if isinstance(node_results, dict):
-                                    if 'status' in node_results:
-                                        st.info(f"Status: {node_results['status']}")
-                                    else:
-                                        st.json(node_results)
-                                else:
-                                    st.write(node_results)
+                        # Store results in session state
+                        st.session_state.workflow_results = results
                         
                 except Exception as e:
                     st.error(f"❌ Workflow execution failed: {str(e)}")
                     st.exception(e)
+                    st.session_state.workflow_results = None
         
         with col2:
             if st.button("✅ Validate Workflow"):
@@ -964,6 +1143,10 @@ def main():
                     st.error(f"❌ Validation failed: {str(e)}")
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
+
+    # Display results outside of columns to use full width
+    if st.session_state.workflow_results is not None:
+        display_workflow_results(st.session_state.workflow_results)
 
 if __name__ == "__main__":
     main()
