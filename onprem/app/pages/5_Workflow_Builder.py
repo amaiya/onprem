@@ -392,6 +392,10 @@ def get_available_nodes(current_workflow: List[Dict] = None):
     
     # Go through each category
     for category_name, category_nodes in all_nodes.items():
+        # Skip Exporters category - results are automatically available for download
+        if category_name == 'Exporters':
+            continue
+            
         filtered_category_nodes = {}
         
         # Filter nodes within this category
