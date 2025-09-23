@@ -17,7 +17,7 @@ class QueryWhooshStoreNode(QueryNode):
         persist_location = params["persist_location"]
         query = params["query"]
         limit = params.get("limit", 100)  # Default limit for Whoosh
-        search_type = params.get("search_type", "sparse")  # Default for Whoosh
+        search_type = params.get("search_type") if params.get("search_type") is not None else "sparse"  # Default for Whoosh
         
         # Validate search_type - WhooshStore supports sparse and semantic only
         self._validate_search_type(search_type, ["sparse", "semantic"])
@@ -49,7 +49,7 @@ class QueryChromaStoreNode(QueryNode):
         persist_location = params["persist_location"]
         query = params["query"]
         limit = params.get("limit", 10)  # Default limit for Chroma
-        search_type = params.get("search_type", "semantic")  # Default for Chroma
+        search_type = params.get("search_type") if params.get("search_type") is not None else "semantic"  # Default for Chroma
         
         # Validate search_type - ChromaStore supports semantic only
         self._validate_search_type(search_type, ["semantic"])
@@ -72,7 +72,7 @@ class QueryElasticsearchStoreNode(QueryNode):
         persist_location = params["persist_location"]
         query = params["query"]
         limit = params.get("limit", 10)  # Default limit for Elasticsearch
-        search_type = params.get("search_type", "sparse")  # Default for Elasticsearch
+        search_type = params.get("search_type") if params.get("search_type") is not None else "sparse"  # Default for Elasticsearch
         
         # Validate search_type - Elasticsearch supports all types
         self._validate_search_type(search_type, ["sparse", "semantic", "hybrid"])
@@ -142,7 +142,7 @@ class QueryDualStoreNode(QueryNode):
         persist_location = params["persist_location"]
         query = params["query"]
         limit = params.get("limit", 10)  # Default limit for DualStore
-        search_type = params.get("search_type", "hybrid")  # Default for DualStore
+        search_type = params.get("search_type") if params.get("search_type") is not None else "hybrid"  # Default for DualStore
         
         # Validate search_type - DualStore supports all types
         self._validate_search_type(search_type, ["sparse", "semantic", "hybrid"])

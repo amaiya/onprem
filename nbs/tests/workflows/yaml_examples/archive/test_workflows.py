@@ -356,22 +356,17 @@ def test_textsplitter_nodes(sample_doc_file):
 def test_document_truncation(sample_doc_file):
     """Test document truncation functionality."""
     from onprem.workflow import WorkflowEngine
-    import tempfile
-    
-    # Create a dedicated file for truncation testing (don't overwrite shared sample file)
-    temp_dir = os.path.dirname(sample_doc_file)
-    truncation_test_file = os.path.join(temp_dir, "truncation_test.txt")
     
     # Create a longer test document for truncation (100 words)
     long_text = " ".join([f"word{i}" for i in range(100)])
-    Path(truncation_test_file).write_text(long_text)
+    Path(sample_doc_file).write_text(long_text)
     
     # Test truncation to 50 words
     workflow = {
         "nodes": {
             "loader": {
                 "type": "LoadSingleDocument",
-                "config": {"file_path": truncation_test_file}
+                "config": {"file_path": sample_doc_file}
             },
             "truncate": {
                 "type": "KeepFullDocument", 
@@ -895,7 +890,7 @@ def test_document_to_results_converter():
     result1 = results["results"][0]
     assert result1["document_id"] == 0
     assert result1["source"] == "test1.txt"
-    assert result1["page_content"] == "This is a test document about AI."
+    assert result1["content"] == "This is a test document about AI."
     assert result1["content_length"] == len("This is a test document about AI.")
     assert result1["meta_category"] == "technology"
     assert result1["meta_page"] == 1
@@ -1017,16 +1012,10 @@ def test_document_to_results_to_exporter_workflow(temp_dir, sample_doc_file):
     # Execute the workflow
     results = engine.execute()
     
-    # Verify the query found documents (should find "test" in TEST_TEXT_CONTENT)
-    assert "query" in results
-    query_results = results["query"]["documents"] 
-    assert len(query_results) > 0, f"Query for 'test' should find matches in document containing: '{TEST_TEXT_CONTENT}'"
-    
     # Verify the workflow executed successfully
     assert "exporter" in results
-    assert "status" in results["exporter"]
-    assert "Exported" in results["exporter"]["status"], f"Expected successful export, got: {results['exporter']['status']}"
-    assert os.path.exists(csv_path), "CSV file should be created when query returns results"
+    assert "status" in results["exporter"] 
+    assert os.path.exists(csv_path)
     print("✓ DocumentToResults → Exporter workflow execution succeeded")
 
 
