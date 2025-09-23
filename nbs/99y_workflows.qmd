@@ -175,8 +175,12 @@ Use this pattern for comprehensive analysis of entire document collections witho
 ### 🤖 Processors
 - **PromptProcessor** - Apply AI analysis using custom prompts (DocumentProcessor)
 - **ResponseCleaner** - Clean and format AI responses (ResultProcessor)
-- **SummaryProcessor** - Generate document summaries (DocumentProcessor)
+- **SummaryProcessor** - Generate document summaries (DocumentProcessor)  
+- **PythonDocumentProcessor** - Execute custom Python code on documents (DocumentProcessor)
+- **PythonResultProcessor** - Execute custom Python code on processing results (ResultProcessor)
 - **DocumentToResults** - Convert documents to export-ready results (bridges Query → Exporter)
+
+### 🔄 Aggregators  
 - **AggregatorNode** - Aggregate multiple results into single result using LLM (AggregatorProcessor)
 - **PythonAggregatorNode** - Aggregate multiple results using custom Python code (AggregatorProcessor)
 
@@ -1279,17 +1283,33 @@ Post-processes and cleans LLM responses using another LLM call.
 
 ```yaml
 nodes:
+  # Default usage - cleans "response" field from PromptProcessor results
   response_cleaner:
     type: ResponseCleaner
     config:
+      source_field: "response"           # Optional: field to clean (default: "response")
       cleanup_prompt: |                  # Inline cleanup instructions
         Remove XML tags and clean up formatting while preserving all valid content:
-        {original_response}
+        {response}
         
         Keep all important information, just remove formatting artifacts.
       llm:
         model_url: "openai://gpt-3.5-turbo"
         temperature: 0               # Deterministic cleanup
+
+  # Clean different field - useful after DocumentToResults or PythonDocumentProcessor
+  content_cleaner:
+    type: ResponseCleaner
+    config:
+      source_field: "page_content"       # Clean the page_content field instead
+      cleanup_prompt: |
+        Clean and standardize this document content:
+        {response}
+        
+        Remove any formatting artifacts while preserving meaning.
+      llm:
+        model_url: "openai://gpt-4o-mini"
+        temperature: 0
 
   # Alternative: Load cleanup prompt from file
   citation_cleaner:
@@ -1300,14 +1320,17 @@ nodes:
         model_url: "openai://gpt-4o-mini"
         temperature: 0
         mute_stream: true
+      # source_field defaults to "response" if not specified
 ```
 
 **Use Cases:**
-- **Extract structured data** from messy LLM responses
+- **Clean LLM responses** from PromptProcessor (default "response" field)
+- **Clean document content** from DocumentToResults ("page_content" field)
+- **Clean custom outputs** from PythonDocumentProcessor (any field name)
 - **Remove formatting artifacts** like XML tags or unwanted text  
 - **Clean statutory citations** while preserving all valid references (U.S.C., Public Laws, etc.)
 - **Standardize outputs** for consistent data processing
-- **Chain with PromptProcessor** for two-stage processing
+- **Chain with any processor** that produces text fields needing cleanup
 
 **Important Notes:**
 - Cleanup prompts should be carefully designed to avoid over-aggressive cleaning
