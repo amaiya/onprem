@@ -226,7 +226,7 @@ class SummaryProcessorNode(DocumentProcessor):
                     'document_id': i,
                     'source': doc.metadata.get('source', 'Unknown'),
                     'original_length': len(doc.page_content),
-                    'summary': summary,
+                    'response': summary,
                     'summary_length': len(summary),
                     'metadata': doc.metadata
                 }
