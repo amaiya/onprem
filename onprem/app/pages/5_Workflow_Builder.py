@@ -220,17 +220,22 @@ doc.page_content = content'''
                 'inputs': {'results': 'List[Dict]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
+                    'source_field': {
+                        'type': 'text',
+                        'default': 'response',
+                        'help': 'Field name to clean (e.g., "response", "page_content", "output")'
+                    },
                     'cleanup_prompt': {
                         'type': 'textarea', 
                         'required': True, 
-                        'help': 'Prompt to clean/refine previous LLM responses. Use {response} for the original response text.',
-                        'default': '''Clean up and standardize this response by:
+                        'help': 'Prompt to clean/refine content. Use {NAME_OF_SOURCE_FIELD} as the variable in the prompt.',
+                        'default': '''Clean up and standardize this content by:
 1. Removing any unnecessary formatting or markdown
 2. Correcting grammar and spelling errors  
 3. Making the language more concise and professional
 4. Ensuring consistent formatting
 
-Original response: {response}
+Original content: {response}
 
 Provide the cleaned version:'''
                     }
@@ -960,6 +965,8 @@ def main():
         st.session_state.workflow_nodes = []
     if 'node_counter' not in st.session_state:
         st.session_state.node_counter = 1
+    if 'workflow_results' not in st.session_state:
+        st.session_state.workflow_results = None
     
     # Get available nodes filtered by current workflow state
     available_nodes = get_available_nodes(st.session_state.workflow_nodes)

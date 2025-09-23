@@ -147,6 +147,7 @@ class ResponseCleanerNode(ResultProcessor):
         
         cleanup_prompt_template = self.config.get("cleanup_prompt", "")
         cleanup_prompt_file = self.config.get("cleanup_prompt_file", "")
+        source_field = self.config.get("source_field", "response")  # Field to clean
         
         # Get LLM configuration
         llm_config = self.config.get("llm", {"model_url": "openai://gpt-3.5-turbo"})
@@ -169,12 +170,19 @@ class ResponseCleanerNode(ResultProcessor):
             
             cleaned_results = []
             for i, result in enumerate(results):
-                original_response = result.get('response', '')
+                # Get content from the specified source field
+                original_content = result.get(source_field, '')
                 
-                # Format cleanup prompt with the original response
+                if not original_content:
+                    # If specified field is empty, skip this result or copy as-is
+                    cleaned_results.append(result.copy())
+                    continue
+                
+                # Format cleanup prompt with the original content
                 format_kwargs = {
-                    'original_response': original_response,
-                    'response': original_response,  # Alias for backward compatibility
+                    'original_response': original_content,
+                    'response': original_content,  # Alias for backward compatibility
+                    'content': original_content,   # Another common alias
                     **result  # Include all result fields for additional context
                 }
                 cleanup_request = format_string(cleanup_prompt_template, **format_kwargs)
@@ -184,8 +192,8 @@ class ResponseCleanerNode(ResultProcessor):
                 
                 # Create new result with cleaned response
                 cleaned_result = result.copy()
-                cleaned_result['response'] = cleaned_response.strip()
-                cleaned_result['original_response'] = original_response  # Keep original for reference
+                cleaned_result[source_field] = cleaned_response.strip()  # Update the source field
+                cleaned_result[f'original_{source_field}'] = original_content  # Keep original for reference
                 cleaned_results.append(cleaned_result)
             
             return {"results": cleaned_results}
