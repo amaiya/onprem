@@ -327,7 +327,24 @@ else:
                 'inputs': {'results': 'List[Dict]'},
                 'outputs': {'result': 'Dict'},
                 'config_fields': {
-                    'prompt': {'type': 'textarea', 'required': True, 'help': 'Aggregation prompt template'}
+                    'prompt': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'Prompt to combine all previous results into a single summary. Use {responses} for all the individual results.',
+                        'default': '''You are analyzing multiple document analysis results. Please create a comprehensive summary that combines all the insights.
+
+Individual Results:
+{responses}
+
+Please provide a consolidated analysis including:
+1. **Overall Themes**: What are the main topics across all documents?
+2. **Key Findings**: What are the most important insights or patterns?
+3. **Common Elements**: What appears frequently across the results?
+4. **Summary Statistics**: How many documents, main categories, etc.
+5. **Conclusions**: What can we conclude from this collection of documents?
+
+Format as a well-structured summary report.'''
+                    }
                 }
             },
             'PythonAggregatorNode': {
