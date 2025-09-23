@@ -398,7 +398,7 @@ class AggregatorNode(AggregatorProcessor):
                 'aggregated_response': aggregated_response,
                 'source_count': len(results),
                 'aggregation_method': 'llm_prompt',
-                'original_results': results  # Keep reference to source data
+                #'original_results': results  # Keep reference to source data
             }
             
             return {"result": aggregated_result}

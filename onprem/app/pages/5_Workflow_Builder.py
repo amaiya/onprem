@@ -821,6 +821,12 @@ def display_workflow_results(results):
                 elif isinstance(first_item, str):
                     exportable_data = [{'result': item, 'index': i+1} for i, item in enumerate(output_value)]
                     break
+            
+            # Handle single dictionary result (from aggregator nodes)
+            elif isinstance(output_value, dict) and output_value:
+                # Convert single dict to single-row table format
+                exportable_data = [output_value]
+                break
     
     # Handle direct list structure
     elif isinstance(last_node_results, list) and last_node_results:
@@ -849,6 +855,16 @@ def display_workflow_results(results):
         # Check if it's a list of strings - convert to List[Dict]
         elif isinstance(first_item, str):
             exportable_data = [{'result': item, 'index': i+1} for i, item in enumerate(last_node_results)]
+    
+    # Handle single dictionary result (aggregator node output)
+    elif isinstance(last_node_results, dict) and last_node_results:
+        # Check if it's a nested structure with output ports
+        if any(k in ['result', 'results', 'documents', 'status'] for k in last_node_results.keys()):
+            # This looks like it has output ports - already handled above
+            pass
+        else:
+            # This is a direct dict result, convert to single-row table
+            exportable_data = [last_node_results]
     
     if exportable_data:
         st.subheader("Workflow Results")
