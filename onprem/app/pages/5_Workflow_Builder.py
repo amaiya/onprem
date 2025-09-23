@@ -220,7 +220,20 @@ doc.page_content = content'''
                 'inputs': {'results': 'List[Dict]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
-                    'cleanup_prompt': {'type': 'textarea', 'required': True, 'help': 'Cleanup prompt template'}
+                    'cleanup_prompt': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'Prompt to clean/refine previous LLM responses. Use {response} for the original response text.',
+                        'default': '''Clean up and standardize this response by:
+1. Removing any unnecessary formatting or markdown
+2. Correcting grammar and spelling errors  
+3. Making the language more concise and professional
+4. Ensuring consistent formatting
+
+Original response: {response}
+
+Provide the cleaned version:'''
+                    }
                 }
             },
             'DocumentToResults': {
