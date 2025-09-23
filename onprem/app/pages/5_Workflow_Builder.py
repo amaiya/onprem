@@ -464,12 +464,9 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
     st.subheader(f"{node_type} Configuration")
     st.write(f"**{node_id}**: {node_data['description']}")
     
-    # Add LLM config for processor nodes
+    # LLM nodes automatically use the web app's configured LLM
     if node_type in ['PromptProcessor', 'SummaryProcessor', 'ResponseCleaner', 'AggregatorNode']:
-        st.write("**LLM Configuration**")
-        model_url = st.text_input("Model URL", value="openai://gpt-4o-mini", key=f"{node_id}_model_url",
-                                help="LLM model URL (e.g., openai://gpt-4o, anthropic://claude-3-sonnet)")
-        config['llm'] = {'model_url': model_url}
+        st.info("💡 This node will automatically use the same LLM configured for the web app.")
     
     # Add vector store path for query nodes
     if node_type.startswith('Query'):
