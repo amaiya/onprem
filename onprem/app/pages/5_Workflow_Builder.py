@@ -1056,13 +1056,14 @@ def main():
                     'data': all_nodes['Processors']['PromptProcessor'],
                     'config': {'prompt': 'Analyze this document and extract key themes:\n\n{content}'}
                 },
-                {
-                    'id': 'export_results',
-                    'type': 'CSVExporter',
-                    'category': 'Exporters',
-                    'data': all_nodes['Exporters']['CSVExporter'],
-                    'config': {'output_path': 'document_analysis.csv'}
-                }
+                # comment out as export nodes are not currently needed in Web UI
+                #{
+                    #'id': 'export_results',
+                    #'type': 'CSVExporter',
+                    #'category': 'Exporters',
+                    #'data': all_nodes['Exporters']['CSVExporter'],
+                    #'config': {'output_path': 'document_analysis.csv'}
+                #}
             ]
             st.session_state.node_counter = 4
             st.rerun()
@@ -1108,13 +1109,14 @@ def main():
                     'data': all_nodes['Aggregators']['AggregatorNode'],
                     'config': {'prompt': 'Combine these summaries into a comprehensive overview:\n\n{responses}'}
                 },
-                {
-                    'id': 'export_json',
-                    'type': 'JSONExporter',
-                    'category': 'Exporters',
-                    'data': all_nodes['Exporters']['JSONExporter'],
-                    'config': {'output_path': 'aggregated_summary.json'}
-                }
+                # comment out as export nodes are not currently needed in Web UI
+                #{
+                    #'id': 'export_json',
+                    #'type': 'JSONExporter',
+                    #'category': 'Exporters',
+                    #'data': all_nodes['Exporters']['JSONExporter'],
+                    #'config': {'output_path': 'aggregated_summary.json'}
+                #}
             ]
             st.session_state.node_counter = 5
             st.rerun()
