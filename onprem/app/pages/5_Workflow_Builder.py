@@ -198,7 +198,12 @@ doc.page_content = content'''
                 'inputs': {'documents': 'List[Document]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
-                    'prompt': {'type': 'textarea', 'required': True, 'help': 'LLM prompt template'},
+                    'prompt': {
+                        'type': 'textarea', 
+                        'required': True, 
+                        'help': 'LLM prompt template. Use {content} for document text.',
+                        'default': '''Provide a single short keyword or keyphrase that captures the topic of the following text: {content} '''
+                    },
                     'batch_size': {'type': 'number', 'default': 5, 'help': 'Documents per batch'}
                 }
             },
