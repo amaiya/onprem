@@ -358,7 +358,7 @@ Format as a well-structured summary report.'''
                     'code': {
                         'type': 'textarea', 
                         'required': True, 
-                        'help': 'Python aggregation code. Available variables: results (List[Dict]). Set aggregated_result dict.',
+                        'help': 'Python aggregation code. Available variables: results (List[Dict]). Set result dict.',
                         'default': '''# PythonAggregatorNode: Combine multiple results into single summary
 # Available variables: results (List[Dict])
 # Pre-available modules: re, json, math, datetime (no import needed)
@@ -369,7 +369,7 @@ Format as a well-structured summary report.'''
 #----------------
 
 # Create aggregated summary
-aggregated_result = {
+result = {
     'timestamp': datetime.datetime.now().isoformat(),
     'total_results': len(results),
     'total_length': sum(r.get('text_length', 0) for r in results),

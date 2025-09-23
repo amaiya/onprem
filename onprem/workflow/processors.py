@@ -121,6 +121,7 @@ class PromptProcessorNode(DocumentProcessor):
                 # Create result record
                 result = {
                     'document_id': i,
+                    'content': doc.page_content,
                     'source': doc.metadata.get('source', 'Unknown'),
                     'prompt': formatted_prompt,
                     'response': response,
@@ -225,6 +226,7 @@ class SummaryProcessorNode(DocumentProcessor):
                 result = {
                     'document_id': i,
                     'source': doc.metadata.get('source', 'Unknown'),
+                    'content' : doc.page_content,
                     'original_length': len(doc.page_content),
                     'response': summary,
                     'summary_length': len(summary),
