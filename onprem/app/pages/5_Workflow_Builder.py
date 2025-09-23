@@ -447,6 +447,41 @@ def get_available_nodes(current_workflow: List[Dict] = None):
                 
                 # Only include if this node type is valid for the current workflow state
                 if node_type in valid_node_types:
+                    # Additional port-level validation for processors
+                    if current_workflow and node_type == "Processor":
+                        last_node = current_workflow[-1]
+                        last_node_name = last_node['type']
+                        
+                        # Check port compatibility for processor connections
+                        if last_node_name in NODE_REGISTRY:
+                            last_node_class = NODE_REGISTRY[last_node_name]
+                            
+                            # Create temporary instances to get type information
+                            try:
+                                last_node_instance = last_node_class("temp_last", {})
+                                current_node_instance = node_class("temp_current", {})
+                                
+                                # Get output and input types using the actual methods
+                                last_outputs = last_node_instance.get_output_types()
+                                current_inputs = current_node_instance.get_input_types()
+                                
+                                # Check if any output from last node can connect to any input of current node
+                                compatible = False
+                                for output_port, output_type in last_outputs.items():
+                                    for input_port, input_type in current_inputs.items():
+                                        if output_type == input_type:
+                                            compatible = True
+                                            break
+                                    if compatible:
+                                        break
+                                
+                                # Skip this node if no compatible connection exists
+                                if not compatible:
+                                    continue
+                            except Exception:
+                                # If we can't create instances, skip validation and allow connection
+                                pass
+                    
                     filtered_category_nodes[node_name] = node_config
         
         # Only include category if it has any valid nodes
@@ -914,10 +949,10 @@ def main():
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    Build workflows visually using your existing vector store. All workflows start with a query node 
-    to search your documents, then apply processing, aggregation, and export steps.
+    Build document intelligence workflows visually. All workflows start with a query node 
+    to search your documents, then add processing and aggregation nodes to support your analysis.
     
-    💡 **Quick Start:** Add a Query node → Processor node → Exporter node for a complete workflow.
+    💡 **Quick Start:** Add a Query node → Processor node for a complete workflow.
     """)
     
     # Initialize session state
