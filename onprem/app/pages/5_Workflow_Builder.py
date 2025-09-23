@@ -237,7 +237,7 @@ Provide the cleaned version:'''
                 }
             },
             'DocumentToResults': {
-                'description': 'Directly convert documents to export-ready results (without AI analysis)',
+                'description': 'Directly convert documents to results for aggregation or export.',
                 'inputs': {'documents': 'List[Document]'},
                 'outputs': {'results': 'List[Dict]'},
                 'config_fields': {
@@ -952,7 +952,7 @@ def main():
     Build document intelligence workflows visually. All workflows start with a query node 
     to search your documents, then add processing and aggregation nodes to support your analysis.
     
-    💡 **Quick Start:** Add a Query node → Processor node for a complete workflow.
+    💡 **Quick Start:** Add a Query node → Processor node for a complete workflow. Results displayed at bottom of screen.
     """)
     
     # Initialize session state
