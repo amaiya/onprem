@@ -171,18 +171,19 @@ def get_all_node_definitions():
                         'help': 'Python code to transform documents. Available variables: doc, content, metadata, document_id, source',
                         'default': '''# PythonDocumentTransformer: Modify document content and metadata
 # Available variables: doc, content, metadata, document_id, source
+# Pre-available modules: re, json, math, datetime (no import needed)
 # Output: Modified doc object (transforms documents in place)
 
 #----------------
 # EXAMPLE
 #----------------
-# Clean up content
-import re
+# Clean up content using pre-available re module
 content = re.sub(r'\\s+', ' ', content).strip()
 
 # Add metadata
 metadata['word_count'] = len(content.split())
 metadata['doc_type'] = 'email' if '@' in content else 'general'
+metadata['processed_at'] = datetime.datetime.now().isoformat()
 
 # Update document content
 doc.page_content = content'''
@@ -238,16 +239,16 @@ doc.page_content = content'''
                         'help': 'Python code to process documents. Available variables: doc, content, metadata, document_id, source. Set result_dict for each document.',
                         'default': '''# PythonDocumentProcessor: Convert documents to structured results
 # Available variables: doc, content, metadata, document_id, source
+# Pre-available modules: re, json, math, datetime (no import needed)
 # Output: Set result_dict with extracted information
 
 #----------------
 # EXAMPLE
 #----------------
 
-import re
-
-# Extract information
+# Extract information using pre-available modules
 emails = re.findall(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', content)
+phone_numbers = re.findall(r'\\b\\d{3}-\\d{3}-\\d{4}\\b', content)
 
 # Set result dictionary for this document
 result_dict = {
@@ -255,6 +256,8 @@ result_dict = {
     'text_length': len(content),
     'word_count': len(content.split()),
     'has_email': len(emails) > 0,
+    'has_phone': len(phone_numbers) > 0,
+    'timestamp': datetime.datetime.now().isoformat(),
     'preview': content[:100] + '...' if len(content) > 100 else content
 }'''
                     }
@@ -271,26 +274,30 @@ result_dict = {
                         'help': 'Python code to process results. Available variables: result, result_id. Modify result dict in place or set new_result.',
                         'default': '''# PythonResultProcessor: Enhance and post-process results
 # Available variables: result (dict), result_id
+# Pre-available modules: re, json, math, datetime (no import needed)
 # Output: Modify result dict in place or set new_result
-
 
 #----------------
 # EXAMPLE
 #----------------
 
-import datetime
-import os
-
-# Add timestamp and metadata
+# Add timestamp and metadata  
 result['processed_at'] = datetime.datetime.now().isoformat()
 
 # Add confidence score based on text length
 if 'text_length' in result:
     result['confidence'] = 'high' if result['text_length'] > 1000 else 'low'
 
-# Extract filename from source
+# Extract filename from source using string operations
 if 'source' in result:
-    result['filename'] = os.path.basename(result['source'])'''
+    source_parts = result['source'].split('/')
+    result['filename'] = source_parts[-1] if source_parts else 'unknown'
+
+# Add category based on content analysis
+if 'has_email' in result and result['has_email']:
+    result['category'] = 'communication'
+else:
+    result['category'] = 'document' '''
                     }
                 }
             }
@@ -316,13 +323,12 @@ if 'source' in result:
                         'help': 'Python aggregation code. Available variables: results (List[Dict]). Set aggregated_result dict.',
                         'default': '''# PythonAggregatorNode: Combine multiple results into single summary
 # Available variables: results (List[Dict])
+# Pre-available modules: re, json, math, datetime (no import needed)
 # Output: Set aggregated_result dict
 
 #----------------
 # EXAMPLE
 #----------------
-
-import datetime
 
 # Create aggregated summary
 aggregated_result = {
@@ -330,7 +336,8 @@ aggregated_result = {
     'total_results': len(results),
     'total_length': sum(r.get('text_length', 0) for r in results),
     'sources': [r.get('source', 'Unknown') for r in results],
-    'high_confidence_count': sum(1 for r in results if r.get('confidence') == 'high')
+    'high_confidence_count': sum(1 for r in results if r.get('confidence') == 'high'),
+    'average_word_count': sum(r.get('word_count', 0) for r in results) / len(results) if results else 0
 }'''
                     }
                 }
