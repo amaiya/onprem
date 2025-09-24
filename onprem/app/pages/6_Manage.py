@@ -30,7 +30,19 @@ def main():
         st.info("To enable access, set 'show_manage: TRUE' in the configuration file.")
         return
     
-    st.header("Manage")
+    st.markdown("""
+    <h1 style="
+        color: #0068c9;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #0068c9;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    ">
+        <span style="font-size: 1.8rem; margin-right: 0.5rem;">⚙️</span> 
+        Manage
+    </h1>
+    """, unsafe_allow_html=True)
     
     # Create tabs for different settings with updated order
     tab1, tab3, tab2 = st.tabs(["Document Ingestion", "Folder Management", "Configuration"])
