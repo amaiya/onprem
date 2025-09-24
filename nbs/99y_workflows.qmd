@@ -89,6 +89,20 @@ python -m onprem.workflow yaml_examples/3_analyze_from_vectorstore.yaml
 python -m onprem.workflow <workflow.yaml>
 ```
 
+## Visual Workflow Builder
+
+The **OnPrem.LLM** web UI includes a *Visual Workflow Builder* that can generate and execute YAML-based workflows through a point-and-click interface with no coding required.
+
+<img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/onprem_workflow.png" border="0" alt="screenshot" width="775"/>
+
+See the [web UI documentation](https://amaiya.github.io/onprem/webapp.html) for more information.
+
+### Basic Execution
+```bash
+python -m onprem.workflow <workflow.yaml>
+```
+
+
 ### Available Options
 ```bash
 # Show help and examples
