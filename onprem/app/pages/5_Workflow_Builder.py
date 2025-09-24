@@ -136,7 +136,7 @@ def get_all_node_definitions():
                 'outputs': {'documents': 'List[Document]'},
                 'config_fields': {
                     'prefix': {'type': 'textarea', 'required': True, 'help': 'Text to prepend to each document'},
-                    'separator': {'type': 'text', 'default': '\n\n', 'help': 'Separator between prefix and content'}
+                    'separator': {'type': 'text', 'default': '\\n\\n', 'help': 'Separator between prefix and content (use \\n for newlines, \\t for tabs)'}
                 }
             },
             'ContentSuffix': {
@@ -145,7 +145,7 @@ def get_all_node_definitions():
                 'outputs': {'documents': 'List[Document]'},
                 'config_fields': {
                     'suffix': {'type': 'textarea', 'required': True, 'help': 'Text to append to each document'},
-                    'separator': {'type': 'text', 'default': '\n\n', 'help': 'Separator between content and suffix'}
+                    'separator': {'type': 'text', 'default': '\\n\\n', 'help': 'Separator between content and suffix (use \\n for newlines, \\t for tabs)'}
                 }
             },
             'DocumentFilter': {
@@ -545,7 +545,13 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
                 help=field_config.get('help', '')
             )
             if value or field_config.get('required'):
-                config[field_name] = value
+                # Process escape sequences for separator fields
+                if field_name == 'separator' and value:
+                    # Decode common escape sequences
+                    processed_value = value.replace('\\n', '\n').replace('\\t', '\t').replace('\\r', '\r')
+                    config[field_name] = processed_value
+                else:
+                    config[field_name] = value
                 
         elif field_config['type'] == 'textarea':
             value = st.text_area(
@@ -689,6 +695,8 @@ def get_output_port(node_type: str) -> str:
     """Get the primary output port for a node type"""
     if node_type.startswith('Query'):
         return 'documents'
+    elif node_type in ['AddMetadata', 'ContentPrefix', 'ContentSuffix', 'DocumentFilter', 'PythonDocumentTransformer']:
+        return 'documents'
     elif node_type in ['PromptProcessor', 'SummaryProcessor', 'ResponseCleaner', 'PythonDocumentProcessor', 'PythonResultProcessor', 'DocumentToResults']:
         return 'results'
     elif node_type in ['AggregatorNode', 'PythonAggregatorNode']:
@@ -698,7 +706,7 @@ def get_output_port(node_type: str) -> str:
 
 def get_input_port(node_type: str) -> str:
     """Get the primary input port for a node type"""
-    if node_type in ['PromptProcessor', 'SummaryProcessor', 'PythonDocumentProcessor', 'DocumentToResults']:
+    if node_type in ['PromptProcessor', 'SummaryProcessor', 'PythonDocumentProcessor', 'DocumentToResults', 'AddMetadata', 'ContentPrefix', 'ContentSuffix', 'DocumentFilter', 'PythonDocumentTransformer']:
         return 'documents'
     elif node_type in ['ResponseCleaner', 'PythonResultProcessor']:
         return 'results'
