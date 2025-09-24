@@ -1098,12 +1098,34 @@ def main():
             st.info("✅ Workflow is complete! No additional nodes can be added.")
             st.write("Exporter nodes are terminal - they cannot connect to other nodes.")
         else:
-            # Node selection
-            selected_category = st.selectbox("Node Category", list(available_nodes.keys()))
-            selected_node_type = st.selectbox(
-                "Node Type", 
-                list(available_nodes[selected_category].keys())
-            )
+            # Create consolidated node options with category prefixes
+            # Maintain specific ordering: Query → Document Transformers → Processors → Aggregators
+            category_order = ['Query', 'Document Transformers', 'Processors', 'Aggregators']
+            
+            consolidated_options = []
+            node_mapping = {}  # Map display name to (category, node_type)
+            
+            # Build options in the specified order
+            for category in category_order:
+                if category in available_nodes:
+                    for node_type, node_data in available_nodes[category].items():
+                        display_name = f"{category}: {node_type}"
+                        consolidated_options.append(display_name)
+                        node_mapping[display_name] = (category, node_type)
+            
+            # Add any remaining categories not in the specified order
+            for category in available_nodes.keys():
+                if category not in category_order:
+                    for node_type, node_data in available_nodes[category].items():
+                        display_name = f"{category}: {node_type}"
+                        consolidated_options.append(display_name)
+                        node_mapping[display_name] = (category, node_type)
+            
+            # Single node selection
+            selected_option = st.selectbox("Available Nodes", consolidated_options)
+            
+            # Get the actual category and node type
+            selected_category, selected_node_type = node_mapping[selected_option]
             
             # Show node description
             node_data = available_nodes[selected_category][selected_node_type]
@@ -1255,7 +1277,7 @@ def main():
                     'type': query_type,
                     'category': 'Query',
                     'data': all_nodes['Query'][query_type],
-                    'config': {'query': 'project report', 'limit': 5, 'search_type': 'semantic'}
+                    'config': {'query': '"generative AI"', 'limit': 5, 'search_type': 'semantic'}
                 },
                 {
                     'id': 'summarize',
