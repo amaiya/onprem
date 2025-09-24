@@ -175,7 +175,7 @@ class TestDocumentProcessing:
             },
             "prefix": {
                 "type": "ContentPrefix", 
-                "config": {"prefix": "[TEST]", "separator": " "}
+                "config": {"prefix": "[TEST]", "separator": "\n"}
             },
             "filter": {
                 "type": "DocumentFilter",
@@ -186,7 +186,7 @@ class TestDocumentProcessing:
         results = execute_workflow(workflow)
         doc = results["filter"]["documents"][0]
         assert doc.metadata["category"] == "test"
-        assert doc.page_content.startswith("[TEST] This is a test")
+        assert doc.page_content.startswith("[TEST]\nThis is a test")
         assert len(results["filter"]["documents"]) == 1  # Should pass filter
 
 
