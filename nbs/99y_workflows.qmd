@@ -10,14 +10,15 @@ Create orchestrated document-processing pipelines using simple YAML configuratio
 
 1. [Quick Start - Three Core Examples](#quick-start---three-core-examples)
 2. [Command-Line Usage](#command-line-usage)
-3. [Workflow Structure](#workflow-structure)
-4. [Port Types and Data Flow](#port-types-and-data-flow)
-5. [Node Types Reference](#node-types-reference)
-6. [Configuration Options](#configuration-options)
-7. [Advanced Examples](#advanced-examples)
-8. [Validation and Error Handling](#validation-and-error-handling)
-9. [Best Practices](#best-practices)
-10. [Troubleshooting](#troubleshooting)
+3. [Visual Workflow Builder](##visual-workflow-builder)
+4. [Workflow Structure](#workflow-structure)
+5. [Port Types and Data Flow](#port-types-and-data-flow)
+6. [Node Types Reference](#node-types-reference)
+7. [Configuration Options](#configuration-options)
+8. [Advanced Examples](#advanced-examples)
+9. [Validation and Error Handling](#validation-and-error-handling)
+10. [Best Practices](#best-practices)
+11. [Troubleshooting](#troubleshooting)
 
 ## Quick Start - Three Core Examples
 
