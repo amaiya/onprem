@@ -495,9 +495,10 @@ def get_available_nodes(current_workflow: List[Dict] = None):
     
     return filtered_categories
 
-def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
+def render_node_config(node_type: str, node_data: Dict, node_id: str, existing_config: Dict = None) -> Dict:
     """Render configuration UI for a node and return config"""
     config = {}
+    existing_config = existing_config or {}
     
     st.subheader(f"{node_type} Configuration")
     st.write(f"**{node_id}**: {node_data['description']}")
@@ -538,9 +539,11 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
             continue
             
         if field_config['type'] == 'text':
+            # Use existing config value if available, otherwise use field default
+            default_value = existing_config.get(field_name, field_config.get('default', ''))
             value = st.text_input(
                 field_name.replace('_', ' ').title(),
-                value=field_config.get('default', ''),
+                value=default_value,
                 key=key,
                 help=field_config.get('help', '')
             )
@@ -554,9 +557,11 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
                     config[field_name] = value
                 
         elif field_config['type'] == 'textarea':
+            # Use existing config value if available, otherwise use field default
+            default_value = existing_config.get(field_name, field_config.get('default', ''))
             value = st.text_area(
                 field_name.replace('_', ' ').title(),
-                value=field_config.get('default', ''),
+                value=default_value,
                 height=150,
                 key=key,
                 help=field_config.get('help', '')
@@ -567,19 +572,23 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
         elif field_config['type'] == 'number':
             # Special handling for weights (0.0-1.0 range)
             if 'weight' in field_name:
+                # Use existing config value if available, otherwise use field default
+                default_value = existing_config.get(field_name, field_config.get('default', 0.5))
                 value = st.slider(
                     field_name.replace('_', ' ').title(),
                     min_value=0.0,
                     max_value=1.0,
-                    value=field_config.get('default', 0.5),
+                    value=float(default_value),
                     step=0.1,
                     key=key,
                     help=field_config.get('help', '')
                 )
             else:
+                # Use existing config value if available, otherwise use field default
+                default_value = existing_config.get(field_name, field_config.get('default', 1))
                 value = st.number_input(
                     field_name.replace('_', ' ').title(),
-                    value=field_config.get('default', 1),
+                    value=int(default_value),
                     min_value=1,
                     key=key,
                     help=field_config.get('help', '')
@@ -587,19 +596,30 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
             config[field_name] = value
             
         elif field_config['type'] == 'checkbox':
+            # Use existing config value if available, otherwise use field default
+            default_value = existing_config.get(field_name, field_config.get('default', False))
             value = st.checkbox(
                 field_name.replace('_', ' ').title(),
-                value=field_config.get('default', False),
+                value=bool(default_value),
                 key=key,
                 help=field_config.get('help', '')
             )
             config[field_name] = value
             
         elif field_config['type'] == 'select':
+            # Use existing config value if available, otherwise use field default
+            default_value = existing_config.get(field_name, field_config.get('default', field_config['options'][0]))
+            try:
+                default_index = field_config['options'].index(default_value)
+            except ValueError:
+                # If existing value is not in options, fall back to field default
+                default_value = field_config.get('default', field_config['options'][0])
+                default_index = field_config['options'].index(default_value)
+            
             value = st.selectbox(
                 field_name.replace('_', ' ').title(),
                 options=field_config['options'],
-                index=field_config['options'].index(field_config.get('default', field_config['options'][0])),
+                index=default_index,
                 key=key,
                 help=field_config.get('help', '')
             )
@@ -608,11 +628,23 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
         elif field_config['type'] == 'json':
             import json
             placeholder_text = field_config.get('help', 'Enter JSON object')
-            default_text = field_config.get('default', '{}')
+            
+            # Use existing config value if available, otherwise use field default
+            if field_name in existing_config:
+                # If we have existing config, use it (may be dict or string)
+                existing_value = existing_config[field_name]
+                if isinstance(existing_value, dict):
+                    default_text = json.dumps(existing_value, indent=2)
+                else:
+                    default_text = str(existing_value)
+            else:
+                # Fall back to field default
+                field_default = field_config.get('default', '{}')
+                default_text = field_default if isinstance(field_default, str) else json.dumps(field_default, indent=2)
             
             value = st.text_area(
                 field_name.replace('_', ' ').title(),
-                value=default_text if isinstance(default_text, str) else json.dumps(default_text, indent=2),
+                value=default_text,
                 height=100,
                 key=key,
                 help=placeholder_text,
@@ -635,6 +667,69 @@ def render_node_config(node_type: str, node_data: Dict, node_id: str) -> Dict:
                 st.error(f"{field_name} is required")
     
     return config
+
+def load_workflow_from_yaml(yaml_content: str) -> List[Dict]:
+    """Parse YAML workflow and convert to workflow nodes format"""
+    try:
+        workflow_dict = yaml.safe_load(yaml_content)
+        
+        if not isinstance(workflow_dict, dict) or 'nodes' not in workflow_dict:
+            raise ValueError("Invalid workflow format: missing 'nodes' section")
+        
+        workflow_nodes = []
+        all_nodes = get_all_node_definitions()
+        
+        # Convert YAML nodes to workflow_nodes format
+        for node_id, node_config in workflow_dict['nodes'].items():
+            if 'type' not in node_config:
+                raise ValueError(f"Node '{node_id}' missing 'type' field")
+            
+            node_type = node_config['type']
+            
+            # Find the node in our definitions
+            found_node = None
+            found_category = None
+            
+            for category_name, category_nodes in all_nodes.items():
+                if node_type in category_nodes:
+                    found_node = category_nodes[node_type]
+                    found_category = category_name
+                    break
+            
+            if not found_node:
+                raise ValueError(f"Unknown node type: {node_type}")
+            
+            # Extract config
+            config = node_config.get('config', {})
+            
+            # Special handling for QueryDualStore weights (convert back to individual fields)
+            if node_type == 'QueryDualStore' and 'weights' in config:
+                weights = config['weights']
+                if isinstance(weights, list) and len(weights) >= 2:
+                    config['dense_weight'] = weights[0]
+                    config['sparse_weight'] = weights[1]
+                config.pop('weights', None)
+            
+            # Special handling for DocumentFilter (convert lists back to comma-separated strings)
+            if node_type == 'DocumentFilter':
+                for field_name in ['content_contains', 'content_excludes']:
+                    if field_name in config and isinstance(config[field_name], list):
+                        config[field_name] = ', '.join(config[field_name])
+            
+            workflow_nodes.append({
+                'id': node_id,
+                'type': node_type,
+                'category': found_category,
+                'data': found_node,
+                'config': config
+            })
+        
+        return workflow_nodes
+        
+    except yaml.YAMLError as e:
+        raise ValueError(f"Invalid YAML format: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Error parsing workflow: {str(e)}")
 
 def generate_workflow_yaml(workflow_nodes: List[Dict]) -> str:
     """Generate YAML workflow from node configuration"""
@@ -1045,6 +1140,50 @@ def main():
         # Quick templates
         st.subheader("📋 Quick Templates")
         
+        # Import workflow in a collapsible expander
+        with st.expander("📥 Import YAML Workflow"):
+            uploaded_file = st.file_uploader(
+                "Upload YAML Workflow",
+                type=['yaml', 'yml'],
+                help="Upload a YAML workflow file to load it into the builder",
+                key="yaml_uploader"
+            )
+            
+            if uploaded_file is not None:
+                try:
+                    # Read the uploaded file
+                    yaml_content = uploaded_file.read().decode('utf-8')
+                    
+                    # Show preview
+                    st.text("📄 YAML Preview:")
+                    st.code(yaml_content, language='yaml', height=200)
+                    
+                    # Import button
+                    if st.button("🔄 Import Workflow", type="primary"):
+                        try:
+                            # Parse and load the workflow
+                            imported_nodes = load_workflow_from_yaml(yaml_content)
+                            
+                            # Clear any existing node configuration from session state to avoid conflicts
+                            keys_to_remove = [k for k in st.session_state.keys() if k.startswith('node_') and '_' in k[5:]]
+                            for key in keys_to_remove:
+                                del st.session_state[key]
+                            
+                            # Update session state
+                            st.session_state.workflow_nodes = imported_nodes
+                            st.session_state.node_counter = len(imported_nodes) + 1
+                            
+                            st.success(f"✅ Successfully imported workflow with {len(imported_nodes)} nodes!")
+                            st.rerun()
+                            
+                        except ValueError as e:
+                            st.error(f"❌ Import failed: {str(e)}")
+                        except Exception as e:
+                            st.error(f"❌ Unexpected error: {str(e)}")
+                            
+                except UnicodeDecodeError:
+                    st.error("❌ Error reading file. Please ensure it's a valid text file.")
+        
         if st.button("🚀 Document Analysis Template"):
             # Get complete node definitions for template
             all_nodes = get_all_node_definitions()
@@ -1185,7 +1324,7 @@ def main():
             for i, (tab, node) in enumerate(zip(tabs, st.session_state.workflow_nodes)):
                 with tab:
                     # Node configuration
-                    config = render_node_config(node['type'], node['data'], node['id'])
+                    config = render_node_config(node['type'], node['data'], node['id'], node.get('config', {}))
                     st.session_state.workflow_nodes[i]['config'] = config
                     
                     # Remove node button
