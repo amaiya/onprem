@@ -127,8 +127,8 @@ def main():
     
     1. **Use Prompts to Solve Problems**: Submit prompts directly to the LLM model
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
-    3. **Document Analysis**: Apply custom prompts to document chunks and export results
-    4. **Search Documents**: Search through your indexed documents using keywords or semantic search
+    3. **Search Documents**: Search through your indexed documents using keywords or semantic search
+    4. **Document Analysis**: Apply custom prompts to document chunks and export results
     5. **Workflow Builder**: Create complex multi-step document processing workflows visually
     6. **Manage**: Upload documents, manage folders, and configure the application settings
     
