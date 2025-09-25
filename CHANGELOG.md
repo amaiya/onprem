@@ -11,6 +11,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### new:
 - Support for workflows
+- Added *Visual Workflow Builder* to web UI
 
 ### changed
 - N/A

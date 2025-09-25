@@ -1,5 +1,6 @@
 ---
 title: "Buildling Workflows"
+slug: workflows
 ---
 
 # OnPrem Workflow Engine

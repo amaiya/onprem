@@ -298,6 +298,10 @@ def main():
                                             value=1000,
                                             help="Number of documents to process in each batch")
                 
+                # Option to infer table structure
+                infer_table_structure = st.checkbox("Infer table structure from documents", value=False,
+                                                  help="If checked, attempts to detect and preserve table structures when processing documents")
+                
                 # Option to clear existing documents
                 clear_existing = st.checkbox("Clear existing documents before ingestion", value=False, 
                                              help="If checked, all existing documents in the target directory will be removed before extracting new ones")
@@ -658,7 +662,8 @@ def main():
                                         documents=documents,
                                         chunk_size=chunk_size,
                                         chunk_overlap=chunk_overlap,
-                                        preserve_paragraphs=preserve_paragraphs
+                                        preserve_paragraphs=preserve_paragraphs,
+                                        infer_table_structure=infer_table_structure
                                     )
                                     
                                     st.text(f"Created {len(chunked_documents)} document chunks")
@@ -742,7 +747,8 @@ def main():
                                 "chunk_size": chunk_size,
                                 "chunk_overlap": chunk_overlap,
                                 "batch_size": batch_size,
-                                "preserve_paragraphs": preserve_paragraphs
+                                "preserve_paragraphs": preserve_paragraphs,
+                                "infer_table_structure": infer_table_structure
                             }
                             # Add n_proc=1 on Windows to avoid multiprocessing stalls
                             if os.name == 'nt':  # Windows
