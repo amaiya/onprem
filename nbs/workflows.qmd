@@ -3,7 +3,7 @@ title: "Buildling Workflows"
 slug: workflows
 ---
 
-# OnPrem Workflow Engine
+# OnPrem.LLM Workflow Engine
 
 Create orchestrated document-processing pipelines using simple YAML configuration files. Instead of writing code, you design workflows by connecting and chaining together different types of nodes. Allows you to solve problems by assembling pre-designed building blocks.
 
@@ -43,7 +43,7 @@ python -m onprem.workflow yaml_examples/1_direct_analysis.yaml
 - Exports both detailed themes (CSV) and summary analysis (JSON)
 
 **Requirements**: 
-- Set `OPENAI_API_KEY` environment variable
+- Set `OPENAI_API_KEY` environment variable, as example uses GPT-4o-mini. Local LLMs can be used as well.
 - Internet connection for document download
 
 
@@ -81,7 +81,7 @@ python -m onprem.workflow yaml_examples/3_analyze_from_vectorstore.yaml
 
 **Requirements**: 
 - Run example 2 first to create `document_vectors/`
-- Set `OPENAI_API_KEY` environment variable
+- Set `OPENAI_API_KEY` environment variable, as GPT-4o-mini is used. Local LLMs can be used as well.
 
 
 ## Command-Line Usage
