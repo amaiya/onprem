@@ -14,7 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added *Visual Workflow Builder* to web UI
 
 ### changed
-- N/A
+- Added `keep_full_documents` and `max_words` parameters to `load_single_document` (#220)
 
 ### fixed:
 - Resolved issue with `source` in Document objects being empty when `pdf_markdown=True`.

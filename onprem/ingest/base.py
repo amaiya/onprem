@@ -204,6 +204,86 @@ def _apply_file_callables(file_path:str, file_callables:dict):
         results[k] = v(file_path)
     return results
 
+
+def _concatenate_document_pages(documents: List[Document]) -> List[Document]:
+    """Concatenate multi-page documents from the same source."""
+    if not documents:
+        return documents
+    
+    # Group documents by source file and concatenate pages
+    source_groups = {}
+    
+    for doc in documents:
+        source = doc.metadata.get('source', 'unknown')
+        if source not in source_groups:
+            source_groups[source] = []
+        source_groups[source].append(doc)
+    
+    concatenated_docs = []
+    
+    for source, doc_pages in source_groups.items():
+        if len(doc_pages) == 1:
+            # Single page document - keep as is
+            concatenated_docs.append(doc_pages[0])
+        else:
+            # Multi-page document - concatenate
+            # Sort by page number if available
+            doc_pages.sort(key=lambda x: x.metadata.get('page', 0))
+            
+            # Combine content with page breaks
+            combined_content = '\n\n--- PAGE BREAK ---\n\n'.join(
+                doc.page_content for doc in doc_pages
+            )
+            
+            # Create new document with combined metadata
+            combined_metadata = doc_pages[0].metadata.copy()
+            combined_metadata['page'] = -1  # Indicate full document
+            combined_metadata['page_count'] = len(doc_pages)
+            combined_metadata['concatenated'] = True
+            
+            # Include page range if available
+            pages = [doc.metadata.get('page', 0) for doc in doc_pages if doc.metadata.get('page', 0) > 0]
+            if pages:
+                combined_metadata['page_range'] = f"{min(pages)}-{max(pages)}"
+            
+            combined_doc = Document(
+                page_content=combined_content,
+                metadata=combined_metadata
+            )
+            concatenated_docs.append(combined_doc)
+    
+    return concatenated_docs
+
+
+def _truncate_documents(documents: List[Document], max_words: int) -> List[Document]:
+    """Truncate documents to maximum number of words."""
+    truncated_docs = []
+    
+    for doc in documents:
+        content = doc.page_content
+        words = content.split()
+        
+        if len(words) > max_words:
+            # Truncate to max_words
+            truncated_content = ' '.join(words[:max_words])
+            
+            # Create new document with truncated content
+            new_metadata = doc.metadata.copy()
+            new_metadata['original_word_count'] = len(words)
+            new_metadata['truncated'] = True
+            new_metadata['truncated_word_count'] = max_words
+            
+            truncated_doc = Document(
+                page_content=truncated_content,
+                metadata=new_metadata
+            )
+            truncated_docs.append(truncated_doc)
+        else:
+            # Document is already under the limit
+            truncated_docs.append(doc)
+    
+    return truncated_docs
+
     
 def load_single_document(file_path: str, # path to file
                          pdf_unstructured:bool=False, # use unstructured for PDF extraction if True (will also OCR if necessary)
@@ -211,6 +291,8 @@ def load_single_document(file_path: str, # path to file
                          store_md5:bool=False, # Extract and store MD5 of document in metadata
                          store_mimetype:bool=False, # Guess and store mime type of document in metadata
                          store_file_dates:bool=False, # Extract snd store file dates in metadata
+                         keep_full_document:bool=False, # If True, concatenate multi-page documents into single documents and disable chunking
+                         max_words:Optional[int]=None, # If provided, truncate document content to first N words (applied after concatenation)
                          file_callables:Optional[dict]=None, # optional dict with  keys and functions called with filepath as argument. Results stored as metadata.
                          text_callables:Optional[dict]=None, # optional dict with  keys and functions called with file text as argument. Results stored as metadata.
                          **kwargs,
@@ -218,12 +300,16 @@ def load_single_document(file_path: str, # path to file
     """
     Extract text from a single document. Will attempt to OCR PDFs, if necessary.
 
-
     Note that extra kwargs can be supplied to configure the behavior of PDF loaders.
     For instance, supplying `infer_table_structure` will cause `load_single_document` to try and
     infer and extract tables from PDFs. When `pdf_unstructured=True` and `infer_table_structure=True`,
     tables are represented as HTML within the main body of extracted text. In all other cases, inferred tables
     are represented as Markdown and appended to the end of the extracted text when `infer_table_structure=True`.
+    
+    The `keep_full_document` option will combine multi-page documents into single documents with page breaks
+    and disable chunking downstream. The `max_words` option will truncate documents to the specified number 
+    of words (applied after concatenation). When truncation occurs, metadata is updated to include original 
+    word count and truncation information.
     """
     if pdf_unstructured and pdf_markdown:
         raise ValueError('pdf_unstructured and pdf_markdown cannot both be True.')
@@ -280,7 +366,21 @@ def load_single_document(file_path: str, # path to file
                 docs = loader.load()
                 file_metadata.update(_apply_text_callables(docs, text_callables))                
                 docs = _update_metadata(docs, file_metadata)
+            # Apply concatenation and truncation if requested
+            if keep_full_document and docs:
+                docs = _concatenate_document_pages(docs)
+            
+            if max_words and max_words > 0 and docs:
+                docs = _truncate_documents(docs, max_words)
+            
             extra_keys = list(file_metadata.keys() | text_callables.keys())
+            
+            # Add concatenation and truncation metadata keys to extra_keys if they were used
+            if keep_full_document:
+                extra_keys.extend(['concatenated', 'page_count', 'page_range'])
+            if max_words and max_words > 0:
+                extra_keys.extend(['truncated', 'truncated_word_count', 'original_word_count'])
+            
             return helpers.set_metadata_defaults(docs, extra_keys=extra_keys)
         except Exception as e:
             logger.warning(f'\nSkipping {file_path} due to error: {str(e)}')
@@ -421,6 +521,7 @@ def chunk_documents(
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
     infer_table_structure:bool = False, # This should be set to True if `documents` may contain contain tables (i.e., `doc.metadata['table']=True`).
     preserve_paragraphs:bool=False, # If True, strictly chunk by paragraph and only split if paragraph exceeds `chunk_size`. If False, small paragraphs will be accumulated into a single chunk until `chunk_size` is exceeded.
+    keep_full_document:bool=False, # If True, skip chunking and return documents as-is
     **kwargs
 
 
@@ -428,10 +529,21 @@ def chunk_documents(
     """
     Process list of Documents or text strings by splitting into chunks.
     If text strings are provided, they will be converted to Document objects internally.
+    If keep_full_document=True, documents are returned as-is without chunking.
     """
     # Convert text strings to Documents if needed
     if documents and isinstance(documents[0], str):
         documents = [Document(page_content=text, metadata={}) for text in documents]
+    
+    # If keep_full_document is True, skip chunking entirely
+    if keep_full_document:
+        # Still attach document title to each document if requested
+        if kwargs.get('extract_document_titles', False):
+            for doc in documents:
+                if doc.metadata.get('document_title', ''):
+                    doc.page_content = f'The content below is from a document titled, \"{doc.metadata["document_title"]}\"\n\n{doc.page_content}'
+        return documents
+    
     # remove tables before chunking
     if infer_table_structure and not kwargs.get('pdf_unstructured', False):
         tables = [d for d in documents if d.metadata.get('table', False)]

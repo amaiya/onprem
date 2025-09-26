@@ -480,6 +480,50 @@ def test_loading(**kwargs):
     docs = process_folder(sotu_folder, strict_paragraph_preservation=True)
     assert(len(list(docs)) == 91)
 
+    # test keep_full_document functionality
+    # Test with multi-page PDF
+    docs_normal = load_single_document(fpath)
+    docs_full = load_single_document(fpath, keep_full_document=True)
+    
+    # Normal loading should have multiple pages/documents
+    assert len(docs_normal) > 1, f"Expected multiple documents, got {len(docs_normal)}"
+    
+    # keep_full_document should concatenate into single document
+    assert len(docs_full) == 1, f"Expected single document, got {len(docs_full)}"
+    
+    # The concatenated document should contain page break markers
+    assert "--- PAGE BREAK ---" in docs_full[0].page_content, "Expected page break markers in concatenated document"
+    
+    # Metadata should indicate concatenation
+    assert docs_full[0].metadata.get('concatenated') == True, "Expected concatenated metadata flag"
+    assert docs_full[0].metadata.get('page_count') == len(docs_normal), f"Expected page_count to match original document count"
+    assert docs_full[0].metadata.get('page') == -1, "Expected page=-1 for concatenated document"
+    
+    # Test with max_words truncation
+    docs_truncated = load_single_document(fpath, keep_full_document=True, max_words=100)
+    assert len(docs_truncated) == 1, "Expected single document with truncation"
+    
+    # Check word count
+    word_count = len(docs_truncated[0].page_content.split())
+    assert word_count <= 100, f"Expected <= 100 words, got {word_count}"
+    
+    # Metadata should indicate truncation
+    assert docs_truncated[0].metadata.get('truncated') == True, "Expected truncated metadata flag"
+    assert docs_truncated[0].metadata.get('truncated_word_count') == 100, "Expected truncated_word_count=100"
+    assert 'original_word_count' in docs_truncated[0].metadata, "Expected original_word_count in metadata"
+    
+    # Test that chunking is disabled with keep_full_document
+    from onprem.ingest.base import chunk_documents
+    
+    # Regular chunking should split documents
+    chunked_normal = chunk_documents(docs_normal, chunk_size=500, chunk_overlap=50)
+    assert len(chunked_normal) > len(docs_normal), "Expected chunking to create more pieces"
+    
+    # keep_full_document should skip chunking entirely
+    chunked_full = chunk_documents(docs_full, chunk_size=500, chunk_overlap=50, keep_full_document=True)
+    assert len(chunked_full) == 1, "Expected keep_full_document to skip chunking"
+    assert chunked_full[0].page_content == docs_full[0].page_content, "Document content should be unchanged"
+
 
 def test_pdftables(**kwargs):
     """
