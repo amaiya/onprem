@@ -65,7 +65,7 @@ def get_all_node_definitions():
             'inputs': {},
             'outputs': {'documents': 'List[Document]'},
             'config_fields': {
-                'query': {'type': 'text', 'required': True, 'help': 'Search query'},
+                'query': {'type': 'text', 'required': True, 'help': 'Search query. To search documents in specific folder, choose "sparse" as search type (if availabe) with query: source:"/my/folder*"'},
                 'limit': {'type': 'number', 'default': 10, 'help': 'Maximum results'},
                 'search_type': {'type': 'select', 'options': ['sparse', 'semantic', 'hybrid'], 'default': 'sparse'},
                 'dense_weight': {'type': 'number', 'default': 0.6, 'help': 'Weight for semantic search (0.0-1.0)', 'conditional': 'search_type', 'show_when': 'hybrid'},
