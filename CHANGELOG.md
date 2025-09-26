@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.19.0 (TBD)
+## 0.19.0 (2025-09-25)
 
 ### new:
 - Support for workflows
