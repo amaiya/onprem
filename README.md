@@ -1253,15 +1253,15 @@ examples, including:
 
 ## How to Cite
 
-Please cite the [following paper](https://arxiv.org/abs/2505.07672) when
+Please cite the [following paper](https://arxiv.org/abs/2509.21040) when
 using **OnPrem.LLM**:
 
-    @article{maiya2025onprem,
-          title={OnPrem.LLM: A Privacy-Conscious Document Intelligence Toolkit}, 
+    @article{maiya2025generativeaiffrdcs,
+          title={Generative AI for FFRDCs}, 
           author={Arun S. Maiya},
           year={2025},
-          eprint={2505.07672},
+          eprint={2509.21040},
           archivePrefix={arXiv},
           primaryClass={cs.CL},
-          url={https://arxiv.org/abs/2505.07672}, 
+          url={https://arxiv.org/abs/2509.21040}, 
     }
