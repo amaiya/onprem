@@ -81,41 +81,48 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 </p>
 </center>
 
-*Latest News* 🔥 - \[2025/09\] v0.19.0 released and now includes support
-for **workflows**: YAML-configured pipelines for complex document
-analyses. See [the workflow
-documentation](https://amaiya.github.io/onprem/workflows.html) for more
-information. - \[2025/08\] v0.18.0 released and can now be used with AWS
-GovCloud LLMs. See [this
-example](https://amaiya.github.io/onprem/llm.backends.html#examples) for
-more information. - \[2025/07\] v0.17.0 released and now allows you to
-connect directly to SharePoint for search and RAG. See the [example
-notebook on vector
-stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html#rag-with-sharepoint-documents)
-for more information. - \[2025/07\] v0.16.0 released and now includes
-out-of-the-box support for **Elasticsearch** as a vector store for RAG
-and semantic search in addition to other vector store backends. See the
-[example notebook on vector
-stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
-for more information. - \[2025/06\] v0.15.0 released and now includes
-support for solving tasks with **agents**. See the [example notebook on
-agents](https://amaiya.github.io/onprem/examples_agent.html) for more
-information. - \[2025/05\] v0.14.0 released and now includes a
-point-and-click interface for **Document Analysis**: applying prompts to
-individual passages in uploaded documents. See the [Web UI
-documentation](https://amaiya.github.io/onprem/webapp.html) for more
-information. - \[2025/04\] v0.13.0 released and now includes streamlined
-support for Ollama and many cloud LLMs via special URLs (e.g.,
-`model_url="ollama://llama3.2"`,
-`model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
-sheet](https://amaiya.github.io/onprem/#how-to-use) for examples.
-(**Note: Please use `onprem>=0.13.1` due to bug in v0.13.0.**) -
-\[2025/04\] v0.12.0 released and now includes a re-vamped and improved
-Web UI with support for interactive chatting, document
-question-answering (RAG), and document search (both keyword searches and
-semantic searches). See the [Web UI
-documentation](https://amaiya.github.io/onprem/webapp.html) for more
-information.
+*Latest News* 🔥
+
+- \[2025/09\] v0.19.0 released and now includes support for
+  **workflows**: YAML-configured pipelines for complex document
+  analyses. See [the workflow
+  documentation](https://amaiya.github.io/onprem/workflows.html) for
+  more information.
+- \[2025/08\] v0.18.0 released and can now be used with AWS GovCloud
+  LLMs. See [this
+  example](https://amaiya.github.io/onprem/llm.backends.html#examples)
+  for more information.
+- \[2025/07\] v0.17.0 released and now allows you to connect directly to
+  SharePoint for search and RAG. See the [example notebook on vector
+  stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html#rag-with-sharepoint-documents)
+  for more information.
+- \[2025/07\] v0.16.0 released and now includes out-of-the-box support
+  for **Elasticsearch** as a vector store for RAG and semantic search in
+  addition to other vector store backends. See the [example notebook on
+  vector
+  stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
+  for more information.
+- \[2025/06\] v0.15.0 released and now includes support for solving
+  tasks with **agents**. See the [example notebook on
+  agents](https://amaiya.github.io/onprem/examples_agent.html) for more
+  information.
+- \[2025/05\] v0.14.0 released and now includes a point-and-click
+  interface for **Document Analysis**: applying prompts to individual
+  passages in uploaded documents. See the [Web UI
+  documentation](https://amaiya.github.io/onprem/webapp.html) for more
+  information.
+- \[2025/04\] v0.13.0 released and now includes streamlined support for
+  Ollama and many cloud LLMs via special URLs (e.g.,
+  `model_url="ollama://llama3.2"`,
+  `model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
+  sheet](https://amaiya.github.io/onprem/#how-to-use) for examples.
+  (**Note: Please use `onprem>=0.13.1` due to bug in v0.13.0.**)
+- \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
+  Web UI with support for interactive chatting, document
+  question-answering (RAG), and document search (both keyword searches
+  and semantic searches). See the [Web UI
+  documentation](https://amaiya.github.io/onprem/webapp.html) for more
+  information.
 
 ------------------------------------------------------------------------
 
