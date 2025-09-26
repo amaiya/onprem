@@ -593,6 +593,7 @@ def main():
                             if search_type == "Keyword" and 'hl_page_content' in doc.metadata:
                                 # Whoosh highlights use B tags - we'll convert them to stylized spans
                                 highlighted_text = doc.metadata.get('hl_page_content', '')
+                                highlighted_text = ' '.join(highlighted_text.split()[:500]) # for keep_full_document=True
                                 
                                 # Add some CSS to style the highlights properly
                                 st.markdown("""

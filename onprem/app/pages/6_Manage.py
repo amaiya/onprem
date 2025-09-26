@@ -266,6 +266,23 @@ def main():
             with st.expander("Ingestion Options", expanded=False):
                 st.subheader("Document Processing Settings")
                 
+                # Option to keep full documents (placed first to control other options)
+                keep_full_document = st.checkbox("Keep full documents without chunking", value=False,
+                                                help="If checked, multi-page documents will be concatenated into single documents with page breaks, and chunking will be disabled. This preserves complete document context but may impact search performance for very long documents.")
+                
+                # Max words option (only available when keep_full_document is checked)
+                max_words = 0
+                if keep_full_document:
+                    max_words = st.number_input("Maximum words per document", 
+                                               min_value=0, 
+                                               max_value=1000000, 
+                                               value=0,
+                                               help="Maximum number of words to extract from each document (0 = no limit)")
+                
+                # Show warning when keep_full_document is enabled
+                if keep_full_document:
+                    st.info("ℹ️ Chunking options below are disabled when keeping full documents.")
+                
                 # Chunking settings
                 col1, col2 = st.columns(2)
                 with col1:
@@ -273,19 +290,22 @@ def main():
                                                min_value=100, 
                                                max_value=1000000, 
                                                value=500,
-                                               help="Text is split into chunks of this many characters")
+                                               help="Text is split into chunks of this many characters",
+                                               disabled=keep_full_document)
                 with col2:
                     chunk_overlap = st.number_input("Chunk Overlap", 
                                                   min_value=0, 
                                                   max_value=500, 
                                                   value=50,
-                                                  help="Character overlap between chunks")
+                                                  help="Character overlap between chunks",
+                                                  disabled=keep_full_document)
                 
                 # Paragraph preservation option
                 preserve_paragraphs = st.checkbox(
                     "Preserve paragraphs during chunking", 
                     value=False,
-                    help="If checked, documents will be chunked at paragraph boundaries. If a paragraph exceeds the chunk size, it will be split. If unchecked, small paragraphs will be combined into a single chunk until the chunk size is reached. We recommend you leave this off unless you are performing a **Document Analysis** that would benefit from retaining paragraphs."
+                    help="If checked, documents will be chunked at paragraph boundaries. If a paragraph exceeds the chunk size, it will be split. If unchecked, small paragraphs will be combined into a single chunk until the chunk size is reached. We recommend you leave this off unless you are performing a **Document Analysis** that would benefit from retaining paragraphs.",
+                    disabled=keep_full_document
                 )
                 
                 # Display store type (read-only)
@@ -748,7 +768,9 @@ def main():
                                 "chunk_overlap": chunk_overlap,
                                 "batch_size": batch_size,
                                 "preserve_paragraphs": preserve_paragraphs,
-                                "infer_table_structure": infer_table_structure
+                                "infer_table_structure": infer_table_structure,
+                                "keep_full_document": keep_full_document,
+                                "max_words": max_words if max_words > 0 else None
                             }
                             # Add n_proc=1 on Windows to avoid multiprocessing stalls
                             if os.name == 'nt':  # Windows
