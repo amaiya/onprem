@@ -28,7 +28,7 @@ Anthropic).
   (i.e., RAG without advanced computation/storage of embeddings).
 - A [visual workflow
   builder](https://amaiya.github.io/onprem/workflows.html#visual-workflow-builder)
-  to assemble complex document analysis pipelines with point-and-click
+  to assemble complex document analysis pipelines with a point-and-click
   interface.
 
 The full documentation is [here](https://amaiya.github.io/onprem/).
