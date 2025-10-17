@@ -119,9 +119,10 @@ class SparseStore(VectorStore):
         """
         Any subclass of SparseStore can inherit this method for on-the-fly semantic searches.
         Retrieves results based on semantic similarity to supplied `query`.
-        All arguments are fowrwarded on to the store's query method.
-        The query method is expected to include "query" as first positional argument and a "limit" keyword argument.
-        Results of query method are expected to be in the form: {'hits': list_of_dicts, 'total_hits' : int}.
+        All arguments are fowrwarded on to the store's search method.
+        The search method is expected to include "query" as first positional argument and a "limit" keyword argument.
+        Additional kwargs can be supplied to focus the search (e.g., see `where_document` and `filters` arguments of search method).
+        Results of invoked search method are expected to be in the form: {'hits': list_of_dicts, 'total_hits' : int}.
         Result of this method is a list of  LangChain Document objects sorted by semantic similarity.
         
         If subclass supports dynamic chunking (has chunk_for_semantic_search=True), 
