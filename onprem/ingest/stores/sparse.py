@@ -1388,6 +1388,18 @@ class ElasticsearchSparseStore(SparseStore):
         ):
         """
         Queries the Elasticsearch index
+
+        **Args**
+
+        - *query*: the query string
+        - *fields*: a list of fields to search
+        - *highlight*: If True, highlight hits
+        - *limit*: results per page
+        - *page*: page of hits to return
+        - *return_dict*: If True, return list of dictionaries instead of LangChain Document objects
+        - *filters*: filter results by field values (e.g., {'extension':'pdf'})
+        - *where_document*: optional query to further filter results
+        - *return_generator*: If True, returns a generator, not a list
         """
         # Use custom content field as default if no fields specified
         if fields is None:
