@@ -15,6 +15,22 @@ environments. Inspired largely by the
 integration with a wide range of cloud LLM providers (e.g., OpenAI,
 Anthropic).
 
+**Key Features:**
+
+- Fully local execution with option to leverage cloud as needed. See
+  [the cheatsheet](https://amaiya.github.io/onprem/#cheat-sheet).
+- Easily integrate with existing tools in your local environment like
+  [Elasticsearch and
+  Sharepoint](https://amaiya.github.io/onprem/examples_vectorstore_factory.html).
+- Support for environments with modest computational resources through
+  modules like the
+  [SparseStore](https://amaiya.github.io/onprem/examples_rag.html#advanced-example-nsf-awards)
+  (i.e., RAG without advanced computation/storage of embeddings).
+- A [visual workflow
+  builder](https://amaiya.github.io/onprem/workflows.html#visual-workflow-builder)
+  to assemble complex document analysis pipelines with point-and-click
+  interface.
+
 The full documentation is [here](https://amaiya.github.io/onprem/).
 
 <!--A Google Colab demo of installing and using **OnPrem.LLM** is [here](https://colab.research.google.com/drive/1LVeacsQ9dmE1BVzwR3eTLukpeRIMmUqi?usp=sharing).
