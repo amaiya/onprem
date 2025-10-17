@@ -267,15 +267,13 @@ llm = LLM(verbose=False) # default model and backend are used
   (assumes `served-model-name` parameter is supplied to
   `vllm.entrypoints.openai.api_server`).
 
-*Cloud Models:* Despite the focus on local LLMs, cloud LLMs are also
-supported:
+*Cloud Models:* In addition to local LLMs, all cloud LLM providers
+supported by [LiteLLM](https://github.com/BerriAI/litellm) are
+compatible:
 
 - **Anthropic Claude**:
-  `llm = LLM(model_url="anthropic://claude-3-7-sonnet-latest")`
-- **Also Anthropic Claude**:
   `llm = LLM(model_url="anthropic/claude-3-7-sonnet-latest")`
-- **OpenAI GPT-4o**: `llm = LLM(model_url="openai://gpt-4o")`
-- **Also OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")`
+- **OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")`
 
 The instantiations above are described in more detail below.
 
