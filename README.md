@@ -19,13 +19,13 @@ Anthropic).
 
 - Fully local execution with option to leverage cloud as needed. See
   [the cheatsheet](https://amaiya.github.io/onprem/#cheat-sheet).
-- Easily integrate with existing tools in your local environment like
-  [Elasticsearch and
-  Sharepoint](https://amaiya.github.io/onprem/examples_vectorstore_factory.html).
 - Support for environments with modest computational resources through
   modules like the
   [SparseStore](https://amaiya.github.io/onprem/examples_rag.html#advanced-example-nsf-awards)
-  (e.g., RAG without advanced computation/storage of embeddings).
+  (e.g., RAG without having to store embeddings in advance).
+- Easily integrate with existing tools in your local environment like
+  [Elasticsearch and
+  Sharepoint](https://amaiya.github.io/onprem/examples_vectorstore_factory.html).
 - A [visual workflow
   builder](https://amaiya.github.io/onprem/workflows.html#visual-workflow-builder)
   to assemble complex document analysis pipelines with a point-and-click
