@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.19.1 (2025-10-20)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Resolved issue with `terms` filter in Elasticsearch stores (#221)
+
+
 ## 0.19.0 (2025-09-25)
 
 ### new:

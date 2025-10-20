@@ -498,7 +498,8 @@ class ElasticsearchDenseStore(DenseStore):
         if filters:
             filter_clauses = []
             for k, v in filters.items():
-                filter_clauses.append({"term": {k: v}})
+                filter_type = "terms" if isinstance(v, list) else "term"
+                filter_clauses.append({filter_type: {k: v}})
             script_query["query"]["script_score"]["query"] = {
                 "bool": {
                     "filter": filter_clauses

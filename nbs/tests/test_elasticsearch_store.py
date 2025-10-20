@@ -110,7 +110,8 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
                         "published": True,  # Boolean field
                         "tags": ["python", "elasticsearch"],  # List field
                         "created_date": "2024-01-15",  # Date field
-                        "custom_score": 4.5  # Float field
+                        "custom_score": 4.5,  # Float field
+                        "project_id": "proj1"  # String field for testing terms filter
                     }),
             Document(page_content="Another test document", 
                     metadata={
@@ -120,7 +121,19 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
                         "published": False,
                         "tags": ["search", "indexing"],
                         "created_date": "2024-01-16",
-                        "custom_score": 3.8
+                        "custom_score": 3.8,
+                        "project_id": "proj2"  # String field for testing terms filter
+                    }),
+            Document(page_content="Third test document for terms filter", 
+                    metadata={
+                        "source": "test3.txt",
+                        "author": "Alice Cooper",
+                        "priority": 4,
+                        "published": True,
+                        "tags": ["testing", "filters"],
+                        "created_date": "2024-01-17",
+                        "custom_score": 4.2,
+                        "project_id": "proj1"  # Same as first doc for testing
                     })
         ]
         
@@ -134,7 +147,7 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
         
         # Test size after adding documents
         size = store.get_size()
-        assert size == 2, f"Index should have 2 documents, got {size}"
+        assert size == 3, f"Index should have 3 documents, got {size}"
         print(f"✓ get_size() after adding docs: {size}")
         
         # Test query
@@ -157,7 +170,7 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
         try:
             # Test boolean field filter
             bool_filter_results = store.query("document", filters={"published": True})
-            assert bool_filter_results['total_hits'] == 1, "Boolean filter should return 1 hit for published=True"
+            assert bool_filter_results['total_hits'] == 2, "Boolean filter should return 2 hits for published=True"
             print(f"✓ Boolean field filter returned {bool_filter_results['total_hits']} hits")
             
             # Test string field filter
@@ -175,6 +188,22 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
             assert tags_filter_results['total_hits'] == 1, "List filter should return 1 hit for tags containing 'python'"
             print(f"✓ List field filter returned {tags_filter_results['total_hits']} hits")
             
+            # Test terms filter for multiple values (list input)
+            project_ids = ["proj1", "proj2"]
+            multi_filter_results = store.query("document", filters={"project_id": project_ids})
+            assert multi_filter_results['total_hits'] == 3, "Terms filter should return 3 hits for proj1 and proj2"
+            print(f"✓ Terms filter (multiple values) returned {multi_filter_results['total_hits']} hits")
+            
+            # Test terms filter with single existing project
+            single_proj_results = store.query("document", filters={"project_id": ["proj1"]})
+            assert single_proj_results['total_hits'] == 2, "Terms filter should return 2 hits for proj1"
+            print(f"✓ Terms filter (single value in list) returned {single_proj_results['total_hits']} hits")
+            
+            # Test terms filter with mix of existing and non-existing values
+            mixed_filter_results = store.query("document", filters={"project_id": ["proj1", "proj3"]})
+            assert mixed_filter_results['total_hits'] == 2, "Terms filter should return 2 hits (only proj1 exists)"
+            print(f"✓ Terms filter (mixed existing/non-existing) returned {mixed_filter_results['total_hits']} hits")
+            
         except Exception as e:
             print(f"⚠ Dynamic field filtering failed: {e}")
         
@@ -185,9 +214,9 @@ def test_elasticsearch_store(host=None, index=None, basic_auth=None, verify_cert
                 retrieved_doc = store.get_doc(doc_id)
                 if retrieved_doc:
                     # Check if dynamic fields are preserved
-                    dynamic_fields = ['author', 'priority', 'published', 'tags', 'custom_score']
+                    dynamic_fields = ['author', 'priority', 'published', 'tags', 'custom_score', 'project_id']
                     preserved_fields = [field for field in dynamic_fields if field in retrieved_doc]
-                    assert len(preserved_fields) >= 3, f"Should preserve at least 3 dynamic fields, got {len(preserved_fields)}"
+                    assert len(preserved_fields) >= 4, f"Should preserve at least 4 dynamic fields, got {len(preserved_fields)}"
                     print(f"✓ Dynamic fields preserved: {preserved_fields}")
                     
                     # Show sample values

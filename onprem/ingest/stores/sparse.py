@@ -1431,7 +1431,8 @@ class ElasticsearchSparseStore(SparseStore):
         if filters:
             filter_clauses = []
             for k, v in filters.items():
-                filter_clauses.append({"term": {k: v}})
+                filter_type = "terms" if isinstance(v, list) else "term"
+                filter_clauses.append({filter_type: {k: v}})
             
             if "bool" not in es_query:
                 es_query = {"bool": {"must": [es_query]}}
