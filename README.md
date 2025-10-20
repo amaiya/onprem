@@ -20,7 +20,7 @@ Anthropic).
 - Fully local execution with option to leverage cloud as needed. See
   [the cheatsheet](https://amaiya.github.io/onprem/#cheat-sheet).
 - Analysis pipelines for [many different
-  tasks](https://amaiya.github.io/onprem/#how-to-use), including
+  tasks](https://amaiya.github.io/onprem/#examples), including
   information extraction, summarization, classification,
   question-answering, and agents.
 - Support for environments with modest computational resources through
