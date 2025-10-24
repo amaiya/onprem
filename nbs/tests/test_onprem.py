@@ -524,6 +524,16 @@ def test_loading(**kwargs):
     assert len(chunked_full) == 1, "Expected keep_full_document to skip chunking"
     assert chunked_full[0].page_content == docs_full[0].page_content, "Document content should be unchanged"
 
+    # test ocr
+    print('Testing OCR ...', end='')
+    fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ocr_document/lynn1975.pdf')
+    docs_ocred = load_single_document(fpath)
+    assert('EXECUTIVE' in docs_ocred[0].page_content and 'Lynn' in docs_ocred[0].page_content), 'OCRed text not found'
+    print('done.')
+
+
+
+
 
 def test_pdftables(**kwargs):
     """

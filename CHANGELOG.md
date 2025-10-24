@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.19.2 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Added test for OCR
+
+
 ## 0.19.1 (2025-10-20)
 
 ### new:
