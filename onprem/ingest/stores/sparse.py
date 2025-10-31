@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['N_CANDIDATES', 'DEFAULT_SCHEMA', 'KEYWORD_ANALYZER', 'SparseStore', 'ReadOnlySparseStore', 'SharePointStore',
-           'default_schema', 'WhooshStore', 'ElasticsearchSparseStore']
+           'default_schema', 'create_field_for_value', 'get_field_analyzer', 'WhooshStore', 'ElasticsearchSparseStore']
 
 # %% ../../../nbs/01_ingest.stores.sparse.ipynb 3
 from .base import VectorStore
@@ -634,6 +634,36 @@ def default_schema():
 
 KEYWORD_ANALYZER = RegexTokenizer() | LowercaseFilter()
 
+def create_field_for_value(field_name, value):
+    """Create field definition based on value type - same logic as add_documents."""
+    if isinstance(value, bool):
+        return BOOLEAN(stored=True)
+    elif isinstance(value, list):
+        return KEYWORD(stored=True, commas=True, analyzer=KEYWORD_ANALYZER)
+    elif isinstance(value, str):
+        if field_name.endswith('_date'):
+            return DATETIME(stored=True)
+        elif len(value) > 100:
+            return TEXT(stored=True, analyzer=StemmingAnalyzer())
+        else:
+            return KEYWORD(stored=True, commas=True, analyzer=KEYWORD_ANALYZER)
+    elif isinstance(value, (int, float)):
+        return NUMERIC(stored=True)
+    return None
+
+def get_field_analyzer(field_name, value, schema=None):
+    """Get the analyzer that would be used for a field."""
+    if schema and field_name in schema:
+        field = schema[field_name]
+        if hasattr(field, 'analyzer') and field.analyzer:
+            return field.analyzer
+    
+    # Use same logic as add_documents
+    field_def = create_field_for_value(field_name, value)
+    if field_def and hasattr(field_def, 'analyzer'):
+        return field_def.analyzer
+    return None
+
 class WhooshStore(SparseStore):
     """
     A sparse vector store based on the Whoosh full-text search engine.
@@ -801,22 +831,10 @@ class WhooshStore(SparseStore):
         for doc in docs:
             for k, v in doc.metadata.items():
                 if k not in stored_names and k not in new_fields:
-                    # Add field to writer based on type
-                    if isinstance(v, bool):
-                        writer.add_field(k, BOOLEAN(stored=True))
-                    elif isinstance(v, list):
-                        # Lists are stored as comma-separated keywords
-                        #writer.add_field(k, KEYWORD(stored=True, commas=True))
-                        writer.add_field(k, KEYWORD(stored=True, commas=True, analyzer=KEYWORD_ANALYZER))
-                    elif isinstance(v, str):
-                        if k.endswith('_date'):
-                            writer.add_field(k, DATETIME(stored=True))
-                        elif len(v) > 100:  # Use TEXT for strings longer than 100 characters
-                            writer.add_field(k, TEXT(stored=True, analyzer=StemmingAnalyzer()))
-                        else:
-                            writer.add_field(k, KEYWORD(stored=True, commas=True, analyzer=KEYWORD_ANALYZER))
-                    elif isinstance(v, (int, float)):
-                        writer.add_field(k, NUMERIC(stored=True))
+                    # Add field using same logic as filter processing
+                    field_def = create_field_for_value(k, v)
+                    if field_def:
+                        writer.add_field(k, field_def)
                     new_fields.add(k)
         
         for doc in tqdm(docs, total=len(docs), disable=not verbose):
@@ -945,8 +963,14 @@ class WhooshStore(SparseStore):
         combined_filter=None
         if filters:
             terms = []
-            for k in filters:
-                terms.append(Term(k, filters[k]))
+            for k, v in filters.items():
+                # Apply same analyzer logic as add_documents
+                analyzer = get_field_analyzer(k, v, self.ix.schema)
+                if analyzer:
+                    analyzed_tokens = list(analyzer(v, removestops=False))
+                    if analyzed_tokens:
+                        v = analyzed_tokens[0].text
+                terms.append(Term(k, v))
             combined_filter = And(terms)
         
         def get_search_results(searcher):

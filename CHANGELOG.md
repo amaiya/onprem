@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Added test for OCR
+- Fixed issue with filter searches in `WhooshStore` (#222)
 
 
 ## 0.19.1 (2025-10-20)

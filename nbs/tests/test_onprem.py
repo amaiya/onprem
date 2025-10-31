@@ -789,6 +789,28 @@ def test_search(**kwargs):
     assert 'tag2' in actual_list_value  
     assert 'tag3' in actual_list_value
 
+    # Test case-insensitive filter handling
+    case_test_doc = Document(
+        page_content="Test document for case-insensitive filters",
+        metadata={
+            'system_name': 'WEBAPP',
+            'doc_type': 'CONFIG'
+        }
+    )
+    se.add_documents([case_test_doc])
+    
+    # Test that uppercase filter now works (this was the original failing case)
+    upper_filter_results = se.query("id:*", filters={"system_name": "WEBAPP"})
+    assert len(upper_filter_results['hits']) >= 1, "Uppercase filter should find matches"
+    
+    # Test that lowercase filter still works
+    lower_filter_results = se.query("id:*", filters={"system_name": "webapp"})
+    assert len(lower_filter_results['hits']) >= 1, "Lowercase filter should find matches"
+    
+    # Both should return the same document with original case preserved in stored value
+    assert upper_filter_results['hits'][0]['system_name'] == 'WEBAPP'
+    assert lower_filter_results['hits'][0]['system_name'] == 'WEBAPP'
+
 
 def test_agent(**kwargs):
     """
