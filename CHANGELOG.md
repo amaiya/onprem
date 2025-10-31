@@ -10,10 +10,9 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.19.2 (TBD)
 
 ### new:
-- N/A
 
 ### changed
-- N/A
+- Add `get_aggregations` method to WhooshStore (#223)
 
 ### fixed:
 - Added test for OCR

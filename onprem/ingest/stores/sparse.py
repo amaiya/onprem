@@ -584,7 +584,7 @@ from typing import Dict, List, Optional, Sequence
 import math
 import numpy as np
 
-from whoosh import index
+from whoosh import index, sorting
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import *
 from whoosh.filedb.filestore import RamStorage
@@ -964,12 +964,13 @@ class WhooshStore(SparseStore):
         if filters:
             terms = []
             for k, v in filters.items():
-                # Apply same analyzer logic as add_documents
-                analyzer = get_field_analyzer(k, v, self.ix.schema)
-                if analyzer:
-                    analyzed_tokens = list(analyzer(v, removestops=False))
-                    if analyzed_tokens:
-                        v = analyzed_tokens[0].text
+                # Only apply analyzers to string values
+                if isinstance(v, str):
+                    analyzer = get_field_analyzer(k, v, self.ix.schema)
+                    if analyzer:
+                        analyzed_tokens = list(analyzer(v, removestops=False))
+                        if analyzed_tokens:
+                            v = analyzed_tokens[0].text
                 terms.append(Term(k, v))
             combined_filter = And(terms)
         
@@ -1020,6 +1021,118 @@ class WhooshStore(SparseStore):
                 
                 return {'hits': [process_result(r) for r in results],
                         'total_hits': total_hits}
+
+    def get_aggregations(self, query="*", facets=None, filters=None, **kwargs):
+        """
+        Get aggregate statistics on field values using Whoosh faceted search.
+        
+        **Args:**
+        - *query*: search query (default: "*" for all documents)
+        - *facets*: dictionary defining facets to compute. Format:
+          ```
+          {
+              'facet_name': {
+                  'type': 'terms',  # or 'range'
+                  'field': 'field_name',
+                  # For range facets:
+                  'min': 0, 'max': 1000, 'gap': 100
+              }
+          }
+          ```
+        - *filters*: filter results by field values before aggregating
+        
+        **Returns:**
+        Dictionary with facet results: `{'facet_name': {'value': count, ...}}`
+        
+        **Example:**
+        ```python
+        facets = {
+            'doc_types': {'type': 'terms', 'field': 'doc_type'},
+            'file_sizes': {'type': 'range', 'field': 'file_size', 'min': 0, 'max': 1000000, 'gap': 100000}
+        }
+        aggs = store.get_aggregations("*", facets=facets)
+        # Returns: {'doc_types': {'pdf': 45, 'txt': 23}, 'file_sizes': {...}}
+        ```
+        """
+        if not facets:
+            return {}
+        
+        # Build Whoosh facet objects
+        whoosh_facets = {}
+        for name, config in facets.items():
+            if config['type'] == 'terms':
+                whoosh_facets[name] = sorting.FieldFacet(config['field'])
+            elif config['type'] == 'range':
+                whoosh_facets[name] = sorting.RangeFacet(
+                    config['field'], 
+                    config.get('min', 0), 
+                    config.get('max', 100), 
+                    config.get('gap', 10)
+                )
+            else:
+                raise ValueError(f"Unsupported facet type: {config['type']}. Use 'terms' or 'range'.")
+        
+        with self.ix.searcher() as searcher:
+            # Process query
+            q = self._preprocess_query(query)
+            q_obj = MultifieldParser(['page_content'], self.ix.schema, 
+                                   termclass=Variations, group=OrGroup.factory(0.9)).parse(q)
+            
+            # Process filters (reuse existing filter logic)
+            combined_filter = None
+            if filters:
+                terms = []
+                for k, v in filters.items():
+                    # Only apply analyzers to string values
+                    if isinstance(v, str):
+                        analyzer = get_field_analyzer(k, v, self.ix.schema)
+                        if analyzer:
+                            analyzed_tokens = list(analyzer(v, removestops=False))
+                            if analyzed_tokens:
+                                v = analyzed_tokens[0].text
+                    terms.append(Term(k, v))
+                combined_filter = And(terms)
+            
+            # Execute faceted search
+            results = searcher.search(q_obj, filter=combined_filter, groupedby=whoosh_facets)
+            
+            # Extract aggregation results
+            aggregations = {}
+            for facet_name in whoosh_facets.keys():
+                facet_groups = results.groups(facet_name)
+                
+                # Convert Whoosh facet results to count dictionary
+                result_dict = {}
+                if isinstance(facet_groups, dict):
+                    # Direct dictionary format {value: [doc_ids]} or {value: count}
+                    for key, value in facet_groups.items():
+                        if isinstance(value, (list, tuple)):
+                            result_dict[str(key)] = len(value)
+                        else:
+                            result_dict[str(key)] = value
+                else:
+                    # Handle other formats - iterate through items
+                    try:
+                        for key, group in facet_groups.items():
+                            if isinstance(group, (list, tuple)):
+                                result_dict[str(key)] = len(group)
+                            else:
+                                result_dict[str(key)] = group
+                    except AttributeError:
+                        # Handle list of tuples format
+                        try:
+                            for key, group in facet_groups:
+                                if hasattr(group, '__len__') and not isinstance(group, str):
+                                    result_dict[str(key)] = len(group)
+                                else:
+                                    result_dict[str(key)] = 1
+                        except (ValueError, TypeError):
+                            # Last resort: empty result
+                            result_dict = {}
+                
+                aggregations[facet_name] = result_dict
+            
+            return aggregations
 
 
 class ElasticsearchSparseStore(SparseStore):

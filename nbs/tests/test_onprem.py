@@ -811,6 +811,50 @@ def test_search(**kwargs):
     assert upper_filter_results['hits'][0]['system_name'] == 'WEBAPP'
     assert lower_filter_results['hits'][0]['system_name'] == 'WEBAPP'
 
+    # Test aggregations functionality
+    agg_test_docs = [
+        Document(
+            page_content="Aggregation test document",
+            metadata={
+                'category': 'test_category',
+                'priority': 5,
+                'status': 'active'
+            }
+        ),
+        Document(
+            page_content="Second aggregation test document",
+            metadata={
+                'category': 'test_category',
+                'priority': 3,
+                'status': 'inactive'
+            }
+        )
+    ]
+    se.add_documents(agg_test_docs)
+    
+    # Test terms aggregation
+    facets = {
+        'categories': {'type': 'terms', 'field': 'category'},
+        'statuses': {'type': 'terms', 'field': 'status'}
+    }
+    agg_results = se.get_aggregations("*", facets=facets)
+    
+    # Verify aggregation results
+    assert 'categories' in agg_results
+    assert 'statuses' in agg_results
+    assert isinstance(agg_results['categories'], dict)
+    assert isinstance(agg_results['statuses'], dict)
+    
+    # Verify counts are correct (2 docs with same category, different statuses)
+    assert agg_results['categories']['test_category'] == 2
+    assert agg_results['statuses']['active'] == 1
+    assert agg_results['statuses']['inactive'] == 1
+    
+    # Test aggregation with filters (numeric filter)
+    filtered_aggs = se.get_aggregations("*", facets={'statuses': {'type': 'terms', 'field': 'status'}}, 
+                                       filters={'priority': 5})
+    assert 'statuses' in filtered_aggs
+
 
 def test_agent(**kwargs):
     """
