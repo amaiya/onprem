@@ -813,18 +813,17 @@ class LLM:
 
     def load_chatbot(self):
         """
-        Prepares and loads a `langchain.chains.ConversationChain` instance
+        Prepares chat functionality with message-based conversation history.
         """
         if self.chatbot is None:
-            from langchain.chains import ConversationChain
-            from langchain.memory import ConversationBufferMemory
-
             llm = self.load_llm()
 
-            memory = ConversationBufferMemory(
-                memory_key="history", return_messages=True
-            )
-            self.chatbot = ConversationChain(llm=llm, memory=memory)
+            # Store chat history as list of messages
+            # Structure: {'llm': model, 'history': [messages]}
+            self.chatbot = {
+                'llm': llm,
+                'history': []
+            }
 
         return self.chatbot
 
@@ -997,13 +996,27 @@ class LLM:
 
         **Args:**
 
-        - *question*: a question you want to ask
+        - *prompt*: a question you want to ask
 
         """
+        from langchain_core.messages import HumanMessage
 
+        # Apply prompt template if provided
         prompt_template = self.prompt_template if prompt_template is None else prompt_template
         if prompt_template:
             prompt = format_string(prompt_template, prompt=prompt)
+
+        # Load chatbot (creates history if needed)
         chatbot = self.load_chatbot()
-        res = chatbot.invoke(prompt, **kwargs)
-        return res.get('response', '')
+
+        # Add user message to history
+        chatbot['history'].append(HumanMessage(content=prompt))
+
+        # Invoke LLM with full conversation history
+        response = chatbot['llm'].invoke(chatbot['history'], **kwargs)
+
+        # Add AI response to history
+        chatbot['history'].append(response)
+
+        # Return response content
+        return response.content if hasattr(response, 'content') else str(response)
