@@ -157,23 +157,23 @@ def main():
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        if st.button("💬 Use Prompts", use_container_width=True):
+        if st.button("💬 Use Prompts", width='stretch'):
             st.switch_page("pages/1_Prompts.py")
-    
+
     with col2:
-        if st.button("📄 Talk to Documents", use_container_width=True):
+        if st.button("📄 Talk to Documents", width='stretch'):
             st.switch_page("pages/2_Document_QA.py")
-    
+
     with col3:
-        if st.button("📊 Document Analysis", use_container_width=True):
+        if st.button("📊 Document Analysis", width='stretch'):
             st.switch_page("pages/3_Document_Analysis.py")
-    
+
     with col4:
-        if st.button("🔍 Search Documents", use_container_width=True):
+        if st.button("🔍 Search Documents", width='stretch'):
             st.switch_page("pages/4_Document_Search.py")
-    
+
     with col5:
-        if st.button("🔧 Workflow Builder", use_container_width=True):
+        if st.button("🔧 Workflow Builder", width='stretch'):
             st.switch_page("pages/5_Workflow_Builder.py")
     
     # Additional information

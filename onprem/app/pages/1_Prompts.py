@@ -217,7 +217,7 @@ def main():
         st.markdown("### Chat Options")
         
         # Add a primary-colored button to clear chat
-        if st.button("🗑️ New Chat", type="primary", use_container_width=True):
+        if st.button("🗑️ New Chat", type="primary", width='stretch'):
             st.session_state.messages = [
                 {"role": SYSTEM, "content": "Chat history cleared. How can I help you today?"}
             ]
@@ -233,7 +233,7 @@ def main():
         
         # Create buttons for example prompts
         for i, example in enumerate(example_prompts):
-            if st.button(f"💡 {example}", key=f"example_{i}", use_container_width=True):
+            if st.button(f"💡 {example}", key=f"example_{i}", width='stretch'):
                 # Store the example in a session variable to be processed on the next rerun
                 st.session_state.example_to_process = example
                 
