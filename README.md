@@ -432,6 +432,11 @@ llm = LLM(n_gpu_layers=-1, store_type='sparse', verbose=False)
 
     llama_new_context_with_model: n_ctx_per_seq (3904) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
 
+The default embedding model is:
+`sentence-transformers/all-MiniLM-L6-v2`. You can change it by supplying
+the `embedding_model_name` to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm).
+
 #### Step 1: Ingest the Documents into a Vector Database
 
 As of v0.10.0, you have the option of storing documents in either a
@@ -457,6 +462,12 @@ llm.ingest("./tests/sample_data")
     Processing and chunking 43 new documents: 100%|██████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 116.11it/s]
     100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 354/354 [00:00<00:00, 2548.70it/s]
 
+The default `chunk_size` is set quite low at 500 characters. You
+increase by supplying `chunk_size` to `llm.ingest`. You can customize
+the ingestion process even further by accessing the underlying vector
+store directly, as illustrated in the [advanced RAG
+example](https://amaiya.github.io/onprem/examples_rag.html#advanced-example-nsf-awards).
+
 #### Step 2: Answer Questions About the Documents
 
 ``` python
@@ -467,7 +478,9 @@ result = llm.ask(question)
      ktrain is a low-code machine learning platform. It provides out-of-the-box support for training models on various types of data such as text, vision, graph, and tabular.
 
 The sources used by the model to generate the answer are stored in
-`result['source_documents']`:
+`result['source_documents']`. You can adjust the number of sources
+(i.e., chunks) considered by suppyling the `limit` parameter to
+`llm.ask`.
 
 ``` python
 print("\nSources:\n")
