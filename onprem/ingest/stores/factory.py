@@ -37,7 +37,7 @@ class VectorStoreFactory:
                   - 'elasticsearch': ElasticsearchStore for unified dense + sparse
                   - 'elasticsearch_sparse': For use with pre-existing Elasticsearch indices without dense vectors
             persist_location: Where to store the index/database
-            **kwargs: Additional arguments passed to the store constructor
+            **kwargs: Additional arguments (e.g., embedding_model_name) passed to the store constructor
             
         Returns:
             VectorStore instance
