@@ -416,7 +416,7 @@ class LLM:
         """
         Ingests all documents in `source_folder` into vector database.
         Previously-ingested documents are ignored.
-        Extra kwargs fed to `load_single_document`, load_documents`, and/or `chunk_documents`.
+        Extra kwargs fed to `load_single_document`, `load_documents`, and/or `chunk_documents`.
         """
         vectorstore = self.load_vectorstore()
         return vectorstore.ingest(
