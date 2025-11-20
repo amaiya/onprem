@@ -977,7 +977,7 @@ def display_workflow_results(results):
         
         # Display complete results (following Document Analysis pattern)
         st.subheader("Results")
-        st.dataframe(results_df, use_container_width=True, height=400)
+        st.dataframe(results_df, width='stretch', height=400)
         
         # Create download button (following Document Analysis pattern)
         col1, col2 = st.columns([4, 1])

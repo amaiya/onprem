@@ -321,10 +321,10 @@ def main():
     button_cols = st.columns([1, 1, 4])  # First two columns for buttons, third for spacing
     with button_cols[0]:
         # Keep button label consistently as "Search"
-        search_button = st.button("Search", type="primary", use_container_width=True)
+        search_button = st.button("Search", type="primary", width='stretch')
     with button_cols[1]:
         # Place the reset button immediately to the right of the search button
-        reset_button = st.button("Reset", type="secondary", use_container_width=True)
+        reset_button = st.button("Reset", type="secondary", width='stretch')
     
     # Reset search state if reset button is clicked
     if reset_button:
@@ -774,14 +774,14 @@ def main():
                     # First page button
                     with pagination_cols[0]:
                         if st.session_state.current_page > 1:
-                            if st.button("❮❮ First", key="first_page", use_container_width=True):
+                            if st.button("❮❮ First", key="first_page", width='stretch'):
                                 st.session_state.current_page = 1
                                 st.rerun()
-                    
+
                     # Previous page button
                     with pagination_cols[1]:
                         if st.session_state.current_page > 1:
-                            if st.button("❮ Previous", key="prev_page", use_container_width=True):
+                            if st.button("❮ Previous", key="prev_page", width='stretch'):
                                 st.session_state.current_page -= 1
                                 st.rerun()
                     
@@ -803,14 +803,14 @@ def main():
                     # Next page button
                     with pagination_cols[3]:
                         if st.session_state.current_page < total_pages:
-                            if st.button("Next ❯", key="next_page", use_container_width=True):
+                            if st.button("Next ❯", key="next_page", width='stretch'):
                                 st.session_state.current_page += 1
                                 st.rerun()
-                    
+
                     # Last page button
                     with pagination_cols[4]:
                         if st.session_state.current_page < total_pages:
-                            if st.button("Last ❯❯", key="last_page", use_container_width=True):
+                            if st.button("Last ❯❯", key="last_page", width='stretch'):
                                 st.session_state.current_page = total_pages
                                 st.rerun()
                                 

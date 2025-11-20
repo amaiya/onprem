@@ -293,7 +293,7 @@ def main():
 
         # Display results preview
         st.subheader("Results Preview")
-        st.dataframe(results_df, use_container_width=True)
+        st.dataframe(results_df, width='stretch')
         
         # Add option to start a new analysis
         if st.button("Start New Analysis", key="new_analysis_button"):
@@ -388,9 +388,9 @@ def main():
     # Action buttons
     button_cols = st.columns([1, 1, 4])  # First two columns for buttons, third for spacing
     with button_cols[0]:
-        analyze_button = st.button("Analyze", type="primary", use_container_width=True)
+        analyze_button = st.button("Analyze", type="primary", width='stretch')
     with button_cols[1]:
-        reset_button = st.button("Reset", type="secondary", use_container_width=True)
+        reset_button = st.button("Reset", type="secondary", width='stretch')
     
     # Reset state if reset button is clicked - simplest approach is to set a flag and rerun
     if reset_button:
