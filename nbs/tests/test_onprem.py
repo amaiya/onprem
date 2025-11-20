@@ -327,6 +327,22 @@ def test_summarization(**kwargs):
                                         concept_description="prompting")
     assert(len(text) > 0)
 
+    # Test summarize with raw_text parameter
+    summary_result = summ.summarize(raw_text=raw_text[:2000], max_chunks_to_use=1)  # Use first 2000 chars
+    assert('output_text' in summary_result)
+    assert(len(summary_result['output_text']) > 0)
+    
+    # Test summarize_by_concept with chunks parameter
+    test_chunks = [
+        "Machine learning is a field of artificial intelligence that focuses on algorithms.",
+        "Deep learning uses neural networks with multiple layers to process data.",
+        "Natural language processing enables computers to understand human language."
+    ]
+    text,sources = summ.summarize_by_concept(chunks=test_chunks,
+                                           concept_description="machine learning")
+    assert(len(text) > 0)
+    assert(len(sources) <= len(test_chunks))  # Should return relevant chunks
+
 
 def test_extraction(**kwargs):
     llm = kwargs.get('llm', None)
