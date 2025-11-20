@@ -17,7 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added `raw_text` parameter to `Summarizer.summarize` (#227)
 
 ### fixed:
-- N/A
+- Fixed CI errors with agents (#228)
 
 
 ## 0.19.2 (2025-11-05)
