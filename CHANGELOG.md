@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.19.3 (TBD)
+## 0.19.3 (2025-11-20)
 
 ### new:
 - N/A
@@ -18,6 +18,8 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Fixed CI errors with agents (#228)
+- Update deprecated Streamlit `use_container_width` parameter (#225)
+- Deprecate conversation chain (#226)
 
 
 ## 0.19.2 (2025-11-05)

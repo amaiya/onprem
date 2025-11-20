@@ -1020,3 +1020,4 @@ class LLM:
 
         # Return response content
         return response.content if hasattr(response, 'content') else str(response)
+
