@@ -10,9 +10,11 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.19.3 (TBD)
 
 ### new:
+- N/A
 
 ### changed
-- N/A
+- Added `raw_text` and `chunks` parameters to `Summarizer.summarize_by_concept` (#227)
+- Added `raw_text` parameter to `Summarizer.summarize` (#227)
 
 ### fixed:
 - N/A

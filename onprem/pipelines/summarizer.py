@@ -83,26 +83,50 @@ class Summarizer:
 
 
     def summarize(self, 
-                  fpath:str, #  path to either a folder of documents or a single file
+                  fpath:str=None, #  path to either a folder of documents or a single file
                   strategy:str='map_reduce', # One of {'map_reduce', 'refine'}
                   chunk_size:int=1000, # Number of characters of each chunk to summarize
                   chunk_overlap:int=0, # Number of characters that overlap between chunks
                   token_max:int=2000, # Maximum number of tokens to group documents into
                   max_chunks_to_use: Optional[int] = None, # Maximum number of chunks (starting from beginning) to use
+                  raw_text:str=None, # Optional: raw text to process (skips file loading)
                  ):
         """
         Summarize one or more documents (e.g., PDFs, MS Word, MS Powerpoint, plain text)
         using either Langchain's Map-Reduce strategy or Refine strategy.
         The `max_chunks` parameter may be useful for documents that have abstracts or informative introductions. 
         If `max_chunks=None`, all chunks are considered for summarizer.
+        
+        Args:
+            fpath: Path to file or directory 
+            strategy: Summarization strategy ('map_reduce' or 'refine')
+            chunk_size: Characters per chunk
+            chunk_overlap: Character overlap between chunks  
+            token_max: Maximum tokens to group documents into
+            max_chunks_to_use: Maximum chunks to process
+            raw_text: Raw text to process (skips file loading)
+            
+        Note: Provide exactly one of: fpath or raw_text
         """
-          
-        if os.path.isfile(fpath):
-            docs = load_single_document(fpath)
+        
+        # Input validation - exactly one of fpath or raw_text must be provided
+        input_count = sum([fpath is not None, raw_text is not None])
+        if input_count != 1:
+            raise ValueError("Provide exactly one of: fpath or raw_text")
+        
+        # Handle different input types
+        if raw_text is not None:
+            # Create Document object from raw text
+            from langchain_core.documents import Document
+            docs = [Document(page_content=raw_text, metadata={'source': 'raw_text'})]
         else:
-            docs = load_documents(fpath)
-        if not docs:
-            raise Exception(f'Could not load text from document: {fpath}')
+            # Original file path behavior
+            if os.path.isfile(fpath):
+                docs = load_single_document(fpath)
+            else:
+                docs = load_documents(fpath)
+            if not docs:
+                raise Exception(f'Could not load text from document: {fpath}')
 
         if strategy == 'map_reduce':
             summary = self._map_reduce(docs, 
@@ -235,45 +259,73 @@ class Summarizer:
         return result['output_text']
         
     def summarize_by_concept(self,
-                            fpath:str, # path to file
-                            concept_description:str, # Summaries are generated with respect to the described concept.
+                            fpath=None, # path to file, raw text, or list of pre-chunked text
+                            concept_description:str=None, # Summaries are generated with respect to the described concept.
                             similarity_threshold:float=0.0, # Minimum similarity for consideration. Tip: Increase this when using similarity_method="senttransform" to mitigate hallucination. A value of 0.0 is sufficient for TF-IDF or should be kept near-zero.
                             max_chunks:int=4, # Only this many snippets above similarity_threshold are considered.
                             similarity_method:str="tfidf", # One of "senttransform" (sentence-transformer embeddings) or "tfidf" (TF-IDF)
                             summary_prompt:str = TARGET_PROMPT, # The prompt used for summarization. Should have exactly two variables, {concept_description} and {text}.
+                            raw_text:str=None, # Optional: raw text to process (skips file loading)
+                            chunks:list=None, # Optional: pre-chunked text as list (skips both file loading and chunking)
                             ):
         """
         Summarize document with respect to concept described by `concept_description`. Returns a tuple of the form (summary, sources).
+        
+        Args:
+            fpath: Path to file 
+            concept_description: The concept to focus summarization on
+            similarity_threshold: Minimum similarity score for chunk consideration
+            max_chunks: Maximum number of chunks to use for summarization
+            similarity_method: "tfidf" or "senttransform"
+            summary_prompt: Template for summarization prompt
+            raw_text: Raw text to process (skips file loading)
+            chunks: Pre-chunked text as list (skips file loading and chunking)
+            
+        Note: Provide exactly one of: fpath, raw_text, or chunks
         """
         if similarity_method not in ['tfidf', 'senttransform']:
             raise ValueError('similarity_method must be one of {"tifidf", "senttransform"}')
         
-        # Read in text
-        if not os.path.isfile(fpath):
-            raise ValueError(f"{fpath} is not a file.")
-        docs = load_single_document(fpath)
-        if not docs:
-            raise Exception(f'Could not load text from document: {fpath}')
-        ext = "." + fpath.rsplit(".", 1)[-1].lower()
-        content = '\n\n'.join([doc.page_content for doc in docs])
+        # Input validation - exactly one of fpath, raw_text, or chunks must be provided
+        input_count = sum([fpath is not None, raw_text is not None, chunks is not None])
+        if input_count != 1:
+            raise ValueError("Provide exactly one of: fpath, raw_text, or chunks")
         
-        # Chunk text
-        paragraphs = segment(content, maxchars=2000, unit="paragraph")
-        # Combine paragraphs if very short (i.e. a header)
-        chunks = []
-        text = ""
-        count = 0 
-        max_combine = 2
-        for p in paragraphs:
-            text += f"\n\n{p}" 
-            count += 1
-            if count == max_combine+1 or len(text)>100:
-                chunks.append(text)
-                count = 0 
-                text = ""
-        
-        # Remove duplicate chunks
-        chunks = list(set(chunks))
+        # Handle different input types
+        if chunks is not None:
+            # Use pre-chunked text directly
+            pass
+        else:
+            # Get content from either file or raw text
+            if raw_text is not None:
+                content = raw_text
+            else:
+                # Original file path behavior
+                if not os.path.isfile(fpath):
+                    raise ValueError(f"{fpath} is not a file.")
+                docs = load_single_document(fpath)
+                if not docs:
+                    raise Exception(f'Could not load text from document: {fpath}')
+                ext = "." + fpath.rsplit(".", 1)[-1].lower()
+                content = '\n\n'.join([doc.page_content for doc in docs])
+            
+            # Chunk the content
+            paragraphs = segment(content, maxchars=2000, unit="paragraph")
+            # Combine paragraphs if very short (i.e. a header)
+            chunks = []
+            text = ""
+            count = 0 
+            max_combine = 2
+            for p in paragraphs:
+                text += f"\n\n{p}" 
+                count += 1
+                if count == max_combine+1 or len(text)>100:
+                    chunks.append(text)
+                    count = 0 
+                    text = ""
+            
+            # Remove duplicate chunks
+            chunks = list(set(chunks))
             
         # TF-IDF method to find relevant sections of the documents
         if similarity_method=="tfidf":
