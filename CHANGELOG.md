@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.19.4 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Removed incorrect `helpers.` prefix from `extract_filemetadata`
+
+
 ## 0.19.3 (2025-11-20)
 
 ### new:

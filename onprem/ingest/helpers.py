@@ -43,6 +43,7 @@ def extract_tables(filepath:Optional[str]=None, docs:Optional[List[Document]]=[]
 
     Returns an updated list of Document objects appended with extracted tables.
     """
+    # Lazy import PDFTables to avoid slow module loading on Windows
     from onprem.ingest.pdftables import PDFTables
 
     # get filepath of document under consideration
@@ -285,12 +286,12 @@ def extract_file_metadata(file_path:str,
     # extract metadata
     file_metadata = {}
     if store_md5:
-        file_metadata['md5'] = helpers.md5sum(file_path)
+        file_metadata['md5'] = md5sum(file_path)
     if store_mimetype:
-        file_metadata['mimetype'], _, _ = helpers.extract_mimetype(file_path)
+        file_metadata['mimetype'], _, _ = extract_mimetype(file_path)
     if store_file_dates:
-        file_metadata['createdate'], file_metadata['modifydate'] = helpers.extract_file_dates(file_path)
-    ext = helpers.extract_extension(file_path)
+        file_metadata['createdate'], file_metadata['modifydate'] = extract_file_dates(file_path)
+    ext = extract_extension(file_path)
     file_metadata['extension'] = ext
     file_metadata.update(_apply_file_callables(file_path, file_callables))
     return file_metadata
