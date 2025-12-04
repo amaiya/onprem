@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-from sentence_transformers import SentenceTransformer, util
 from langchain.callbacks.base import BaseCallbackHandler
 from onprem import LLM, utils as U
 
@@ -109,6 +108,7 @@ def get_embedding_model():
     """
     Load the embedding model with caching
     """
+    from sentence_transformers import SentenceTransformer
     model = SentenceTransformer("all-MiniLM-L6-v2")
     return model
 
@@ -117,6 +117,7 @@ def compute_similarity(sentence1, sentence2):
     """
     Compute cosine similarity between two sentences
     """
+    from sentence_transformers import util
     model = get_embedding_model()
     embedding1 = model.encode(sentence1, convert_to_tensor=True)
     embedding2 = model.encode(sentence2, convert_to_tensor=True)

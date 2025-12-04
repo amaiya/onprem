@@ -18,6 +18,7 @@ Most recent releases are shown at the top. Each release shows:
 ### fixed:
 - Removed incorrect `helpers.` prefix from `extract_filemetadata` (9ab0e2e)
 - Fix issue with blank tooltip in DocumentQA (#229)
+- lazy loading of SentenceTransformers (#230)
 
 
 ## 0.19.3 (2025-11-20)

@@ -594,7 +594,6 @@ from whoosh.analysis import RegexTokenizer, LowercaseFilter
 from langchain_core.documents import Document
 import uuid
 from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
 
 try:
     from elasticsearch import Elasticsearch
