@@ -4,6 +4,7 @@ import streamlit as st
 from typing import Optional, Tuple, List, Dict, Any
 import mimetypes
 import uuid
+import html
 
 # Add parent directory to path to allow importing when run directly
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -430,10 +431,18 @@ def main():
                     score=answer_score
                 )
                 
-                # Add the markdown content
+                # Add the markdown content with properly cleaned help text
+                import re
+                # Replace multiple whitespace chars with single space
+                clean_content = re.sub(r'\s+', ' ', content.strip())
+                # Remove URLs which break Streamlit tooltips
+                clean_content = re.sub(r'https?://[^\s]+', '[URL]', clean_content)
+                # Simple truncation and add score
+                truncated_content = f"Preview: {clean_content[:200]}... (Retrieval Score: {question_score:.3f})" if len(clean_content) > 200 else f"Preview: {clean_content} (Retrieval Score: {question_score:.3f})"
+                
                 st.markdown(
                     f"- {doc_display}",
-                    help=f"{content}... (QUESTION_TO_SOURCE_SIMILARITY: {question_score:.3f})",
+                    help=truncated_content,
                     unsafe_allow_html=True,
                 )
                 
