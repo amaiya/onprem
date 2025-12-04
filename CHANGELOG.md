@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- Removed incorrect `helpers.` prefix from `extract_filemetadata`
+- Removed incorrect `helpers.` prefix from `extract_filemetadata` (9ab0e2e)
 
 
 ## 0.19.3 (2025-11-20)
