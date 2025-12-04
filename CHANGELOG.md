@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.19.4 (TBD)
+## 0.19.4 (2025-12-04)
 
 ### new:
 - N/A
@@ -19,6 +19,7 @@ Most recent releases are shown at the top. Each release shows:
 - Removed incorrect `helpers.` prefix from `extract_filemetadata` (9ab0e2e)
 - Fix issue with blank tooltip in DocumentQA (#229)
 - lazy loading of SentenceTransformers (#230)
+- Added "loading vectorstore" spinner to web app
 
 
 ## 0.19.3 (2025-11-20)

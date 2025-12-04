@@ -186,7 +186,8 @@ def main():
     try:
         
         # Load the vector store
-        vectorstore = llm.load_vectorstore()
+        with st.spinner("Loading vectorstore..."):
+            vectorstore = llm.load_vectorstore()
         store_type = llm.get_store_type()
         
         # Check if store exists and has documents
@@ -836,7 +837,8 @@ if __name__ == "__main__":
         try:
             # Try to determine the vectorstore type
             llm = load_llm()
-            vectorstore = llm.load_vectorstore()
+            with st.spinner("Loading vectorstore..."):
+                vectorstore = llm.load_vectorstore()
             has_keyword_search = not isinstance(vectorstore, DenseStore)
         except:
             # If we can't load the vectorstore, default to assuming dense (semantic only)

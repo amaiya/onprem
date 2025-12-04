@@ -321,7 +321,8 @@ def main():
     # Initialize the vector store using LLM.load_vectorstore()
     try:
         # Load the vector store
-        vectorstore = llm.load_vectorstore()
+        with st.spinner("Loading vectorstore..."):
+            vectorstore = llm.load_vectorstore()
         
         # Check if store exists and has documents
         if not vectorstore.exists():
