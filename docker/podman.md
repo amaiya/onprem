@@ -62,6 +62,7 @@ podman build -t onprem:cpu -f Dockerfile-cpu ..
 podman run --rm -it -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data -v C:\Users\%USERNAME%\.cache:/root/.cache onprem:cpu ipython
 ```
 
+
 ### Run Web Application
 ```powershell
 podman run --rm -it ^
@@ -74,6 +75,16 @@ podman run --rm -it ^
 ```
 
 Access the web application at: http://localhost:8000
+
+
+#### Run Your Own Jupyterlab Data Science Environment
+
+It will include OnPrem.LLM and many useful dependencies for your projects (e.g., `transformers`, `sentence-transformers`, etc.).
+
+```powershell
+podman run -p 8888:8888 --rm -it -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data -v C:\Users\%USERNAME%\.cache:/root/.cache onprem:cpu jupyter lab --allow-root --ip 0.0.0.0
+```
+
 
 ## Volume Mounts Explained
 
