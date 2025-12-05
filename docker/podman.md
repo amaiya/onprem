@@ -59,7 +59,7 @@ podman build -t onprem:cpu -f Dockerfile-cpu ..
 
 ### Run Interactive REPL
 ```powershell
-podman run --rm -it -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data -v C:\Users\%USERNAME%\.cache:/root/.cache onprem:cpu
+podman run --rm -it -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data -v C:\Users\%USERNAME%\.cache:/root/.cache onprem:cpu ipython
 ```
 
 ### Run Web Application
