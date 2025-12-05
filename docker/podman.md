@@ -5,6 +5,7 @@
 - Windows 10/11 with WSL2 enabled
 - Administrator privileges for installation
 
+
 ## Install Podman for Windows
 
 1. Download and install Podman Desktop from the [official releases page](https://github.com/containers/podman-desktop/releases)
@@ -116,3 +117,134 @@ After successfully running the container:
 1. Check the application logs for any initialization messages
 2. Upload your documents to start building your knowledge base
 3. Configure model settings based on your hardware capabilities
+
+---
+
+## Podman Command Reference
+
+### Container Management
+
+**Stop a running container:**
+```bash
+podman stop onprem-container
+```
+
+**Start a stopped container:**
+```bash
+podman start onprem-container
+```
+
+**Remove a container:**
+```bash
+podman rm onprem-container
+```
+
+**View container logs:**
+```bash
+podman logs onprem-container
+```
+
+**Check running containers:**
+```bash
+podman ps
+```
+
+**Check all containers (including stopped):**
+```bash
+podman ps -a
+```
+
+### Image Management
+
+**List all images:**
+```bash
+podman images
+```
+
+**Remove an image:**
+```bash
+podman rmi IMAGE_ID
+# or by name
+podman rmi onprem:cpu
+```
+
+**Transfer image to another machine:**
+```bash
+# Export image on source machine
+podman image save onprem:cpu > onprem-cpu.tar
+
+# Import image on destination machine
+podman image load < onprem-cpu.tar
+```
+
+### Network and Port Management
+
+**Check what's using a specific port:**
+```bash
+sudo lsof -i :8000
+# or
+sudo netstat -tlnp | grep 8000
+```
+
+**Kill process using a port:**
+```bash
+# Find the process ID (PID) from above command, then:
+sudo kill <PID>
+# or forcefully:
+sudo kill -9 <PID>
+```
+
+**Use host networking (alternative to port mapping):**
+```bash
+podman run --rm -it --network=host onprem:cpu onprem --port 8000 --address 0.0.0.0
+```
+
+### Troubleshooting Commands
+
+**Build with alternative cgroup manager (for WSL2 issues):**
+```bash
+podman build --cgroup-manager=cgroupfs -t onprem:cpu -f Dockerfile-cpu ..
+```
+
+**Reset podman network (if network issues persist):**
+```bash
+podman system reset --force
+```
+
+**Use alternative networking:**
+```bash
+# slirp4netns networking
+podman run --network=slirp4netns:port_handler=slirp4netns -p 8000:8000 onprem:cpu
+```
+
+### Resource Management
+
+**Configure Podman machine resources:**
+```bash
+podman machine stop
+podman machine rm
+podman machine init --memory 8192 --cpus 4
+podman machine start
+```
+
+**Check system info:**
+```bash
+podman system info
+```
+
+**Clean up unused data:**
+```bash
+podman system prune -a
+```
+
+### Interactive Container Access
+
+**Execute commands in running container:**
+```bash
+podman exec -it onprem-container bash
+```
+
+**Run container with shell access:**
+```bash
+podman run --rm -it onprem:cpu bash
+```
