@@ -7,6 +7,19 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.19.6 (2025-12-05)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- fixed quicklinks in web app 
+- added Podman instructions in `onprem/docker` folder
+
+
 ## 0.19.5 (2025-12-05)
 
 ### new:

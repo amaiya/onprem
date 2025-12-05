@@ -164,13 +164,13 @@ def main():
         if st.button("📄 Talk to Documents", width='stretch'):
             st.switch_page("pages/2_Document_QA.py")
 
-    with col3:
-        if st.button("📊 Document Analysis", width='stretch'):
-            st.switch_page("pages/3_Document_Analysis.py")
-
     with col4:
+        if st.button("📊 Document Analysis", width='stretch'):
+            st.switch_page("pages/4_Document_Analysis.py")
+
+    with col3:
         if st.button("🔍 Search Documents", width='stretch'):
-            st.switch_page("pages/4_Document_Search.py")
+            st.switch_page("pages/3_Document_Search.py")
 
     with col5:
         if st.button("🔧 Workflow Builder", width='stretch'):
