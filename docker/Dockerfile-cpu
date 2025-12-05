@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y build-essential
 RUN python3 -m pip install --upgrade pip wheel setuptools
 RUN python3 -m pip install torch torchvision torchaudio \
   --index-url https://download.pytorch.org/whl/cpu
-RUN python3 -m pip install llama-cpp-python streamlit ipython
+RUN python3 -m pip install llama-cpp-python streamlit ipython jupyterlab
 COPY . .
 RUN python3 -m pip install .[chroma]
 CMD ["python3"]

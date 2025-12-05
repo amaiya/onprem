@@ -34,8 +34,8 @@ RUN CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 python -m pip install --upgrade \
 # Install Streamlit
 RUN uv pip install streamlit
 
-# Install IPython
-RUN uv pip install ipython
+# Install IPython and Jupyterlab
+RUN uv pip install ipython jupyterlab
 
 # Copy the context in, and use it to install onprem from source
 COPY . .
