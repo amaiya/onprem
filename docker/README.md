@@ -1,6 +1,9 @@
 How to Run Onprem in a Docker Container
 =======================================
 
+💡 **TIP:** You can also run *OnPrem.LLM* within a [Podman container](https://github.com/amaiya/onprem/blob/master/docker/podman.md).
+
+
 Build the Image(s)
 ------------------
 
