@@ -14,6 +14,7 @@ if parent_dir not in sys.path:
 from OnPrem import read_config
 from utils import construct_link, check_create_symlink
 from utils import load_llm, lucene_to_chroma
+from onprem.app.utils import load_vectorstore
 from onprem.ingest.stores.sparse import SparseStore
 from onprem.ingest.stores.dense import DenseStore
 from onprem.ingest.stores.dual import DualStore
@@ -186,8 +187,7 @@ def main():
     try:
         
         # Load the vector store
-        with st.spinner("Loading vectorstore..."):
-            vectorstore = llm.load_vectorstore()
+        vectorstore = load_vectorstore()
         store_type = llm.get_store_type()
         
         # Check if store exists and has documents
@@ -837,8 +837,7 @@ if __name__ == "__main__":
         try:
             # Try to determine the vectorstore type
             llm = load_llm()
-            with st.spinner("Loading vectorstore..."):
-                vectorstore = llm.load_vectorstore()
+            vectorstore = load_vectorstore()
             has_keyword_search = not isinstance(vectorstore, DenseStore)
         except:
             # If we can't load the vectorstore, default to assuming dense (semantic only)

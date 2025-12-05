@@ -19,6 +19,7 @@ if parent_dir not in sys.path:
 from OnPrem import read_config
 from utils import setup_llm, load_llm, construct_link, check_create_symlink
 from utils import lucene_to_chroma, get_prompt_template
+from onprem.app.utils import load_vectorstore
 from onprem.ingest.stores.sparse import SparseStore
 from onprem.ingest.stores.dense import DenseStore
 from onprem.ingest.stores.dual import DualStore
@@ -230,7 +231,7 @@ def main():
     # Initialize the vector store using LLM.load_vectorstore()
     try:
         # Load the vector store
-        vectorstore = llm.load_vectorstore()
+        vectorstore = load_vectorstore()
         store_type = llm.get_store_type()
         
         # Check if store exists and has documents

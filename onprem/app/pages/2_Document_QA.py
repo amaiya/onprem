@@ -318,11 +318,11 @@ def main():
         st.error("No vector database found. Please ingest documents first by going to Manage.")
         return
         
-    # Initialize the vector store using LLM.load_vectorstore()
+    # Initialize the vector store using cached load_vectorstore()
     try:
-        # Load the vector store
-        with st.spinner("Loading vectorstore..."):
-            vectorstore = llm.load_vectorstore()
+        # Load the vector store (cached)
+        from onprem.app.utils import load_vectorstore
+        vectorstore = load_vectorstore()
         
         # Check if store exists and has documents
         if not vectorstore.exists():

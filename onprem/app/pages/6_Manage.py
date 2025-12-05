@@ -17,6 +17,7 @@ if parent_dir not in sys.path:
 # Import from parent modules
 from OnPrem import DEFAULT_YAML_FPATH, read_config, DEFAULT_YAML
 from utils import load_llm, check_manage_access
+from onprem.app.utils import load_vectorstore
 
 def main():
     """
@@ -447,7 +448,7 @@ def main():
                                             
                                         # Load LLM and get vectorstore
                                         llm = load_llm()
-                                        vectorstore = llm.load_vectorstore()
+                                        vectorstore = load_vectorstore()
                                        
                                         # Delete documents from vectorstore
                                         normed_folder_path = os.path.normpath(folder_path).replace('\\', '/')
@@ -699,7 +700,7 @@ def main():
                                     llm = load_llm()
                                     
                                     # Get the vector store instance  
-                                    vectorstore = llm.load_vectorstore()
+                                    vectorstore = load_vectorstore()
                                     
                                     # Clean up documents by removing None values from metadata and fixing source path
                                     from langchain_core.documents import Document

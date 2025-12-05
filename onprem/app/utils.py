@@ -104,6 +104,15 @@ def load_llm():
 
 
 @st.cache_resource
+def load_vectorstore():
+    """
+    Load the vectorstore with caching
+    """
+    llm = load_llm()
+    return llm.load_vectorstore()
+
+
+@st.cache_resource
 def get_embedding_model():
     """
     Load the embedding model with caching
