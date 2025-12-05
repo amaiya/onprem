@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="full-text search engine as a backend vectorstore">
+
+<title>ingest.stores.sparse – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-000f0825b9c55ed21d14970d810c14a9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="ingest.stores.sparse – onprem">
+<meta property="og:description" content="full-text search engine as a backend vectorstore">
+<meta property="og:site_name" content="onprem">
+<meta name="twitter:title" content="ingest.stores.sparse – onprem">
+<meta name="twitter:description" content="full-text search engine as a backend vectorstore">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./llm.base.html">Source</a></li><li class="breadcrumb-item"><a href="./ingest.stores.sparse.html">ingest.stores.sparse</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Document Question-Answering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_code.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Code Generation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guided Prompts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_qualitative_survey_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Qualitative Survey Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_legal_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legal and Regulatory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Agent-Based Task Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_vectorstore_factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using Different Vector Stores</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Buildling Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.backends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm backends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.factory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dense.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dense</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.sparse.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">ingest.stores.sparse</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dual.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dual</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.tools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.tools</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sparsestore" id="toc-sparsestore" class="nav-link active" data-scroll-target="#sparsestore">SparseStore</a></li>
+  <li><a href="#sparsestore.create" id="toc-sparsestore.create" class="nav-link" data-scroll-target="#sparsestore.create">SparseStore.create</a></li>
+  <li><a href="#sparsestore.semantic_search" id="toc-sparsestore.semantic_search" class="nav-link" data-scroll-target="#sparsestore.semantic_search">SparseStore.semantic_search</a></li>
+  <li><a href="#readonlysparsestore" id="toc-readonlysparsestore" class="nav-link" data-scroll-target="#readonlysparsestore">ReadOnlySparseStore</a></li>
+  <li><a href="#sharepointstore" id="toc-sharepointstore" class="nav-link" data-scroll-target="#sharepointstore">SharePointStore</a></li>
+  <li><a href="#elasticsearchsparsestore" id="toc-elasticsearchsparsestore" class="nav-link" data-scroll-target="#elasticsearchsparsestore">ElasticsearchSparseStore</a></li>
+  <li><a href="#whooshstore" id="toc-whooshstore" class="nav-link" data-scroll-target="#whooshstore">WhooshStore</a></li>
+  <li><a href="#get_field_analyzer" id="toc-get_field_analyzer" class="nav-link" data-scroll-target="#get_field_analyzer">get_field_analyzer</a></li>
+  <li><a href="#create_field_for_value" id="toc-create_field_for_value" class="nav-link" data-scroll-target="#create_field_for_value">create_field_for_value</a></li>
+  <li><a href="#default_schema" id="toc-default_schema" class="nav-link" data-scroll-target="#default_schema">default_schema</a></li>
+  <li><a href="#whooshstore.exists" id="toc-whooshstore.exists" class="nav-link" data-scroll-target="#whooshstore.exists">WhooshStore.exists</a></li>
+  <li><a href="#whooshstore.add_documents" id="toc-whooshstore.add_documents" class="nav-link" data-scroll-target="#whooshstore.add_documents">WhooshStore.add_documents</a></li>
+  <li><a href="#whooshstore.remove_document" id="toc-whooshstore.remove_document" class="nav-link" data-scroll-target="#whooshstore.remove_document">WhooshStore.remove_document</a></li>
+  <li><a href="#whooshstore.remove_source" id="toc-whooshstore.remove_source" class="nav-link" data-scroll-target="#whooshstore.remove_source">WhooshStore.remove_source</a></li>
+  <li><a href="#whooshstore.update_documents" id="toc-whooshstore.update_documents" class="nav-link" data-scroll-target="#whooshstore.update_documents">WhooshStore.update_documents</a></li>
+  <li><a href="#whooshstore.get_all_docs" id="toc-whooshstore.get_all_docs" class="nav-link" data-scroll-target="#whooshstore.get_all_docs">WhooshStore.get_all_docs</a></li>
+  <li><a href="#whooshstore.get_doc" id="toc-whooshstore.get_doc" class="nav-link" data-scroll-target="#whooshstore.get_doc">WhooshStore.get_doc</a></li>
+  <li><a href="#whooshstore.get_size" id="toc-whooshstore.get_size" class="nav-link" data-scroll-target="#whooshstore.get_size">WhooshStore.get_size</a></li>
+  <li><a href="#whooshstore.erase" id="toc-whooshstore.erase" class="nav-link" data-scroll-target="#whooshstore.erase">WhooshStore.erase</a></li>
+  <li><a href="#vectorstore.query" id="toc-vectorstore.query" class="nav-link" data-scroll-target="#vectorstore.query">VectorStore.query</a></li>
+  <li><a href="#sparsestore.semantic_search-1" id="toc-sparsestore.semantic_search-1" class="nav-link" data-scroll-target="#sparsestore.semantic_search-1">SparseStore.semantic_search</a></li>
+  <li><a href="#vectorstore.check" id="toc-vectorstore.check" class="nav-link" data-scroll-target="#vectorstore.check">VectorStore.check</a></li>
+  <li><a href="#vectorstore.ingest" id="toc-vectorstore.ingest" class="nav-link" data-scroll-target="#vectorstore.ingest">VectorStore.ingest</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./llm.base.html">Source</a></li><li class="breadcrumb-item"><a href="./ingest.stores.sparse.html">ingest.stores.sparse</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">ingest.stores.sparse</h1>
+</div>
+
+<div>
+  <div class="description">
+    full-text search engine as a backend vectorstore
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L14" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sparsestore" class="level3">
+<h3 class="anchored" data-anchor-id="sparsestore">SparseStore</h3>
+<blockquote class="blockquote">
+<pre><code> SparseStore (**kwargs)</code></pre>
+</blockquote>
+<p><em>A factory for built-in SparseStore instances.</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L23" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="sparsestore.create" class="level3">
+<h3 class="anchored" data-anchor-id="sparsestore.create">SparseStore.create</h3>
+<blockquote class="blockquote">
+<pre><code> SparseStore.create (persist_location=None, kind=None, **kwargs)</code></pre>
+</blockquote>
+<p>*Factory method to construct a <a href="https://amaiya.github.io/onprem/ingest.stores.sparse.html#sparsestore"><code>SparseStore</code></a> instance.<br>
+Extra kwargs passed to object instantiation.</p>
+<p>Args: persist_location: where the index is stored (for whoosh) or Elasticsearch URL (for elasticsearch) kind: one of {whoosh, elasticsearch}</p>
+<p>Elasticsearch-specific kwargs: basic_auth: tuple of (username, password) for basic authentication verify_certs: whether to verify SSL certificates (default: True) ca_certs: path to CA certificate file timeout: connection timeout in seconds (default: 30, becomes request_timeout for v9+ compatibility) max_retries: maximum number of retries (default: 3) retry_on_timeout: whether to retry on timeout (default: True) maxsize: maximum number of connections in the pool (default: 25, removed for Elasticsearch v9+ compatibility)</p>
+<p>Returns: SparseStore instance*</p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L118" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="sparsestore.semantic_search" class="level3">
+<h3 class="anchored" data-anchor-id="sparsestore.semantic_search">SparseStore.semantic_search</h3>
+<blockquote class="blockquote">
+<pre><code> SparseStore.semantic_search (*args, **kwargs)</code></pre>
+</blockquote>
+<p>*Any subclass of SparseStore can inherit this method for on-the-fly semantic searches. Retrieves results based on semantic similarity to supplied <code>query</code>. All arguments are fowrwarded on to the store’s search method. The search method is expected to include “query” as first positional argument and a “limit” keyword argument. Additional kwargs can be supplied to focus the search (e.g., see <code>where_document</code> and <code>filters</code> arguments of search method). Results of invoked search method are expected to be in the form: {‘hits’: list_of_dicts, ‘total_hits’ : int}. Result of this method is a list of LangChain Document objects sorted by semantic similarity.</p>
+<p>If subclass supports dynamic chunking (has chunk_for_semantic_search=True), it will chunk large documents and find the best matching chunks per document.</p>
+<p>Args: return_chunks (bool): If True (default), return individual chunks as Document objects for RAG. If False, return original documents with full content and all chunk scores. load_web_documents (bool): If True, attempt to load content from web URLs when content field is empty (default: False). verbose (bool): If True (default), show progress bar during semantic search processing.*</p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L404" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="readonlysparsestore" class="level3">
+<h3 class="anchored" data-anchor-id="readonlysparsestore">ReadOnlySparseStore</h3>
+<blockquote class="blockquote">
+<pre><code> ReadOnlySparseStore (**kwargs)</code></pre>
+</blockquote>
+<p><em>A sparse vector store based on a read-only full-text search engine</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L466" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="sharepointstore" class="level3">
+<h3 class="anchored" data-anchor-id="sharepointstore">SharePointStore</h3>
+<blockquote class="blockquote">
+<pre><code> SharePointStore (persist_location:str, username:str, password:str,
+                  chunk_for_semantic_search:bool=True, chunk_size:int=500,
+                  chunk_overlap:int=50, n_candidates:Optional[int]=None,
+                  load_web_documents:bool=True, **kwargs)</code></pre>
+</blockquote>
+<p><em>A sparse vector store based on Microsoft Sharepoint using a “vectors-on-demand” approach.</em></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>persist_location</td>
+<td>str</td>
+<td></td>
+<td>SharePoint URL</td>
+</tr>
+<tr class="even">
+<td>username</td>
+<td>str</td>
+<td></td>
+<td>user name (e.g., CORP_username)</td>
+</tr>
+<tr class="odd">
+<td>password</td>
+<td>str</td>
+<td></td>
+<td>your SharePoint password</td>
+</tr>
+<tr class="even">
+<td>chunk_for_semantic_search</td>
+<td>bool</td>
+<td>True</td>
+<td>whether to do dynamic chunking</td>
+</tr>
+<tr class="odd">
+<td>chunk_size</td>
+<td>int</td>
+<td>500</td>
+<td>chunk size in characters (1 word ~ 4 characters)</td>
+</tr>
+<tr class="even">
+<td>chunk_overlap</td>
+<td>int</td>
+<td>50</td>
+<td>chunk overlap between chunks</td>
+</tr>
+<tr class="odd">
+<td>n_candidates</td>
+<td>Optional</td>
+<td>None</td>
+<td>number of candidate documents to consider for answer. Defaults to limit*10.</td>
+</tr>
+<tr class="even">
+<td>load_web_documents</td>
+<td>bool</td>
+<td>True</td>
+<td>whether to load content from web URLs when content field is empty</td>
+</tr>
+<tr class="odd">
+<td>kwargs</td>
+<td>VAR_KEYWORD</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L1137" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="elasticsearchsparsestore" class="level3">
+<h3 class="anchored" data-anchor-id="elasticsearchsparsestore">ElasticsearchSparseStore</h3>
+<blockquote class="blockquote">
+<pre><code> ElasticsearchSparseStore (persist_location:Optional[str]=None,
+                           index_name:str='myindex',
+                           basic_auth:Optional[tuple]=None,
+                           verify_certs:bool=True,
+                           ca_certs:Optional[str]=None, timeout:int=30,
+                           max_retries:int=3, retry_on_timeout:bool=True,
+                           maxsize:int=25,
+                           content_field:str='page_content',
+                           source_field:Optional[str]='source',
+                           id_field:str='id',
+                           content_analyzer:str='standard',
+                           chunk_for_semantic_search:bool=False,
+                           chunk_size:int=500, chunk_overlap:int=50,
+                           n_candidates:Optional[int]=None, **kwargs)</code></pre>
+</blockquote>
+<p><em>A sparse vector store based on Elasticsearch.</em></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>persist_location</td>
+<td>Optional</td>
+<td>None</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>index_name</td>
+<td>str</td>
+<td>myindex</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>basic_auth</td>
+<td>Optional</td>
+<td>None</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>verify_certs</td>
+<td>bool</td>
+<td>True</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>ca_certs</td>
+<td>Optional</td>
+<td>None</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>timeout</td>
+<td>int</td>
+<td>30</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>max_retries</td>
+<td>int</td>
+<td>3</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>retry_on_timeout</td>
+<td>bool</td>
+<td>True</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>maxsize</td>
+<td>int</td>
+<td>25</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>content_field</td>
+<td>str</td>
+<td>page_content</td>
+<td>Field mapping parameters for existing indices</td>
+</tr>
+<tr class="odd">
+<td>source_field</td>
+<td>Optional</td>
+<td>source</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>id_field</td>
+<td>str</td>
+<td>id</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>content_analyzer</td>
+<td>str</td>
+<td>standard</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>chunk_for_semantic_search</td>
+<td>bool</td>
+<td>False</td>
+<td>Dynamic chunking for semantic search</td>
+</tr>
+<tr class="odd">
+<td>chunk_size</td>
+<td>int</td>
+<td>500</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>chunk_overlap</td>
+<td>int</td>
+<td>50</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>n_candidates</td>
+<td>Optional</td>
+<td>None</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>kwargs</td>
+<td>VAR_KEYWORD</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L666" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore">WhooshStore</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore (persist_location:Optional[str]=None,
+              index_name:str='myindex',
+              chunk_for_semantic_search:bool=False, chunk_size:int=500,
+              chunk_overlap:int=50, **kwargs)</code></pre>
+</blockquote>
+<p><em>A sparse vector store based on the Whoosh full-text search engine.</em></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>persist_location</td>
+<td>Optional</td>
+<td>None</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>index_name</td>
+<td>str</td>
+<td>myindex</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>chunk_for_semantic_search</td>
+<td>bool</td>
+<td>False</td>
+<td>Dynamic chunking for semantic search</td>
+</tr>
+<tr class="even">
+<td>chunk_size</td>
+<td>int</td>
+<td>500</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>chunk_overlap</td>
+<td>int</td>
+<td>50</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>kwargs</td>
+<td>VAR_KEYWORD</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L653" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="get_field_analyzer" class="level3">
+<h3 class="anchored" data-anchor-id="get_field_analyzer">get_field_analyzer</h3>
+<blockquote class="blockquote">
+<pre><code> get_field_analyzer (field_name, value, schema=None)</code></pre>
+</blockquote>
+<p><em>Get the analyzer that would be used for a field.</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L636" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="create_field_for_value" class="level3">
+<h3 class="anchored" data-anchor-id="create_field_for_value">create_field_for_value</h3>
+<blockquote class="blockquote">
+<pre><code> create_field_for_value (field_name, value)</code></pre>
+</blockquote>
+<p><em>Create field definition based on value type - same logic as add_documents.</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L628" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="default_schema" class="level3">
+<h3 class="anchored" data-anchor-id="default_schema">default_schema</h3>
+<blockquote class="blockquote">
+<pre><code> default_schema ()</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L807" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.exists" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.exists">WhooshStore.exists</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.exists ()</code></pre>
+</blockquote>
+<p><em>Returns True if documents have been added to search index</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L814" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.add_documents" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.add_documents">WhooshStore.add_documents</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.add_documents
+                            (docs:Sequence[langchain_core.documents.base.D
+                            ocument], limitmb:int=1024,
+                            optimize:bool=False, verbose:bool=True,
+                            **kwargs)</code></pre>
+</blockquote>
+<p><em>Indexes documents. Extra kwargs supplied to <code>TextStore.ix.writer</code>.</em></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>docs</td>
+<td>Sequence</td>
+<td></td>
+<td>list of LangChain Documents</td>
+</tr>
+<tr class="even">
+<td>limitmb</td>
+<td>int</td>
+<td>1024</td>
+<td>maximum memory in megabytes to use</td>
+</tr>
+<tr class="odd">
+<td>optimize</td>
+<td>bool</td>
+<td>False</td>
+<td>whether or not to also opimize index</td>
+</tr>
+<tr class="even">
+<td>verbose</td>
+<td>bool</td>
+<td>True</td>
+<td>Set to False to disable progress bar</td>
+</tr>
+<tr class="odd">
+<td>kwargs</td>
+<td>VAR_KEYWORD</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L845" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.remove_document" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.remove_document">WhooshStore.remove_document</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.remove_document (value:str, field:str='id',
+                              optimize:bool=False)</code></pre>
+</blockquote>
+<p><em>Remove document with corresponding value and field. Default field is the id field. If optimize is True, index will be optimized.</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L857" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.remove_source" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.remove_source">WhooshStore.remove_source</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.remove_source (source:str, optimize:bool=False)</code></pre>
+</blockquote>
+<p><em>remove all documents associated with <code>source</code>. The <code>source</code> argument can either be the full path to document or a parent folder. In the latter case, ALL documents in parent folder will be removed. If optimize is True, index will be optimized.</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L868" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.update_documents" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.update_documents">WhooshStore.update_documents</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.update_documents (doc_dicts:dict, **kwargs)</code></pre>
+</blockquote>
+<p><em>Update a set of documents (doc in index with same ID will be over-written)</em></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 38%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>doc_dicts</td>
+<td>dict</td>
+<td>dictionary with keys ‘page_content’, ‘source’, ‘id’, etc.</td>
+</tr>
+<tr class="even">
+<td>kwargs</td>
+<td>VAR_KEYWORD</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L878" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.get_all_docs" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.get_all_docs">WhooshStore.get_all_docs</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.get_all_docs ()</code></pre>
+</blockquote>
+<p><em>Returns a generator to iterate through all indexed documents</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L885" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.get_doc" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.get_doc">WhooshStore.get_doc</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.get_doc (id:str)</code></pre>
+</blockquote>
+<p><em>Get an indexed record by ID</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L893" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.get_size" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.get_size">WhooshStore.get_size</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.get_size (include_deleted:bool=False)</code></pre>
+</blockquote>
+<p>*Gets size of index</p>
+<p>If include_deleted is True, will include deletd detects (prior to optimization).*</p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L902" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="whooshstore.erase" class="level3">
+<h3 class="anchored" data-anchor-id="whooshstore.erase">WhooshStore.erase</h3>
+<blockquote class="blockquote">
+<pre><code> WhooshStore.erase (confirm=True)</code></pre>
+</blockquote>
+<p><em>Clears index</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/base.py#LNone" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="vectorstore.query" class="level3">
+<h3 class="anchored" data-anchor-id="vectorstore.query">VectorStore.query</h3>
+<blockquote class="blockquote">
+<pre><code> VectorStore.query (query:str, **kwargs)</code></pre>
+</blockquote>
+<p><em>Generic query method that invokes the store’s search method. This provides a consistent interface across all store types.</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/sparse.py#L118" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="sparsestore.semantic_search-1" class="level3">
+<h3 class="anchored" data-anchor-id="sparsestore.semantic_search-1">SparseStore.semantic_search</h3>
+<blockquote class="blockquote">
+<pre><code> SparseStore.semantic_search (*args, **kwargs)</code></pre>
+</blockquote>
+<p>*Any subclass of SparseStore can inherit this method for on-the-fly semantic searches. Retrieves results based on semantic similarity to supplied <code>query</code>. All arguments are fowrwarded on to the store’s search method. The search method is expected to include “query” as first positional argument and a “limit” keyword argument. Additional kwargs can be supplied to focus the search (e.g., see <code>where_document</code> and <code>filters</code> arguments of search method). Results of invoked search method are expected to be in the form: {‘hits’: list_of_dicts, ‘total_hits’ : int}. Result of this method is a list of LangChain Document objects sorted by semantic similarity.</p>
+<p>If subclass supports dynamic chunking (has chunk_for_semantic_search=True), it will chunk large documents and find the best matching chunks per document.</p>
+<p>Args: return_chunks (bool): If True (default), return individual chunks as Document objects for RAG. If False, return original documents with full content and all chunk scores. load_web_documents (bool): If True, attempt to load content from web URLs when content field is empty (default: False). verbose (bool): If True (default), show progress bar during semantic search processing.*</p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/base.py#LNone" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="vectorstore.check" class="level3">
+<h3 class="anchored" data-anchor-id="vectorstore.check">VectorStore.check</h3>
+<blockquote class="blockquote">
+<pre><code> VectorStore.check ()</code></pre>
+</blockquote>
+<p><em>Raise exception if <a href="https://amaiya.github.io/onprem/ingest.stores.base.html#vectorstore.exists"><code>VectorStore.exists()</code></a> returns False</em></p>
+<hr>
+<p><a href="https://github.com/amaiya/onprem/blob/master/onprem/ingest/stores/base.py#LNone" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="vectorstore.ingest" class="level3">
+<h3 class="anchored" data-anchor-id="vectorstore.ingest">VectorStore.ingest</h3>
+<blockquote class="blockquote">
+<pre><code> VectorStore.ingest (source_directory:str, chunk_size:int=500,
+                     chunk_overlap:int=50,
+                     ignore_fn:Optional[Callable]=None,
+                     batch_size:int=41000, **kwargs)</code></pre>
+</blockquote>
+<p><em>Ingests all documents in <code>source_directory</code> (previously-ingested documents are ignored). When retrieved, the <a href="https://api.python.langchain.com/en/latest/documents/langchain_core.documents.base.Document.html">Document</a> objects will each have a <code>metadata</code> dict with the absolute path to the file in <code>metadata["source"]</code>. Extra kwargs fed to <code>ingest.load_single_document</code>.</em></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>source_directory</td>
+<td>str</td>
+<td></td>
+<td>path to folder containing document store</td>
+</tr>
+<tr class="even">
+<td>chunk_size</td>
+<td>int</td>
+<td>500</td>
+<td>text is split to this many characters by <a href="https://api.python.langchain.com/en/latest/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html">langchain.text_splitter.RecursiveCharacterTextSplitter</a></td>
+</tr>
+<tr class="odd">
+<td>chunk_overlap</td>
+<td>int</td>
+<td>50</td>
+<td>character overlap between chunks in <code>langchain.text_splitter.RecursiveCharacterTextSplitter</code></td>
+</tr>
+<tr class="even">
+<td>ignore_fn</td>
+<td>Optional</td>
+<td>None</td>
+<td>Optional function that accepts the file path (including file name) as input and returns <code>True</code> if file path should not be ingested.</td>
+</tr>
+<tr class="odd">
+<td>batch_size</td>
+<td>int</td>
+<td>41000</td>
+<td>batch size used when processing documents</td>
+</tr>
+<tr class="even">
+<td>kwargs</td>
+<td>VAR_KEYWORD</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>Returns</strong></td>
+<td><strong>None</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
