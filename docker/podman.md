@@ -59,7 +59,13 @@ podman build -t onprem:cpu -f Dockerfile-cpu ..
 
 ### Run Interactive REPL
 ```powershell
-podman run --rm -it -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data -v C:\Users\%USERNAME%\.cache:/root/.cache onprem:cpu ipython
+podman run --rm -it ^
+ -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data ^
+ -v C:\Users\%USERNAME%\.cache:/root/.cache ^
+ -e REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ^
+ -e SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt ^
+ onprem:cpu ^
+ ipython
 ```
 
 
@@ -82,7 +88,14 @@ Access the web application at: http://localhost:8000
 It will include OnPrem.LLM and many useful dependencies for your projects (e.g., `transformers`, `sentence-transformers`, etc.).
 
 ```powershell
-podman run -p 8888:8888 --rm -it -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data -v C:\Users\%USERNAME%\.cache:/root/.cache onprem:cpu jupyter lab --allow-root --ip 0.0.0.0
+podman run -it --rm ^
+  -p 8888:8888 ^
+  -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data ^
+  -v C:\Users\%USERNAME%\.cache:/root/.cache ^
+  -e REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ^
+  -e SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt ^
+  onprem:cpu ^
+  jupyter lab --ip=0.0.0.0 --no-browser --allow-root
 ```
 
 
