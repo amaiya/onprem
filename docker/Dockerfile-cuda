@@ -36,7 +36,7 @@ RUN uv pip install streamlit
 
 # Copy the context in, and use it to install onprem from source
 COPY . .
-RUN uv pip install -e .
+RUN uv pip install -e .[chroma]
 
 # Default to launching into the REPL
 CMD ["python3"]

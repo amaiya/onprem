@@ -5,5 +5,5 @@ RUN python3 -m pip install torch torchvision torchaudio \
   --index-url https://download.pytorch.org/whl/cpu
 RUN python3 -m pip install llama-cpp-python streamlit
 COPY . .
-RUN python3 -m pip install .
+RUN python3 -m pip install .[chroma]
 CMD ["python3"]
