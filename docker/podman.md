@@ -35,6 +35,7 @@ sudo vi /etc/pki/ca-trust/source/anchors/company.crt # copy company.crt contents
 sudo update-ca-trust
 exit
 ```
+Test to make sure it works: `podman run --rm ubi8-micro date`
 
 ### 4. Modify Dockerfile
 Edit `onprem/docker/Dockerfile-cpu` and add certificate handling after the `FROM` statement:
