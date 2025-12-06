@@ -83,7 +83,7 @@ podman run --rm -it ^
 Access the web application at: http://localhost:8000
 
 
-#### Run Your Own Jupyterlab Data Science Environment
+### Run Your Own Jupyterlab Data Science Environment
 
 It will include OnPrem.LLM and many useful dependencies for your projects (e.g., `transformers`, `sentence-transformers`, etc.).
 
