@@ -63,7 +63,7 @@ podman build -t onprem:cpu -f Dockerfile-cpu ..
 
 ### Run Interactive REPL
 ```powershell
-podman run --rm -it ^
+podman run --rm -it --network=host ^
  -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data ^
  -v C:\Users\%USERNAME%\.cache:/root/.cache ^
  -e REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ^
@@ -75,7 +75,7 @@ podman run --rm -it ^
 
 ### Run Web Application
 ```powershell
-podman run --rm -it ^
+podman run --rm -it --network=host ^
   -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data ^
   -v C:\Users\%USERNAME%\.cache:/root/.cache ^
   -p 8000:8000 ^
@@ -92,7 +92,7 @@ Access the web application at: http://localhost:8000
 It will include OnPrem.LLM and many useful dependencies for your projects (e.g., `pandas`, `scikit-learn`, `transformers`, `sentence-transformers`, etc.).
 
 ```powershell
-podman run -it --rm ^
+podman run -it --rm --network=host ^
   -p 8888:8888 ^
   -v C:\Users\%USERNAME%\onprem_data:/root/onprem_data ^
   -v C:\Users\%USERNAME%\.cache:/root/.cache ^
