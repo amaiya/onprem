@@ -44,6 +44,9 @@ FROM python:3.10
 # Add corporate certificate
 COPY company.crt /usr/local/share/ca-certificates/company.crt
 RUN update-ca-certificates
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 ```
 
 ## Build Container Image
