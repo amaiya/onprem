@@ -719,7 +719,6 @@ class LLM:
 
     def prompt(self,
                prompt:Union[str, List[Dict]],
-               output_parser:Optional[Any]=None,
                image_path_or_url:Optional[str] = None,
                prompt_template: Optional[str] = None, stop:list=[],
                truncate_prompt:bool=False, truncate_strategy:str='start',
@@ -741,10 +740,22 @@ class LLM:
                   This value will override the `stop` parameter supplied to `LLM` constructor.
         - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
         - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
+        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will 
+                            return a Pydantic object instead of a string. Uses native structured output 
+                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt` 
+                            method which uses prompt-based parsing. Invoke `pydantic_prompt` directly for
+                            more control over prompt-based parsing.
 
         """
+        # Extract response_format from kwargs if present
+        response_format = kwargs.pop('response_format', None)
+        
         # load llm
         llm = self.load_llm()
+
+        # Handle structured output wrapper
+        if response_format and hasattr(llm, 'with_structured_output'):
+            llm = llm.with_structured_output(response_format)
 
         # prompt is a list of dictionaries reprsenting messages
         if isinstance(prompt, list):
@@ -752,17 +763,19 @@ class LLM:
                 # LangChain's LlamaCpp does not provide access to create_chat_completion,
                 # so access it directly (with streaming disabled)
                 res = self.llm.client.create_chat_completion(prompt)
-                return res['choices'][0]['message']['content']
+                result = res['choices'][0]['message']['content']
             else:
                 try:
                     res = llm.invoke(prompt, stop=stop, **kwargs)
                 except Exception as e: # stop param fails with GPT-4o vision prompts
                     res = llm.invoke(prompt, **kwargs)
+                result = res.content if isinstance(res, AIMessage) else res
         # prompt is string
         else:
             if image_path_or_url:
                 prompt = self._format_image_prompt(prompt, image_path_or_url)
                 res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
+                result = res.content if isinstance(res, AIMessage) else res
             else:
                 # set prompt template
                 prompt_template = self.prompt_template if prompt_template is None else prompt_template
@@ -799,7 +812,7 @@ class LLM:
                     if 'max_tokens' in kwargs:
                         kwargs['max_new_tokens'] = kwargs['max_tokens']
                         del kwargs['max_tokens']
-                    res = llm.llm.pipeline(prompt,
+                    result = llm.llm.pipeline(prompt,
                                            stop_strings=stop if stop else None,
                                            tokenizer=tokenizer,
                                            **kwargs)[0]['generated_text']
@@ -807,7 +820,14 @@ class LLM:
                 # handle other models (e.g., llama_cpp, LLMs served through APIs)
                 else:
                     res = llm.invoke(prompt, stop=stop, **kwargs)
-        return res.content if isinstance(res, AIMessage) else res
+                    result = res.content if isinstance(res, AIMessage) else res
+
+        # Handle fallback to pydantic_prompt for unsupported models
+        if response_format and not hasattr(self.load_llm(), 'with_structured_output'):
+            return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt, 
+                                      pydantic_model=response_format, **kwargs)
+        
+        return result
 
 
 
