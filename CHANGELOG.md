@@ -7,10 +7,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.19.7 (TBD)
+## 0.20.0 (TBD)
 
 ### new:
-- N/A
+- Added async support (#233)
 
 ### changed
 - Added `response_format` parameter to `prompt` (#232)

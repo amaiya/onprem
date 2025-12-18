@@ -717,35 +717,17 @@ class LLM:
                 return output
 
 
-    def prompt(self,
-               prompt:Union[str, List[Dict]],
-               image_path_or_url:Optional[str] = None,
-               prompt_template: Optional[str] = None, stop:list=[],
-               truncate_prompt:bool=False, truncate_strategy:str='start',
-               **kwargs):
+    def _prompt_internal(self,
+                        prompt: Union[str, List[Dict]],
+                        image_path_or_url: Optional[str] = None,
+                        prompt_template: Optional[str] = None,
+                        stop: list = [],
+                        truncate_prompt: bool = False,
+                        truncate_strategy: str = 'start',
+                        invoke_fn: Optional[Callable] = None,
+                        **kwargs):
         """
-        Send prompt to LLM to generate a response.
-        Extra keyword arguments are sent directly to the model invocation.
-
-        **Args:**
-
-        - *prompt*: The prompt to supply to the model.
-                    Either a string or OpenAI-style list of dictionaries
-                    representing messages (e.g., "human", "system").
-        - *image_path_or_url*: Path or URL to an image file
-        - *prompt_template*: Optional prompt template (must have a variable named "prompt").
-                             This value will override any `prompt_template` value supplied 
-                             to `LLM` constructor.
-        - *stop*: a list of strings to stop generation when encountered. 
-                  This value will override the `stop` parameter supplied to `LLM` constructor.
-        - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
-        - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
-        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will 
-                            return a Pydantic object instead of a string. Uses native structured output 
-                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt` 
-                            method which uses prompt-based parsing. Invoke `pydantic_prompt` directly for
-                            more control over prompt-based parsing.
-
+        Internal prompt method that handles both sync and async via invoke_fn callback.
         """
         # Extract response_format from kwargs if present
         response_format = kwargs.pop('response_format', None)
@@ -757,7 +739,7 @@ class LLM:
         if response_format and hasattr(llm, 'with_structured_output'):
             llm = llm.with_structured_output(response_format)
 
-        # prompt is a list of dictionaries reprsenting messages
+        # prompt is a list of dictionaries representing messages
         if isinstance(prompt, list):
             if self.is_llamacpp():
                 # LangChain's LlamaCpp does not provide access to create_chat_completion,
@@ -766,15 +748,15 @@ class LLM:
                 result = res['choices'][0]['message']['content']
             else:
                 try:
-                    res = llm.invoke(prompt, stop=stop, **kwargs)
+                    res = invoke_fn(llm, prompt, stop=stop, **kwargs)
                 except Exception as e: # stop param fails with GPT-4o vision prompts
-                    res = llm.invoke(prompt, **kwargs)
+                    res = invoke_fn(llm, prompt, **kwargs)
                 result = res.content if isinstance(res, AIMessage) else res
         # prompt is string
         else:
             if image_path_or_url:
                 prompt = self._format_image_prompt(prompt, image_path_or_url)
-                res = llm.invoke(prompt, **kwargs) # including stop causes errors in gpt-4o
+                res = invoke_fn(llm, prompt, **kwargs) # including stop causes errors in gpt-4o
                 result = res.content if isinstance(res, AIMessage) else res
             else:
                 # set prompt template
@@ -819,7 +801,7 @@ class LLM:
 
                 # handle other models (e.g., llama_cpp, LLMs served through APIs)
                 else:
-                    res = llm.invoke(prompt, stop=stop, **kwargs)
+                    res = invoke_fn(llm, prompt, stop=stop, **kwargs)
                     result = res.content if isinstance(res, AIMessage) else res
 
         # Handle fallback to pydantic_prompt for unsupported models
@@ -828,6 +810,111 @@ class LLM:
                                       pydantic_model=response_format, **kwargs)
         
         return result
+
+    def prompt(self,
+               prompt: Union[str, List[Dict]],
+               image_path_or_url: Optional[str] = None,
+               prompt_template: Optional[str] = None,
+               stop: list = [],
+               truncate_prompt: bool = False,
+               truncate_strategy: str = 'start',
+               **kwargs):
+        """
+        Send prompt to LLM to generate a response.
+        Extra keyword arguments are sent directly to the model invocation.
+
+        **Args:**
+
+        - *prompt*: The prompt to supply to the model.
+                    Either a string or OpenAI-style list of dictionaries
+                    representing messages (e.g., "human", "system").
+        - *image_path_or_url*: Path or URL to an image file
+        - *prompt_template*: Optional prompt template (must have a variable named "prompt").
+                             This value will override any `prompt_template` value supplied 
+                             to `LLM` constructor.
+        - *stop*: a list of strings to stop generation when encountered. 
+                  This value will override the `stop` parameter supplied to `LLM` constructor.
+        - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
+        - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
+        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will 
+                            return a Pydantic object instead of a string. Uses native structured output 
+                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt` 
+                            method which uses prompt-based parsing. Invoke `pydantic_prompt` directly for
+                            more control over prompt-based parsing.
+
+        """
+        return self._prompt_internal(
+            prompt=prompt,
+            image_path_or_url=image_path_or_url,
+            prompt_template=prompt_template,
+            stop=stop,
+            truncate_prompt=truncate_prompt,
+            truncate_strategy=truncate_strategy,
+            invoke_fn=self._invoke_llm,
+            **kwargs
+        )
+
+    async def aprompt(self,
+                      prompt: Union[str, List[Dict]],
+                      image_path_or_url: Optional[str] = None,
+                      prompt_template: Optional[str] = None,
+                      stop: list = [],
+                      truncate_prompt: bool = False,
+                      truncate_strategy: str = 'start',
+                      **kwargs):
+        """
+        Async version of prompt method. For cloud/API models, uses native async.
+        For local models (llama.cpp/transformers), runs in thread pool to avoid blocking.
+
+        **Args:**
+
+        - *prompt*: The prompt to supply to the model.
+                    Either a string or OpenAI-style list of dictionaries
+                    representing messages (e.g., "human", "system").
+        - *image_path_or_url*: Path or URL to an image file
+        - *prompt_template*: Optional prompt template (must have a variable named "prompt").
+                             This value will override any `prompt_template` value supplied 
+                             to `LLM` constructor.
+        - *stop*: a list of strings to stop generation when encountered. 
+                  This value will override the `stop` parameter supplied to `LLM` constructor.
+        - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
+        - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
+        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will 
+                            return a Pydantic object instead of a string. Uses native structured output 
+                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt` 
+                            method which uses prompt-based parsing.
+        """
+        # For local models, use thread executor to avoid blocking
+        if self.is_hf() or self.is_llamacpp():
+            import asyncio
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None, 
+                self.prompt,
+                prompt, image_path_or_url, prompt_template, stop,
+                truncate_prompt, truncate_strategy,
+                **kwargs
+            )
+        else:
+            # Cloud models - use async callback
+            return await self._prompt_internal(
+                prompt=prompt,
+                image_path_or_url=image_path_or_url,
+                prompt_template=prompt_template,
+                stop=stop,
+                truncate_prompt=truncate_prompt,
+                truncate_strategy=truncate_strategy,
+                invoke_fn=self._ainvoke_llm,
+                **kwargs
+            )
+
+    def _invoke_llm(self, llm, prompt, stop=[], **kwargs):
+        """Sync LLM invocation"""
+        return llm.invoke(prompt, stop=stop, **kwargs)
+
+    async def _ainvoke_llm(self, llm, prompt, stop=[], **kwargs):
+        """Async LLM invocation"""
+        return await llm.ainvoke(prompt, stop=stop, **kwargs)
 
 
 
