@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added `response_format` parameter to `prompt` (#232)
 
 ### fixed:
-- N/A
+- fix write lock issues in WhooshStore (#234)
 
 
 ## 0.19.6 (2025-12-05)

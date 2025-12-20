@@ -765,7 +765,7 @@ class WhooshStore(SparseStore):
             d['filepath_search'] = d['filepath']
         return d
 
-    def delete_by_prefix(self, prefix:str, field:str, optimize:bool=False):
+    def delete_by_prefix(self, prefix:str, field:str, **kwargs):
         """
         Deletes all documents from a Whoosh index where the `source_field` starts with the given prefix.
 
@@ -773,7 +773,6 @@ class WhooshStore(SparseStore):
 
         - *prefix*: The prefix to match in the `field`.
         - *field*: The name of the field to match against.
-        - *optimize*: If True, optimize when committing.
 
         **Returns:**
         - Number of records deleted
@@ -784,10 +783,9 @@ class WhooshStore(SparseStore):
             results = searcher.search(Prefix(field, prefix), limit=None)
 
             if results:
-                writer = self.ix.writer()
-                for hit in results:
-                    writer.delete_document(hit.docnum)
-                writer.commit(optimize=optimize)
+                with self.ix.writer(**kwargs) as writer:
+                    for hit in results:
+                        writer.delete_document(hit.docnum)
                 return len(results)
             else:
                 return 0
@@ -798,6 +796,14 @@ class WhooshStore(SparseStore):
         """
         if hasattr(self, 'ix') and self.ix:
             self.ix.close()
+
+    def optimize(self):
+        """
+        Optimize the search index for better performance.
+        Should be called after bulk operations like adding many documents.
+        """
+        if hasattr(self, 'ix') and self.ix:
+            self.ix.optimize()
     
     #------------------------------
     # overrides of abstract methods
@@ -814,55 +820,49 @@ class WhooshStore(SparseStore):
     def add_documents(self,
                       docs: Sequence[Document], # list of LangChain Documents
                       limitmb:int=1024, # maximum memory in  megabytes to use
-                      optimize:bool=False, # whether or not to also opimize index
                       verbose:bool=True, # Set to False to disable progress bar
                       **kwargs,
         ):
         """
         Indexes documents. Extra kwargs supplied to `TextStore.ix.writer`.
         """
-        writer = self.ix.writer(limitmb=limitmb, **kwargs)
-        
-        # Add any new fields first
-        stored_names = self.ix.schema.stored_names()
-        new_fields = set()
-        
-        for doc in docs:
-            for k, v in doc.metadata.items():
-                if k not in stored_names and k not in new_fields:
-                    # Add field using same logic as filter processing
-                    field_def = create_field_for_value(k, v)
-                    if field_def:
-                        writer.add_field(k, field_def)
-                    new_fields.add(k)
-        
-        for doc in tqdm(docs, total=len(docs), disable=not verbose):
-            d = self.doc2dict(doc)
-            writer.update_document(**d)
-        writer.commit(optimize=optimize)
+        with self.ix.writer(limitmb=limitmb, **kwargs) as writer:
+            # Add any new fields first
+            stored_names = self.ix.schema.stored_names()
+            new_fields = set()
+            
+            for doc in docs:
+                for k, v in doc.metadata.items():
+                    if k not in stored_names and k not in new_fields:
+                        # Add field using same logic as filter processing
+                        field_def = create_field_for_value(k, v)
+                        if field_def:
+                            writer.add_field(k, field_def)
+                        new_fields.add(k)
+            
+            for doc in tqdm(docs, total=len(docs), disable=not verbose):
+                d = self.doc2dict(doc)
+                writer.update_document(**d)
 
        
-    def remove_document(self, value:str, field:str='id', optimize:bool=False):
+    def remove_document(self, value:str, field:str='id', **kwargs):
         """
         Remove document with corresponding value and field.
         Default field is the id field.
-        If optimize is True, index will be optimized.
         """
-        writer = self.ix.writer()
-        writer.delete_by_term(field, value)
-        writer.commit(optimize=optimize)
+        with self.ix.writer(**kwargs) as writer:
+            writer.delete_by_term(field, value)
         return
 
 
-    def remove_source(self, source:str, optimize:bool=False):
+    def remove_source(self, source:str):
         """
         remove all documents associated with `source`.
         The `source` argument can either be the full path to
         document or a parent folder.  In the latter case,
         ALL documents in parent folder will be removed.
-        If optimize is True, index will be optimized.
         """
-        return self.delete_by_prefix(source, field='source', optimize=optimize)
+        return self.delete_by_prefix(source, field='source')
         
 
     def update_documents(self,
