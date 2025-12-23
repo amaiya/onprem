@@ -10,7 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.20.0 (TBD)
 
 ### new:
-- Added async support (#233)
+- Added async support (#233, #235)
 
 ### changed
 - Added `response_format` parameter to `prompt` (#232)

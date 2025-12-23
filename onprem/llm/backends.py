@@ -266,13 +266,64 @@ class ChatGovCloudBedrock(BaseChatModel):
                     if "delta" in chunk and "text" in chunk["delta"]:
                         text = chunk["delta"]["text"]
                         if run_manager:
-                            run_manager.on_llm_new_token(text)
+                            # Check if run_manager is async or sync
+                            if hasattr(run_manager.on_llm_new_token, '__call__'):
+                                try:
+                                    import asyncio
+                                    if asyncio.iscoroutinefunction(run_manager.on_llm_new_token):
+                                        # Skip async callback in sync context for now
+                                        pass
+                                    else:
+                                        run_manager.on_llm_new_token(text)
+                                except:
+                                    run_manager.on_llm_new_token(text)
+                            else:
+                                run_manager.on_llm_new_token(text)
                         yield ChatGeneration(message=AIMessage(content=text))
                         
         except Exception as e:
             # Fallback to non-streaming if streaming fails
             result = self._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
             yield result.generations[0]
+
+    async def _agenerate(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        """
+        Async generate chat response using AWS Bedrock.
+        """
+        # For now, run the sync version in a thread pool
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, 
+            lambda: self._generate(messages, stop, run_manager, **kwargs)
+        )
+
+    async def _astream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> Iterator[ChatGeneration]:
+        """
+        Async stream chat response using AWS Bedrock.
+        """
+        # For now, run the sync version in a thread pool
+        import asyncio
+        loop = asyncio.get_event_loop()
+        
+        def sync_stream():
+            return list(self._stream(messages, stop, run_manager, **kwargs))
+        
+        chunks = await loop.run_in_executor(None, sync_stream)
+        for chunk in chunks:
+            yield chunk
 
     @property
     def _llm_type(self) -> str:
