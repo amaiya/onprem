@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.20.0 (TBD)
+## 0.20.0 (2025-12-29)
 
 ### new:
 - Added async support (#233, #235)
