@@ -104,7 +104,7 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 *Latest News* 🔥
 
 - \[2025/12\] v0.20.0 released and now includes support for
-  **asynchrounous prompts**. See [the
+  **asynchronous prompts**. See [the
   example](https://amaiya.github.io/onprem/examples.html#asynchronous-prompts).
 - \[2025/09\] v0.19.0 released and now includes support for
   **workflows**: YAML-configured pipelines for complex document
