@@ -267,9 +267,18 @@ llm = LLM(verbose=False) # default model and backend are used
   `llm = LLM(model_url='http://localhost:8666/v1', api_key='na', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
 - **Also vLLM**:
-  `llm = LLM('hosted_vllm/served-model-name', api_base="http://localhost:8666/v1", model_kwargs={'api_key':"test123"})`
+  `llm = LLM('hosted_vllm/served-model-name', api_base="http://localhost:8666/v1", api_key="test123")`
   (assumes `served-model-name` parameter is supplied to
   `vllm.entrypoints.openai.api_server`).
+
+- **vLLM with gpt-oss** (assumes `served-model-name` parameter is
+  supplied to vLLM):
+
+  ``` python
+  # important: set max_tokens to high value due to intermediate reasoning steps that are generated
+  llm = LLM(model_url='http://localhost:8666/v1', api_key='your_api_key', model=served_model_name, max_tokens=32000)
+  result = llm.prompt(prompt, reasoning_effort="high")
+  ```
 
 *Cloud Models:* In addition to local LLMs, all cloud LLM providers
 supported by [LiteLLM](https://github.com/BerriAI/litellm) are
@@ -277,7 +286,21 @@ compatible:
 
 - **Anthropic Claude**:
   `llm = LLM(model_url="anthropic/claude-3-7-sonnet-latest")`
+
 - **OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")`
+
+- **AWS GovCloud Bedrock** (assumes AWS_ACCESS_KEY_ID and
+  AWS_SECRET_ACCESS_KEY are set as environment variables)
+
+  ``` python
+  from onprem import LLM
+  inference_arn = "YOUR INFERENCE ARN"
+  endpoint_url = "YOUR ENDPOINT URL"
+  region_name = "us-gov-east-1" # replace as necessary
+  # set up LLM connection to Bedrock on AWS GovCloud
+  llm = LLM( f"govcloud-bedrock://{inference_arn}", region_name=region_name, endpoint_url=endpoint_url)
+  response = llm.prompt("Write a haiku about the moon.")
+  ```
 
 The instantiations above are described in more detail below.
 
