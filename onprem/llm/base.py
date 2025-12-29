@@ -16,7 +16,7 @@ from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.output_parsers import OutputFixingParser
 from langchain_community.llms import LlamaCpp
-from langchain_openai import ChatOpenAI, AzureChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain_litellm import ChatLiteLLM
 from .backends import ChatGovCloudBedrock
 from langchain_core.messages.ai import AIMessage
@@ -96,8 +96,9 @@ class LLM:
 
         - *model_url*: URL to `.GGUF` model (or the filename if already been downloaded to `model_download_path`).
                        To use an OpenAI-compatible REST API (e.g., vLLM, OpenLLM, Ollama), supply the URL (e.g., `http://localhost:8080/v1`).
-                       To use a cloud-based OpenAI model, replace URL with: `openai://<name_of_model>` (e.g., `openai://gpt-3.5-turbo`).
-                       To use Azure OpenAI, replace URL with: with: `azure://<deployment_name>`.
+                       To use a cloud-based provider, replace URL with provider/model: `openai/<name_of_model>` (e.g., `openai/gpt-3.5-turbo`).
+                       Any LiteLLM-supported provider is supported.
+                       To use Ollama, use `ollama/<model_name` (e.g., `ollama/llama3.2`).
                        If None, use the model indicated by `default_model`.
         - *model_id*: Name of or path to Hugging Face model (e.g., in SafeTensor format). Hugging Face Transformers is used for LLM generation instead of **llama-cpp-python**. Mutually-exclusive with `model_url` and `default_model`. The `n_gpu_layers` and `model_download_path` parameters are ignored if `model_id` is supplied.
         - *default_model*: One of {'mistral', 'zephyr', 'llama'}, where mistral is Mistral-Instruct-7B-v0.2, zephyr is Zephyr-7B-beta, and llama is Llama-3.1-8B.
@@ -285,9 +286,6 @@ class LLM:
 
     def is_openai_model(self):
         return self.model_url and self.model_url.lower().startswith('openai')
-
-    def is_azure(self):
-        return self.model_url and self.model_url.lower().startswith('azure')
 
     def is_govcloud_bedrock(self):
         return self.model_url and self.model_url.lower().startswith('govcloud-bedrock')
@@ -553,13 +551,6 @@ class LLM:
             kwargs = self._prepare_llm_kwargs(ChatLiteLLM)
             self.llm = ChatLiteLLM(model=self.process_service(self.model_url),
                                   callbacks=self.callbacks,
-                                  streaming=not self.mute_stream,
-                                  max_tokens=self.max_tokens,
-                                  **kwargs)
-        elif not self.llm and self.is_azure():
-            kwargs = self._prepare_llm_kwargs(AzureChatOpenAI)
-            self.llm = AzureChatOpenAI(azure_deployment=self.model_name, 
-                                  callbacks=self.callbacks, 
                                   streaming=not self.mute_stream,
                                   max_tokens=self.max_tokens,
                                   **kwargs)

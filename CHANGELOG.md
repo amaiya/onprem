@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.20.1 (TBD)
+
+### new:
+- N/A
+
+### changed
+- Use LiteLLM for all Azure models
+
+### fixed:
+- N/A
+
+
 ## 0.20.0 (2025-12-29)
 
 ### new:
