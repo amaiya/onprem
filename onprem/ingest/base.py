@@ -46,8 +46,8 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.WARNING)
 logger = logging.getLogger('OnPrem.LLM-ingest')
 
-DEFAULT_CHUNK_SIZE = 500
-DEFAULT_CHUNK_OVERLAP = 50
+DEFAULT_CHUNK_SIZE = 1000
+DEFAULT_CHUNK_OVERLAP = 100
 TABLE_CHUNK_SIZE = 2000
 CHROMA_MAX = 41000
 

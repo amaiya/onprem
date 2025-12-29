@@ -492,8 +492,8 @@ def test_loading(**kwargs):
 
     # test paragraph chunking on TXT
     sotu_folder = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/sotu')
-    docs = process_folder(sotu_folder, strict_paragraph_preservation=True)
-    assert(len(list(docs)) == 91)
+    docs = process_folder(sotu_folder, preserve_paragraphs=True)
+    assert(len(list(docs)) == 359)
 
     # test keep_full_document functionality
     # Test with multi-page PDF
@@ -714,7 +714,7 @@ def test_search(**kwargs):
     from onprem.ingest import load_single_document, chunk_documents
     docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
                                 store_md5=True)
-    docs = chunk_documents(docs)
+    docs = chunk_documents(docs, chunk_size=500, chunk_overlap=50)
     se = SparseStore.create()
     se.add_documents(docs)
     assert(se.get_size() ==  41)

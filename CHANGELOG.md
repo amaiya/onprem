@@ -13,6 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - Added async support (#233, #235)
 
 ### changed
+- **Breaking Changes**: default chunk size increased to 1000 characters (#236)
 - Added `response_format` parameter to `prompt` (#232)
 
 ### fixed:
