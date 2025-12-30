@@ -307,15 +307,16 @@ compatible:
 
 The instantiations above are described in more detail below.
 
-#### Specifying the Local Model to Use
+#### GGUF Models and Llama.cpp
 
 The default LLM backend is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the
 default model is currently a 7B-parameter model called
-**Zephyr-7B-beta**, which is automatically downloaded and used. The two
-other default models are `llama` and `mistral`. For instance, if
-`default_model='llama'` is supplied, then a **Llama-3.1-8B-Instsruct**
-model is automatically downloaded and used:
+**Zephyr-7B-beta**, which is automatically downloaded and used.
+Llama.cpp run models in [GGUF](https://huggingface.co/docs/hub/en/gguf)
+format. The two other default models are `llama` and `mistral`. For
+instance, if `default_model='llama'` is supplied, then a
+**Llama-3.1-8B-Instsruct** model is automatically downloaded and used:
 
 ``` python
 # Llama 3.1 is downloaded here and the correct prompt template for Llama-3.1 is automatically configured and used
@@ -851,125 +852,6 @@ you receive errors related to bitsandbytes, please refer to the
 [bitsandbytes
 documentation](https://huggingface.co/docs/bitsandbytes/main/en/installation).
 
-### Connecting to LLMs Served Through REST APIs
-
-**OnPrem.LLM** can be used with LLMs being served through any
-OpenAI-compatible REST API. This means you can easily use **OnPrem.LLM**
-with tools like [vLLM](https://github.com/vllm-project/vllm),
-[OpenLLM](https://github.com/bentoml/OpenLLM),
-[Ollama](https://ollama.com/blog/openai-compatibility), and the
-[llama.cpp
-server](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md).
-
-#### vLLM Example
-
-For instance, using [vLLM](https://github.com/vllm-project/vllm), you
-can serve an LLM as follows (replace the `--model` argument with model
-you want to use):
-
-``` sh
-python -m vllm.entrypoints.openai.api_server --model Qwen/Qwen2.5-0.5B-Instruct --dtype auto --api-key token-abc123
-```
-
-You can then connect OnPrem.LLM to the LLM by supplying the URL of the
-server you just started:
-
-``` python
-from onprem import LLM
-llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct') 
-# Note: The API key can either be supplied directly or stored in the OPENAI_API_KEY environment variable.
-#       If the server does not require an API key, `api_key` should still be supplied with a dummy value like 'na'.
-#       The model argument must exactly match what was supplied when starting the vLLM server.
-```
-
-That’s it! Solve problems with **OnPrem.LLM** as you normally would
-(e.g., RAG question-answering, summarization, few-shot prompting, code
-generation, etc.).
-
-#### Ollama Example
-
-After [downloading and installing Ollama](https://ollama.com/) and
-pulling a model (eg., `ollama pull llama3.2`), you can use it in
-OnPrem.LLM as follows:
-
-``` python
-from onprem import LLM
-llm = LLM(model_url='http://localhost:11434/v1', api_key='NA', model='llama3.2')
-output = llm.prompt('What is the capital of France?')
-
-# OUTPUT:
-# The capital of France is Paris.
-```
-
-If using OnPrem.LLM with Ollama or vLLM, then `llama-cpp-python` does
-**not** need to be installed.
-
-### Using OpenAI Models with OnPrem.LLM
-
-Even when using on-premises language models, it can sometimes be useful
-to have easy access to non-local, cloud-based models (e.g., OpenAI) for
-testing, producing baselines for comparison, and generating synthetic
-examples for fine-tuning. For these reasons, in spite of the name,
-**OnPrem.LLM** now includes support for OpenAI chat models:
-
-``` python
-from onprem import LLM
-llm = LLM(model_url='openai://gpt-4o', temperature=0)
-```
-
-    /home/amaiya/projects/ghub/onprem/onprem/core.py:196: UserWarning: The model you supplied is gpt-4o, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
-      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
-
-This OpenAI [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm)
-instance can now be used for most features in OnPrem.LLM (e.g., RAG,
-information extraction, summarization, etc.). Here we simply use it for
-general prompting:
-
-``` python
-saved_result = llm.prompt('List three cute  names for a cat and explain why each is cute.')
-```
-
-    Certainly! Here are three cute names for a cat, along with explanations for why each is adorable:
-
-    1. **Whiskers**: This name is cute because it highlights one of the most distinctive and charming features of a cat—their whiskers. It's playful and endearing, evoking the image of a curious cat twitching its whiskers as it explores its surroundings.
-
-    2. **Mittens**: This name is cute because it conjures up the image of a cat with little white paws that look like they are wearing mittens. It's a cozy and affectionate name that suggests warmth and cuddliness, much like a pair of soft mittens.
-
-    3. **Pumpkin**: This name is cute because it brings to mind the warm, orange hues of a pumpkin, which can be reminiscent of certain cat fur colors. It's also associated with the fall season, which is often linked to comfort and coziness. Plus, the name "Pumpkin" has a sweet and affectionate ring to it, making it perfect for a beloved pet.
-
-**Using Vision Capabilities in GPT-4o**
-
-``` python
-image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
-saved_result = llm.prompt('Describe the weather in this image.', image_path_or_url=image_url)
-```
-
-    The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, illuminating the green grass and landscape.
-
-**Using OpenAI-Style Message Dictionaries**
-
-``` python
-messages = [
-    {'content': [{'text': 'describe the weather in this image', 
-                  'type': 'text'},
-                 {'image_url': {'url': image_url},
-                  'type': 'image_url'}],
-     'role': 'user'}]
-saved_result = llm.prompt(messages)
-```
-
-    The weather in the image appears to be clear and sunny. The sky is mostly blue with some scattered clouds, suggesting a pleasant day with good visibility. The sunlight is bright, casting clear shadows and illuminating the green landscape.
-
-**Azure OpenAI**
-
-For Azure OpenAI models, use the following URL format:
-
-``` python
-llm = LLM(model_url='azure://<deployment_name>', ...) 
-# <deployment_name> is the Azure deployment name and additional Azure-specific parameters 
-# can be supplied as extra arguments to LLM (or set as environment variables)
-```
-
 ### Structured and Guided Outputs
 
 The
@@ -1055,7 +937,7 @@ documentation](https://amaiya.github.io/onprem/examples_guided_prompts.html)
 for more examples of how to use
 [Guidance](https://github.com/guidance-ai/guidance) with **OnPrem.LLM**.
 
-## Solving Tasks With Agents
+### Solving Tasks With Agents
 
 ``` python
 from onprem import LLM
