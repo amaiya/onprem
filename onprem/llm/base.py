@@ -931,107 +931,19 @@ class LLM:
         """
         Perform a semantic search of vectorstore.
         """
-        return self.semantic_search(*args, **kwargs)
+        rag_pipeline = self.load_rag_pipeline()
+        return rag_pipeline.semantic_search(*args, **kwargs)
 
 
-    def semantic_search(self,
-              query:str, # query string
-              limit:int = 4, # max number of results to return
-              score_threshold:float=0.0, # minimum score for document to be considered as answer source
-              filters:Optional[Dict[str, str]] = None, # filter sources by metadata values (e.g., {'table':True})
-              where_document:Optional[Any] = None, # If `store_type` is `dense, filter sources by document content 
-              folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
-              **kwargs):
+    def semantic_search(self, *args, **kwargs):
         """
         Perform a semantic search of the vector DB. Alias for `LLM.query`.
-
-        The `where_document` parameter varies depending on the value of `LLM.store_type`.
-        If `LLM.store_type` is 'dense', then `where_document` should be a dictionary in Chroma syntax (e.g., {"$contains": "Canada"})
-        to filter results.
-        If `LLM.store_stype` is 'sparse', then `where_document` should be a a boolean search string  to filter query in Lucne syntax.
+        This method delegates to RAGPipeline. See RAGPipeline.semantic_search for parameter details.
         """
-        store = self.load_vectorstore()
-        if folders:
-            folders = [folders] if isinstance(folders, str) else folders
-            # This is needed because only the where argument supports the $like operator
-            # and Langchain does not properly forward the where parameter to Chroma
-            n_candidates = store.get_size() if store.get_size() < 10000 else 10000
-            results = store.semantic_search(query, 
-                                            filters=filters,
-                                            where_document=where_document,
-                                            limit = n_candidates, **kwargs)
-            # Handle path separator differences between Windows and Unix
-            if os.name == 'nt':  # Windows
-                # Normalize paths for case-insensitive comparison on Windows
-                normalized_folders = [os.path.normpath(f).lower().replace('\\', '/') for f in folders]
-                results = [d for d in results if any(os.path.normpath(d.metadata['source']).lower().replace('\\', '/').startswith(nf) for nf in normalized_folders)]
-            else:
-                # On Unix systems, use direct path comparison
-                results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
-            results = results[:limit]
-            
-        else:
-            results = store.semantic_search(query, 
-                                            filters=filters,
-                                            where_document=where_document,
-                                            limit = limit, **kwargs)
-
-        return [d for d in results if d.metadata['score'] >= score_threshold]
+        rag_pipeline = self.load_rag_pipeline()
+        return rag_pipeline.semantic_search(*args, **kwargs)
 
 
-    def _ask(self,
-            question: str, # question as sting
-            contexts:Optional[list]=None, # optional lists of contexts to answer question. If None, retrieve from vectordb.
-            qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
-            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
-            where_document = None, # filter sources by document content (syntax varies by store type)
-            folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
-            limit:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
-            score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
-            table_k:int=1, # maximum number of tables to consider when generating answer
-            table_score_threshold:float=0.35, # minimum similarity score for table to be considered in answer
-             **kwargs):
-        """
-        Answer a question based on source documents fed to the `LLM.ingest` method.
-        Extra keyword arguments are sent directly to `LLM.prompt`.
-        Returns a dictionary with keys: `answer`, `source_documents`, `question`
-        """
-
-        if not contexts:
-            # query the vector db
-            docs = self.semantic_search(question, filters=filters, where_document=where_document, folders=folders,
-                              limit=limit if limit else self.rag_num_source_docs,
-                              score_threshold=score_threshold if score_threshold else self.rag_score_threshold)
-            if table_k>0:
-                table_filters = filters.copy() if filters else {}
-                table_filters = dict(table_filters, table=True)
-                table_docs = self.semantic_search(f'{question} (table)', 
-                                        filters=table_filters, 
-                                        where_document=where_document,
-                                        folders=folders,
-                                        limit=table_k,
-                                        score_threshold=table_score_threshold)
-                if table_docs:
-                    docs.extend(table_docs[:limit])
-            context = '\n\n'.join([d.page_content for d in docs])
-        else:
-            docs = [Document(page_content=c, metadata={'source':'<SUBANSWER>'}) for c in contexts]
-            context = "\n\n".join(contexts)
-
-        # setup prompt
-        prompt = format_string(qa_template,
-                                 question=question,
-                                 context = context)
-
-        # prompt LLM
-        answer = self.prompt(prompt,**kwargs)
-
-        # return answer
-        res = {}
-        res['question'] = question
-        res['answer'] = answer
-        res['source_documents'] = docs
-        return res
 
 
     def load_rag_pipeline(self):

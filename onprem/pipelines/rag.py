@@ -36,6 +36,51 @@ class RAGPipeline:
         self.llm = llm
         self.qa_template = qa_template
     
+    def semantic_search(self,
+                       query: str, # search query as string
+                       limit: int = 4, # number of sources to retrieve
+                       score_threshold: float = 0.0, # minimum threshold for score
+                       filters: Optional[Dict[str, str]] = None, # metadata filters
+                       where_document = None, # filter search results based syntax of underlying store
+                       folders: Optional[list] = None, # list of folders to consider
+                       **kwargs) -> List[Document]:
+        """
+        Perform a semantic search of the vector DB.
+
+        The `where_document` parameter varies depending on the value of `LLM.store_type`.
+        If `LLM.store_type` is 'dense', then `where_document` should be a dictionary in Chroma syntax (e.g., {"$contains": "Canada"})
+        to filter results.
+        If `LLM.store_type` is 'sparse', then `where_document` should be a boolean search string to filter query in Lucene syntax.
+        """
+        import os
+        store = self.llm.load_vectorstore()
+        if folders:
+            folders = [folders] if isinstance(folders, str) else folders
+            # This is needed because only the where argument supports the $like operator
+            # and Langchain does not properly forward the where parameter to Chroma
+            n_candidates = store.get_size() if store.get_size() < 10000 else 10000
+            results = store.semantic_search(query, 
+                                            filters=filters,
+                                            where_document=where_document,
+                                            limit = n_candidates, **kwargs)
+            # Handle path separator differences between Windows and Unix
+            if os.name == 'nt':  # Windows
+                # Normalize paths for case-insensitive comparison on Windows
+                normalized_folders = [os.path.normpath(f).lower().replace('\\', '/') for f in folders]
+                results = [d for d in results if any(os.path.normpath(d.metadata['source']).lower().replace('\\', '/').startswith(nf) for nf in normalized_folders)]
+            else:
+                # On Unix systems, use direct path comparison
+                results = [d for d in results if any(d.metadata['source'].startswith(f) for f in folders)]
+            results = results[:limit]
+            
+        else:
+            results = store.semantic_search(query, 
+                                            filters=filters,
+                                            where_document=where_document,
+                                            limit = limit, **kwargs)
+
+        return [d for d in results if d.metadata['score'] >= score_threshold]
+
     def _retrieve_documents(self, 
                           question: str,
                           filters: Optional[Dict[str, str]] = None,
@@ -48,7 +93,7 @@ class RAGPipeline:
         """
         Retrieve relevant documents from vector database.
         """
-        docs = self.llm.semantic_search(
+        docs = self.semantic_search(
             question, 
             filters=filters, 
             where_document=where_document, 
@@ -61,7 +106,7 @@ class RAGPipeline:
         if table_k > 0:
             table_filters = filters.copy() if filters else {}
             table_filters = dict(table_filters, table=True)
-            table_docs = self.llm.semantic_search(
+            table_docs = self.semantic_search(
                 f'{question} (table)', 
                 filters=table_filters, 
                 where_document=where_document,
