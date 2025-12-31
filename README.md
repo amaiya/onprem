@@ -178,9 +178,10 @@ following is true:
   an LLM, as [shown
   here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
 - You are using **OnPrem.LLM** with an LLM being served through an
-  [external REST API](#connecting-to-llms-served-through-rest-apis)
+  [external REST API](https://amaiya.github.io/onprem/#cheat-sheet)
   (e.g., vLLM, OpenLLM).
-- You are using **OnPrem.LLM** with a cloud LLM (more information
+- You are using **OnPrem.LLM** with a [cloud
+  LLM](https://amaiya.github.io/onprem/#cheat-sheet) (more information
   below).
 
 ### On GPU-Accelerated Inference With `llama-cpp-python`
