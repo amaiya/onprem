@@ -3,4 +3,4 @@ from onprem.pipelines.summarizer import Summarizer
 from onprem.pipelines.classifier import FewShotClassifier, SKClassifier, HFClassifier
 from onprem.pipelines.guider import Guider
 from onprem.pipelines.agent.base import Agent
-from onprem.pipelines.rag import RAGPipeline
+from onprem.pipelines.rag import RAGPipeline, KVRouter, CategorySelection

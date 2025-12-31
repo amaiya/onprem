@@ -17,7 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 - refactor RAG functionality into RAGPipeline (#237)
 
 ### fixed:
-- N/A
+- resolve issues in RAG refactor (#238)
 
 
 ## 0.20.0 (2025-12-29)

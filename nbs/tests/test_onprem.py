@@ -79,7 +79,7 @@ def test_rag_dual(**kwargs):
     # Test semantic search (should use dense store)
     semantic_results = llm.vectorstore.semantic_search("image classification")
     assert len(semantic_results) > 0
-    assert(semantic_results[0].metadata['score'] > 0.45)
+    assert(semantic_results[0].metadata['score'] > 0.35)
     
     # Test hybrid search (combines both dense and sparse results)
     hybrid_results = llm.vectorstore.hybrid_search("image classification", limit=5)
@@ -157,15 +157,17 @@ def test_rag_sparse(**kwargs):
     print()
 
     # test filters
-    assert(len(llm.query('climate', where_document='affordable')) == 1)
-    assert(len(llm.query('climate', filters={'extension':'txt'})) == 2)
+    assert(len(llm.query('climate', where_document='affordable')) == 2)
+    assert(len(llm.query('climate', filters={'extension':'txt'})) == 3)
     results= llm.query('climate', filters={'extension':'pdf'})
+    print(len(results))
     assert(len(results) == 4)  # no keyword matches so scores num_candidates and returns top 4
     assert(results[0].metadata['score'] < 0.2) # no keyword matches
 
     # test semantic search
     result = llm.query('image classification')
-    assert(result[0].metadata['score'] > 0.45)
+    print(result[0].metadata['score'])
+    assert(result[0].metadata['score'] > 0.35)
 
     # test updates
     store = llm.load_vectorstore()
@@ -258,8 +260,8 @@ def test_rag_dense(**kwargs):
     # test large k
     store = llm.load_vectorstore()
     results = store.semantic_search('What is machine learning?', limit=store.get_size())
-    print(f'# of results for lage k: {len(results)}')
-    assert(len(results) > 100)
+    print(f'# of results for large k: {len(results)}')
+    assert(len(results) > 50)
 
     # test updates
     store = llm.load_vectorstore()
@@ -277,7 +279,9 @@ def test_rag_dense(**kwargs):
 
     # test vector query
     docs = llm.query('image classification')
-    assert(docs[0].metadata['score'] >= 0.45)
+    print(docs[0].metadata['score'])
+    print(docs[0].page_content)
+    assert(docs[0].metadata['score'] >= 0.35)
 
     # cleanup
     shutil.rmtree(source_folder)

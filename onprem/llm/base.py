@@ -406,8 +406,8 @@ class LLM:
     def ingest(
         self,
         source_directory: str, # path to folder containing documents
-        chunk_size: int = 500, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`
-        chunk_overlap: int = 50, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`
+        chunk_size: Optional[int] = None, # text is split to this many characters by `langchain.text_splitter.RecursiveCharacterTextSplitter`. If None, uses onprem.ingest.base.DEFAULT_CHUNK_SIZE.
+        chunk_overlap: Optional[int] = None, # character overlap between chunks in `langchain.text_splitter.RecursiveCharacterTextSplitter`. If None, uses onprem.ingest.base.DEFAULT_CHUNK_OVERLAP.
         ignore_fn:Optional[Callable] = None, # callable that accepts the file path and returns True for ignored files
         batch_size:int=1000, # batch size used when processing documents(e.g, creating embeddings).
         **kwargs, # Extra kwargs fed to downstream functions, `load_single_document` and/or `load_documents`
@@ -417,6 +417,13 @@ class LLM:
         Previously-ingested documents are ignored.
         Extra kwargs fed to `load_single_document`, `load_documents`, and/or `chunk_documents`.
         """
+        # Import defaults from ingest module
+        from ..ingest.base import DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP
+        
+        # Use defaults if None provided
+        chunk_size = chunk_size if chunk_size is not None else DEFAULT_CHUNK_SIZE
+        chunk_overlap = chunk_overlap if chunk_overlap is not None else DEFAULT_CHUNK_OVERLAP
+        
         vectorstore = self.load_vectorstore()
         return vectorstore.ingest(
             source_directory,

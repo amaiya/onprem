@@ -292,8 +292,16 @@ class ChromaStore(DenseStore):
         """
         if not self.exists(): return []
         db = self.get_db()
+        
+        # Convert standard dict filters to ChromaDB $and format when multiple keys present
+        chroma_filters = filters
+        if filters and len(filters) > 1:
+            chroma_filters = {
+                "$and": [{k: v} for k, v in filters.items()]
+            }
+        
         results = db.similarity_search_with_score(query, 
-                                                  filter=filters,
+                                                  filter=chroma_filters,
                                                   where_document=where_document,
                                                   k = limit, **kwargs)
         if not results: return []
