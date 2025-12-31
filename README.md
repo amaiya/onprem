@@ -490,7 +490,7 @@ llm.ingest("./tests/sample_data")
     Processing and chunking 43 new documents: 100%|██████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 116.11it/s]
     100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 354/354 [00:00<00:00, 2548.70it/s]
 
-The default `chunk_size` is set quite low at 500 characters. You
+The default `chunk_size` is set quite low at 1000 characters. You
 increase by supplying `chunk_size` to `llm.ingest`. You can customize
 the ingestion process even further by accessing the underlying vector
 store directly, as illustrated in the [advanced RAG
