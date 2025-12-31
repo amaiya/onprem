@@ -14,6 +14,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Use LiteLLM for all Azure models
+- refactor RAG functionality into RAGPipeline (#237)
 
 ### fixed:
 - N/A

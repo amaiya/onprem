@@ -11,6 +11,7 @@ __all__ = ['MIN_MODEL_SIZE', 'OLLAMA_URL', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_I
 # %% ../../nbs/00_llm.base.ipynb 3
 from ..utils import get_datadir, get_models_dir, download, format_string, DEFAULT_DB
 from . import helpers
+from ..pipelines.rag import RAGPipeline
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
@@ -205,6 +206,7 @@ class LLM:
         self.check_model_download = check_model_download
         self.verbose = verbose
         self.extra_kwargs = kwargs
+        self._rag_pipeline = None
 
 
         # explicitly set offload_kqv
@@ -1033,59 +1035,23 @@ class LLM:
         return res
 
 
-    def ask(self,
-            question: str, # question as sting
-            selfask:bool=False, # If True, use an agentic Self-Ask prompting strategy.
-            qa_template=DEFAULT_QA_PROMPT, # question-answering prompt template to tuse
-            filters:Optional[Dict[str, str]] = None, # filter sources by metadata values using Chroma metadata syntax (e.g., {'table':True})
-            where_document = None, # filter sources by document content (syntax varies by store type)
-            folders:Optional[list]=None, # folders to search (needed because LangChain does not forward "where" parameter)
-            limit:Optional[int]=None, # Number of sources to consider.  If None, use `LLM.rag_num_source_docs`.
-            score_threshold:Optional[float]=None, # minimum similarity score of source. If None, use `LLM.rag_score_threshold`.
-            table_k:int=1, # maximum number of tables to consider when generating answer
-            table_score_threshold:float=0.35, # minimum similarity score for table to be considered in answer
-             **kwargs):
+    def load_rag_pipeline(self):
+        """
+        Load RAG pipeline instance.
+        """
+        if self._rag_pipeline is None:
+            self._rag_pipeline = RAGPipeline(self)
+        return self._rag_pipeline
+
+    def ask(self, question: str, **kwargs):
         """
         Answer a question based on source documents fed to the `LLM.ingest` method.
+        This method delegates to RAGPipeline. See RAGPipeline.ask for parameter details.
         Extra keyword arguments are sent directly to `LLM.prompt`.
         Returns a dictionary with keys: `answer`, `source_documents`, `question`
         """
-
-        if selfask and helpers.needs_followup(question, self):
-            subquestions = helpers.decompose_question(question, self)
-            subanswers = []
-            sources = []
-            for q in subquestions:
-                res = self._ask(q, 
-                                qa_template=qa_template, 
-                                filters=filters,
-                                where_document=where_document,
-                                folders=folders,
-                                limit=limit, score_threshold=score_threshold,
-                                table_k=table_k, table_score_threshold=table_score_threshold,
-                                **kwargs) 
-                subanswers.append(res['answer'])
-                for doc in res['source_documents']:
-                    doc.metadata = dict(doc.metadata, subquestion=q)
-                sources.extend(res['source_documents'])
-            res = self._ask(question=question,
-                            contexts=subanswers,
-                            qa_template=qa_template, 
-                            filters = filters,
-                            where_document=where_document,
-                            folders=folders, **kwargs) 
-            res['source_documents'] = sources
-            return res
-        else:       
-            res = self._ask(question=question,
-                            qa_template=qa_template, 
-                            filters = filters,
-                            where_document=where_document,
-                            folders=folders,
-                            limit=limit, score_threshold=score_threshold,
-                            table_k=table_k, table_score_threshold=table_score_threshold,
-                            **kwargs)
-            return res
+        rag_pipeline = self.load_rag_pipeline()
+        return rag_pipeline.ask(question=question, **kwargs)
 
 
     def chat(self, prompt: str, prompt_template=None, **kwargs):

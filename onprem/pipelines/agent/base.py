@@ -6,8 +6,10 @@
 __all__ = ['Agent']
 
 # %% ../../../nbs/04_pipelines.agent.base.ipynb 3
-import onprem
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import onprem
 import warnings
 from ...ingest.stores.base import VectorStore
 
@@ -32,7 +34,7 @@ class Agent:
     
     def __init__(
         self, 
-        llm: onprem.LLM,
+        llm: "onprem.LLM",
         agent_type: str = "tool_calling",
         max_steps: int = 20,
         tools:dict = {},

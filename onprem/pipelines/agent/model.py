@@ -12,7 +12,10 @@ from enum import Enum
 
 from smolagents import ChatMessage, Model, get_clean_message_list, tool_role_conversions
 from smolagents.models import get_tool_call_from_text
-import onprem
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import onprem
 
 # Local implementation of remove_stop_sequences for compatibility with newer smolagents versions
 def remove_stop_sequences(text, stop_sequences):
@@ -41,7 +44,7 @@ class AgentModel(Model):
     
     def __init__(
         self,
-        llm: onprem.LLM,
+        llm: "onprem.LLM",
         **kwargs
     ):
         self.llm = llm
