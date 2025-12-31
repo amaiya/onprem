@@ -11,7 +11,6 @@ __all__ = ['MIN_MODEL_SIZE', 'OLLAMA_URL', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_I
 # %% ../../nbs/00_llm.base.ipynb 3
 from ..utils import get_datadir, get_models_dir, download, format_string, DEFAULT_DB
 from . import helpers
-from ..pipelines.rag import RAGPipeline
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
@@ -1040,6 +1039,7 @@ class LLM:
         Load RAG pipeline instance.
         """
         if self._rag_pipeline is None:
+            from ..pipelines.rag import RAGPipeline
             self._rag_pipeline = RAGPipeline(self)
         return self._rag_pipeline
 
