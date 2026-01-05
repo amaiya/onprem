@@ -140,8 +140,7 @@ class VectorStoreTool(Tool):
 
         # Tool parameters
         self.name = name
-        self.description = f"""{description}. Results are returned as a list of dict elements.
-Each result has keys 'id', 'text', 'score'."""
+        self.description = f"""{description}. Results are returned as a list of dict elements. Each result has keys 'id', 'text', 'score'."""
 
         # Input and output descriptions
         self.inputs = {"query": {"type": "string", "description": "The search query to perform."}}
