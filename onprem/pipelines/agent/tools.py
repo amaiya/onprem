@@ -10,6 +10,8 @@ from transformers.utils import chat_template_utils, TypeHintParsingException
 
 from smolagents import Tool
 from smolagents import PythonInterpreterTool, Tool, tool as CreateTool, VisitWebpageTool, WebSearchTool
+import inspect
+from types import FunctionType, MethodType
 
 
 DEFAULT_TOOLS = {
