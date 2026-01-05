@@ -223,6 +223,7 @@ class RAGPipeline:
         subquestions = [d['sub_question'] for d in json_dict['items']]
         return subquestions
 
+
     def needs_followup(self, question: str, parse=True, **kwargs):
         """
         Decide if follow-up questions are needed
@@ -231,6 +232,7 @@ class RAGPipeline:
         output = self.llm.prompt(prompt)
         return "yes" in output.lower()
     
+
     def ask(self,
             question: str, # question as string
             contexts: Optional[list] = None, # optional list of contexts to answer question. If None, retrieve from vectordb.
@@ -247,50 +249,22 @@ class RAGPipeline:
             **kwargs) -> Dict[str, Any]:
         """
         Answer a question using RAG approach.
-        
-        Args:
-            question: Question to answer
-            contexts: Optional list of contexts. If None, retrieve from vectordb
-            qa_template: Optional custom QA prompt template
-            filters: Filter sources by metadata values
-            where_document: Filter sources by document content
-            folders: Folders to search
-            limit: Number of sources to consider
-            score_threshold: Minimum similarity score
-            table_k: Maximum number of tables to consider
-            table_score_threshold: Minimum similarity score for tables
-            selfask: Use agentic Self-Ask prompting strategy
-            **kwargs: Additional arguments passed to LLM.prompt
-            
-        Returns:
-            Dictionary with keys: answer, source_documents, question
+        Additional kwargs arguments passed to LLM.prompt
+        Returns dictionary with keys: answer, source_documents, question.
         """
         template = qa_template or self.qa_template
         limit = limit if limit is not None else self.llm.rag_num_source_docs
         score_threshold = score_threshold if score_threshold is not None else self.llm.rag_score_threshold
         
-        # Apply router if provided
-        if router and not filters:
-            router_filters = router.route(question)
-            if router_filters:
-                filters = router_filters
-        elif router and filters:
-            # Merge router filters with existing filters
-            router_filters = router.route(question)
-            if router_filters:
-                combined_filters = filters.copy()
-                combined_filters.update(router_filters)
-                filters = combined_filters
-        
         if selfask and self.needs_followup(question):
             return self._ask_with_decomposition(
                 question, template, filters, where_document, folders,
-                limit, score_threshold, table_k, table_score_threshold, **kwargs
+                limit, score_threshold, table_k, table_score_threshold, router, **kwargs
             )
         else:
             return self._ask_direct(
                 question, contexts, template, filters, where_document, folders,
-                limit, score_threshold, table_k, table_score_threshold, **kwargs
+                limit, score_threshold, table_k, table_score_threshold, router, **kwargs
             )
     
     def _ask_direct(self,
@@ -304,8 +278,22 @@ class RAGPipeline:
                    score_threshold: float,
                    table_k: int,
                    table_score_threshold: float,
+                   router = None,
                    **kwargs) -> Dict[str, Any]:
         """Direct RAG without decomposition."""
+        # Apply router if provided
+        if router and not filters:
+            router_filters = router.route(question)
+            if router_filters:
+                filters = router_filters
+        elif router and filters:
+            # Merge router filters with existing filters
+            router_filters = router.route(question)
+            if router_filters:
+                combined_filters = filters.copy()
+                combined_filters.update(router_filters)
+                filters = combined_filters
+        
         if contexts is None:
             docs = self._retrieve_documents(
                 question, filters, where_document, folders,
@@ -334,6 +322,7 @@ class RAGPipeline:
                                score_threshold: float,
                                table_k: int,
                                table_score_threshold: float,
+                               router = None,
                                **kwargs) -> Dict[str, Any]:
         """RAG with question decomposition (Self-Ask)."""
         subquestions = self.decompose_question(question)
@@ -343,7 +332,7 @@ class RAGPipeline:
         for q in subquestions:
             res = self._ask_direct(
                 q, None, qa_template, filters, where_document, folders,
-                limit, score_threshold, table_k, table_score_threshold, **kwargs
+                limit, score_threshold, table_k, table_score_threshold, router, **kwargs
             )
             subanswers.append(res['answer'])
             for doc in res['source_documents']:
@@ -353,7 +342,7 @@ class RAGPipeline:
         # Generate final answer based on subanswers
         res = self._ask_direct(
             question, subanswers, qa_template, filters, where_document, folders,
-            limit, score_threshold, table_k, table_score_threshold, **kwargs
+            limit, score_threshold, table_k, table_score_threshold, None, **kwargs
         )
         res['source_documents'] = sources
         
