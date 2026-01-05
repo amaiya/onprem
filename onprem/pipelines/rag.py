@@ -28,7 +28,8 @@ Query: {question}
 Available categories:
 {categories}
 
-Select the best category from the list above, or 'none' if no category is appropriate."""
+Select the best category from the list above, or 'none' if no category is appropriate.
+Do not provide an explanation for the categorization."""
 
 # Question decomposition prompt template
 SUBQUESTION_PROMPT = """\
@@ -392,9 +393,11 @@ class KVRouter:
             categories.append(f"- {value}: {description}")
         return "\n".join(categories)
     
-    def route(self, question: str) -> Optional[Dict[str, str]]:
+
+    def route(self, question: str, **kwargs) -> Optional[Dict[str, str]]:
         """
         Select the best field value for the given question.
+        Extra **kwargs supplied to LLM.pydantic_prompt.
         
         Args:
             question: The user's question/query
@@ -416,7 +419,8 @@ class KVRouter:
             response = self.llm.pydantic_prompt(
                 prompt, 
                 pydantic_model=CategorySelection,
-                attempt_fix=True  # Try to fix malformed responses
+                attempt_fix=True,  # Try to fix malformed responses
+                **kwargs
             )
             
             selected_category = response.category.strip().lower()
@@ -429,6 +433,11 @@ class KVRouter:
             elif selected_category == 'none':
                 return None
             else:
+                # Fuzzy matching: check if any valid value appears in the selected_category
+                for valid_key, original_value in valid_values.items():
+                    if valid_key in selected_category:
+                        return {self.field_name: original_value}
+                
                 # Fallback: if response doesn't match, return None
                 return None
                 

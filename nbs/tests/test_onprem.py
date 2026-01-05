@@ -191,6 +191,14 @@ def test_rag_sparse(**kwargs):
     llm.set_store_type(original_store_type)
 
 
+def set_folder(filepath):
+    if 'sotu' in filepath:
+        return 'sotu'
+    elif 'ktrain_paper' in filepath:
+        return 'ktrain'
+    else:
+        return 'na'
+
 def test_rag_dense(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
@@ -201,6 +209,14 @@ def test_rag_dense(**kwargs):
     llm.set_store_type('dense')
 
 
+    # setup KVRouter
+    from onprem.pipelines import KVRouter
+    router = KVRouter(
+        field_name='folder',
+        field_descriptions={
+            'sotu': "Biden's State of the Union Address, which mentions nomination of Judge Ketanji Brown Jackson",
+            'ktrain': "Research papers about ktrain library, a toolkit for machine learning, text classification, and computer vision." },
+        llm=llm)
 
     # make source folder
     source_folder = tempfile.mkdtemp()
@@ -212,7 +228,7 @@ def test_rag_dense(**kwargs):
     )
 
     # ingest ktrain paper
-    llm.ingest(source_folder)
+    llm.ingest(source_folder, file_callables={'folder': set_folder})
     assert os.path.exists(source_folder)
 
     # QA on ktrain paper
@@ -233,15 +249,21 @@ def test_rag_dense(**kwargs):
     )
 
     # ingest SOTU
-    llm.ingest(source_folder)
+    llm.ingest(source_folder, file_callables={'folder': set_folder})
 
     # QA on SOTU
     print()
-    result = llm.ask("Who is Ketanji? Brown Jackson")
+    result = llm.ask("In State of the Union, who is Ketanji Brown Jackson?", router=router)
     assert len(result["answer"]) > 8
     assert "question" in result
     assert "source_documents" in result
+    source_filenames = list(set([os.path.basename(d.metadata['source']) for d in result['source_documents']]))
     print()
+
+    # SELF-ASK
+    result = llm.ask("How does ktrain compare to AutoGluon?", limit=2, selfask=True)
+    assert(len(result['source_documents']) > 2)
+    print(f'# of sources from selfask: {len(result["source_documents"])}')
 
     # download MS financial statement
     U.download(

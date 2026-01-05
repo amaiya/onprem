@@ -15,6 +15,7 @@ Most recent releases are shown at the top. Each release shows:
 ### changed
 - Use LiteLLM for all Azure models
 - refactor RAG functionality into RAGPipeline (#237)
+- Added tests for `KVRouter` and the `selfask=True` option to `LLM.ask` (#239)
 
 ### fixed:
 - resolve issues in RAG refactor (#238)

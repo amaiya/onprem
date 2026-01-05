@@ -14,6 +14,7 @@ import yaml
 from typing import List, Any, Union, Callable
 from pydantic import BaseModel, Field
 from langchain_core.documents import Document
+from langchain_core.exceptions import OutputParserException
 import warnings
 
 
@@ -103,11 +104,58 @@ def _marshal_llm_to_json(output: str) -> str:
     if left_square < left_brace and left_square != -1:
         left = left_square
         right = output.rfind("]")
+        extracted = output[left : right + 1] if right != -1 else output[left:]
     else:
         left = left_brace
         right = output.rfind("}")
+        extracted = output[left : right + 1] if right != -1 else output[left:]
 
-    return output[left : right + 1]
+    # Always check if the extracted JSON is valid, and complete it if not
+    try:
+        import json
+        json.loads(extracted)
+        return extracted  # JSON is valid
+    except json.JSONDecodeError:
+        # JSON is invalid, try to complete it
+        return _complete_json(extracted)
+
+
+def _complete_json(json_str: str) -> str:
+    """Complete incomplete JSON by removing partial entries and adding closing brackets."""
+    lines = json_str.split('\n')
+    completed_lines = []
+    brace_count = 0
+    bracket_count = 0
+    
+    for line in lines:
+        # Count braces and brackets to track structure
+        brace_count += line.count('{') - line.count('}')
+        bracket_count += line.count('[') - line.count(']')
+        
+        # Skip incomplete lines (lines that don't have proper structure)
+        stripped = line.strip()
+        if stripped and not stripped.endswith((',', '{', '}', '[', ']', '"')):
+            # This looks like an incomplete line, skip it
+            continue
+            
+        completed_lines.append(line)
+    
+    # Remove trailing comma from last completed entry
+    if completed_lines and completed_lines[-1].strip().endswith(','):
+        completed_lines[-1] = completed_lines[-1].rstrip().rstrip(',')
+    
+    # Add missing closing brackets
+    result = '\n'.join(completed_lines)
+    
+    # Close any open arrays
+    if bracket_count > 0:
+        result += '\n    ]'
+    
+    # Close any open objects  
+    if brace_count > 0:
+        result += '\n}'
+        
+    return result
 
 
 def extract_json(text:str) -> str:
@@ -116,7 +164,14 @@ def extract_json(text:str) -> str:
     If no json exists, then return empty string.
     """
     if "```json" in text:
-        text = text.split("```json")[1].strip().strip("```").strip()
+        # Split on ```json and take the part after it
+        parts = text.split("```json", 1)
+        if len(parts) > 1:
+            text = parts[1]
+            # Remove closing ``` if it exists, but don't fail if it doesn't
+            if "```" in text:
+                text = text.split("```")[0]
+            text = text.strip()
     
     return _marshal_llm_to_json(text)
 
