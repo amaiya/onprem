@@ -7,10 +7,11 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.20.1 (TBD)
+## 0.21.0 (TBD)
 
 ### new:
-- N/A
+- **KVRouter**: [query routing](https://amaiya.github.io/onprem/pipelines.rag.html#example-using-query-routing-with-rag) based on metadata (#238)
+- Support for native structured outputs using AWS GovCloud Bedrock (#240)
 
 ### changed
 - Use LiteLLM for all Azure models
