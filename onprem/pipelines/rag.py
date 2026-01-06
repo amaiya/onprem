@@ -397,7 +397,7 @@ class KVRouter:
     def route(self, question: str, **kwargs) -> Optional[Dict[str, str]]:
         """
         Select the best field value for the given question.
-        Extra **kwargs supplied to LLM.pydantic_prompt.
+        Extra **kwargs supplied to LLM.prompt.
         
         Args:
             question: The user's question/query
@@ -414,12 +414,11 @@ class KVRouter:
             categories=categories_text
         )
         
-        # Use pydantic_prompt for structured output
+        # Use response_format for structured output
         try:
-            response = self.llm.pydantic_prompt(
+            response = self.llm.prompt(
                 prompt, 
-                pydantic_model=CategorySelection,
-                attempt_fix=True,  # Try to fix malformed responses
+                response_formatl=CategorySelection,
                 **kwargs
             )
             

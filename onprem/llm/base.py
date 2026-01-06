@@ -731,12 +731,25 @@ class LLM:
         # Extract response_format from kwargs if present
         response_format = kwargs.pop('response_format', None)
         
-        # load llm
-        llm = self.load_llm()
-
-        # Handle structured output wrapper
-        if response_format and hasattr(llm, 'with_structured_output'):
-            llm = llm.with_structured_output(response_format)
+        # Handle structured output BEFORE any other processing
+        if response_format:
+            llm = self.load_llm()
+            if hasattr(llm, 'with_structured_output'):
+                try:
+                    # Try native structured output first
+                    llm = llm.with_structured_output(response_format)
+                    # Continue with normal processing using the wrapped LLM
+                except NotImplementedError:
+                    # Fall back to pydantic_prompt immediately, before any template processing
+                    return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt, 
+                                              pydantic_model=response_format)
+            else:
+                # No native support, use pydantic_prompt immediately
+                return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt, 
+                                          pydantic_model=response_format)
+        else:
+            # load llm normally if no structured output needed
+            llm = self.load_llm()
 
         # prompt is a list of dictionaries representing messages
         if isinstance(prompt, list):
@@ -803,10 +816,6 @@ class LLM:
                     res = invoke_fn(llm, prompt, stop=stop, **kwargs)
                     result = res.content if isinstance(res, AIMessage) else res
 
-        # Handle fallback to pydantic_prompt for unsupported models
-        if response_format and not hasattr(self.load_llm(), 'with_structured_output'):
-            return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt, 
-                                      pydantic_model=response_format, **kwargs)
         
         return result
 
