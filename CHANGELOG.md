@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.21.0 (2025-01-06)
+## 0.21.0 (2026-01-06)
 
 ### new:
 - **KVRouter**: [query routing](https://amaiya.github.io/onprem/pipelines.rag.html#example-using-query-routing-with-rag) based on metadata (#238)
