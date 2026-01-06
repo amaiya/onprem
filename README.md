@@ -855,10 +855,76 @@ documentation](https://huggingface.co/docs/bitsandbytes/main/en/installation).
 
 ### Structured and Guided Outputs
 
+LLMs do not always listen to instructions properly. **Structured
+outputs** for LLMs are a feature ensuring model responses follow a
+strict, user-defined format (like JSON or XML schema) instead of
+free-form text, making outputs predictable, machine-readable, and easily
+integrable into applications.
+
+#### Natively Supported Structured Outputs
+
+A number of LLM services (e.g., vLLM, OpenAI, Anthropic Claude, AWS
+GovCloud Bedrock) include native support for producing structured
+outputs. To take advantage of this capability when it exists, you can
+supply a Pydantic model representing the desired output format to the
+`response_format` parameter
+of[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
+
+Structured outputs for LLMs are a feature ensuring model responses
+follow a strict, user-defined format (like JSON or XML schema) instead
+of free-form text, making outputs predictable, machine-readable, and
+easily integrable into applications.
+
+``` python
+from onprem import LLM
+from pydantic import BaseModel
+
+class ContactInfo(BaseModel):
+    name: str
+    email: str
+    plan_interest: str
+    demo_requested: bool
+
+# Create LLM instance for Claude
+llm = LLM("anthropic/claude-3-7-sonnet-latest")
+
+# Use structured output - this should automatically use Claude's native API
+result = llm.prompt(
+    "Extract info from: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday  at 2pm.",
+      response_format=ContactInfo
+  )
+
+print(f"Name: {result.name}")
+print(f"Email: {result.email}")
+print(f"Plan: {result.plan_interest}")
+print(f"Demo: {result.demo_requested}")
+```
+
+The above example should work with both Anthropic and OpenAI LLM
+backends. For **vLLM**, you can generated structured outputs as follows:
+
+``` python
+
+from onprem import LLM
+llm = LLM(model_url='http://localhost:8666/v1', api_key='test123', model='MyGPT')
+result = llm.prompt('Classify this sentiment: vLLM is wonderful!',
+                     extra_body={"structured_outputs": {"choice": ["positive", "negative"]}})
+```
+
+An example for AWS GovCloud Bedrock is [shown
+here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
+
+#### Prompt-Based Structured Outputs
+
 The
 [`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
-method allows you to specify the desired structure of the LLM’s output
-as a Pydantic model.
+method also allows you to specify the desired structure of the LLM’s
+output as a Pydantic model. Internally,
+[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
+wraps the user-supplied prompt within a larger prompt telling the LLM to
+output results in a specific JSON format. It is sometimes less
+efficient/reliable than aforementioned native methods, but is more
+generally applicable to any LLM.
 
 ``` python
 from pydantic import BaseModel, Field
