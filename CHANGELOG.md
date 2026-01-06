@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.21.0 (TBD)
+## 0.21.0 (2025-01-06)
 
 ### new:
 - **KVRouter**: [query routing](https://amaiya.github.io/onprem/pipelines.rag.html#example-using-query-routing-with-rag) based on metadata (#238)
@@ -20,6 +20,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - resolve issues in RAG refactor (#238)
+- fix fallback to `pydantic_prompt` when using `response_format` (ae0d9ebd)
 
 
 ## 0.20.0 (2025-12-29)

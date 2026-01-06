@@ -103,6 +103,13 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 *Latest News* 🔥
 
+- \[2026/01\] v0.21.0 released and now includes support for
+  **metadata-based query routing**. See the [query routing example
+  here](https://amaiya.github.io/onprem/pipelines.rag.html#example-using-query-routing-with-rag).
+  Also included in this release: [provider-implemented structured
+  outputs](https://amaiya.github.io/onprem/#natively-supported-structured-outputs)
+  (e.g., structured outputs with OpenAI, Anthropic, and AWS GovCloud
+  Bedrock).
 - \[2025/12\] v0.20.0 released and now includes support for
   **asynchronous prompts**. See [the
   example](https://amaiya.github.io/onprem/examples.html#asynchronous-prompts).
@@ -916,6 +923,12 @@ result = llm.prompt('Classify this sentiment: vLLM is wonderful!',
 An structured output example using **AWS GovCloud Bedrock** is [shown
 here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
 
+When using an LLM backend that does not natively support structured
+outputs, supplying the `response_format` parameter to
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
+will result in an automatic fall back to a prompt-based approach to
+structured outputs as described next.
+
 #### Prompt-Based Structured Outputs
 
 The
@@ -926,7 +939,13 @@ output as a Pydantic model. Internally,
 wraps the user-supplied prompt within a larger prompt telling the LLM to
 output results in a specific JSON format. It is sometimes less
 efficient/reliable than aforementioned native methods, but is more
-generally applicable to any LLM.
+generally applicable to any LLM. Since calling
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
+with the `response_format` parameter will automatically invoke
+[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
+when necessary, you will typically not have to call
+[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
+directly.
 
 ``` python
 from pydantic import BaseModel, Field
