@@ -900,8 +900,10 @@ print(f"Plan: {result.plan_interest}")
 print(f"Demo: {result.demo_requested}")
 ```
 
-The above example should work with both Anthropic and OpenAI LLM
-backends. For **vLLM**, you can generated structured outputs as follows:
+The above approach using the `response_format` parameter works with both
+**Anthropic** and **OpenAI** as LLM backends.
+
+For **vLLM**, you can generated structured outputs as follows:
 
 ``` python
 
@@ -911,7 +913,7 @@ result = llm.prompt('Classify this sentiment: vLLM is wonderful!',
                      extra_body={"structured_outputs": {"choice": ["positive", "negative"]}})
 ```
 
-An example for AWS GovCloud Bedrock is [shown
+An structured output example using **AWS GovCloud Bedrock** is [shown
 here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
 
 #### Prompt-Based Structured Outputs
