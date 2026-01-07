@@ -11,10 +11,9 @@ def pydantic_to_vllm_schema(pydantic_model):
             }}
 from pydantic import BaseModel, Field
 class MeasuredQuantity(BaseModel):
-    value: str = Field(description="numerical value")
+    value: str = Field(description="numerical value - number only")
     unit: str = Field(description="unit of measurement")
-result = llm.prompt('Extract unit and value from the following: He was going 35 mph.', response_format=pydantic_to_vllm_schema(MeasuredQuantity))
-
+result = llm.prompt('Extract unit and value from the following: He was going 35 mph.',                                                          response_format=pydantic_to_vllm_schema(MeasuredQuantity))
 
 
 
