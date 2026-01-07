@@ -931,6 +931,12 @@ outputs, supplying the `response_format` parameter to
 will result in an automatic fall back to a prompt-based approach to
 structured outputs as described next.
 
+**Tipe:** When using natively-supported structured outputs, it is
+important to include an actual instruction in the prompt (e.g.,
+*“Classify this sentiment”*, *“Extract info from”*, etc.). With
+prompt-based structured outputs (described below), the instruction can
+often be omitted.
+
 #### Prompt-Based Structured Outputs
 
 The
