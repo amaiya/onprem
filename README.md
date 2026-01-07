@@ -913,8 +913,8 @@ The above approach using the `response_format` parameter works with both
 A structured output example using **AWS GovCloud Bedrock** is [shown
 here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
 
-For **vLLM**, you can generate structured outputs using the `extra_body`
-parameter as follows:
+For **vLLM**, you can generate structured outputs using expected extra
+paramters like `extra_body` parameter as follows:
 
 ``` python
 from onprem import LLM
@@ -923,23 +923,6 @@ llm = LLM(model_url='http://localhost:8666/v1', api_key='test123', model='MyGPT'
 # classification example
 result = llm.prompt('Classify this sentiment: vLLM is wonderful!',
                      extra_body={"structured_outputs": {"choice": ["positive", "negative"]}})
-
-# extraction example
-def pydantic_to_vllm_schema(pydantic_model):
-    """Convert Pydantic model to vLLM structured output format"""
-    schema = pydantic_model.model_json_schema()
-    return {
-        "response_format": {
-            "type": "json_schema",
-            "json_schema": {
-                "name": pydantic_model.__name__.lower(),
-                "schema": schema
-            }}}
-from pydantic import BaseModel, Field
-class MeasuredQuantity(BaseModel):
-    value: str = Field(description="numerical value")
-    unit: str = Field(description="unit of measurement")
-result = llm.prompt('He was going 35 mph.', extra_body=pydantic_to_vllm_schema(MeasuredQuantity))
 ```
 
 When using an LLM backend that does not natively support structured
