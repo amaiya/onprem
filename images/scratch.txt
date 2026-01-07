@@ -1,3 +1,37 @@
+Works with TinyLlama
+
+def pydantic_to_vllm_schema(pydantic_model):
+    """Convert Pydantic model to vLLM structured output format"""
+    schema = pydantic_model.model_json_schema()
+    return {
+            "type": "json_schema",
+            "json_schema": {
+                "name": pydantic_model.__name__.lower(),
+                "schema": schema
+            }}
+from pydantic import BaseModel, Field
+class MeasuredQuantity(BaseModel):
+    value: str = Field(description="numerical value")
+    unit: str = Field(description="unit of measurement")
+result = llm.prompt('Extract unit and value from the following: He was going 35 mph.', response_format=pydantic_to_vllm_schema(MeasuredQuantity))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------
 # extraction example
 def pydantic_to_vllm_schema(pydantic_model):
     """Convert Pydantic model to vLLM structured output format"""

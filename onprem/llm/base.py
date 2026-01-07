@@ -731,32 +731,36 @@ class LLM:
         # Extract response_format from kwargs if present
         response_format = kwargs.pop('response_format', None)
         
+        # Load LLM once
+        llm = self.load_llm()
+        
         # Handle structured output BEFORE any other processing
         if response_format:
-            llm = self.load_llm()
-            if hasattr(llm, 'with_structured_output'):
-                try:
-                    # Try native structured output first
-                    llm = llm.with_structured_output(response_format)
-                    # Continue with normal processing using the wrapped LLM
-                except NotImplementedError:
-                    # Fall back to pydantic_prompt immediately, before any template processing
-                    return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt, 
-                                              pydantic_model=response_format)
+            if isinstance(response_format, dict) and response_format.get("type") == "json_schema":
+                # This is vLLM native format - pass it directly to the API call
+                kwargs['response_format'] = response_format
+                response_format = None  # Don't trigger LangChain handling
             else:
-                # No native support, use pydantic_prompt immediately
-                return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt, 
-                                          pydantic_model=response_format)
-        else:
-            # load llm normally if no structured output needed
-            llm = self.load_llm()
+                if hasattr(llm, 'with_structured_output'):
+                    try:
+                        # Try native structured output first
+                        llm = llm.with_structured_output(response_format)
+                        # Continue with normal processing using the wrapped LLM
+                    except NotImplementedError:
+                        # Fall back to pydantic_prompt immediately, before any template processing
+                        return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
+                                                  pydantic_model=response_format)
+                else:
+                    # No native support, use pydantic_prompt immediately
+                    return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
+                                              pydantic_model=response_format)
 
         # prompt is a list of dictionaries representing messages
         if isinstance(prompt, list):
             if self.is_llamacpp():
                 # LangChain's LlamaCpp does not provide access to create_chat_completion,
                 # so access it directly (with streaming disabled)
-                res = self.llm.client.create_chat_completion(prompt)
+                res = llm.client.create_chat_completion(prompt)
                 result = res['choices'][0]['message']['content']
             else:
                 try:
