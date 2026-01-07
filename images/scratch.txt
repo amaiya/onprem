@@ -1,0 +1,50 @@
+# extraction example
+def pydantic_to_vllm_schema(pydantic_model):
+    """Convert Pydantic model to vLLM structured output format"""
+    schema = pydantic_model.model_json_schema()
+    return {
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": pydantic_model.__name__.lower(),
+                "schema": schema
+            }}}
+from pydantic import BaseModel, Field
+class MeasuredQuantity(BaseModel):
+    value: str = Field(description="numerical value")
+    unit: str = Field(description="unit of measurement")
+result = llm.prompt('He was going 35 mph.', extra_body=pydantic_to_vllm_schema(MeasuredQuantity))
+
+
+
+from openai import OpenAI
+from pydantic import BaseModel, Field
+
+# Set up direct OpenAI client pointing to your vLLM server
+client = OpenAI(
+    base_url='http://localhost:8666/v1',
+    api_key='test123'  # vLLM doesn't validate this
+)
+
+# Your measurement example
+class MeasuredQuantity(BaseModel):
+    value: str = Field(description="numerical value")
+    unit: str = Field(description="unit of measurement")
+
+completion = client.chat.completions.create(
+    model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    messages=[
+        {
+            "role": "user",
+            "content": "He was going 35 mph."
+        }
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "measured-quantity",
+            "schema": MeasuredQuantity.model_json_schema()
+        },
+    },
+)
+print(completion.choices[0].message.content)
