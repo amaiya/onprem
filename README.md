@@ -882,6 +882,8 @@ follow a strict, user-defined format (like JSON or XML schema) instead
 of free-form text, making outputs predictable, machine-readable, and
 easily integrable into applications.
 
+**Anthropic or OpenAI**
+
 ``` python
 from onprem import LLM
 from pydantic import BaseModel
@@ -910,8 +912,12 @@ print(f"Demo: {result.demo_requested}")
 The above approach using the `response_format` parameter works with both
 **Anthropic** and **OpenAI** as LLM backends.
 
+**AWS GovCloud Bedrock**
+
 A structured output example using **AWS GovCloud Bedrock** is [shown
 here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
+
+**VLLM**
 
 For **vLLM**, you can generate structured outputs using documented extra
 parameters like `extra_body` argument as illustrated below:
@@ -946,11 +952,30 @@ result = llm.prompt(
 # OUTPUT: Alan_Turing@enigma.com
 ```
 
+**Ollama**
+
+``` python
+from pydantic import BaseModel
+
+class Pet(BaseModel):
+  name: str
+  animal: str
+  age: int
+  color: str | None
+  favorite_toy: str | None
+
+class PetList(BaseModel):
+  pets: list[Pet]
+
+llm = LLM('ollama/llama3.1')
+result = llm.prompt('I have two cats named Luna and Loki...', format=PetList.model_json_schema())
+```
+
 When using an LLM backend that does not natively support structured
 outputs, supplying a Pydantic model via the `response_format` parameter
 to
 [`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
-will result in an automatic fall back to a prompt-based approach to
+should result in an automatic fall back to a prompt-based approach to
 structured outputs as described next.
 
 **Tip:** When using natively-supported structured outputs, it is
