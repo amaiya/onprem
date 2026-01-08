@@ -913,25 +913,47 @@ The above approach using the `response_format` parameter works with both
 A structured output example using **AWS GovCloud Bedrock** is [shown
 here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
 
-For **vLLM**, you can generate structured outputs using expected extra
+For **vLLM**, you can generate structured outputs using documented extra
 paramters like `extra_body` parameter as follows:
 
 ``` python
 from onprem import LLM
 llm = LLM(model_url='http://localhost:8666/v1', api_key='test123', model='MyGPT')
 
-# classification example
+# classification-based structured outputs
 result = llm.prompt('Classify this sentiment: vLLM is wonderful!',
                      extra_body={"structured_outputs": {"choice": ["positive", "negative"]}})
+# OUTPUT: positive
+
+# JSON-based structured outputs
+from pydantic import BaseModel, Field
+class MeasuredQuantity(BaseModel):
+    value: str = Field(description="numerical value - number only")
+    unit: str = Field(description="unit of measurement")
+response_format = {"type": "json_schema",
+                     "json_schema": {
+                     "name": MeasuredQuantity.__name__.lower(),
+                      "schema": MeasuredQuantity.model_json_schema()}}
+result = llm.prompt('Extract unit and value from the following: He was going 35 mph.',                                                                                       response_format=response_format)
+# OUTPUT: { "value": "35", "unit": "mph" }
+
+# RegEx-based strucured outputs
+result = llm.prompt(
+    "Generate an example email address for Alan Turing, who works in Enigma. End in "
+    ".com and new line.",
+    extra_body={"structured_outputs": {"regex": r"\w+@\w+\.com\n"}, "stop": ["\n"]},
+)
+# OUTPUT: Alan_Turing@enigma.com
 ```
 
 When using an LLM backend that does not natively support structured
-outputs, supplying the `response_format` parameter to
+outputs, supplying a Pydantic model via the `response_format` parameter
+to
 [`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
 will result in an automatic fall back to a prompt-based approach to
 structured outputs as described next.
 
-**Tipe:** When using natively-supported structured outputs, it is
+**Tip:** When using natively-supported structured outputs, it is
 important to include an actual instruction in the prompt (e.g.,
 *“Classify this sentiment”*, *“Extract info from”*, etc.). With
 prompt-based structured outputs (described below), the instruction can
