@@ -914,7 +914,7 @@ A structured output example using **AWS GovCloud Bedrock** is [shown
 here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
 
 For **vLLM**, you can generate structured outputs using documented extra
-paramters like `extra_body` parameter as follows:
+parameters like `extra_body` argument as illustrated below:
 
 ``` python
 from onprem import LLM
