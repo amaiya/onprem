@@ -730,10 +730,19 @@ class LLM:
         """
         # Extract response_format from kwargs if present
         response_format = kwargs.pop('response_format', None)
-        
+
+        # Extract structured output kwargs
+        structured_output_kwargs = {}
+        if 'method' in kwargs:
+            structured_output_kwargs['method'] = kwargs.pop('method')
+        if 'strict' in kwargs:
+            structured_output_kwargs['strict'] = kwargs.pop('strict')
+        if 'include_raw' in kwargs:
+            structured_output_kwargs['include_raw'] = kwargs.pop('include_raw')
+
         # Load LLM once
         llm = self.load_llm()
-        
+
         # Handle structured output BEFORE any other processing
         if response_format:
             if isinstance(response_format, dict) and response_format.get("type") == "json_schema":
@@ -743,15 +752,25 @@ class LLM:
             else:
                 if hasattr(llm, 'with_structured_output'):
                     try:
-                        # Try native structured output first
-                        llm = llm.with_structured_output(response_format)
+                        # Disable streaming only for json_schema method (not yet supported)
+                        # function_calling and json_mode may support streaming
+                        original_streaming = None
+                        if (structured_output_kwargs.get('method') == 'json_schema' and
+                            hasattr(llm, 'streaming')):
+                            original_streaming = llm.streaming
+                            llm.streaming = False
+
+                        # Try native structured output first with kwargs
+                        llm = llm.with_structured_output(response_format, **structured_output_kwargs)
                         # Continue with normal processing using the wrapped LLM
                     except NotImplementedError:
                         # Fall back to pydantic_prompt immediately, before any template processing
+                        print('here1')
                         return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
                                                   pydantic_model=response_format)
                 else:
                     # No native support, use pydantic_prompt immediately
+                    print('here2')
                     return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
                                               pydantic_model=response_format)
 
@@ -848,11 +867,18 @@ class LLM:
                   This value will override the `stop` parameter supplied to `LLM` constructor.
         - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
         - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
-        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will 
-                            return a Pydantic object instead of a string. Uses native structured output 
-                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt` 
+        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will
+                            return a Pydantic object instead of a string. Uses native structured output
+                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt`
                             method which uses prompt-based parsing. Invoke `pydantic_prompt` directly for
                             more control over prompt-based parsing.
+        - *method*: Method for structured output when using `response_format`. Options: 'function_calling' (default),
+                   'json_schema', 'json_mode'. Only applies to models that support these methods (e.g., ChatOpenAI).
+                   'json_schema' provides guaranteed schema adherence for OpenAI models (gpt-4o-mini, gpt-4o-2024-08-06+).
+        - *strict*: Enable strict mode for schema validation when using `response_format`. Only applies when
+                   method='json_schema' or method='function_calling' for OpenAI models.
+        - *include_raw*: If True, returns dict with 'raw', 'parsed', and 'parsing_error' keys when using
+                        `response_format`. If False (default), returns only the parsed output.
 
         """
         return self._prompt_internal(
@@ -891,10 +917,17 @@ class LLM:
                   This value will override the `stop` parameter supplied to `LLM` constructor.
         - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
         - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
-        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will 
-                            return a Pydantic object instead of a string. Uses native structured output 
-                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt` 
+        - *response_format*: A Pydantic model class for structured output. When provided, the LLM will
+                            return a Pydantic object instead of a string. Uses native structured output
+                            (OpenAI, Azure, etc.) when available, otherwise falls back to the `pydantic_prompt`
                             method which uses prompt-based parsing.
+        - *method*: Method for structured output when using `response_format`. Options: 'function_calling' (default),
+                   'json_schema', 'json_mode'. Only applies to models that support these methods (e.g., ChatOpenAI).
+                   'json_schema' provides guaranteed schema adherence for OpenAI models (gpt-4o-mini, gpt-4o-2024-08-06+).
+        - *strict*: Enable strict mode for schema validation when using `response_format`. Only applies when
+                   method='json_schema' or method='function_calling' for OpenAI models.
+        - *include_raw*: If True, returns dict with 'raw', 'parsed', and 'parsing_error' keys when using
+                        `response_format`. If False (default), returns only the parsed output.
         """
         # For local models, use thread executor to avoid blocking
         if self.is_hf() or self.is_llamacpp():
