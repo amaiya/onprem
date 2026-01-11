@@ -765,12 +765,10 @@ class LLM:
                         # Continue with normal processing using the wrapped LLM
                     except NotImplementedError:
                         # Fall back to pydantic_prompt immediately, before any template processing
-                        print('here1')
                         return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
                                                   pydantic_model=response_format)
                 else:
                     # No native support, use pydantic_prompt immediately
-                    print('here2')
                     return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
                                               pydantic_model=response_format)
 
