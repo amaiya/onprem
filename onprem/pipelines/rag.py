@@ -418,7 +418,7 @@ class KVRouter:
         try:
             response = self.llm.prompt(
                 prompt, 
-                response_formatl=CategorySelection,
+                response_format=CategorySelection,
                 **kwargs
             )
             
