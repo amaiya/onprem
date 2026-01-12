@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.21.2 (TBD)
+## 0.21.2 (2026-01-12)
 
 ### new:
 - N/A
@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- Fixed issue with `KVRouter` (#243)
 
 
 ## 0.21.1 (2026-01-06)

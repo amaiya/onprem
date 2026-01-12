@@ -29,7 +29,7 @@ Available categories:
 {categories}
 
 Select the best category from the list above, or 'none' if no category is appropriate.
-Do not provide an explanation for the categorization."""
+Do not provide an explanation for the categorization. Only output the category as a single string"""
 
 # Question decomposition prompt template
 SUBQUESTION_PROMPT = """\
@@ -416,13 +416,14 @@ class KVRouter:
         
         # Use response_format for structured output
         try:
-            response = self.llm.prompt(
+            response = self.llm.pydantic_prompt(
                 prompt, 
-                response_format=CategorySelection,
+                pydantic_model=CategorySelection,
                 **kwargs
             )
             
             selected_category = response.category.strip().lower()
+            print(selected_category)
             
             # Check if it's a valid category (case-insensitive)
             valid_values = {v.lower(): v for v in self.field_descriptions.keys()}
@@ -442,6 +443,8 @@ class KVRouter:
                 
         except Exception as e:
             # Fallback to None if pydantic parsing fails
+            import warnings
+            warnings.warn(f'KVRouter output parsing error - no KVRouter filters used: {str(e)}')
             return None
     
     def route_and_search(self, 

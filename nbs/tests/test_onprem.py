@@ -258,6 +258,9 @@ def test_rag_dense(**kwargs):
     assert "question" in result
     assert "source_documents" in result
     source_filenames = list(set([os.path.basename(d.metadata['source']) for d in result['source_documents']]))
+    print(source_filenames)
+    assert list(set([os.path.basename(d.metadata['folder']) for d in result['source_documents']]))[0] == 'sotu'
+
     print()
 
     # SELF-ASK
