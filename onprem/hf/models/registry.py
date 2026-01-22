@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Registry']
 
-# %% ../../../nbs/05_hf.models.registry.ipynb
+# %% ../../../nbs/05_hf.models.registry.ipynb #a04ddc2c
 """
 Registry module
 """

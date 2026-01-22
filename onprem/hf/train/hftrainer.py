@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['HFTrainer', 'TrainingArguments']
 
-# %% ../../../nbs/05_hf.train.hftrainer.ipynb
+# %% ../../../nbs/05_hf.train.hftrainer.ipynb #a7abf522
 """
 Hugging Face Transformers trainer wrapper module
 """

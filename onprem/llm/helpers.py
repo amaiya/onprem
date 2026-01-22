@@ -7,7 +7,7 @@ __all__ = ['TITLE_PROMPT', 'FOLLOWUP_PROMPT', 'TABLE_PROMPT_EXACT', 'TABLE_PROMP
            'parse_json_markdown', 'parse_code_markdown', 'Title', 'extract_title', 'needs_followup', 'TableSummary',
            'caption_table_text', 'summarize_tables']
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #e155826c
 from ..utils import SafeFormatter
 import json
 import yaml
@@ -18,7 +18,7 @@ from langchain_core.exceptions import OutputParserException
 import warnings
 
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #62c87684
 def truncate_prompt(model_or_pipeline, prompt, max_gen_tokens=512, truncate_from="start", prompt_template=None):
     """
     Truncate only the user prompt (not the full formatted prompt) to ensure
@@ -83,7 +83,7 @@ def truncate_prompt(model_or_pipeline, prompt, max_gen_tokens=512, truncate_from
     return detokenize(prompt_tokens)
 
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #d4e4f664
 def _marshal_llm_to_json(output: str) -> str:
     """
     Extract a substring containing valid JSON or array from a string.
@@ -246,7 +246,7 @@ def parse_code_markdown(text: str, only_last: bool) -> List[str]:
 
     return code
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #ba7439c9
 TITLE_PROMPT = """\
 Context: {context_str}.\n\nGive a title that summarizes what the context describes. \
 Title: """
@@ -282,7 +282,7 @@ def extract_title(docs_or_text:Union[List[Document], str], llm, max_words=1024, 
             break
     return "" if isinstance(obj, str) else obj.title
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #3ac6eff5
 FOLLOWUP_PROMPT = """\
 Given a question, answer "yes" only if the question is complex and follow-up questions are needed or "no" if not.
 Always respond with "no" for short questions that are less than 8 words.
@@ -324,7 +324,7 @@ def needs_followup(question:str, llm, parse=True, **kwargs):
     output = llm.prompt(prompt)
     return "yes" in output.lower()
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #80d6d63a
 TITLE_PROMPT = """\
 Context: {context_str}.\n\nGive a title that summarizes what the context describes. \
 Title: """
@@ -360,7 +360,7 @@ def extract_title(docs_or_text:Union[List[Document], str], llm, max_words=1024, 
             break
     return "" if isinstance(obj, str) else obj.title
 
-# %% ../../nbs/00_llm.helpers.ipynb
+# %% ../../nbs/00_llm.helpers.ipynb #acb38758
 from ..utils import CAPTION_STR
 
 TABLE_PROMPT_EXACT= """\

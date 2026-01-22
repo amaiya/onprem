@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['PoolingFactory']
 
-# %% ../../../../nbs/05_hf.models.pooling.factory.ipynb
+# %% ../../../../nbs/05_hf.models.pooling.factory.ipynb #2eb0bf3d
 """
 Factory module
 """

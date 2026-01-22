@@ -8,7 +8,7 @@ __all__ = ['MIN_MODEL_SIZE', 'OLLAMA_URL', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_I
            'MODEL_URL_DICT', 'URL2NAME', 'MODEL_ID_DICT', 'LLAMA_CPP', 'TRANSFORMERS', 'ENGINE_DICT', 'PROMPT_DICT',
            'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT', 'LLM']
 
-# %% ../../nbs/00_llm.base.ipynb
+# %% ../../nbs/00_llm.base.ipynb #9023ab96
 from ..utils import get_datadir, get_models_dir, download, format_string, DEFAULT_DB
 from . import helpers
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -25,7 +25,7 @@ import os
 import warnings
 from typing import Any, Dict, Optional, Callable, Union, List
 
-# %% ../../nbs/00_llm.base.ipynb
+# %% ../../nbs/00_llm.base.ipynb #defac379
 MIN_MODEL_SIZE = 250000000
 OLLAMA_URL = 'http://localhost:11434/v1'
 MISTRAL_MODEL_URL = "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf"

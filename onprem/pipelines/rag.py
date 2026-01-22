@@ -6,14 +6,14 @@
 __all__ = ['DEFAULT_QA_PROMPT', 'DEFAULT_ROUTER_PROMPT', 'SUBQUESTION_PROMPT', 'FOLLOWUP_PROMPT', 'RAGPipeline',
            'CategorySelection', 'KVRouter']
 
-# %% ../../nbs/04_pipelines.rag.ipynb
+# %% ../../nbs/04_pipelines.rag.ipynb #8661b7a0
 from typing import Optional, Dict, List, Any
 from langchain_core.documents import Document
 from ..utils import format_string, SafeFormatter
 from ..llm import helpers
 from pydantic import BaseModel, Field
 
-# %% ../../nbs/04_pipelines.rag.ipynb
+# %% ../../nbs/04_pipelines.rag.ipynb #5c67508f
 DEFAULT_QA_PROMPT = """Use the following pieces of context delimited by three backticks to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
 ```{context}```
@@ -103,7 +103,7 @@ No
 <Output>
 """
 
-# %% ../../nbs/04_pipelines.rag.ipynb
+# %% ../../nbs/04_pipelines.rag.ipynb #4a5fd800
 class RAGPipeline:
     """
     Retrieval-Augmented Generation pipeline for answering questions based on source documents.
@@ -352,7 +352,7 @@ class RAGPipeline:
 
 
 
-# %% ../../nbs/04_pipelines.rag.ipynb
+# %% ../../nbs/04_pipelines.rag.ipynb #ffe8116a
 class CategorySelection(BaseModel):
     """Pydantic model for category selection response."""
     category: str = Field(description="Selected category value or 'none' if no appropriate category")

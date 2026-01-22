@@ -6,7 +6,7 @@
 __all__ = ['DATASET_TEXT', 'DATASET_LABEL', 'DEFAULT_SETFIT_MODEL', 'SMALL_SETFIT_MODEL', 'ClassifierBase', 'SKClassifier',
            'HFClassifier', 'FewShotClassifier']
 
-# %% ../../nbs/04_pipelines.classifier.ipynb
+# %% ../../nbs/04_pipelines.classifier.ipynb #adc30636
 from typing import List, Union
 
 import warnings
@@ -17,7 +17,7 @@ with warnings.catch_warnings():
 
 import numpy as np
 
-# %% ../../nbs/04_pipelines.classifier.ipynb
+# %% ../../nbs/04_pipelines.classifier.ipynb #c164cb48
 from abc import ABC, abstractmethod
 
 DATASET_TEXT = "text"
@@ -168,7 +168,7 @@ class ClassifierBase(ABC):
         shap_values = explainer(X)
         shap.plots.text(shap_values)
 
-# %% ../../nbs/04_pipelines.classifier.ipynb
+# %% ../../nbs/04_pipelines.classifier.ipynb #139dbc35
 class SKClassifier(ClassifierBase):
     def __init__(
         self,
@@ -265,7 +265,7 @@ class SKClassifier(ClassifierBase):
 
         
 
-# %% ../../nbs/04_pipelines.classifier.ipynb
+# %% ../../nbs/04_pipelines.classifier.ipynb #61b8f15c
 from ..hf import HFTrainer
 from transformers import pipeline
 import numpy as np
@@ -419,11 +419,11 @@ class HFClassifier(ClassifierBase):
                
 
 
-# %% ../../nbs/04_pipelines.classifier.ipynb
+# %% ../../nbs/04_pipelines.classifier.ipynb #677ae6e7
 from sklearn.datasets import fetch_20newsgroups
 from .classifier import HFClassifier
 
-# %% ../../nbs/04_pipelines.classifier.ipynb
+# %% ../../nbs/04_pipelines.classifier.ipynb #77ff6d1b
 DEFAULT_SETFIT_MODEL = "sentence-transformers/paraphrase-mpnet-base-v2"
 SMALL_SETFIT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 

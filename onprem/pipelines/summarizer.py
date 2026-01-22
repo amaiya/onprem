@@ -6,7 +6,7 @@
 __all__ = ['DEFAULT_MAP_PROMPT', 'DEFAULT_REDUCE_PROMPT', 'DEFAULT_BASE_REFINE_PROMPT', 'DEFAULT_REFINE_PROMPT', 'TARGET_PROMPT',
            'Summarizer']
 
-# %% ../../nbs/04_pipelines.summarizer.ipynb
+# %% ../../nbs/04_pipelines.summarizer.ipynb #91742554
 import os
 from typing import Optional
 import numpy as np
@@ -21,7 +21,7 @@ from ..ingest import load_single_document, load_documents
 from ..utils import segment
 
 
-# %% ../../nbs/04_pipelines.summarizer.ipynb
+# %% ../../nbs/04_pipelines.summarizer.ipynb #c099befb
 DEFAULT_MAP_PROMPT = """The following is a set of documents
 {docs}
 Based on this list of docs, please write a concise summary. 
@@ -50,7 +50,7 @@ DEFAULT_REFINE_PROMPT = (
 
 TARGET_PROMPT= """What does the following context say with respect "{concept_description}"? \n\nCONTEXT:\n{text}"""
 
-# %% ../../nbs/04_pipelines.summarizer.ipynb
+# %% ../../nbs/04_pipelines.summarizer.ipynb #b70b6558
 class Summarizer:
     def __init__(
         self,

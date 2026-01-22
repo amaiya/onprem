@@ -8,7 +8,7 @@ __all__ = ['CAPTION_DELIMITER', 'METADATA', 'FILE_METADATA', 'includes_caption',
            'extract_mimetype', 'is_random_plaintext', 'clean_text', 'doc_from_dict', 'dict_from_doc', 'create_document',
            'set_metadata_defaults', 'extract_file_metadata', 'ParagraphTextSplitter']
 
-# %% ../../nbs/01_ingest.helpers.ipynb
+# %% ../../nbs/01_ingest.helpers.ipynb #3adf2357
 from typing import List, Union, Optional
 import warnings
 import os
@@ -138,7 +138,7 @@ def md5sum(filepath):
             data.update(buf)
     return data.hexdigest()
 
-# %% ../../nbs/01_ingest.helpers.ipynb
+# %% ../../nbs/01_ingest.helpers.ipynb #22db3a5b
 import mimetypes
 try:
     import magic
@@ -193,7 +193,7 @@ def is_random_plaintext(extension, mimetype):
     mimetype1, mimetype2 = mimetype.split('/')
     return mimetype1 == "text" or mimetype2 == "xml" or extension in {"txt"}
 
-# %% ../../nbs/01_ingest.helpers.ipynb
+# %% ../../nbs/01_ingest.helpers.ipynb #fd1b510c
 def clean_text(text_s_or_b):
     """
     convert to string and strip.
@@ -206,7 +206,7 @@ def clean_text(text_s_or_b):
     text = text.strip()
     return text
 
-# %% ../../nbs/01_ingest.helpers.ipynb
+# %% ../../nbs/01_ingest.helpers.ipynb #7e6249ba
 METADATA = {'source':None,
             'ocr':False,
             'table' : False,

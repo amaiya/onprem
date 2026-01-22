@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['MeanPooling']
 
-# %% ../../../../nbs/05_hf.models.pooling.mean.ipynb
+# %% ../../../../nbs/05_hf.models.pooling.mean.ipynb #5e6a65d2
 """
 Mean module
 """

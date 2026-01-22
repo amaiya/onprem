@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Sequences']
 
-# %% ../../../nbs/05_hf.data.sequences.ipynb
+# %% ../../../nbs/05_hf.data.sequences.ipynb #b489f728
 """
 Sequences module
 """

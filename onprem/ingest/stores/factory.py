@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['VectorStoreFactory']
 
-# %% ../../../nbs/01_ingest.stores.factory.ipynb
+# %% ../../../nbs/01_ingest.stores.factory.ipynb #4a3d0ed3
 import os
 from .dense import DenseStore, ChromaStore
 from .sparse import SparseStore, WhooshStore, ElasticsearchSparseStore, SharePointStore

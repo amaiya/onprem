@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Extractor']
 
-# %% ../../nbs/04_pipelines.extractor.ipynb
+# %% ../../nbs/04_pipelines.extractor.ipynb #d0c1dfa3
 import os
 from typing import List, Optional, Callable
 import pandas as pd

@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['ClsPooling']
 
-# %% ../../../../nbs/05_hf.models.pooling.cls.ipynb
+# %% ../../../../nbs/05_hf.models.pooling.cls.ipynb #b2b78fc5
 """
 CLS module
 """

@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['DualStore', 'ElasticsearchStore']
 
-# %% ../../../nbs/01_ingest.stores.dual.ipynb
+# %% ../../../nbs/01_ingest.stores.dual.ipynb #b008d8b6
 import os
 from typing import List, Optional, Callable, Dict, Sequence, Union
 from tqdm import tqdm

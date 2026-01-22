@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Pooling']
 
-# %% ../../../../nbs/05_hf.models.pooling.base.ipynb
+# %% ../../../../nbs/05_hf.models.pooling.base.ipynb #911d9f54
 """
 Pooling module
 """

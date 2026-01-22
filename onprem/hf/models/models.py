@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Models']
 
-# %% ../../../nbs/05_hf.models.models.ipynb
+# %% ../../../nbs/05_hf.models.models.ipynb #20e388d7
 """
 Models module
 """

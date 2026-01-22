@@ -8,7 +8,7 @@ __all__ = ['DEFAULT_DB', 'MODELS_SUBDIR', 'WEBAPP_SUBDIR', 'CAPTION_STR', 'downl
            'contains_sentence', 'extract_noun_phrases', 'md_to_df', 'html_to_df', 'df_to_md', 'SafeFormatter',
            'format_string', 'get_template_vars']
 
-# %% ../nbs/02_utils.ipynb
+# %% ../nbs/02_utils.ipynb #8a4d6cb8
 import os
 import os.path
 import requests
@@ -86,7 +86,7 @@ def get_webapp_dir():
 
 
 
-# %% ../nbs/02_utils.ipynb
+# %% ../nbs/02_utils.ipynb #1e36ea30
 #--------------------------------------
 # Data Utilities
 #--------------------------------------
@@ -400,7 +400,7 @@ def df_to_md(df, caption=None):
     return f'{caption}\n\n{table_summary}\n{table_md}' if caption else f'{table_summary}\n{table_md}'
 
 
-# %% ../nbs/02_utils.ipynb
+# %% ../nbs/02_utils.ipynb #2c3f081f
 from typing import Dict, List, Optional
 import re
 

@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['COLLECTION_NAME', 'DenseStore', 'ChromaStore', 'ElasticsearchDenseStore']
 
-# %% ../../../nbs/01_ingest.stores.dense.ipynb
+# %% ../../../nbs/01_ingest.stores.dense.ipynb #aa1f78d3
 from .base import VectorStore
 
 
@@ -41,7 +41,7 @@ class DenseStore(VectorStore):
         else:
             raise ValueError(f"Unknown DenseStore type: {kind}. Supported types: 'chroma', 'elasticsearch'")
 
-# %% ../../../nbs/01_ingest.stores.dense.ipynb
+# %% ../../../nbs/01_ingest.stores.dense.ipynb #53671de8
 import os
 import os.path
 from typing import List, Optional, Callable, Dict, Sequence

@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Texts']
 
-# %% ../../../nbs/05_hf.data.texts.ipynb
+# %% ../../../nbs/05_hf.data.texts.ipynb #b656e63c
 """
 Texts module
 """

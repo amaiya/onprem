@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['get_topic_model', 'TopicModel']
 
-# %% ../../nbs/06_sk.tm.ipynb
+# %% ../../nbs/06_sk.tm.ipynb #f46e3fcb
 """
 TopicModel module
 """

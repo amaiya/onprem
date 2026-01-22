@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['VectorStore']
 
-# %% ../../../nbs/01_ingest.stores.base.ipynb
+# %% ../../../nbs/01_ingest.stores.base.ipynb #6c952ebd
 from abc import ABC, abstractmethod
 import os
 from typing import Optional, Callable

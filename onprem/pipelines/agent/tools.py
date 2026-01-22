@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['DEFAULT_TOOLS', 'FunctionTool', 'fromdocs', 'createtool', 'VectorStoreTool']
 
-# %% ../../../nbs/04_pipelines.agent.tools.ipynb
+# %% ../../../nbs/04_pipelines.agent.tools.ipynb #20f884af
 from transformers.utils import chat_template_utils, TypeHintParsingException
 
 from smolagents import Tool
@@ -101,7 +101,7 @@ def fromdocs(target, config):
         }
     )
 
-# %% ../../../nbs/04_pipelines.agent.tools.ipynb
+# %% ../../../nbs/04_pipelines.agent.tools.ipynb #0fd1243b
 def createtool(target, config=None):
     """
     Creates a new Tool.
@@ -120,7 +120,7 @@ def createtool(target, config=None):
     except (TypeHintParsingException, TypeError):
         return ToolFactory.fromdocs(target, config if config else {})
 
-# %% ../../../nbs/04_pipelines.agent.tools.ipynb
+# %% ../../../nbs/04_pipelines.agent.tools.ipynb #623b1c5e
 from ...ingest.stores.base import VectorStore
 
 class VectorStoreTool(Tool):

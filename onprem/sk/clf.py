@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Classifier', 'NBSVM']
 
-# %% ../../nbs/06_sk.clf.ipynb
+# %% ../../nbs/06_sk.clf.ipynb #bb874bd1
 """
 Scikit-Learn Text Classification module
 """

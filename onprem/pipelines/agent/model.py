@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['remove_stop_sequences', 'AgentModel']
 
-# %% ../../../nbs/04_pipelines.agent.model.ipynb
+# %% ../../../nbs/04_pipelines.agent.model.ipynb #74dd4e30
 import re
 
 from enum import Enum
@@ -26,7 +26,7 @@ def remove_stop_sequences(text, stop_sequences):
     
     return text
 
-# %% ../../../nbs/04_pipelines.agent.model.ipynb
+# %% ../../../nbs/04_pipelines.agent.model.ipynb #fb422755
 class AgentModel(Model):
     """
     A smolagents Model implementation that wraps an onprem LLM instance.

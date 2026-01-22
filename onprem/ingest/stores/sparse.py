@@ -6,7 +6,7 @@
 __all__ = ['N_CANDIDATES', 'DEFAULT_SCHEMA', 'KEYWORD_ANALYZER', 'SparseStore', 'ReadOnlySparseStore', 'SharePointStore',
            'default_schema', 'create_field_for_value', 'get_field_analyzer', 'WhooshStore', 'ElasticsearchSparseStore']
 
-# %% ../../../nbs/01_ingest.stores.sparse.ipynb
+# %% ../../../nbs/01_ingest.stores.sparse.ipynb #c0da633b
 from .base import VectorStore
 from ..helpers import doc_from_dict
 N_CANDIDATES = 12
@@ -400,7 +400,7 @@ class SparseStore(VectorStore):
         
         return load_web_document(url, username=username, password=password)
 
-# %% ../../../nbs/01_ingest.stores.sparse.ipynb
+# %% ../../../nbs/01_ingest.stores.sparse.ipynb #98112547
 class ReadOnlySparseStore(SparseStore):
     """
     A sparse vector store based on a read-only full-text search engine
@@ -453,7 +453,7 @@ class ReadOnlySparseStore(SparseStore):
         """
         raise NotImplementedError('Not supported for ReadOnlySparseStore instances.')
 
-# %% ../../../nbs/01_ingest.stores.sparse.ipynb
+# %% ../../../nbs/01_ingest.stores.sparse.ipynb #76aa6eaf
 from typing import Optional, Dict, Any
 import requests
 try:
@@ -576,7 +576,7 @@ class SharePointStore(ReadOnlySparseStore):
         results = self.search(query)
         return results['hits'][0] if results['hits'] else None
 
-# %% ../../../nbs/01_ingest.stores.sparse.ipynb
+# %% ../../../nbs/01_ingest.stores.sparse.ipynb #cc339497
 import json
 import os
 import warnings

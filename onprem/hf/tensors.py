@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Tensors']
 
-# %% ../../nbs/05_hf.tensors.ipynb
+# %% ../../nbs/05_hf.tensors.ipynb #cc349d5f
 """
 Tensor processing framework module
 """

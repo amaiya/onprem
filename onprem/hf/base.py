@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Pipeline']
 
-# %% ../../nbs/05_hf.base.ipynb
+# %% ../../nbs/05_hf.base.ipynb #c83932e4
 """
 Pipeline module
 """

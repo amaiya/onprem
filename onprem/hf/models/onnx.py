@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['OnnxModel', 'OnnxConfig']
 
-# %% ../../../nbs/05_hf.models.onnx.ipynb
+# %% ../../../nbs/05_hf.models.onnx.ipynb #12d252c8
 """
 ONNX module
 """

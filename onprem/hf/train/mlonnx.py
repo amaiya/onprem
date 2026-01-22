@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['MLOnnx']
 
-# %% ../../../nbs/05_hf.train.mlonnx.ipynb
+# %% ../../../nbs/05_hf.train.mlonnx.ipynb #fe9093c3
 """
 Machine learning model to ONNX export module
 """

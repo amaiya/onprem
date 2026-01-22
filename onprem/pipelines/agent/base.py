@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['Agent']
 
-# %% ../../../nbs/04_pipelines.agent.base.ipynb
+# %% ../../../nbs/04_pipelines.agent.base.ipynb #3a4d43ce
 from typing import Callable
 import warnings
 from ...ingest.stores.base import VectorStore

@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['HFOnnx', 'PoolingOnnx']
 
-# %% ../../../nbs/05_hf.train.hfonnx.ipynb
+# %% ../../../nbs/05_hf.train.hfonnx.ipynb #44d6a4bd
 """
 Hugging Face Transformers ONNX export module
 """

@@ -6,7 +6,7 @@
 __all__ = ['DEFAULT_TOKEN_PATTERN', 'NOSPACE_LANGS', 'detect_encoding', 'decode_by_line', 'detect_lang', 'is_nospace_lang',
            'is_chinese', 'split_chinese', 'get_random_colors']
 
-# %% ../../nbs/06_sk.base.ipynb
+# %% ../../nbs/06_sk.base.ipynb #bdac2a23
 """
 sk base
 """

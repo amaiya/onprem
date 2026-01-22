@@ -8,7 +8,7 @@ __all__ = ['logger', 'DEFAULT_CHUNK_SIZE', 'DEFAULT_CHUNK_OVERLAP', 'TABLE_CHUNK
            'PDF2MarkdownLoader', 'load_single_document', 'load_documents', 'process_folder', 'chunk_documents',
            'does_vectorstore_exist', 'batchify_chunks', 'load_web_document', 'load_spreadsheet_documents']
 
-# %% ../../nbs/01_ingest.base.ipynb
+# %% ../../nbs/01_ingest.base.ipynb #fc6d617c
 from ..llm.helpers import summarize_tables, extract_title
 from ..utils import batch_list, filtered_generator
 from . import helpers
@@ -51,7 +51,7 @@ DEFAULT_CHUNK_OVERLAP = 100
 TABLE_CHUNK_SIZE = 2000
 CHROMA_MAX = 41000
 
-# %% ../../nbs/01_ingest.base.ipynb
+# %% ../../nbs/01_ingest.base.ipynb #a4c22f6d
 class MyElmLoader(UnstructuredEmailLoader):
     """Wrapper to fallback to text/plain when default does not work"""
 
@@ -137,7 +137,7 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
 
 
 
-# %% ../../nbs/01_ingest.base.ipynb
+# %% ../../nbs/01_ingest.base.ipynb #816b67de
 # Map file extensions to document loaders and their arguments
 PDFOCR = 'pdfOCR'
 PDFMD = 'pdfMD'

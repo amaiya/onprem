@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['TokenDetection']
 
-# %% ../../../nbs/05_hf.models.tokendetection.ipynb
+# %% ../../../nbs/05_hf.models.tokendetection.ipynb #5601347b
 """
 Token Detection module
 """

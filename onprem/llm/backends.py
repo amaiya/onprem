@@ -5,7 +5,7 @@
 # %% auto #0
 __all__ = ['ChatGovCloudBedrock']
 
-# %% ../../nbs/00_llm.backends.ipynb
+# %% ../../nbs/00_llm.backends.ipynb #a32d980a
 """
 Custom LangChain Chat classes for various frameworks and cloud providers.
 """
