@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Fixed issue with `ChatOpenAI` failing for gpt-5
+- Fix type annotation (#244)
 
 
 ## 0.21.2 (2026-01-12)

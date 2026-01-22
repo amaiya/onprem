@@ -866,7 +866,7 @@ class WhooshStore(SparseStore):
         
 
     def update_documents(self,
-                         doc_dicts:dict, # dictionary with keys 'page_content', 'source', 'id', etc.
+                         doc_dicts: List[dict], # list of dictionaries with keys 'page_content', 'source', 'id', etc.
                          **kwargs):
         """
         Update a set of documents (doc in index with same ID will be over-written)
@@ -1451,7 +1451,7 @@ class ElasticsearchSparseStore(SparseStore):
         return self.delete_by_prefix(source, field=self.source_field)
 
     def update_documents(self,
-                         doc_dicts: dict,
+                         doc_dicts: List[dict], # list of dictionaries with keys 'page_content', 'source', 'id', etc.
                          **kwargs):
         """
         Update a set of documents (doc in index with same ID will be over-written)
