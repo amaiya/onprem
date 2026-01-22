@@ -454,7 +454,7 @@ class ReadOnlySparseStore(SparseStore):
         raise NotImplementedError('Not supported for ReadOnlySparseStore instances.')
 
 # %% ../../../nbs/01_ingest.stores.sparse.ipynb 7
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 import requests
 try:
     from requests_ntlm import HttpNtlmAuth
@@ -499,7 +499,7 @@ class SharePointStore(ReadOnlySparseStore):
     def search(self, 
                query:str,  # query string
                is_document:int=1,   # search documents by default
-               filters:Optional[Dict[str,str]]=None,  # filters
+               filters:Optional[Dict[str, Any]]=None,  # filters
                where_document:Optional[str]=None,     # boolean clause appended to query
                limit=10,  # rowlimit in SharePoint
                page=0,    # startrow in SharePoint
@@ -580,7 +580,7 @@ class SharePointStore(ReadOnlySparseStore):
 import json
 import os
 import warnings
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Any
 import math
 import numpy as np
 
@@ -930,7 +930,7 @@ class WhooshStore(SparseStore):
             limit:int=10,
             page:int=1,
             return_dict:bool=True,
-            filters:Optional[Dict[str, str]] = None,
+            filters:Optional[Dict[str, Any]] = None,
             where_document:Optional[str]=None,
             return_generator=False,
             **kwargs
@@ -1518,7 +1518,7 @@ class ElasticsearchSparseStore(SparseStore):
               limit: int = 10,
               page: int = 1,
               return_dict: bool = True,
-              filters: Optional[Dict[str, str]] = None,
+              filters: Optional[Dict[str, Any]] = None,
               where_document: Optional[str] = None,
               return_generator=False,
               **kwargs
