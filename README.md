@@ -332,23 +332,19 @@ llm = LLM(default_model='llama')
 ```
 
 *Choosing Your Own Models:* Of course, you can also easily supply the
-URL or path to an LLM of your choosing to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the
+URL or path to an LLM of your choosing to `LLM` (see the
 [FAQ](https://amaiya.github.io/onprem/#faq) for an example).
 
-*Supplying Extra Parameters:* Any extra parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
-directly to
+*Supplying Extra Parameters:* Any extra parameters supplied to `LLM` are
+forwarded directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
 default LLM backend.
 
 #### Changing the Default LLM Backend
 
-If `default_engine="transformers"` is supplied to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
+If `default_engine="transformers"` is supplied to `LLM`, Hugging Face
 [transformers](https://github.com/huggingface/transformers) is used as
-the LLM backend. Extra parameters to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (e.g.,
+the LLM backend. Extra parameters to `LLM` (e.g.,
 ‘device=’cuda’`) are forwarded diretly to`transformers.pipeline`. If supplying a`model_id\`
 parameter, the default LLM backend is automatically changed to Hugging
 Face [transformers](https://github.com/huggingface/transformers).
@@ -394,31 +390,26 @@ is [here](https://amaiya.github.io/onprem/examples_openai.html).
 
 #### Supplying Parameters to the LLM Backend
 
-Extra parameters supplied to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and
-[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
-are passed directly to the LLM backend. Parameter names will vary
-depending on the backend you chose.
+Extra parameters supplied to `LLM` and `LLM.prompt` are passed directly
+to the LLM backend. Parameter names will vary depending on the backend
+you chose.
 
 For instance, with the default llama-cpp backend, the default context
 window size (`n_ctx`) is set to 3900 and the default output size
-(`max_tokens`) is set 512. Both are configurable parameters to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase if
-you have larger prompts or need longer outputs. Other parameters (e.g.,
-`api_key`, `device_map`, etc.) can be supplied directly to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be
-routed to the LLM backend or API (e.g., llama-cpp-python, Hugging Face
-transformers, vLLM, OpenAI, etc.). The `max_tokens` parameter can also
-be adjusted on-the-fly by supplying it to
-[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
+(`max_tokens`) is set 512. Both are configurable parameters to `LLM`.
+Increase if you have larger prompts or need longer outputs. Other
+parameters (e.g., `api_key`, `device_map`, etc.) can be supplied
+directly to `LLM` and will be routed to the LLM backend or API (e.g.,
+llama-cpp-python, Hugging Face transformers, vLLM, OpenAI, etc.). The
+`max_tokens` parameter can also be adjusted on-the-fly by supplying it
+to `LLM.prompt`.
 
 On the other hand, for Ollama models, context window and output size are
 controlled by `num_ctx` and `num_predict`, respectively.
 
 With the Hugging Face transformers, setting the context window size is
 not needed, but the output size is controlled by the `max_new_tokens`
-parameter to
-[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
+parameter to `LLM.prompt`.
 
 ### Send Prompts to the LLM to Solve Problems
 
@@ -469,8 +460,7 @@ llm = LLM(n_gpu_layers=-1, store_type='sparse', verbose=False)
 
 The default embedding model is:
 `sentence-transformers/all-MiniLM-L6-v2`. You can change it by supplying
-the `embedding_model_name` to
-[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm).
+the `embedding_model_name` to `LLM`.
 
 #### Step 1: Ingest the Documents into a Vector Database
 
@@ -481,8 +471,8 @@ amount of inference speed for significant improvements in ingestion
 speed (useful for larger document sets) and also assume answer sources
 will include at least one word from the question. To select the store
 type, supply either `store_type="dense"` or `store_type="sparse"` when
-creating the [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm).
-As you can see above, we use a sparse vector store here.
+creating the `LLM`. As you can see above, we use a sparse vector store
+here.
 
 ``` python
 llm.ingest("./tests/sample_data")
@@ -561,12 +551,9 @@ for i, document in enumerate(result["source_documents"]):
 
 ### Extract Text from Documents
 
-The
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
-function can extract text from a range of different document formats
-(e.g., PDFs, Microsoft PowerPoint, Microsoft Word, etc.). It is
-automatically invoked when calling
-[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest).
+The `load_single_document` function can extract text from a range of
+different document formats (e.g., PDFs, Microsoft PowerPoint, Microsoft
+Word, etc.). It is automatically invoked when calling `LLM.ingest`.
 Extracted text is represented as LangChain `Document` objects, where
 `Document.page_content` stores the extracted text and
 `Document.metadata` stores any extracted document metadata.
@@ -606,11 +593,10 @@ docs[0].metadata
 - **Pro:** Automatically extracts text from scanned PDFs
 - **Con:** Slow
 
-The
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
-function will automatically OCR PDFs that require it (i.e., PDFs that
-are scanned hard-copies of documents). If a document is OCR’ed during
-extraction, the `metadata['ocr']` field will be populated with `True`.
+The `load_single_document` function will automatically OCR PDFs that
+require it (i.e., PDFs that are scanned hard-copies of documents). If a
+document is OCR’ed during extraction, the `metadata['ocr']` field will
+be populated with `True`.
 
 ``` python
 docs = load_single_document('tests/sample_data/ocr_document/lynn1975.pdf')
@@ -625,10 +611,8 @@ docs[0].metadata
 - **Pro**: Better chunking for QA
 - **Con**: Slower than default PDF extraction
 
-The
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
-function can convert PDFs to Markdown instead of plain text by supplying
-the `pdf_markdown=True` as an argument:
+The `load_single_document` function can convert PDFs to Markdown instead
+of plain text by supplying the `pdf_markdown=True` as an argument:
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
@@ -637,11 +621,10 @@ docs = load_single_document('your_pdf_document.pdf',
 
 Converting to Markdown can facilitate downstream tasks like
 question-answering. For instance, when supplying `pdf_markdown=True` to
-[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
-documents are chunked in a Markdown-aware fashion (e.g., the abstract of
-a research paper tends to be kept together into a single chunk instead
-of being split up). Note that Markdown will not be extracted if the
-document requires OCR.
+`LLM.ingest`, documents are chunked in a Markdown-aware fashion (e.g.,
+the abstract of a research paper tends to be kept together into a single
+chunk instead of being split up). Note that Markdown will not be
+extracted if the document requires OCR.
 
 **Inferring Table Structure in PDFs**
 
@@ -649,12 +632,10 @@ document requires OCR.
 - **Con**: Slower than default PDF extraction
 
 When supplying `infer_table_structure=True` to either
-[`load_single_document`](https://amaiya.github.io/onprem/ingest.base.html#load_single_document)
-or
-[`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest),
-tables are inferred and extracted from PDFs using a TableTransformer
-model. Tables are represented as **Markdown** (or **HTML** if Markdown
-conversion is not possible).
+`load_single_document` or `LLM.ingest`, tables are inferred and
+extracted from PDFs using a TableTransformer model. Tables are
+represented as **Markdown** (or **HTML** if Markdown conversion is not
+possible).
 
 ``` python
 docs = load_single_document('your_pdf_document.pdf', 
@@ -665,8 +646,7 @@ docs = load_single_document('your_pdf_document.pdf',
 
 For some analyses (e.g., using prompts for information extraction), it
 may be useful to parse the text extracted from documents into individual
-sentences or paragraphs. This can be accomplished using the
-[`segment`](https://amaiya.github.io/onprem/utils.html#segment)
+sentences or paragraphs. This can be accomplished using the `segment`
 function:
 
 ``` python
@@ -874,8 +854,7 @@ A number of LLM services (e.g., vLLM, OpenAI, Anthropic Claude, AWS
 GovCloud Bedrock) include native support for producing structured
 outputs. To take advantage of this capability when it exists, you can
 supply a Pydantic model representing the desired output format to the
-`response_format` parameter
-of[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
+`response_format` parameter of`LLM.prompt`.
 
 Structured outputs for LLMs are a feature ensuring model responses
 follow a strict, user-defined format (like JSON or XML schema) instead
@@ -973,10 +952,8 @@ result = llm.prompt('I have two cats named Luna and Loki...', format=PetList.mod
 
 When using an LLM backend that does not natively support structured
 outputs, supplying a Pydantic model via the `response_format` parameter
-to
-[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
-should result in an automatic fall back to a prompt-based approach to
-structured outputs as described next.
+to `LLM.prompt` should result in an automatic fall back to a
+prompt-based approach to structured outputs as described next.
 
 **Tip:** When using natively-supported structured outputs, it is
 important to include an actual instruction in the prompt (e.g.,
@@ -986,21 +963,15 @@ often be omitted.
 
 #### Prompt-Based Structured Outputs
 
-The
-[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
-method also allows you to specify the desired structure of the LLM’s
-output as a Pydantic model. Internally,
-[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
-wraps the user-supplied prompt within a larger prompt telling the LLM to
-output results in a specific JSON format. It is sometimes less
-efficient/reliable than aforementioned native methods, but is more
-generally applicable to any LLM. Since calling
-[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
+The `LLM.pydantic_prompt` method also allows you to specify the desired
+structure of the LLM’s output as a Pydantic model. Internally,
+`LLM.pydantic_prompt` wraps the user-supplied prompt within a larger
+prompt telling the LLM to output results in a specific JSON format. It
+is sometimes less efficient/reliable than aforementioned native methods,
+but is more generally applicable to any LLM. Since calling `LLM.prompt`
 with the `response_format` parameter will automatically invoke
-[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
-when necessary, you will typically not have to call
-[`LLM.pydantic_prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.pydantic_prompt)
-directly.
+`LLM.pydantic_prompt` when necessary, you will typically not have to
+call `LLM.pydantic_prompt` directly.
 
 ``` python
 from pydantic import BaseModel, Field
@@ -1295,8 +1266,7 @@ examples, including:
     > CMAKE_ARGS="-DGGML_CUDA=ON -DGGML_AVX2=OFF -DGGML_AVX=OFF -DGGML_F16C=OFF -DGGML_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
     > ```
 
-7.  **How can I speed up
-    [`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest)?**
+7.  **How can I speed up `LLM.ingest`?**
 
     > By default, a GPU, if available, will be used to compute
     > embeddings, so ensure PyTorch is installed with GPU support. You
