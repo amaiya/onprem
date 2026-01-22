@@ -537,14 +537,7 @@ class LLM:
         """
 
 
-        if not self.llm and self.is_openai_model():
-            kwargs = self._prepare_llm_kwargs(ChatOpenAI)
-            self.llm = ChatOpenAI(model_name=self.model_name, 
-                                  callbacks=self.callbacks, 
-                                  streaming=not self.mute_stream,
-                                  max_tokens=self.max_tokens,
-                                  **kwargs)
-        elif not self.llm and self.is_govcloud_bedrock():
+        if not self.llm and self.is_govcloud_bedrock():
             kwargs = self._prepare_llm_kwargs(ChatGovCloudBedrock)
             model_id = self.process_service(self.model_url)
             self.llm = ChatGovCloudBedrock(
@@ -556,6 +549,10 @@ class LLM:
         elif not self.llm and\
                 self.process_service(self.model_url) and\
                 not self.check_model(silent=True):
+            # Set drop_params=True to gracefully handle unsupported parameters
+            import litellm
+            litellm.drop_params = True
+            
             kwargs = self._prepare_llm_kwargs(ChatLiteLLM)
             self.llm = ChatLiteLLM(model=self.process_service(self.model_url),
                                   callbacks=self.callbacks,
