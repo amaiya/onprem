@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.21.4 (2026-01-26)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Use lazy loading with `SetFit` package (#247)
+
+
 ## 0.21.3 (2026-01-22)
 
 ### new:

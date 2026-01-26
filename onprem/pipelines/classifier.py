@@ -10,11 +10,6 @@ __all__ = ['DATASET_TEXT', 'DATASET_LABEL', 'DEFAULT_SETFIT_MODEL', 'SMALL_SETFI
 from typing import List, Union
 
 import warnings
-
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
-    from setfit import SetFitModel, TrainingArguments, Trainer, sample_dataset
-
 import numpy as np
 
 # %% ../../nbs/04_pipelines.classifier.ipynb #c164cb48
@@ -81,6 +76,10 @@ class ClassifierBase(ABC):
         """
         Sample a dataset with `num_samples` per class
         """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=DeprecationWarning)
+            from setfit import sample_dataset
+        
         full_dataset = self.arrays2dataset(X, y, text_key=text_key, label_key=label_key)
                 
         sample = sample_dataset(full_dataset, label_column=label_key, num_samples=num_samples)
@@ -445,6 +444,10 @@ class FewShotClassifier(ClassifierBase):
         - *use_smaller*:  If True, will use a smaller but performant model.
 
         """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=DeprecationWarning)
+            from setfit import SetFitModel
+        
         self.model_id_or_path = model_id_or_path
         if use_smaller and model_id_or_path != DEFAULT_SETFIT_MODEL:
             warnings.warn(f'Over-writing supplied model ({model_id_or_path}) with {SMALL_MODEL} because use_smaller=True.')
@@ -481,6 +484,9 @@ class FewShotClassifier(ClassifierBase):
 
         - None
         """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=DeprecationWarning)
+            from setfit import TrainingArguments, Trainer
 
         # convert to HF dataset
         train_dataset = self.arrays2dataset(X, y, text_key='text', label_key='label')
