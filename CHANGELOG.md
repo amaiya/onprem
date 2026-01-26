@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- pin to `transformeres<5` due to Set Fit issue (#247)
 
 ### fixed:
 - Use lazy loading with `SetFit` package (#247)
