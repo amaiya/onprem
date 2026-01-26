@@ -127,15 +127,32 @@ class HFTrainer(Tensors):
             collator.model = model
 
         # Build trainer
-        trainer = Trainer(
-            model=model,
-            tokenizer=tokenizer,
-            data_collator=collator,
-            args=args,
-            train_dataset=train,
-            eval_dataset=validation if validation else None,
-            compute_metrics=metrics,
-        )
+        # Note: In transformers 5.0+, tokenizer parameter was renamed to processing_class
+        import inspect
+        trainer_params = inspect.signature(Trainer.__init__).parameters
+        
+        if 'processing_class' in trainer_params:
+            # Transformers 5.0+ API
+            trainer = Trainer(
+                model=model,
+                processing_class=tokenizer,
+                data_collator=collator,
+                args=args,
+                train_dataset=train,
+                eval_dataset=validation if validation else None,
+                compute_metrics=metrics,
+            )
+        else:
+            # Older transformers API (< 5.0)
+            trainer = Trainer(
+                model=model,
+                tokenizer=tokenizer,
+                data_collator=collator,
+                args=args,
+                train_dataset=train,
+                eval_dataset=validation if validation else None,
+                compute_metrics=metrics,
+            )
 
         # Run training
         trainer.train(resume_from_checkpoint=checkpoint)
