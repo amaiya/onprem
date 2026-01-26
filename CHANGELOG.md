@@ -18,6 +18,7 @@ Most recent releases are shown at the top. Each release shows:
 ### fixed:
 - Use lazy loading with `SetFit` package (#247)
 - Use `processing_class` with `transformerms>=5` (#172)
+- Use explicit hyperparameters in HF test
 
 
 ## 0.21.3 (2026-01-22)

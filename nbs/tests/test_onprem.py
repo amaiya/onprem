@@ -726,12 +726,19 @@ def test_hfclassifier(**kwargs):
 
     from onprem.pipelines import HFClassifier
     clf = HFClassifier()
-    clf.train(x_train, y_train)
+    # Explicitly set training args for consistency across transformers versions
+    # Use adamw_torch for reproducibility (adamw_torch_fused is faster but less stable)
+    clf.train(x_train, y_train, 
+              num_train_epochs=3,
+              per_device_train_batch_size=8,
+              learning_rate=5e-5,
+              optim='adamw_torch',
+              seed=42)
     test_doc = "god christ jesus mother mary church sunday lord heaven amen"
     acc = clf.evaluate(x_test, y_test, print_report=False)['accuracy']
     assert(3 == clf.predict(test_doc))  
     print(acc)
-    assert(acc > 0.8)
+    assert(acc > 0.8) # Should get ~0.88 with explicit settings
     return
 
 
