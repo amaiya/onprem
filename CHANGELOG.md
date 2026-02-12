@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.21.5 (2026-02-12)
+
+### new:
+- N/A
+
+### changed
+- upgrade to `nbdev==3`
+
+### fixed:
+- N/A
+
+
 ## 0.21.4 (2026-01-26)
 
 ### new:

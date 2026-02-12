@@ -1,11 +1,39 @@
 [build-system]
-requires = ["setuptools>=64.0"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="onprem"
-requires-python=">=3.10"
-dynamic = [ "keywords", "description", "version", "dependencies", "optional-dependencies", "readme", "license", "authors", "classifiers", "entry-points", "scripts", "urls"]
+name = "onprem"
+dynamic = ["version"]
+description = "A tool for running on-premises large language models on non-public data"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [{name = "Arun S. Maiya", email = "arun@maiya.net"}]
+keywords = ['nbdev', 'jupyter', 'notebook', 'python']
+classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
+dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'guidance>=0.1.5', 'langchain>=0.3.18', 'langchain-community>=0.3.18', 'langchain_litellm==0.1.4', 'litellm', 'langchain-openai', 'langchain-huggingface', 'huggingface_hub', 'transformers<5', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'smolagents', 'markdownify', 'mcpadapt', 'gmft', 'datasets==3.6.0']
 
-[tool.uv]
-cache-keys = [{ file = "pyproject.toml" }, { file = "settings.ini" }, { file = "setup.py" }]
+[project.urls]
+Repository = "https://github.com/amaiya/onprem"
+Documentation = "https://amaiya.github.io/onprem"
+
+[project.entry-points.nbdev]
+onprem = "onprem._modidx:d"
+
+[project.optional-dependencies]
+dev = ['nbdev']
+
+
+[project.scripts]
+onprem = "onprem.app.console:cli"
+
+[tool.setuptools.dynamic]
+version = {attr = "onprem.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["onprem"]
+
+[tool.nbdev]
+branch = 'master'
+custom_sidebar = true
