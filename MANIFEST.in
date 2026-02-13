@@ -6,3 +6,9 @@ recursive-exclude * __pycache__
 
 # Explicitly include the pages directory and its content
 recursive-include onprem/app/pages *.py
+
+# Include Streamlit configuration
+recursive-include onprem/app/.streamlit *.toml
+
+# Include static files (CSS, etc.)
+recursive-include onprem/app/static *

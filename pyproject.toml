@@ -34,6 +34,13 @@ version = {attr = "onprem.__version__"}
 [tool.setuptools.packages.find]
 include = ["onprem"]
 
+[tool.setuptools.package-data]
+onprem = [
+    "app/.streamlit/*.toml",
+    "app/static/*",
+    "app/pages/*.py"
+]
+
 [tool.nbdev]
 branch = 'master'
 custom_sidebar = true

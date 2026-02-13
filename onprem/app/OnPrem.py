@@ -141,8 +141,9 @@ def main():
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
     3. **Search Documents**: Search through your indexed documents using keywords or semantic search
     4. **Document Analysis**: Apply custom prompts to document chunks and export results
-    5. **Workflow Builder**: Create complex multi-step document processing workflows visually
-    6. **Manage**: Upload documents, manage folders, and configure the application settings
+    5. **Topic Models**: Discover hidden themes and subjects in your document collection
+    6. **Workflow Builder**: Create complex multi-step document processing workflows visually
+    7. **Manage**: Upload documents, manage folders, and configure the application settings
     
     Use the sidebar to navigate between these different features.
     """)
@@ -154,7 +155,7 @@ def main():
     
     # Quick links
     st.subheader("Quick Links")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
     with col1:
         if st.button("💬 Use Prompts", width='stretch'):
@@ -164,17 +165,21 @@ def main():
         if st.button("📄 Talk to Documents", width='stretch'):
             st.switch_page("pages/2_Document_QA.py")
 
-    with col4:
-        if st.button("📊 Document Analysis", width='stretch'):
-            st.switch_page("pages/4_Document_Analysis.py")
-
     with col3:
         if st.button("🔍 Search Documents", width='stretch'):
             st.switch_page("pages/3_Document_Search.py")
 
+    with col4:
+        if st.button("📊 Document Analysis", width='stretch'):
+            st.switch_page("pages/4_Document_Analysis.py")
+
     with col5:
+        if st.button("🎯 Topic Models", width='stretch'):
+            st.switch_page("pages/5_Topic_Models.py")
+
+    with col6:
         if st.button("🔧 Workflow Builder", width='stretch'):
-            st.switch_page("pages/5_Workflow_Builder.py")
+            st.switch_page("pages/6_Workflow_Builder.py")
     
     # Additional information
     st.markdown("---")

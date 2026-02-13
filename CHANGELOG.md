@@ -7,10 +7,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.21.5 (2026-02-12)
+## 0.22.0 (TBD)
 
 ### new:
-- N/A
+- Support for fast topic modeling in Web app (#249)
 
 ### changed
 - upgrade to `nbdev==3`

@@ -1,0 +1,12 @@
+[server]
+# Maximum file upload size in MB
+# Default is 200 MB, increased to 2000 MB (2 GB) for large ZIP files
+maxUploadSize = 2000
+
+[theme]
+# Optional: Set theme colors (can be customized)
+primaryColor = "#0068c9"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+font = "sans serif"
