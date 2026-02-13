@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agent-Based Task Execution – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-baedc78cbf92349237790bf011c153e8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Agent-Based Task Execution – onprem">
+<meta property="og:description" content="A tool for running on-premises large language models on non-public data">
+<meta property="og:site_name" content="onprem">
+<meta name="twitter:title" content="Agent-Based Task Execution – onprem">
+<meta name="twitter:description" content="A tool for running on-premises large language models on non-public data">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_agent.html">Agent-Based Task Execution</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Document Question-Answering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_code.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Code Generation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guided Prompts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_qualitative_survey_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Qualitative Survey Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_legal_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legal and Regulatory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_agent.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Agent-Based Task Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_vectorstore_factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using Different Vector Stores</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Buildling Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.backends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm backends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.factory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dense.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dense</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.sparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.sparse</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dual.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dual</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.rag</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.tools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.tools</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup-the-llm-and-agent" id="toc-setup-the-llm-and-agent" class="nav-link active" data-scroll-target="#setup-the-llm-and-agent">Setup the LLM and Agent</a></li>
+  <li><a href="#giving-the-agent-access-to-tools" id="toc-giving-the-agent-access-to-tools" class="nav-link" data-scroll-target="#giving-the-agent-access-to-tools">Giving the Agent Access to Tools</a>
+  <ul class="collapse">
+  <li><a href="#example-using-a-custom-tool-with-web-search" id="toc-example-using-a-custom-tool-with-web-search" class="nav-link" data-scroll-target="#example-using-a-custom-tool-with-web-search">Example: Using a Custom Tool with Web Search</a></li>
+  <li><a href="#example-web-information-extraction" id="toc-example-web-information-extraction" class="nav-link" data-scroll-target="#example-web-information-extraction">Example: Web Information Extraction</a></li>
+  <li><a href="#example-agentic-rag" id="toc-example-agentic-rag" class="nav-link" data-scroll-target="#example-agentic-rag">Example: Agentic RAG</a></li>
+  </ul></li>
+  <li><a href="#using-local-models-in-agentic-workflows" id="toc-using-local-models-in-agentic-workflows" class="nav-link" data-scroll-target="#using-local-models-in-agentic-workflows">Using Local Models in Agentic Workflows</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_agent.html">Agent-Based Task Execution</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Agent-Based Task Execution</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="setup-the-llm-and-agent" class="level2">
+<h2 class="anchored" data-anchor-id="setup-the-llm-and-agent">Setup the LLM and Agent</h2>
+<p>First, we’ll set up our LLM instance that will power our agent. We’ll first use <strong>GPT-4o-mini</strong>, as cloud LLMs tend to handle agentic workflows faster (and sometimes better), but you can also try any number of tinier local models. (At the end of this notebook, we illustrate this using one of the examples.)</p>
+<div id="c6e76551" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> Agent</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(<span class="st">'openai/gpt-4o-mini'</span>, mute_stream<span class="op">=</span><span class="va">True</span>) </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>agent <span class="op">=</span> Agent(llm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="giving-the-agent-access-to-tools" class="level2">
+<h2 class="anchored" data-anchor-id="giving-the-agent-access-to-tools">Giving the Agent Access to Tools</h2>
+<p>Next, we will give the agent access tools when executing a given task. Examples of tool types include the ability to do the following: 1. perform a web search 2. visit a web page 3. search your documents stored within a vector store (e.g., agentic RAG) 4. accessing Python interpreter 5. accessing an MCP server 6. executing a custom function that you provide (i.e., implementing your own custom tools)</p>
+<section id="example-using-a-custom-tool-with-web-search" class="level3">
+<h3 class="anchored" data-anchor-id="example-using-a-custom-tool-with-web-search">Example: Using a Custom Tool with Web Search</h3>
+<p>In this example, we will give the agent access to web search and a function that returns today’s date to find historical events for the current day.</p>
+<div id="809b252c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> today() <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Gets the current date and time</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">        current date and time</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> datetime.today().isoformat()</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>agent.add_function_tool(today)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>agent.add_websearch_tool()</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> tup <span class="kw">in</span> agent.tools.items():</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(tup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>('today', &lt;smolagents.tools.tool.&lt;locals&gt;.SimpleTool object&gt;)
+('websearch', &lt;smolagents.default_tools.WebSearchTool object&gt;)</code></pre>
+</div>
+</div>
+<div id="e6a171c3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>answer <span class="op">=</span> agent.run(<span class="st">"Any famous events that happened on today's date?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">╭──────────────────────────────────────────────────── </span><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">New run</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ────────────────────────────────────────────────────╮</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span> <span style="font-weight: bold">Any famous events that happened on today's date?</span>                                                                <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">╰─ AgentModel - None ─────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'today' with arguments: {}                                                                        │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Observations: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2025</span>-<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">06</span>-24T<span style="color: #00ff00; text-decoration-color: #00ff00; font-weight: bold">14:39:35</span>.<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">557320</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 1: Duration 1.96 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': 'famous events on June 24th'}                              │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Observations: ## Search Results
+
+|Historical Events on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> - On This Day<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.onthisday.com/events/june/24)</span>
+ June in History. How the Qwerty Keyboard was Born June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">23</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1868</span>; The Fatal Dance Manias of Medieval Europe June 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1374</span>; Custer's Last Stand June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">25</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1876</span>; Kennedy's Clarion Call for Freedom June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">26</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1963</span>
+
+|June 24th: All Facts &amp; Events That Happened Today In 
+History<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://facts.net/history/historical-events/june-24th-all-facts-events-that-happened-today-in-history/)</span>
+ On  June  24th , significant events like the start of the War of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1812</span> and the birth of famous personalities like 
+Lionel Messi and Mindy Kaling shaped history. June  24th witnessed the birth of legends, scientific breakthroughs, 
+and cultural milestones, making it a day filled with diverse and impactful historical events .
+
+|On This Day - What Happened on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> | Britannica<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.britannica.com/on-this-day/June-24)</span>
+ On This Day In History - June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>: anniversaries, birthdays, major events , and time capsules. This day's facts in 
+the arts, politics, and sciences.
+
+|What Happened on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> - HISTORY<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.history.com/this-day-in-history/June-24)</span>
+ On  June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1973</span>, an arson fire at the UpStairs Lounge, a popular gathering spot for New Orleans' LGBT community 
+in the French Quarter, results in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">32</span> deaths and at least <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">15</span> injuries.
+
+|June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>: Facts &amp; Historical Events On This Day - The Fact Site<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.thefactsite.com/day/june-24/)</span>
+ June  24th is the day we officially celebrate Fairy Day and Pralines Day. Today marks day <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">175</span> of the year, and we 
+have <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">190</span> days remaining until the end of the year. You're about to unearth some incredible historical events that 
+all happened throughout history on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>, including one of the longest sports matches of all time and some major 
+<span style="color: #808000; text-decoration-color: #808000">...</span>
+
+|This Day in History on June 24th - History and 
+Headlines<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.historyandheadlines.com/this-day-in-history-on-june-24th/)</span>
+This article presents a chronological list of notable events that happened on June  24th . For each date below, 
+please click on the date to be taken to an article covering that date's event . Digging Deeper. On June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">109</span> AD,
+Roman Emperor Trajan opened the aqueduct known as Aqua Traiana, bringing water to Rome from Lake Bracciano <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">25</span> miles
+away.
+
+|Events on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> - Key Moments Throughout History - Take Me Back To<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://takemeback.to/events/date/June/24)</span>
+Historical Events  on  June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>: Significant Moments in History. Throughout history, certain dates stand out for the
+remarkable events that unfolded on them. From turning points in politics to cultural breakthroughs, these days 
+often carry significance that echoes through time. Explore the most important events that occurred on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>, 
+revealing <span style="color: #808000; text-decoration-color: #808000">...</span>
+
+|June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> Events in History - Have Fun With History<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.havefunwithhistory.com/june-24/)</span>
+This article explores significant historical events that occurred on June  24th , tracing pivotal moments from 
+medieval battles to modern achievements. Starting with the Battle of Bannockburn in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1314</span>, which shaped Scottish 
+independence, the narrative moves through milestones in exploration, arts, and technology, concluding with a 
+record-breaking Wimbledon match in <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>. Each entry examines the <span style="color: #808000; text-decoration-color: #808000">...</span>
+
+|Historical Events on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>, Facts &amp; Special Events On This Day 
+<span style="color: #808000; text-decoration-color: #808000">...</span><span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.calendarz.com/on-this-day/events/june/24)</span>
+Historical events for June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>. See what famous , interesting and special events &amp; facts happened throughout history
+on June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> related to American Revolutionary War, Serbia, World War II, Apartheid, Thailand, and many more.
+
+|June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span> Holidays <span style="font-weight: bold">(</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2025</span>/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2026</span><span style="font-weight: bold">)</span>, Historical Events, Famous Birthdays<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.holidayscalendar.com/day/june-24/)</span>
+Historical Events  on  June <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">24</span>. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1340</span>: King Edward III and his fleet almost completely destroys the French fleet at 
+the Battle of Sluys during the <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">100</span> Years War. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1374</span>: In Aachen, Germany, cases of St. John's Dance mysteriously 
+erupt in the streets of the city. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1497</span>: At Newfoundland, John Cabot lands. It's the first European landing at the 
+area since the Vikings landed there previously.
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 2: Duration 2.75 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">3</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'final_answer' with arguments: {'answer': "Several historical events occurred on June 24th,       │
+│ including:\n1. In 1374, cases of St. John's Dance mysteriously erupted in Aachen, Germany.\n2. In 1497, John    │
+│ Cabot landed in Newfoundland, marking the first European landing at the site since the Vikings.\n3. In 1340,    │
+│ King Edward III's fleet defeated the French fleet at the Battle of Sluys during the 100 Years War.\n4. On June  │
+│ 24, 1973, an arson fire at the UpStairs Lounge in New Orleans' LGBT community resulted in 32 deaths."}          │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">Final answer: Several historical events occurred on June 24th, including:</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">1. In 1374, cases of St. John's Dance mysteriously erupted in Aachen, Germany.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">2. In 1497, John Cabot landed in Newfoundland, marking the first European landing at the site since the Vikings.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">3. In 1340, King Edward III's fleet defeated the French fleet at the Battle of Sluys during the 100 Years War.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">4. On June 24, 1973, an arson fire at the UpStairs Lounge in New Orleans' LGBT community resulted in 32 deaths.</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 3: Duration 3.53 seconds]</span>
+</pre>
+</div>
+</div>
+<div id="72818b56" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display, Markdown</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>display(Markdown(answer))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display cell-output-markdown">
+<p>Several historical events occurred on June 24th, including: 1. In 1374, cases of St.&nbsp;John’s Dance mysteriously erupted in Aachen, Germany. 2. In 1497, John Cabot landed in Newfoundland, marking the first European landing at the site since the Vikings. 3. In 1340, King Edward III’s fleet defeated the French fleet at the Battle of Sluys during the 100 Years War. 4. On June 24, 1973, an arson fire at the UpStairs Lounge in New Orleans’ LGBT community resulted in 32 deaths.</p>
+</div>
+</div>
+</section>
+<section id="example-web-information-extraction" class="level3">
+<h3 class="anchored" data-anchor-id="example-web-information-extraction">Example: Web Information Extraction</h3>
+<p>In the next example, we will use the Web View tool to extract information from a Web page.</p>
+<div id="2db859ce" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>agent <span class="op">=</span> Agent(llm)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>agent.add_webview_tool()</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>answer <span class="op">=</span> agent.run(<span class="st">"What is the highest level of education of the person listed on this page: https://arun.maiya.net?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">╭──────────────────────────────────────────────────── </span><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">New run</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ────────────────────────────────────────────────────╮</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span> <span style="font-weight: bold">What is the highest level of education of the person listed on this page: https://arun.maiya.net?</span>               <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">╰─ AgentModel - None ─────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'visit_webpage' with arguments: {'url': 'https://arun.maiya.net'}                                 │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Observations: Arun S. Maiya
+
+Arun S. Maiya   
+&nbsp;   
+arun |at<span style="font-weight: bold">]</span> maiya |dot<span style="font-weight: bold">]</span> net  
+|CV<span style="font-weight: bold">](</span>asmcv.pdf<span style="font-weight: bold">)</span> | |LinkedIn<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.linkedin.com/in/arun-maiya/)</span> | |GitHub<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya)</span>
+
+!|<span style="font-weight: bold">](</span>asmpic.jpg<span style="font-weight: bold">)</span>
+
+Basics
+======
+
+I am a computer scientist at the |Institute for Defense Analyses <span style="font-weight: bold">(</span>IDA<span style="font-weight: bold">)](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://www.ida.org),</span> a federally-funded 
+|think tank<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://en.wikipedia.org/wiki/List_of_federally_funded_research_and_development_centers)</span> in the 
+Washington D.C. metro area. My research broadly focuses on the study of computational methods to *extract meaning 
+from raw data* and includes the areas of natural language processing, machine learning, data mining, computer 
+vision, and network science <span style="font-weight: bold">(</span>e.g., social network analysis<span style="font-weight: bold">)</span>. I like building tools to make machine learning easier 
+to apply in new ways and new areas. Through my work, I have contributed to national-level strategic-planning 
+activities and R&amp;D roadmaps. I completed a Ph.D. in Computer Science at the |Laboratory for Computational 
+Population Biology<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://compbio.cs.uic.edu/),</span> which is within the |Department of Computer 
+Science<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://www.cs.uic.edu/)</span> at the
+|University of Illinois at Chicago <span style="font-weight: bold">(</span>UIC<span style="font-weight: bold">)](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://www.uic.edu/).</span> My CV is |here<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://arun.maiya.net/asmcv.pdf).</span>
+
+Software
+========
+
+* **|ktrain<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya/ktrain)</span>** is a Python library that makes deep learning and AI more 
+accessible and easier to apply. With support for many different data types including text, images, and graphs, 
+ktrain has been used for a wide range of use cases in industry, government, and academia. Examples include analyses
+for the U.S. Economic Census, financial crime analytics at Big <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">4</span> accounting firms, intelligence analyses, and 
+|CoronaCentral.ai<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://coronacentral.ai),</span> a machine-learning-enhanced search engine for coronavirus 
+publications at Stanford University.
+* **|CausalNLP<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya/causalnlp)</span>** is a practical toolkit for causal inference with text as 
+treatment, outcome, or <span style="color: #008000; text-decoration-color: #008000">"controlled-for"</span> variable.
+* **|IDATA<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1308.2359)</span>** is a suite of software capabilities designed to facilitate search, 
+exploration, and analyses of very large document sets using state-of-the-art machine learning, NLP, and information
+retrieval. It has been used for a variety of different application in the |DoD<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.defense.gov)</span> including 
+cyber damage assessments, biosurveillance, and policy analyses.
+* **|OnPrem.LLM<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya/onprem)</span>** is a simple Python package for generative AI that makes it 
+easier to run large language models <span style="font-weight: bold">(</span>LLMs<span style="font-weight: bold">)</span> on your own machine using non-public data.
+
+Publications
+============
+
+|**ktrain: A Low-Code Library for Augmented Machine 
+Learning**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.jmlr.org/papers/volume23/21-1124/21-1124.pdf)</span>  
+A.S. Maiya  
+ *Journal of Machine Learning Research <span style="font-weight: bold">(</span>JMLR<span style="font-weight: bold">)</span>.*  May <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2022</span>.
+
+|**CausalNLP: A Practical Toolkit for Causal Inference with Text**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/2106.08043)</span>   
+A.S. Maiya  
+ *arXiv preprint arXiv:<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2106.08043</span> .*  Jun <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2021</span>. |arXiv only<span style="font-weight: bold">]</span>
+
+|**A Framework for Comparing Groups of Documents**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1508.05902)</span>  
+A.S. Maiya  
+ *Proc. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span> Conference on Empirical Methods in Natural Language Processing <span style="font-weight: bold">(</span>EMNLP '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">15</span><span style="font-weight: bold">)</span>.*  Lisbon, Portugal. Sep 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span>.
+
+|**Mining Measured Information from Text**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1505.01072)</span>  
+A.S. Maiya, D. Visser, and A. Wan  
+ *Proc. 38th Annual ACM SIGIR Conference <span style="font-weight: bold">(</span>SIGIR '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">15</span><span style="font-weight: bold">)</span>.* Santiago, Chile. Aug <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span>.
+
+|**Topic Similarity Networks: Visual Analytics for Large Document Sets**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1409.7591)</span>  
+A.S. Maiya and R.M. Rolfe  
+ *Proc. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2014</span> IEEE International Conference on Big Data <span style="font-weight: bold">(</span>IEEE BigData '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">)</span>.* Washington, D.C., Oct <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2014</span>.
+
+|**Exploratory Analysis of Highly Heterogeneous Document Collections**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1308.2359)</span>  
+A.S. Maiya, J.P. Thompson, F. Loaiza-Lemos, and R.M. Rolfe  
+ *Proc. 19th ACM SIGKDD Conference on Knowledge Discovery and Data Mining <span style="font-weight: bold">(</span>KDD '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span><span style="font-weight: bold">)</span>.* Chicago, IL, Aug <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2013</span>.
+
+|**Expansion and Decentralized Search in Complex 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://link.springer.com/article/10.1007/s10115-012-0596-4)</span>  
+A.S. Maiya and T.Y. Berger-Wolf  
+ *Journal of Knowledge and Information Systems.* First published online January <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2013</span>.
+
+|**Supervised Learning in the Wild: Text Classification for Critical 
+Technologies**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://ieeexplore.ieee.org/document/6415660)</span>  
+A.S. Maiya, F. Loaiza-Lemos, and R.M. Rolfe  
+ *Proc. IEEE Military Communications Conference <span style="font-weight: bold">(</span>MILCOM '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span><span style="font-weight: bold">)</span>.* Orlando, FL, Oct <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2012</span>.
+
+|**Benefits of Bias: Towards Better Characterization of Network Sampling**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1109.3911)</span>  
+A.S. Maiya and T.Y. Berger-Wolf  
+ *Proc. 17th ACM SIGKDD Conference on Knowledge Discovery and Data Mining <span style="font-weight: bold">(</span>KDD '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span><span style="font-weight: bold">)</span>.* San Diego, CA, Aug <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2011</span>.
+
+|**Aggression, Grooming, and Group-level Cooperation in White-faced Capuchins: Insights from Social 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://onlinelibrary.wiley.com/doi/10.1002/ajp.20959/abstract)</span>  
+M.C. Crofoot, D.I. Rubenstein, A.S. Maiya, and T.Y. Berger-Wolf  
+ *American Journal of Primatology.* First published online May <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2011</span>.
+
+|**Sampling and Inference in Complex Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://dl.acm.org/doi/abs/10.5555/2395432)</span>  
+A.S. Maiya  
+ *Ph.D. Dissertation, University of Illinois at Chicago <span style="font-weight: bold">(</span>UIC<span style="font-weight: bold">)</span>.* Chicago, IL, Apr <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2011</span>.
+
+|**Expansion and Search in Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1009.4383)</span>  
+A.S. Maiya and T.Y. Berger-Wolf  
+ *Proc. 19th ACM Intl. Conference on Information and Knowledge Management <span style="font-weight: bold">(</span>CIKM '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span><span style="font-weight: bold">)</span>.* Toronto, Canada, Oct <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>.
+
+|**Online Sampling of High Centrality Individuals in Social 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://link.springer.com/chapter/10.1007/978-3-642-13657-3_12)</span>  
+A.S. Maiya and T.Y. Berger-Wolf  
+ *Proc. 14th Pacific-Asia Conference on Knowledge Discovery and Data Mining <span style="font-weight: bold">(</span>PAKDD '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span><span style="font-weight: bold">)</span>.* Hyderabad, India, Jun 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>.
+
+|**Sampling Community Structure**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://dl.acm.org/doi/10.1145/1772690.1772762)</span>  
+A.S. Maiya and T.Y. Berger-Wolf  
+ *Proc. 19th ACM Intl. Conference on the World Wide Web <span style="font-weight: bold">(</span>WWW '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span><span style="font-weight: bold">)</span>.* Raleigh, NC, Apr <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>.
+
+|**Inferring the Maximum Likelihood Hierarchy in Social Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://ieeexplore.ieee.org/document/5284124)</span>  
+A.S. Maiya and T.Y. Berger-Wolf  
+ *Proc. 12th IEEE Intl. Conference on Computational Science and Engineering <span style="font-weight: bold">(</span>CSE '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">09</span><span style="font-weight: bold">)</span>.* Vancouver, Canada, Aug 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2009</span>.
+
+|**The Impact of Structural Changes on Predictions of Diffusion in 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.computer.org/csdl/proceedings-article/icdmw/2008/3503a939/12OmNBU1jIK)</span>  
+M. Lahiri, A.S. Maiya, R. Sulo, Habiba and T.Y. Berger-Wolf  
+*ICDM '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">08</span> Workshop on Analysis of Dynamic Networks*. Pisa, Italy, Dec <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2008</span>.
+
+Honors and Awards
+=================
+
+**Goodpaster Award for Excellence in Research**, Institute for Defense Analyses, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2021</span> ||News 
+Release<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.ida.org/research-and-publications/publications/all/a/ar/arun-maiya-receives-2021-goodpaster-aw</span>
+<span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">ard-for-excellence-in-research)</span><span style="font-weight: bold">]</span>
+
+&gt; *This prize is named for Gen. Andrew J. Goodpaster <span style="font-weight: bold">(</span>USA, retired<span style="font-weight: bold">)</span> and is awarded to an individual demonstrating 
+<span style="color: #008000; text-decoration-color: #008000">"research excellence, exceptional analytic achievement and intellectual leadership."</span>*
+
+**Welch Award for Best External Research**, Institute for Defense Analyses, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2016</span>
+
+&gt; *Named in honor of General Larry D. Welch <span style="font-weight: bold">(</span>USAF, ret.<span style="font-weight: bold">)</span>, this award <span style="color: #008000; text-decoration-color: #008000">"honors individuals whose external research </span>
+<span style="color: #008000; text-decoration-color: #008000">publications exemplify General Welch's high standards of analytic excellence and relevance."</span>*
+
+**AFEI Award for Excellence in Enterprise Information**, NDIA <span style="font-weight: bold">(</span>formerly Association for Enterprise Information<span style="font-weight: bold">)</span>, 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span>
+
+&gt; *This award is to <span style="color: #008000; text-decoration-color: #008000">"recognize and reward the contributions and achievements of project teams that exemplify </span>
+<span style="color: #008000; text-decoration-color: #008000">excellence in achieving integrated enterprises. Winning teams are models of the best applications of technology and</span>
+<span style="color: #008000; text-decoration-color: #008000">leadership to improve enterprise performance."</span>*
+
+&lt;script
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 1: Duration 1.50 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'final_answer' with arguments: {'answer': 'Ph.D. in Computer Science'}                            │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">Final answer: Ph.D. in Computer Science</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 2: Duration 1.43 seconds]</span>
+</pre>
+</div>
+</div>
+<div id="06dcc1b6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(answer)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ph.D. in Computer Science</code></pre>
+</div>
+</div>
+</section>
+<section id="example-agentic-rag" class="level3">
+<h3 class="anchored">Example: Agentic RAG</h3>
+<p>You can also give the agent access to a vector store containing our documents. In this example, we will ingest a document about Generative AI into a vector store and provide the store to the agent as a tool.</p>
+<div id="767cffc0" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest.stores <span class="im">import</span> DenseStore</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>store <span class="op">=</span> DenseStore.create(<span class="st">'/tmp/myvectordb'</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>store.ingest(<span class="st">'tests/sample_data/docx_example/'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Creating new vectorstore at /tmp/myvectordb
+Loading documents from tests/sample_data/docx_example/</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading new documents: 100%|██████████████████████| 1/1 [00:04&lt;00:00,  4.05s/it]
+Processing and chunking 1 new documents: 100%|█████████████████████████████████████| 1/1 [00:00&lt;00:00, 2184.53it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Split into 17 chunks of text (max. 500 chars each for text; max. 2000 chars for tables)
+Creating embeddings. May take some minutes...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00&lt;00:00,  2.67it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+</div>
+<p>So far, we have been using the default tool-calling agent, which relies on the LLM to generate precise JSON structures that specify tool names and arguments required to complete a task.</p>
+<p>By constrast, the code-agent generates and runs code to solve a task. We will use the code-agent in this final example.</p>
+<div id="3475bb6a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>agent <span class="op">=</span> Agent(llm, agent_type<span class="op">=</span><span class="st">'code'</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>agent.add_vectorstore_tool(name<span class="op">=</span><span class="st">'genai_search'</span>, </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                           description<span class="op">=</span><span class="st">'Searches a database of information on generative AI.'</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                           store<span class="op">=</span>store)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>answer <span class="op">=</span> agent.run(<span class="st">"Summarize some generative AI use cases in Markdown format. You may need to run at least three queries of the database."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">╭──────────────────────────────────────────────────── </span><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">New run</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ────────────────────────────────────────────────────╮</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span> <span style="font-weight: bold">Summarize some generative AI use cases in Markdown format. You may need to run at least three queries of the </span>   <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span> <span style="font-weight: bold">database.</span>                                                                                                       <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">╰─ AgentModel - None ─────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"> ─ <span style="font-weight: bold">Executing parsed code:</span> ──────────────────────────────────────────────────────────────────────────────────────── 
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">use_cases_general </span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822"> genai_search(query</span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">"generative AI use cases"</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">)</span><span style="background-color: #272822">                                              </span>  
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">print(use_cases_general)</span><span style="background-color: #272822">                                                                                       </span>  
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold">Execution logs:</span>
+[{'id': '901846fb-fc97-42ef-810a-cedc8abfbcb8', 'score': 0.6182159185409546, 'text': '3. What is generative 
+AI?\n\nEven though AI is not new, you have probably been hearing a lot about easy-to-use, publicly available 
+Generative AI tools like ChatGPT and Google Gemini.\u202f \n\nBut what is generative AI?\u202f\u202f \n\nIt is a 
+type of AI technology that automatically generates (or creates) content in response to prompts given to it by 
+users.\u202f \n\nThese tools can generate text, images, music, video, code and other formats.'}, {'id': 
+'0b660b75-3bf3-47ab-a4bb-0f52039ec442', 'score': 0.5850328207015991, 'text': 'An introduction to generative 
+AI\n\n1. Introduction\n\nThis activity will give a brief overview of what Generative AI is and how it is being 
+used.\n\nUsing this tutorial\n\nUse the back and next buttons at the bottom right of the screen to navigate through
+the tutorial. Alternatively, use the contents button to jump to a specific page.\n\nYou will need to allow 
+approximately\xa05\xa0minutes\xa0to complete the tutorial.\n\nLearning outcomes\n\nAfter completing this tutorial 
+you will be able to:'}, {'id': '57831af5-b767-4565-ba01-8845d8e6b261', 'score': 0.568540632724762, 'text': 
+'Question 5 Feedback for Option 3\n\nTrue. Generative AI tools rely on pattern recognition and do not truly 
+understand the content, which can lead to plausible but misleading or incorrect outputs.\n\nQuestion 5 Feedback for
+Option 4\n\nFalse. Each response is unique; generative AI tools do not provide the same response every 
+time.\n\nBeing digital Copyright © 2024 The Open University'}, {'id': '3ab09f45-f5d2-468e-ae8e-710c116f51b7', 
+'score': 0.5618582367897034, 'text': 'Recognise generative AI in daily life: Identify common generative AI 
+applications like chatbots, facial recognition, streaming services, and digital assistants.\n\nUnderstand 
+generative AI: Explain generative AI and its ability to create diverse content such as text, images, music, video, 
+and code.\n\nDescribe LLMs: Understand how\xa0Large Language Models (LLMs) work.\n\n2. Examples of AI in everyday 
+life'}, {'id': 'ec272b15-9ff9-448b-a39b-3b89f0d6f524', 'score': 0.5566920042037964, 'text': '5. Quiz\n\nQuestion 1 
+of 5\n\nWhat is generative AI?\n\nAI that only processes data\n\nAI that creates content based on user 
+prompts\n\nAI that cannot update its data\n\nAI that performs physical tasks\n\nQuestion 1 Feedback for Option 
+1\n\nFalse. Typing on a keyboard is a manual activity that does not involve AI.\n\nQuestion 1 Feedback for Option 
+2\n\nFalse. Watching a sunset is a natural experience, not related to generative AI.\n\nQuestion 1 Feedback for 
+Option 3'}]
+
+Out: None
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 1: Duration 2.20 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"> ─ <span style="font-weight: bold">Executing parsed code:</span> ──────────────────────────────────────────────────────────────────────────────────────── 
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">use_cases_content_creation </span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822"> genai_search(query</span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">"generative AI content creation use cases"</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">)</span><span style="background-color: #272822">                    </span>  
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">print(use_cases_content_creation)</span><span style="background-color: #272822">                                                                              </span>  
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold">Execution logs:</span>
+[{'id': '901846fb-fc97-42ef-810a-cedc8abfbcb8', 'score': 0.6875638961791992, 'text': '3. What is generative 
+AI?\n\nEven though AI is not new, you have probably been hearing a lot about easy-to-use, publicly available 
+Generative AI tools like ChatGPT and Google Gemini.\u202f \n\nBut what is generative AI?\u202f\u202f \n\nIt is a 
+type of AI technology that automatically generates (or creates) content in response to prompts given to it by 
+users.\u202f \n\nThese tools can generate text, images, music, video, code and other formats.'}, {'id': 
+'3d776586-b95b-4cad-8915-4d65926a5fe4', 'score': 0.6328049302101135, 'text': 'Question 2 Feedback for Option 
+1\n\nFalse. This describes data processing AI, not generative AI.\n\nQuestion 2 Feedback for Option 2 \n\nTrue. 
+Generative AI creates content like text, images, music, etc., in response to user prompts.\n\nQuestion 2 Feedback 
+for Option 3\n\nFalse. Generative AI can update its data with new information.\n\nQuestion 2 Feedback for Option 4 
+\n\nFalse. Generative AI focuses on content creation, not performing physical tasks.\n\nQuestion 3 of 5'}, {'id': 
+'cd369b7e-383b-42e2-bc5e-f514d260d7dd', 'score': 0.6124569177627563, 'text': 'Question 3 of 5\n\nWhich of the 
+following is a text generative AI tool?\n\nSpotify\n\nGoogle Maps\n\nDall-E2\n\nChatGPT\n\nQuestion 3 Feedback for 
+Option 1\n\nFalse. Spotify uses AI for music recommendations, not text generation.\n\nQuestion 3 Feedback for 
+Option 2\n\nFalse. Google Maps uses AI for navigation and travel information, not text generation.\n\n\n\nQuestion 
+3 Feedback for Option 3\n\nFalse. DALL-E2 generates images and art, not text.\n\nQuestion 3 Feedback for Option 
+4'}, {'id': '0b660b75-3bf3-47ab-a4bb-0f52039ec442', 'score': 0.582166314125061, 'text': 'An introduction to 
+generative AI\n\n1. Introduction\n\nThis activity will give a brief overview of what Generative AI is and how it is
+being used.\n\nUsing this tutorial\n\nUse the back and next buttons at the bottom right of the screen to navigate 
+through the tutorial. Alternatively, use the contents button to jump to a specific page.\n\nYou will need to allow 
+approximately\xa05\xa0minutes\xa0to complete the tutorial.\n\nLearning outcomes\n\nAfter completing this tutorial 
+you will be able to:'}, {'id': 'ec272b15-9ff9-448b-a39b-3b89f0d6f524', 'score': 0.5623699426651001, 'text': '5. 
+Quiz\n\nQuestion 1 of 5\n\nWhat is generative AI?\n\nAI that only processes data\n\nAI that creates content based 
+on user prompts\n\nAI that cannot update its data\n\nAI that performs physical tasks\n\nQuestion 1 Feedback for 
+Option 1\n\nFalse. Typing on a keyboard is a manual activity that does not involve AI.\n\nQuestion 1 Feedback for 
+Option 2\n\nFalse. Watching a sunset is a natural experience, not related to generative AI.\n\nQuestion 1 Feedback 
+for Option 3'}]
+
+Out: None
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 2: Duration 2.12 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">3</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"> ─ <span style="font-weight: bold">Executing parsed code:</span> ──────────────────────────────────────────────────────────────────────────────────────── 
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">use_cases_applications </span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822"> genai_search(query</span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">"applications of generative AI in various domains"</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">)</span><span style="background-color: #272822">                </span>  
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">print(use_cases_applications)</span><span style="background-color: #272822">                                                                                  </span>  
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold">Execution logs:</span>
+[{'id': '0b660b75-3bf3-47ab-a4bb-0f52039ec442', 'score': 0.5789191722869873, 'text': 'An introduction to generative
+AI\n\n1. Introduction\n\nThis activity will give a brief overview of what Generative AI is and how it is being 
+used.\n\nUsing this tutorial\n\nUse the back and next buttons at the bottom right of the screen to navigate through
+the tutorial. Alternatively, use the contents button to jump to a specific page.\n\nYou will need to allow 
+approximately\xa05\xa0minutes\xa0to complete the tutorial.\n\nLearning outcomes\n\nAfter completing this tutorial 
+you will be able to:'}, {'id': '901846fb-fc97-42ef-810a-cedc8abfbcb8', 'score': 0.5656728744506836, 'text': '3. 
+What is generative AI?\n\nEven though AI is not new, you have probably been hearing a lot about easy-to-use, 
+publicly available Generative AI tools like ChatGPT and Google Gemini.\u202f \n\nBut what is generative 
+AI?\u202f\u202f \n\nIt is a type of AI technology that automatically generates (or creates) content in response to 
+prompts given to it by users.\u202f \n\nThese tools can generate text, images, music, video, code and other 
+formats.'}, {'id': '3ab09f45-f5d2-468e-ae8e-710c116f51b7', 'score': 0.55094313621521, 'text': 'Recognise generative
+AI in daily life: Identify common generative AI applications like chatbots, facial recognition, streaming services,
+and digital assistants.\n\nUnderstand generative AI: Explain generative AI and its ability to create diverse 
+content such as text, images, music, video, and code.\n\nDescribe LLMs: Understand how\xa0Large Language Models 
+(LLMs) work.\n\n2. Examples of AI in everyday life'}, {'id': '14de7734-74a7-43c7-aa72-75a42655e545', 'score': 
+0.5244572162628174, 'text': 'surprisingly knowledgeable, or with an image / computing code. Although outputs 
+produced by Generative AI tools look plausible, they are often misleading, made up, or may be entirely 
+wrong.\n\nEach response is unique, you will probably never get the exact same reply twice.\n\nResponses are 
+conversational. Once you have asked a question you can just carry on the conversation by adding new questions or 
+prompts, rather than having to redo your search, as you would in a search engine like Google.'}, {'id': 
+'2751a020-1728-46d2-ae5c-0cfac3ee3d88', 'score': 0.5166183710098267, 'text': 'Online shopping – personalised 
+recommendations and adverts.\n\nDigital assistants, e.g.\u202fAmazon Alexa, Google Assistant, Siri.\n\nSending an 
+email – spell check and spam filters.\n\n\n\nTravel and navigation, e.g. Google Maps.\n\nWriting assistants, e.g.  
+Grammarly.\n\nHealth and fitness apps, e.g. Fitbit.\n\nSocial media feeds – AI controls the feeds that you get to 
+see while browsing through social media platforms (e.g., Facebook, X, Instagram) or the notifications you 
+receive.\n\n3. What is generative AI?'}]
+
+Out: None
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 3: Duration 2.56 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">4</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"> ─ <span style="font-weight: bold">Executing parsed code:</span> ──────────────────────────────────────────────────────────────────────────────────────── 
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">markdown_summary </span><span style="color: #ff4689; text-decoration-color: #ff4689; background-color: #272822">=</span><span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822"> </span><span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">"""</span><span style="background-color: #272822">                                                                                         </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822"># Generative AI Use Cases</span><span style="background-color: #272822">                                                                                      </span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">Generative AI refers to a category of artificial intelligence technologies that can create content in response </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">to user prompts. Here are some key applications of generative AI:</span><span style="background-color: #272822">                                              </span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">## 1. Content Creation</span><span style="background-color: #272822">                                                                                         </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Text Generation**: Tools like ChatGPT generate coherent and relevant text based on prompts.</span><span style="background-color: #272822">                </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Image Generation**: Models such as DALL-E create unique images from text descriptions.</span><span style="background-color: #272822">                     </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Music and Video Creation**: Generative models can compose music or create video clips based on user inputs.</span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">## 2. Business Applications</span><span style="background-color: #272822">                                                                                    </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Personalized Recommendations**: In online shopping, generative AI analyzes user behavior to recommend </span><span style="background-color: #272822">     </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">products tailored to individual preferences.</span><span style="background-color: #272822">                                                                   </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Chatbots and Digital Assistants**: Applications like Amazon Alexa and Google Assistant help users by </span><span style="background-color: #272822">      </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">providing information and performing tasks based on voice commands.</span><span style="background-color: #272822">                                            </span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">## 3. Health and Fitness</span><span style="background-color: #272822">                                                                                       </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Health Monitoring**: Apps like Fitbit use generative AI to analyze data and provide health recommendations.</span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Telemedicine**: AI systems assist healthcare professionals by generating patient reports and insights based</span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">on input data.</span><span style="background-color: #272822">                                                                                                 </span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">## 4. Social Media</span><span style="background-color: #272822">                                                                                             </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Content Moderation**: Generative AI helps filter out harmful or inappropriate content from social media </span><span style="background-color: #272822">   </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">feeds.</span><span style="background-color: #272822">                                                                                                         </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">- **Algorithm-Driven Feeds**: AI systems personalize content delivery on platforms like Facebook and Instagram </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">based on user interaction patterns.</span><span style="background-color: #272822">                                                                            </span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">These use cases illustrate the versatility of generative AI across various sectors, enhancing both productivity</span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">and user experience.</span><span style="background-color: #272822">                                                                                           </span>  
+  <span style="color: #e6db74; text-decoration-color: #e6db74; background-color: #272822">"""</span><span style="background-color: #272822">                                                                                                            </span>  
+  <span style="background-color: #272822">                                                                                                               </span>  
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">print(markdown_summary)</span><span style="background-color: #272822">                                                                                        </span>  
+  <span style="color: #f8f8f2; text-decoration-color: #f8f8f2; background-color: #272822">final_answer(markdown_summary)</span><span style="background-color: #272822">                                                                                 </span>  
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold">Execution logs:</span>
+
+# Generative AI Use Cases
+
+Generative AI refers to a category of artificial intelligence technologies that can create content in response to 
+user prompts. Here are some key applications of generative AI:
+
+## 1. Content Creation
+- **Text Generation**: Tools like ChatGPT generate coherent and relevant text based on prompts.
+- **Image Generation**: Models such as DALL-E create unique images from text descriptions.
+- **Music and Video Creation**: Generative models can compose music or create video clips based on user inputs.
+
+## 2. Business Applications
+- **Personalized Recommendations**: In online shopping, generative AI analyzes user behavior to recommend products 
+tailored to individual preferences.
+- **Chatbots and Digital Assistants**: Applications like Amazon Alexa and Google Assistant help users by providing 
+information and performing tasks based on voice commands.
+
+## 3. Health and Fitness
+- **Health Monitoring**: Apps like Fitbit use generative AI to analyze data and provide health recommendations.
+- **Telemedicine**: AI systems assist healthcare professionals by generating patient reports and insights based on 
+input data.
+
+## 4. Social Media
+- **Content Moderation**: Generative AI helps filter out harmful or inappropriate content from social media feeds.
+- **Algorithm-Driven Feeds**: AI systems personalize content delivery on platforms like Facebook and Instagram 
+based on user interaction patterns.
+
+These use cases illustrate the versatility of generative AI across various sectors, enhancing both productivity and
+user experience.
+
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">Out - Final answer: </span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold"># Generative AI Use Cases</span>
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">Generative AI refers to a category of artificial intelligence technologies that can create content in response to </span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">user prompts. Here are some key applications of generative AI:</span>
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">## 1. Content Creation</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Text Generation**: Tools like ChatGPT generate coherent and relevant text based on prompts.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Image Generation**: Models such as DALL-E create unique images from text descriptions.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Music and Video Creation**: Generative models can compose music or create video clips based on user inputs.</span>
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">## 2. Business Applications</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Personalized Recommendations**: In online shopping, generative AI analyzes user behavior to recommend products </span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">tailored to individual preferences.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Chatbots and Digital Assistants**: Applications like Amazon Alexa and Google Assistant help users by providing </span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">information and performing tasks based on voice commands.</span>
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">## 3. Health and Fitness</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Health Monitoring**: Apps like Fitbit use generative AI to analyze data and provide health recommendations.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Telemedicine**: AI systems assist healthcare professionals by generating patient reports and insights based on </span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">input data.</span>
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">## 4. Social Media</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Content Moderation**: Generative AI helps filter out harmful or inappropriate content from social media feeds.</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">- **Algorithm-Driven Feeds**: AI systems personalize content delivery on platforms like Facebook and Instagram </span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">based on user interaction patterns.</span>
+
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">These use cases illustrate the versatility of generative AI across various sectors, enhancing both productivity and</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">user experience.</span>
+
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 4: Duration 7.26 seconds]</span>
+</pre>
+</div>
+</div>
+<div id="e1994b4c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display, Markdown</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>display(Markdown(answer))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="generative-ai-use-cases" class="level1 cell-output cell-output-display cell-output-markdown">
+<h1>Generative AI Use Cases</h1>
+<p>Generative AI refers to a category of artificial intelligence technologies that can create content in response to user prompts. Here are some key applications of generative AI:</p>
+<section id="content-creation" class="level2">
+<h2 class="anchored" data-anchor-id="content-creation">1. Content Creation</h2>
+<ul>
+<li><strong>Text Generation</strong>: Tools like ChatGPT generate coherent and relevant text based on prompts.</li>
+<li><strong>Image Generation</strong>: Models such as DALL-E create unique images from text descriptions.</li>
+<li><strong>Music and Video Creation</strong>: Generative models can compose music or create video clips based on user inputs.</li>
+</ul>
+</section>
+<section id="business-applications" class="level2">
+<h2 class="anchored" data-anchor-id="business-applications">2. Business Applications</h2>
+<ul>
+<li><strong>Personalized Recommendations</strong>: In online shopping, generative AI analyzes user behavior to recommend products tailored to individual preferences.</li>
+<li><strong>Chatbots and Digital Assistants</strong>: Applications like Amazon Alexa and Google Assistant help users by providing information and performing tasks based on voice commands.</li>
+</ul>
+</section>
+<section id="health-and-fitness" class="level2">
+<h2 class="anchored" data-anchor-id="health-and-fitness">3. Health and Fitness</h2>
+<ul>
+<li><strong>Health Monitoring</strong>: Apps like Fitbit use generative AI to analyze data and provide health recommendations.</li>
+<li><strong>Telemedicine</strong>: AI systems assist healthcare professionals by generating patient reports and insights based on input data.</li>
+</ul>
+</section>
+<section id="social-media" class="level2">
+<h2 class="anchored" data-anchor-id="social-media">4. Social Media</h2>
+<ul>
+<li><strong>Content Moderation</strong>: Generative AI helps filter out harmful or inappropriate content from social media feeds.</li>
+<li><strong>Algorithm-Driven Feeds</strong>: AI systems personalize content delivery on platforms like Facebook and Instagram based on user interaction patterns.</li>
+</ul>
+<p>These use cases illustrate the versatility of generative AI across various sectors, enhancing both productivity and user experience.</p>
+</section>
+</section>
+</div>
+</section>
+</section>
+<section id="using-local-models-in-agentic-workflows" class="level2">
+<h2 class="anchored" data-anchor-id="using-local-models-in-agentic-workflows">Using Local Models in Agentic Workflows</h2>
+<p>Some local (on-premises) models are better-suited for agentic workflows than others. For instance, <code>ollama/llama3.2</code> is a 3B-parameter model and not recommended. In this example, we will use <code>ollama/llama3.1:8b</code> and repeat one of the earlier examples from above. The example below assumes you have already <a href="https://ollama.com/">installed Ollama</a> and pulled the Llama3.1:8b model with <code>ollama pull llama3.1:8b</code>.</p>
+<p><strong>Important Note:</strong> If using a local model, it is important to set the context window to a higher value (e.g., 8192) to support agentic workflows.</p>
+<ul>
+<li>For the llama.cpp backend, supply <code>n_ctx=8192</code> as a parameter to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a>.</li>
+<li>For the Ollama backend, supply <code>num_ctx=8192</code> as a parameter to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a>.</li>
+<li>For the Hugging Face transformers backend (e.g., <code>LLM(model_id='hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4', device='cuda'</code>), context window is set automatically, so no extra parameters are necessary.</li>
+</ul>
+<div id="6b0fd0e2" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> Agent</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(<span class="st">"ollama/llama3.1:8b"</span>, mute_stream<span class="op">=</span><span class="va">True</span>, num_ctx<span class="op">=</span><span class="dv">8182</span>) </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>agent <span class="op">=</span> Agent(llm)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>agent.add_webview_tool()</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>answer <span class="op">=</span> agent.run(<span class="st">"What is the highest level of education of the person listed on this page: https://arun.maiya.net?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">╭──────────────────────────────────────────────────── </span><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">New run</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ────────────────────────────────────────────────────╮</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span> <span style="font-weight: bold">What is the highest level of education of the person listed on this page: https://arun.maiya.net?</span>               <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">│</span>                                                                                                                 <span style="color: #d4b702; text-decoration-color: #d4b702">│</span>
+<span style="color: #d4b702; text-decoration-color: #d4b702">╰─ AgentModel - None ─────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'visit_webpage' with arguments: {'url': 'https://arun.maiya.net'}                                 │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Observations: Arun S. Maiya
+
+Arun S. Maiya   
+
+&nbsp;   
+
+arun |at<span style="font-weight: bold">]</span> maiya |dot<span style="font-weight: bold">]</span> net  
+
+|CV<span style="font-weight: bold">](</span>asmcv.pdf<span style="font-weight: bold">)</span> | |LinkedIn<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.linkedin.com/in/arun-maiya/)</span> | |GitHub<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya)</span>
+
+!|<span style="font-weight: bold">](</span>asmpic.jpg<span style="font-weight: bold">)</span>  
+
+ 
+
+Basics
+======
+
+I am a computer scientist at the |Institute for Defense Analyses <span style="font-weight: bold">(</span>IDA<span style="font-weight: bold">)](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://www.ida.org),</span> a federally-funded 
+|think tank<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://en.wikipedia.org/wiki/List_of_federally_funded_research_and_development_centers)</span> in the 
+Washington D.C. metro area. My research broadly focuses on the study of computational methods to *extract meaning 
+from raw data* and includes the areas of natural language processing, machine learning, data mining, computer 
+vision, and network science <span style="font-weight: bold">(</span>e.g., social network analysis<span style="font-weight: bold">)</span>. I like building tools to make machine learning easier 
+to apply in new ways and new areas. Through my work, I have contributed to national-level strategic-planning 
+activities and R&amp;D roadmaps. I completed a Ph.D. in Computer Science at the |Laboratory for Computational 
+Population Biology<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://compbio.cs.uic.edu/),</span> which is within the |Department of Computer 
+Science<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://www.cs.uic.edu/)</span> at the
+|University of Illinois at Chicago <span style="font-weight: bold">(</span>UIC<span style="font-weight: bold">)](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://www.uic.edu/).</span> My CV is |here<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://arun.maiya.net/asmcv.pdf).</span>
+
+Software
+========
+
+* **|ktrain<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya/ktrain)</span>** is a Python library that makes deep learning and AI more 
+accessible and easier to apply. With support for many different data types including text, images, and graphs, 
+ktrain has been used for a wide range of use cases in industry, government, and academia. Examples include analyses
+for the U.S. Economic Census, financial crime analytics at Big <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">4</span> accounting firms, intelligence analyses, and 
+|CoronaCentral.ai<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://coronacentral.ai),</span> a machine-learning-enhanced search engine for coronavirus 
+publications at Stanford University.
+* **|CausalNLP<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya/causalnlp)</span>** is a practical toolkit for causal inference with text as 
+treatment, outcome, or <span style="color: #008000; text-decoration-color: #008000">"controlled-for"</span> variable.
+* **|IDATA<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1308.2359)</span>** is a suite of software capabilities designed to facilitate search, 
+exploration, and analyses of very large document sets using state-of-the-art machine learning, NLP, and information
+retrieval. It has been used for a variety of different application in the |DoD<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.defense.gov)</span> including 
+cyber damage assessments, biosurveillance, and policy analyses.
+* **|OnPrem.LLM<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://github.com/amaiya/onprem)</span>** is a simple Python package for generative AI that makes it 
+easier to run large language models <span style="font-weight: bold">(</span>LLMs<span style="font-weight: bold">)</span> on your own machine using non-public data.
+
+Publications
+============
+
+|**ktrain: A Low-Code Library for Augmented Machine 
+Learning**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.jmlr.org/papers/volume23/21-1124/21-1124.pdf)</span>  
+
+A.S. Maiya  
+
+ *Journal of Machine Learning Research <span style="font-weight: bold">(</span>JMLR<span style="font-weight: bold">)</span>.*  May <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2022</span>.
+
+|**CausalNLP: A Practical Toolkit for Causal Inference with Text**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/2106.08043)</span>   
+
+A.S. Maiya  
+
+ *arXiv preprint arXiv:<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2106.08043</span> .*  Jun <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2021</span>. |arXiv only<span style="font-weight: bold">]</span>
+
+|**A Framework for Comparing Groups of Documents**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1508.05902)</span>  
+
+A.S. Maiya  
+
+ *Proc. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span> Conference on Empirical Methods in Natural Language Processing <span style="font-weight: bold">(</span>EMNLP '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">15</span><span style="font-weight: bold">)</span>.*  Lisbon, Portugal. Sep 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span>.
+
+|**Mining Measured Information from Text**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1505.01072)</span>  
+
+A.S. Maiya, D. Visser, and A. Wan  
+
+ *Proc. 38th Annual ACM SIGIR Conference <span style="font-weight: bold">(</span>SIGIR '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">15</span><span style="font-weight: bold">)</span>.* Santiago, Chile. Aug <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span>.
+
+|**Topic Similarity Networks: Visual Analytics for Large Document Sets**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1409.7591)</span>  
+
+A.S. Maiya and R.M. Rolfe  
+
+ *Proc. <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2014</span> IEEE International Conference on Big Data <span style="font-weight: bold">(</span>IEEE BigData '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">)</span>.* Washington, D.C., Oct <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2014</span>.
+
+|**Exploratory Analysis of Highly Heterogeneous Document Collections**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1308.2359)</span>  
+
+A.S. Maiya, J.P. Thompson, F. Loaiza-Lemos, and R.M. Rolfe  
+
+ *Proc. 19th ACM SIGKDD Conference on Knowledge Discovery and Data Mining <span style="font-weight: bold">(</span>KDD '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span><span style="font-weight: bold">)</span>.* Chicago, IL, Aug <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2013</span>.
+
+|**Expansion and Decentralized Search in Complex 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://link.springer.com/article/10.1007/s10115-012-0596-4)</span>  
+
+A.S. Maiya and T.Y. Berger-Wolf  
+
+ *Journal of Knowledge and Information Systems.* First published online January <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2013</span>.
+
+|**Supervised Learning in the Wild: Text Classification for Critical 
+Technologies**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://ieeexplore.ieee.org/document/6415660)</span>  
+
+A.S. Maiya, F. Loaiza-Lemos, and R.M. Rolfe  
+
+ *Proc. IEEE Military Communications Conference <span style="font-weight: bold">(</span>MILCOM '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span><span style="font-weight: bold">)</span>.* Orlando, FL, Oct <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2012</span>.
+
+|**Benefits of Bias: Towards Better Characterization of Network Sampling**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1109.3911)</span>  
+
+A.S. Maiya and T.Y. Berger-Wolf  
+
+ *Proc. 17th ACM SIGKDD Conference on Knowledge Discovery and Data Mining <span style="font-weight: bold">(</span>KDD '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span><span style="font-weight: bold">)</span>.* San Diego, CA, Aug <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2011</span>.
+
+|**Aggression, Grooming, and Group-level Cooperation in White-faced Capuchins: Insights from Social 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">http://onlinelibrary.wiley.com/doi/10.1002/ajp.20959/abstract)</span>  
+
+M.C. Crofoot, D.I. Rubenstein, A.S. Maiya, and T.Y. Berger-Wolf  
+
+ *American Journal of Primatology.* First published online May <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2011</span>.
+
+|**Sampling and Inference in Complex Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://dl.acm.org/doi/abs/10.5555/2395432)</span>  
+
+A.S. Maiya  
+
+ *Ph.D. Dissertation, University of Illinois at Chicago <span style="font-weight: bold">(</span>UIC<span style="font-weight: bold">)</span>.* Chicago, IL, Apr <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2011</span>.
+
+|**Expansion and Search in Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://arxiv.org/abs/1009.4383)</span>  
+
+A.S. Maiya and T.Y. Berger-Wolf  
+
+ *Proc. 19th ACM Intl. Conference on Information and Knowledge Management <span style="font-weight: bold">(</span>CIKM '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span><span style="font-weight: bold">)</span>.* Toronto, Canada, Oct <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>.
+
+|**Online Sampling of High Centrality Individuals in Social 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://link.springer.com/chapter/10.1007/978-3-642-13657-3_12)</span>  
+
+A.S. Maiya and T.Y. Berger-Wolf  
+
+ *Proc. 14th Pacific-Asia Conference on Knowledge Discovery and Data Mining <span style="font-weight: bold">(</span>PAKDD '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span><span style="font-weight: bold">)</span>.* Hyderabad, India, Jun 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>.
+
+|**Sampling Community Structure**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://dl.acm.org/doi/10.1145/1772690.1772762)</span>  
+
+A.S. Maiya and T.Y. Berger-Wolf  
+
+ *Proc. 19th ACM Intl. Conference on the World Wide Web <span style="font-weight: bold">(</span>WWW '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span><span style="font-weight: bold">)</span>.* Raleigh, NC, Apr <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2010</span>.
+
+|**Inferring the Maximum Likelihood Hierarchy in Social Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://ieeexplore.ieee.org/document/5284124)</span>  
+
+A.S. Maiya and T.Y. Berger-Wolf  
+
+ *Proc. 12th IEEE Intl. Conference on Computational Science and Engineering <span style="font-weight: bold">(</span>CSE '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">09</span><span style="font-weight: bold">)</span>.* Vancouver, Canada, Aug 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2009</span>.
+
+|**The Impact of Structural Changes on Predictions of Diffusion in 
+Networks**<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.computer.org/csdl/proceedings-article/icdmw/2008/3503a939/12OmNBU1jIK)</span>  
+
+M. Lahiri, A.S. Maiya, R. Sulo, Habiba and T.Y. Berger-Wolf  
+
+*ICDM '<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">08</span> Workshop on Analysis of Dynamic Networks*. Pisa, Italy, Dec <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2008</span>.
+
+Honors and Awards
+=================
+
+**Goodpaster Award for Excellence in Research**, Institute for Defense Analyses, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2021</span> ||News 
+Release<span style="font-weight: bold">](</span><span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">https://www.ida.org/research-and-publications/publications/all/a/ar/arun-maiya-receives-2021-goodpaster-aw</span>
+<span style="color: #0000ff; text-decoration-color: #0000ff; text-decoration: underline">ard-for-excellence-in-research)</span><span style="font-weight: bold">]</span>
+
+&gt; *This prize is named for Gen. Andrew J. Goodpaster <span style="font-weight: bold">(</span>USA, retired<span style="font-weight: bold">)</span> and is awarded to an individual demonstrating 
+<span style="color: #008000; text-decoration-color: #008000">"research excellence, exceptional analytic achievement and intellectual leadership."</span>*
+
+**Welch Award for Best External Research**, Institute for Defense Analyses, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2016</span>
+
+&gt; *Named in honor of General Larry D. Welch <span style="font-weight: bold">(</span>USAF, ret.<span style="font-weight: bold">)</span>, this award <span style="color: #008000; text-decoration-color: #008000">"honors individuals whose external research </span>
+<span style="color: #008000; text-decoration-color: #008000">publications exemplify General Welch's high standards of analytic excellence and relevance."</span>*
+
+**AFEI Award for Excellence in Enterprise Information**, NDIA <span style="font-weight: bold">(</span>formerly Association for Enterprise Information<span style="font-weight: bold">)</span>, 
+<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2015</span>
+
+&gt; *This award is to <span style="color: #008000; text-decoration-color: #008000">"recognize and reward the contributions and achievements of project teams that exemplify </span>
+<span style="color: #008000; text-decoration-color: #008000">excellence in achieving integrated enterprises. Winning teams are models of the best applications of technology and</span>
+<span style="color: #008000; text-decoration-color: #008000">leadership to improve enterprise performance."</span>*
+
+&lt;script
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 1: Duration 8.83 seconds]</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ </span><span style="font-weight: bold">Step </span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span><span style="color: #d4b702; text-decoration-color: #d4b702"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'final_answer' with arguments: {'answer': 'Ph.D.'}                                                │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #d4b702; text-decoration-color: #d4b702; font-weight: bold">Final answer: Ph.D.</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[Step 2: Duration 10.20 seconds]</span>
+</pre>
+</div>
+</div>
+<div id="3ad607ba" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(answer)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ph.D.</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

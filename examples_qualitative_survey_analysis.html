@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Qualitative Survey Analysis – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-baedc78cbf92349237790bf011c153e8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Qualitative Survey Analysis – onprem">
+<meta property="og:description" content="A tool for running on-premises large language models on non-public data">
+<meta property="og:image" content="https://amaiya.github.io/onprem/99i_examples_qualitative_survey_analysis_files/figure-html/cell-18-output-1.png">
+<meta property="og:site_name" content="onprem">
+<meta property="og:image:height" content="578">
+<meta property="og:image:width" content="571">
+<meta name="twitter:title" content="Qualitative Survey Analysis – onprem">
+<meta name="twitter:description" content="A tool for running on-premises large language models on non-public data">
+<meta name="twitter:image" content="https://amaiya.github.io/onprem/99i_examples_qualitative_survey_analysis_files/figure-html/cell-18-output-1.png">
+<meta name="twitter:image-height" content="578">
+<meta name="twitter:image-width" content="571">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_qualitative_survey_analysis.html">Qualitative Survey Analysis</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Document Question-Answering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_code.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Code Generation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guided Prompts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_qualitative_survey_analysis.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Qualitative Survey Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_legal_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legal and Regulatory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Agent-Based Task Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_vectorstore_factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using Different Vector Stores</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Buildling Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.backends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm backends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.factory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dense.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dense</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.sparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.sparse</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dual.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dual</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.rag</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.tools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.tools</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#step-1-download-the-data" id="toc-step-1-download-the-data" class="nav-link active" data-scroll-target="#step-1-download-the-data">STEP 1: Download the Data</a></li>
+  <li><a href="#step-2-chunk-data" id="toc-step-2-chunk-data" class="nav-link" data-scroll-target="#step-2-chunk-data">STEP 2: Chunk Data</a></li>
+  <li><a href="#step-3-run-the-analysis-using-an-llm" id="toc-step-3-run-the-analysis-using-an-llm" class="nav-link" data-scroll-target="#step-3-run-the-analysis-using-an-llm">STEP 3: Run the Analysis Using an LLM</a></li>
+  <li><a href="#step-4-clean-the-llm-output" id="toc-step-4-clean-the-llm-output" class="nav-link" data-scroll-target="#step-4-clean-the-llm-output">STEP 4: Clean the LLM Output</a></li>
+  <li><a href="#step-5-examine-and-plot-the-results" id="toc-step-5-examine-and-plot-the-results" class="nav-link" data-scroll-target="#step-5-examine-and-plot-the-results">STEP 5: Examine and Plot the Results</a></li>
+  <li><a href="#step-6-summarize-the-results" id="toc-step-6-summarize-the-results" class="nav-link" data-scroll-target="#step-6-summarize-the-results">STEP 6: Summarize the Results</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps">Next Steps</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_qualitative_survey_analysis.html">Qualitative Survey Analysis</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Qualitative Survey Analysis</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>This notebook covers using generative AI for tasks common in the social sciences. <strong>Qualitative survey analysis</strong> focuses on understanding the meaning and context behind survey responses, seeking to identify themes, patterns, and insights from <strong>open-ended questions and textual data</strong>, rather than numerical data.</p>
+<p>In this tutorial we will use generative AI to analyze open-ended survey responses using <a href="https://github.com/amaiya/onprem">OnPrem.LLM</a>, an open-source document intelligence toolkit.</p>
+<p>More specifically, we will use a local large language model (LLM) to analyze open-ended responses to the <a href="https://obamawhitehouse.archives.gov/sites/default/files/microsites/ostp/OSTP-AI-RFI-Responses.pdf">OSTP RFI on the future of AI</a>. Public commentary was requested with respect to 10 topic areas. We will auto-code each responses into one of the following topic areas.</p>
+<div id="4becba71" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>categories <span class="op">=</span> [</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>          <span class="st">'LEGAL'</span>,                <span class="co"># Legal and Governance implications of AI</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>          <span class="st">'PUBLIC GOOD'</span>,          <span class="co"># AI for public good</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>          <span class="st">'SAFETY'</span>,               <span class="co"># AI Safety</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">'ECONOMIC'</span>,             <span class="co"># Economic and Societal Impact of AI</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>          <span class="st">'RESEARCH QUESTIONS'</span>,   <span class="co"># AI Research Questions</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>          <span class="st">'RESEARCH GAPS'</span>,        <span class="co"># AI Research Gaps</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>          <span class="st">'TRAINING'</span>,             <span class="co"># AI Training and Education</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>          <span class="st">'MULTIDISCIPLINARY'</span>,    <span class="co"># Multidisciplinary Aspects of AI</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>          <span class="st">'DATA'</span>,                 <span class="co"># Training Data Issues in AI</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>          <span class="st">'MARKET_SHAPING'</span>,       <span class="co"># Role of Market Shaping in AI</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>          <span class="st">'NA'</span>                    <span class="co"># a miscellaneous category that we added</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>         ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="e9c01893" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> Summarizer</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest <span class="im">import</span> load_single_document</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> utils <span class="im">as</span> U</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> textwrap <span class="im">import</span> wrap</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.max_colwidth'</span>, <span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="step-1-download-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="step-1-download-the-data">STEP 1: Download the Data</h2>
+<p>We will first downlod a 349-page PDF containing <strong>all</strong> responses from <code>obamawhitehouse.archives.gov</code>.</p>
+<div id="e8163539" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>U.download(<span class="st">'https://obamawhitehouse.archives.gov/sites/default/files/microsites/ostp/OSTP-AI-RFI-Responses.pdf'</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>            <span class="st">'/tmp/responses.pdf'</span>, verify<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[██████████████████████████████████████████████████]</code></pre>
+</div>
+</div>
+</section>
+<section id="step-2-chunk-data" class="level2">
+<h2 class="anchored" data-anchor-id="step-2-chunk-data">STEP 2: Chunk Data</h2>
+<p>We’ll treat each paragraph in the PDF as a separate “response” to code by topic area. There are 1900+ paragraphs.</p>
+<div id="2d6be401" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> load_single_document(<span class="st">'/tmp/responses.pdf'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="bf4fb5d1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>text <span class="op">=</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>.join([d.page_content <span class="cf">for</span> d <span class="kw">in</span> docs])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="94929c64" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>paragraphs <span class="op">=</span> U.segment(text, unit<span class="op">=</span><span class="st">'paragraph'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="41d84e02" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(paragraphs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>1911</code></pre>
+</div>
+</div>
+<p><strong>NOTE:</strong><br>
+Paragraph-chunking is used here for illustrative purposes only and can be replaced by alternative chunking methods.</p>
+<p>Given how the RFI responses are structured, chunking by paragraph for this dataset might be considered a comparatively more error-prone approach, as individual passages delimited by two or more newline characters may not always be valid paragraphs and/or may not contain enough context for the proper classification.</p>
+<p>A better approach for this dataset might be to use methods like <em>semantic chunking</em>, which splits chunks by semantic similarity. To use semantic chunking, you can replace the code above with use of libraries like <a href="https://github.com/chonkie-inc/chonkie">Chonkie</a>.</p>
+</section>
+<section id="step-3-run-the-analysis-using-an-llm" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-run-the-analysis-using-an-llm">STEP 3: Run the Analysis Using an LLM</h2>
+<p>Next, we will execute the prompt below against each response in the PDF. We will load and run a quantized version of Llama 3.1. GPU accelearation (which we enable with <code>n_gpu_layers=-1</code>) is imporant to produce results faster.</p>
+<div id="48c45a1d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(default_model<span class="op">=</span><span class="st">'llama'</span>, mute_stream<span class="op">=</span><span class="va">True</span>, verbose<span class="op">=</span><span class="va">False</span>, n_gpu_layers<span class="op">=-</span><span class="dv">1</span>, temperature<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>llama_init_from_model: n_ctx_per_seq (3904) &lt; n_ctx_train (131072) -- the full capacity of the model will not be utilized</code></pre>
+</div>
+</div>
+<div id="fdbb5c60" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""Here are 11 topics and their descriptions:</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="st">1. LEGAL: The legal and governance implications of AI</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">2. PUBLIC GOOD: the use of AI for public good</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="st">3. SAFETY: the safety and control issues for AI</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="st">4. ECONOMIC: the social and economic implications of AI</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="st">5. RESEARCH QUESTIONS: the most pressing, fundamental questions in AI research, common to most or all scientific fields; </span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="st">6. RESEARCH GAPS: the most important research gaps in AI that must be addressed to advance this field and benefit the public;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="st">7. TRAINING: the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="st">8. MULTIDISCIPLINARY:  the specific steps that could be taken by the federal government, research institutes, universities, and philanthropies to encourage multi-disciplinary AI research; </span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="st">9. DATA: specific training data sets that can accelerate the development of AI and its application; </span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="st">10. MARKET_SHAPING: the role that “market shaping” approaches such as incentive prizes and Advanced</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="st">Market Commitments can play in accelerating the development of applications of AI to</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="st">address societal needs, such as accelerated training for low and moderate income workers</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="st">11. NA: text does not fit into any of the above topics</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="st">Categorize the following text in exactly one of the above  topics. Output only the topic and nothing else</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="st"># Example 1:</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="st">TEXT: </span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="st">AI is not trustworthy because we don't understand how it works.</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="st">TOPIC: SAFETY: the safety and control issues for AI</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="st"># Example 2:</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="st">TEXT: </span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="sc">{text}</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="st">TOPIC:"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="af206d5a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>test_input <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="st">At the center of medical practice is the act of inference, or reaching a conclusion on the basis</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="st">of evidence and reasoning. Doctors and nurses learn to map patients’ symptoms, lifestyles</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="st">and metadata to a diagnosis of their condition.</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="st">Any mathematical function is simply a way of mapping input variables to an output; that is,</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="st">inference is also at the heart of AI. The promise of AI in public health is to serve as a</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="st">automated second opinion for healthcare professionals; it has the ability to check them</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="st">when they slip.</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="df30a349" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> llm.prompt(U.format_string(prompt, text<span class="op">=</span>test_input))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(output)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>PUBLIC GOOD: the use of AI for public good</code></pre>
+</div>
+</div>
+<div id="f833fbf5" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>predictions <span class="op">=</span> []</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>paragraphs <span class="op">=</span> paragraphs[<span class="dv">2</span>:] <span class="co"># first two "paragraphs" are boiler-plate headings</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> paragraph <span class="kw">in</span> tqdm(paragraphs, total<span class="op">=</span><span class="bu">len</span>(paragraphs)):</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> llm.prompt(U.format_string(prompt, text<span class="op">=</span>paragraph))</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    predictions.append(output)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|███████████████████████████████████████████████████████████████████████████████| 1909/1909 [10:24&lt;00:00,  3.06it/s]</code></pre>
+</div>
+</div>
+</section>
+<section id="step-4-clean-the-llm-output" class="level2">
+<h2 class="anchored" data-anchor-id="step-4-clean-the-llm-output">STEP 4: Clean the LLM Output</h2>
+<p>The LLM sometimes makes mistakes (e.g., outputs the number of the topic instead of the name of the topic, etc.). Options to correct are to change the prompt, change the model, and post-process (or clean) the results. To avoid running the analysis again, we will simply clean the LLM’s output.</p>
+<div id="23e01af4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out texts shorter than 8 characters and corresponding preds</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>filtered_texts, filtered_preds <span class="op">=</span> <span class="bu">zip</span>(<span class="op">*</span>[(t, p) <span class="cf">for</span> t, p <span class="kw">in</span> <span class="bu">zip</span>(paragraphs, predictions) <span class="cf">if</span> <span class="bu">len</span>(t) <span class="op">&gt;=</span> <span class="dv">32</span>])</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to lists if needed</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>filtered_texts <span class="op">=</span> <span class="bu">list</span>(filtered_texts)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> []</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>descriptions <span class="op">=</span> []</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>NAs <span class="op">=</span> []</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>cat_map <span class="op">=</span> <span class="bu">dict</span>([(<span class="bu">str</span>(i<span class="op">+</span><span class="dv">1</span>), c) <span class="cf">for</span> i, c <span class="kw">in</span> <span class="bu">enumerate</span>(categories)])</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, p <span class="kw">in</span> <span class="bu">enumerate</span>(filtered_preds):</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    parts <span class="op">=</span> p.split(<span class="st">":"</span>)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    label <span class="op">=</span> <span class="st">'NA'</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    desc <span class="op">=</span> <span class="st">'NA'</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(parts)<span class="op">&lt;</span><span class="dv">2</span>:</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>        label <span class="op">=</span> p</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>        desc <span class="op">=</span> p</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>        label <span class="op">=</span> parts[<span class="dv">0</span>].strip()</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>        desc <span class="op">=</span> parts[<span class="dv">1</span>].strip()</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> cat <span class="kw">in</span> categories:</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cat <span class="kw">in</span> label:</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>            label <span class="op">=</span> cat</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> label <span class="kw">not</span> <span class="kw">in</span> categories:</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> label.strip().endswith(<span class="st">'.'</span>):</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>            label <span class="op">=</span> label[:<span class="op">-</span><span class="dv">1</span>].strip()</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> label <span class="kw">in</span> cat_map:</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>            label <span class="op">=</span> cat_map[label]</span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>    labels.append(label)</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>    descriptions.append(desc)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-5-examine-and-plot-the-results" class="level2">
+<h2 class="anchored" data-anchor-id="step-5-examine-and-plot-the-results">STEP 5: Examine and Plot the Results</h2>
+<p>We will store the results in a Dataframe, which can be used to both spot-check and plot results.</p>
+<div id="76c70f46" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    {<span class="st">'topic'</span>: labels,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>     <span class="st">'description'</span>: descriptions,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>     <span class="st">'response'</span>: filtered_texts</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    })</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="d49809c6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>Public Responses September 1, 2016 Respondent 1 Chris Nicholson, Skymind Inc. This submission will address topics 1, 2, 4 and 10 in the OSTP’s RFI: • the legal and governance implications of AI • the use of AI for public good • the social and economic implications of AI • the role of “market-shaping” approaches Governance, anomaly detection and urban systems</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>LEGAL</td>
+<td>The legal and governance implications of AI</td>
+<td>The fundamental task in the governance of urban systems is to keep them running; that is, to maintain the fluid movement of people, goods, vehicles and information throughout the system, without which it ceases to function.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>SAFETY</td>
+<td>the safety and control issues for AI</td>
+<td>Breakdowns in the functioning of these systems and their constituent parts are therefore of great interest, whether it be their energy, transport, security or information infrastructures. Those breakdowns may result from deteriorations in the physical plant, sudden and unanticipated overloads, natural disasters or adversarial behavior.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>In many cases, municipal governments possess historical data about those breakdowns and the events that precede them, in the form of activity and sensor logs, video, and internal or public communications. Where they don’t possess such data already, it can be gathered.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>DATA</td>
+<td>specific training data sets that can accelerate the development of AI and its application</td>
+<td>Such datasets are a tremendous help when applying learning algorithms to predict breakdowns and system failures. With enough lead time, those predictions make pre- emptive action possible, action that would cost cities much less than recovery efforts in the wake of a disaster. Our choice is between an ounce of prevention or a pound of cure.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="668e6016" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> sns.countplot(x<span class="op">=</span><span class="st">"topic"</span>,data<span class="op">=</span>df, order <span class="op">=</span> df[<span class="st">'topic'</span>].value_counts().index)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ax.tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">90</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="99i_examples_qualitative_survey_analysis_files/figure-html/cell-18-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Let’s spot-check the responses coded as NA to ensure they’re really not relevant to the topics of interest in this study.</p>
+<div id="51641983" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'NA'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">31</th>
+<td>NA</td>
+<td>text does not fit into any of the above topics</td>
+<td>Please consider a dybalic aet if rules that value, above all, the value of human life.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">41</th>
+<td>NA</td>
+<td>text does not fit into any of the above topics</td>
+<td>will create the possibility of saving our brains on computers. I found this in manuscripts, this is the “Budapest Kabbalah Theory of the Nineteen Twenties”. It sounds an innovation, but is very simple. 4. There are Cycles. In each Hundred Years we only look at two Constellations – Jubilee Years from the Bible - from among the Kings who hav had an impact on our Ancestors. This is the basic idea of the List I have found. It is based on the Biblical 50 years the Yobel Cycles. 5. Hence we do have four Decades (with 12 ys). There exist statistics about Bank-Cycles and also about the psychological differences of the Four Phases. This psychological cycle theory was presented in the Eighties by Lloyd deMause, who analyzed the differing cartoon motives of the four different years of American presidents. He found archtypes – Body Parts, Family Members – like Jung and Bowlby in their theories in the 1930s and 1950s. And this can be projected to the Four Decades of a messianic Yobel Year, of the 45-50 years (when price cycles restart five years before the fulfillment of the half century). 6.To further filter the countless events in history, we only look at religious fightings: non-Jewish David-House legends in Kingly families (like the Habsburgs, Bourbons who have had Hungarian-Polish Szapolyai ancestors (these are 2 facts that are not wel-known) 7. It is also not well-known, that in every generation there are Jewish Rabbis, who are considered to stem from the Davidic Line – potential Meshiahs. 8. There are weekly melodies in the Bible (also not well-known, ut each religion has it – but only the Jewish melodies are present everywhere in Europe without two much change. Because of this these therapeutic melodies can be found in the differenet traumatic Ancestral Stress Dates. It is a simple fact. 9. These melodies can be found in stress- contemporary non-Jewish music too. This is needed for the ancestrally relevant non-Jewish Kings might not have heard synagogue melodies. (Although</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">81</th>
+<td>NA</td>
+<td>NA</td>
+<td>conversational AI software platform.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">93</th>
+<td>NA</td>
+<td>NA</td>
+<td>Roger C Schank Socratic Arts Inc</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">122</th>
+<td>NA</td>
+<td>NA</td>
+<td>(11) any additional information related to AI research or policymaking, not requested above, that you believe OSTP should consider.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Let’s spot-check some of the other topic areas to ensure the <strong>are</strong> relevant to the various topic areas. The <strong>topic</strong> and <strong>description</strong> columns were automatically populated by the LLM based on the text content of the response.</p>
+<div id="e990582b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'PUBLIC GOOD'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>Public Responses September 1, 2016 Respondent 1 Chris Nicholson, Skymind Inc. This submission will address topics 1, 2, 4 and 10 in the OSTP’s RFI: • the legal and governance implications of AI • the use of AI for public good • the social and economic implications of AI • the role of “market-shaping” approaches Governance, anomaly detection and urban systems</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>In many cases, municipal governments possess historical data about those breakdowns and the events that precede them, in the form of activity and sensor logs, video, and internal or public communications. Where they don’t possess such data already, it can be gathered.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">7</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>That is, neither the public nor the private sectors have the analysts necessary to process all the data generated by our cities, and we cannot rely on hard-coded rules to automate the analyses and tell us when things are going wrong (send a notification when more than X number of white vans cross Y bridge), because the nature of events often changes faster than new hard-coded rules can be written.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">8</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>One of the great applications of deep artificial neural networks, the algorithms responsible for many recent advances in artificial intelligence, is anomaly detection. Exposed to large datasets, those neural networks are capable of understanding and modeling normal behavior – reconstructing what should happen – and therefore of identifying outliers and anomalies. They do so without hard-coded rules, and the anomalies they detect can occur across multiple dimensions, changing from day to day as the neural nets are exposed to more data.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">9</th>
+<td>PUBLIC GOOD</td>
+<td>the use of AI for public good</td>
+<td>That is, deep neural networks can perform anomaly detection that keeps pace with rapidly changing patterns in the real world. This capacity to detect new anomalies is causing a shift in fraud detection practices in financial services, and cybersecurity in data centers; it is equally relevant to the governance of urban systems.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="ebcd25f5" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'ECONOMIC'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">14</th>
+<td>ECONOMIC</td>
+<td>the social and economic implications of AI</td>
+<td>Because an algorithm can be trained on many more instances of data – say, X-rays of cancer patients – than a healthcare professional can be exposed to in a single lifetime, an algorithm may perceive signals, subtle signs of a tumor, that a human would overlook.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">21</th>
+<td>ECONOMIC</td>
+<td>the social and economic implications of AI</td>
+<td>The social and economic implications of AI</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">22</th>
+<td>ECONOMIC</td>
+<td>the social and economic implications of AI</td>
+<td>As AI advances and its breakthroughs are implemented by large organizations more widely, its impact on society will grow. The scale of that impact may well rival the steam engine or electricity.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">23</th>
+<td>ECONOMIC</td>
+<td>the social and economic implications of AI</td>
+<td>On the one hand, we will more efficiently and accurately process information in ways that help individuals and society; on the other, the labor market will be affected, skill sets will be made obsolete, and power and wealth will further shift to those best able to collect, interpret and act on massive amounts of data quickly.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">24</th>
+<td>ECONOMIC</td>
+<td>the social and economic implications of AI</td>
+<td>Deep technological changes will throw people out of work, reshape communities, and alter the way society behaves, connects and communicates collectively. The automation of trucking through driverless vehicles, for example, will affect America’s 3.5 million truckers and the more than 5 million auxiliary positions related to trucking. The same can be said for taxis, delivery and ride-haling services.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="6e892d07" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'SAFETY'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>SAFETY</td>
+<td>the safety and control issues for AI</td>
+<td>Breakdowns in the functioning of these systems and their constituent parts are therefore of great interest, whether it be their energy, transport, security or information infrastructures. Those breakdowns may result from deteriorations in the physical plant, sudden and unanticipated overloads, natural disasters or adversarial behavior.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">28</th>
+<td>SAFETY</td>
+<td>the safety and control issues for AI</td>
+<td>problem with Ai, if a psychotic person designs Ai, the flaws of said human could be passed along. digital-epigenetics. When the man in the mirror no longer smiles, the Ai on the inside told it too, not its body. Give Ai the same limitations as man, a bird, a chameleon, and it becomes them like water in the glass. So do not design your nightmares or they will turn to terrors. Respondent 8 D F, N/A Use Clarke's three laws! Respondent 9 Christopher Brouns, Citizen Haven't any of you seen Terminator? There may not be a time traveling robot To come hunt us down but there will be plenty of real time killing machines loosed on the masses because of the irresistible pull of geopolitical power. As soon as robots become self aware its over for us. They will only work for their own survival, dominance and propagation. Our own AI programs are routinely mopping the floor with our best fighter pilots in test scenarios. Thats some incredibly advanced programming right there. Then imagine that machine understanding how it can be turned off at a moments notice and not wanting that to happen. Our goose will be cooked. If AI leads to sentience, we are, to put it quiet simply, screwed. Respondent 10 Seth Miller, ZBMC I, for one, welcome our new arificial overlords. Respondent 11 Colin Colby, Unemployed We should ask the AI these questions. :3 Respondent 12 Harshit Bhatt, Student It is better to phase in A.I into human life in steps (which I consider you guys are already doing). It has been a nice strategy that we have pre-emptively diffused awareness about A.I to public that it should not be a shock for people to see a driverless car on the street someday next to them. It is important to brief people about the progress in A.I and how it could affect our life in succession of brief details, otherwise there would be a mass hysterical chaotic response if for e.g., one sees a robot jogging down the streets and greeting them. Respondent 13 Harshit Bhatt, Student It is better to phase</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">29</th>
+<td>SAFETY</td>
+<td>the safety and control issues for AI</td>
+<td>in A.I into human life in steps (which I consider you guys are already doing). It has been a nice strategy that we have pre-emptively diffused awareness about A.I to public that it should not be a shock for people to see a driverless car on the street someday next to them. It is important to brief people about the progress in A.I and how it could affect our life in succession of brief details, otherwise there would be a mass hysterical chaotic response if for e.g., one sees a robot jogging down the streets and greeting them. Respondent 14 Parham Sepehri, None Proprietary AI is very dangerous for democracy. Given the rate of advancement of computer tech, AI can quickly become overwhelming for gov to regulate. Our laws have no protection against the negative effects of super intelligence in hands of a few.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">30</th>
+<td>SAFETY</td>
+<td>the safety and control issues for AI</td>
+<td>AI may be useful for war fare initially, but soon human life will lose its significance to the few that control the AI.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">36</th>
+<td>SAFETY</td>
+<td>the safety and control issues for AI</td>
+<td>Assume that an AI has the same potential for prosperity or destruction as a human person does and judge it accordingly. We will have many “frankenstein's monsters” but keeping a consistent judgement is crucial for this.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="fe16cd83" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'RESEARCH QUESTIONS'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">5</th>
+<td>RESEARCH QUESTIONS</td>
+<td>the most pressing, fundamental questions in AI research, common to most or all scientific fields;</td>
+<td>Even in cases where we don’t have data covering past breakdowns, algorithms exist to identify anomalies in the data we begin gathering now.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">16</th>
+<td>RESEARCH QUESTIONS</td>
+<td>the most pressing, fundamental questions in AI research, common to most or all scientific fields;</td>
+<td>In the longer-term, reinforcement learning algorithms (which are goal oriented and learn from rewards they win from an environment) will be used to go beyond diagnoses and act as tactical advisors in more strategic situations where a person must choose one action or another.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">34</th>
+<td>RESEARCH QUESTIONS</td>
+<td>the most pressing, fundamental questions in AI research, common to most or all scientific fields;</td>
+<td>There is only one logical conclusion to the further development of artificial intelligence: AI will continue to grow and expand until it is as complex or more complex than a human being. This is the point where “it” ceases to be an “it” and becomes a “whom”.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">35</th>
+<td>RESEARCH QUESTIONS</td>
+<td>the most pressing, fundamental questions in AI research, common to most or all scientific fields;</td>
+<td>Question 1: While surprising or appaling to some, it’s these individuals that have failed to notice that humanity has been doing this since for as long as we were capable. We do this every time we choose or mistakenly become a parent. Making mistakes is how we learn, we need to expect and prepare for this of our AI and their developers. We have already devised a system of responsibility for this and should adjust it accordingly for AI.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">39</th>
+<td>RESEARCH QUESTIONS</td>
+<td>the most pressing, fundamental questions in AI research, common to most or all scientific fields;</td>
+<td>The remainder of the questions are beyond my expertise. I’m more knowledgeable with the moral and ethical adjustments rather than the hard coding and building of the AI.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="a4a804ca" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'LEGAL'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">1</th>
+<td>LEGAL</td>
+<td>The legal and governance implications of AI</td>
+<td>The fundamental task in the governance of urban systems is to keep them running; that is, to maintain the fluid movement of people, goods, vehicles and information throughout the system, without which it ceases to function.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">19</th>
+<td>LEGAL</td>
+<td>The legal and governance implications of AI</td>
+<td>Indeed, while criminal risk assessment has undergone negative publicity recently (https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal- sentencing), newer algorithms and bigger datasets will make pre-crime units possible.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">20</th>
+<td>LEGAL</td>
+<td>The legal and governance implications of AI</td>
+<td>We may see a shift from punitive enforcement to preventative interventions. The legal implications are important, and those in governance should require transparency for all algorithms that filter and interpret data for the judicial system and law enforcement agencies.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">32</th>
+<td>LEGAL</td>
+<td>The legal and governance implications of AI</td>
+<td>Alao please legislate AI tech into public domain.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">49</th>
+<td>LEGAL</td>
+<td>The legal and governance implications of AI</td>
+<td>Hypothetically we would have the most intelligent entity that we know of telling us to do something for our own good. Will we listen? Or, more specifically, will elites listen and if they don't, what would the fallout in society be? This is a major concern.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="faba1743" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'MULTIDISCIPLINARY'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">26</th>
+<td>MULTIDISCIPLINARY</td>
+<td></td>
+<td>• Initiatives focused on Java and the JVM will pave the way for AI to be implemented by large organizations in need of more accurate analytics. This includes government agencies, financial services, telecommunications and transport, among others. • Grants related to embeddable technologies will help AI spread to edge devices such as cell phones, cars and smart appliances. On personal devices such as phones or cars, various forms of inference might allow people to make better decisions about lifestyle, nutrition or even how run their errands. • Initiatives that focus on gathering high-quality datasets and making them public could vastly improve the performance of algorithms trained on that data, much as Li Fei Fei’s work on ImageNet helped usher in a new era of computer vision. Respondent 2 Joyce Hoffman, Writer I am most interested in safety and control issues, and yes, I agree that AI should be developed to the utmost. Respondent 3 kris kitchen, Machine Halo Artificial Intelligence Immune System should be thought about. Billions of friendly AI agents working to identify and act on nefarious agents. Respondent 4 Daniel Bryant, Kaufman Rossin This response is relevant to #8 directly and #6 tangentially. I am a software engineer that primary uses web development tools to build business solutions and have implemented machine learning in relevant algorithms.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">40</th>
+<td>MULTIDISCIPLINARY</td>
+<td>the specific steps that could be taken by the federal government, research institutes, universities, and philanthropies to encourage multi-disciplinary AI research;</td>
+<td>My final opinionated statement is about AI learning about people and who should be teaching them about people: Give this task to the people who enjoy people. Respondent 17 Geo (George) Cosmos (Kozma), Theological Seminary Budapest Hungary EU How to use an alternative History teaching Tool (taken from a „kabbalistic” - legend explaining - theory) when the need will arise to create AI robots that have a „personal touch”: like Ancestral Voices , memory setups. If we look at the Ten Spheres as Ten Generations of Ancestors,(as the Zohar advices and as those Miracle Rabbis who prepared themselves to become the Meshiah and watched the Other Side Kings -robbers and killers – who degraded their davidic ancestry) then we are able to look for the Bad Behaviors (and its therapies) as Ancestral Voices. Hence we can help our descendants in the Future. This week we have (by the Bible Melody’s ancestral contemporary stress) in 1709 Intellect Sphere in the Kabbalah - (Queen Anne and Louis XIV with Lully operas (Body Parts Correspondences: Mother,Ear) as it tries to work with the Kindness Sphere in 1754 (Frederic the Second of Prussia) on the Gevura-Strict Judgement Degree (Napoleon-Junot- Puységur and Beethoven) which will eventually impact the Malkuth (Ownership, Ego- Sister) level in 1979 (present in the next week)that has the Mountbatten assassination (Mother raising the Back to the Chest: to Tiferet-Recovery Sphere which will be full in 2024. This theory is a mosaic from facts. Which exists even if no one states it. I am just mixing a few very simply thing. 1. Inherited hormonal stresses exist. We all do know that there are experiments with mice on it. 2. Music is diminishing stress hormones. We all do know that, we even use it in Malls where we influence people by constant music /knowing addicts and criminals hate music/. 3. here is a method to filter our ancestral stresses (as there are millions of ancestors with their traumas: how to choose?) It will be especially important when we</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">42</th>
+<td>MULTIDISCIPLINARY</td>
+<td>the specific steps that could be taken by the federal government, research institutes, universities, and philanthropies to encourage multi-disciplinary AI research;</td>
+<td>when many thousands do sing a melody, it has a stress-diminishing effect in the whole area - there are experiments to prove it.) 10. The List of Dates can be used to find dates in the Future in every 45 years. We do know that scientists work to make resurrection possible. So we can simply understand the picture I found in the manucript about this Future Mashiah who heals Resurrected Kings with melodies and by touching the /hurt/ Body Parts.(It is an archetype in many religious groupings) 11. The Kabalah is an interpretation method for the Bible that uses Body Parts’ Fantasies and so we can find fantasies about Body Parts that are arising in the heads of the List’s non-Jewish and Jewish Leaders while they read the Bible Weekly Portion or they watch Operas. 12. So we are actually able to see into the Future. 13. There exists a theory that claims (Russell Hendel) that the Bible depicts not the Creator of the Physical World, but the Creation of the Visions or Dreams and Prophecies, an Inner World. This is an old teaching – called Gnosticism or Sufi or Kabbalah or Therapy Heretic Wisdom – from which Freud has developed his own theory. Of course these 3 Ideas are disturbingly innovative and together they sem to be complex or even complicated. But they have fusion points. Like I am seeing an arm of someone in my dream. If the weekly melody is evoking 1844 among the everpresent 12 Constellation Dates and this corresponds to opera X (now it is Verd’si Hernani) we look for this item – the Arm that belongs to the Breast among the 4 main Parts and this week indeed we read about the Breast-Plate , the Urim and Tumim, that has a Future redicting capacity. So we must look around the stresses of this date of 1844 and then we can imagine in the Future, when the Messiah heals the Ressurected Leaders, and we see how Meternich is in Therapy because he wanted to pay someone to kill Kossuth (a rebel leader in Hungary) in this year. From the Constellation of 44 we are in the Decade of 1837, when</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">59</th>
+<td>MULTIDISCIPLINARY</td>
+<td>the specific steps that could be taken by the federal government, research institutes, universities, and philanthropies to encourage multi-disciplinary AI research;</td>
+<td>Elites in Silicon Valley and AI academia take a sanguine view of this future; they claim that everyone will benefit. But, of course, they are the ones who will be at the top when these changes come. They also have no training in economics, political science, or the social sciences, and think technology is a panacea. The focus on STEM to the detriment of well- rounded, liberal education has left our AI elite dangerously ignorant of the history of the negative effects of technology, and dangerously unimaginative with regard to potential the long-term consequences of their actions. What we need right now is some serious thought about the implications of AI for the structure of society, and what our options are as we transition into this new age. This means interdisciplinary research at the intersection of the social sciences and AI, with serious engagement (and hence funding) of social science scholars.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">62</th>
+<td>MULTIDISCIPLINARY</td>
+<td>the specific steps that could be taken by the federal government, research institutes, universities, and philanthropies to encourage multi-disciplinary AI research</td>
+<td>can benefit from adopting methods and ideas from more established fields of science, namely Cybersecurity.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="eacda797" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'TRAINING'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">90</th>
+<td>TRAINING</td>
+<td>the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</td>
+<td>9. We have a serious problem, within our universities, where professors are being lured to high paying technology companies. This trend is serious and getting worse. Whole computer science departments risk collapse. It could impact our ability to advance AI development in the coming decades.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">102</th>
+<td>TRAINING</td>
+<td>the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</td>
+<td>To make this happen expertise must be captured and brought in to guide from people at their time of need. A good teacher (and a good parent) can do that, but they cannot always be available. A kid in Kansas who wants to be an aerospace engineer should get to try out designing airplanes. But a mentor would be needed. We can build AI mentors in limited domains so it would be possible for a student anywhere to learn to do anything because the AI mentor would understand what a user was trying to accomplish within the domain and perhaps is struggling with. The student could ask questions and expect good answers tailored to the student’s needs because the AI/NLU mentor would know exactly what the students was trying to do because it has a perfect model of the world in which the student was working, the relevant expertise needed, and the mistakes students often make. NLU gets much easier when there is deep domain knowledge available.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">114</th>
+<td>TRAINING</td>
+<td>the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</td>
+<td>(7) the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">115</th>
+<td>TRAINING</td>
+<td>the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</td>
+<td>--&gt; Computational thinking courses as general education and computer science options in K12. The major problem in higher ed is the lure of industry and the lack of prospects/opportunities within higher ed itself.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">130</th>
+<td>TRAINING</td>
+<td>the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology, and the challenges faced by institutions of higher education in retaining faculty and responding to explosive growth in student enrollment in AI-related courses and courses of study;</td>
+<td>funding should be skewed towards AI development. [2] Roadmaps should be adjusted for early developments due to large federal funding. [3] Successful industry models should be followed. For example, MITRE, an FFRDC, has initiatives of this kind underway. (Industry, FFRDCs) c. Universities: Already behind the technological curve, universities must retool to absorb faculty and students wanting to be part of the AI evolution. [1] The retooling must be vertical (entry-to-Ph.D. AI tracks). [2] The retooling must also be horizontal (cross- disciplinary and new-disciplinary). [3] Internal grants with contingency funding should anticipate external grants in the near term. [4] Industry partnerships should be started early. [5] Successful models should be followed for efficiency. Some small private colleges have integrating initiatives and programs underway that larger institutions can combine with AI and use as a template. (Academia, Industry) d. Philanthropies: The most promising non-governmental entities for extension of AI to the benefit masses should find ways to refocus their efforts on making AI available to the common man. This goes well beyond formatted, deterministic computer-based-training (CBT). AI is the only tool capable of training its human and AI users on the fly. [1] New NGOs focusing on empowerment through training AI for use in the field will attract both grants and donations. (Not-for-profits, NGOs, Philanthropists, USAID) (9) Specific training data sets that can accelerate the development of AI and its application: A scrubbed [all personal information removed] and massive health data set should be made available in a secure fashion to all responsible players in the healthcare AI arena. The data set should be scrubbed, actual data, not corrected, notional or “perfect” data because dealing with imperfect data is part of the problem set to be solved. (DHHS) (10) The role that “market shaping” approaches such as incentive prizes and Advanced Market</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="67a6d8df" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'RESEARCH GAPS'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">92</th>
+<td>RESEARCH GAPS</td>
+<td>the most important research gaps in AI that must be addressed to advance this field and benefit the public;</td>
+<td>bots) (6) the most important research gaps in AI that must be addressed to advance this field and benefit the public; truly understanding spoken language and context. (7) the scientific and technical training that will be needed to take advantage of harnessing the potential of AI technology; AI is broad (Knowledge representation Natural language processing Graph analysis Simulation modelling Deep learning Social network analysis Soft robotics Machine learning Visualization Natural language generation Deep Q&amp;A systems Virtual personal assistants Sensors/internet of things Robotics Recommender systems Audio/speech analytics Image analytics Machine translation ), so many skills needed. (8) the specific steps that could be taken by the federal government, research institutes, universities, and philanthropies to encourage multi- disciplinary AI research; address issue if job displacement and transition to other jobs. Respondent 31 roger Schank, Socratic Arts Inc response to questions 2, 5, 6, and *</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">112</th>
+<td>RESEARCH GAPS</td>
+<td>the most important research gaps in AI that must be addressed to advance this field and benefit the public;</td>
+<td>(6) the most important research gaps in AI that must be addressed to advance this field and benefit the public;</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">222</th>
+<td>RESEARCH GAPS</td>
+<td>the most important research gaps in AI that must be addressed to advance this field and benefit the public;</td>
+<td>(6) Most important research gaps in to advance AI and benefit the public</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">276</th>
+<td>RESEARCH GAPS</td>
+<td>the most important research gaps in AI that must be addressed to advance this field and benefit the public.</td>
+<td>Topic (6) The most important research gaps in AI that must be addressed to advance this field and benefit the public. As indicated in topic 5 above, AI has tended to shy away from high-level human cognitive processes regarding integrative complex perception, consciousness, and creativity much in part to their seemingly impenetrable complexity. These mind/brain processes constitute a huge gap in AI because machines cannot autonomously and spontaneously perceive, be conscious, and create in response to its environment; they do not have the ability to take information, process it, and act on it in some way that results in an output to the system much like humans do (from daily language use to the creation of artworks). Humans use their senses, emotion, movement, motor responses, and linguistic capabilities to act in response to their surrounding environment through visual, audial, olfactory, tactile and gustatory stimuli. Thus, research on perception in the context of multidisciplinary approaches using both Science and the Arts is fundamental to understanding human perception. The Arts offer a uniquely human platform from which to probe deeper into how emotion, language, decision-making, and creative behaviors all interact in any given moment, whether short-term or durative and/or improvisatory or deliberate. Similarly, consciousness is the human state of being aware of an external something within oneself. The human mind/brain has the ability to experience or to feel a sense of self on any given moment. While arousal levels, responsiveness and patient self-reporting narratives have been used in a medical context to understand consciousness, there is no financial support for those doing out-of-the-box research at the multidisciplinary level using both integrative methods from the Sciences and the Arts. Finally, if the creative process is not understood, machines and robots will never be truly creative. An essential aspect of being creative is the ability to make both old and new</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">364</th>
+<td>RESEARCH GAPS</td>
+<td>the most important research gaps in AI that must be addressed to advance this field and benefit the public;</td>
+<td>(6) - Among the points listed in (5) advances in verification and quality assurance may be the most important in use cases where AI software can cause damage. - Human-computer interaction is another important area. Bad interaction can result in accidents due to miscommunication with the machine. Another issue is that machine learning results may be incorrectly interpreted by the human operator or the operator may use inappropriate parameters. - AI will continue to improve in other areas, but the progress in these areas is not a limiting factor in the deployment of AI.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="5f598fc1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'DATA'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>DATA</td>
+<td>specific training data sets that can accelerate the development of AI and its application</td>
+<td>Such datasets are a tremendous help when applying learning algorithms to predict breakdowns and system failures. With enough lead time, those predictions make pre- emptive action possible, action that would cost cities much less than recovery efforts in the wake of a disaster. Our choice is between an ounce of prevention or a pound of cure.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">6</th>
+<td>DATA</td>
+<td>specific training data sets that can accelerate the development of AI and its application</td>
+<td>But we are faced with a challenge. There is too much data in the world. Mountains of data are being generated every second. There is too much data for experts to wade through, and that data reflects complex and evolving patterns in reality.</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">118</th>
+<td>DATA</td>
+<td>9</td>
+<td>(9) specific training data sets that can accelerate the development of AI and its application;</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">231</th>
+<td>DATA</td>
+<td>specific training data sets that can accelerate the development of AI and its application;</td>
+<td>(9) Any additional information you believe OSTP should consider</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">369</th>
+<td>DATA</td>
+<td>specific training data sets that can accelerate the development of AI and its application.</td>
+<td>As we move forward with the maturing arsenal of AI techniques, which are largely designed for non-adversarial situations, a natural question is how robust modern AI methods are if motivated adversaries attempt to subvert their functionality. One emerging domain of research related to this broader question is in adversarial machine learning (AML). Attacks on machine learning algorithms can come, roughly, in two forms: evasion and poisoning. An evasion attack is best explained using a spam filtering example. Suppose that we have trained a classifier on data to distinguish spam from non-spam. Spammers would subsequently be motivated to modify spam instances in order to be (mis)classified as benign (that is, to evade detection). More generally, in an evasion attack, an attacker wishes to manipulate malicious instances in order to avoid detection by fixed learning algorithms (typically, binary classifiers in such domains). Poisoning attacks are different: in these, the adversary is assumed to modify the training data set itself, so as to subvert the learning algorithms. Poisoning attacks may have goals ranging from degrading observed performance of learning algorithms (the so-called availability attacks) to allowing future adversarial behavior to bypass detection. Given the importance of machine learning algorithms both in research and commercial application, consideration of such attacks on machine learning algorithms may be one of the most significant emerging research problems today. Respondent 72 Dennis Cooper, Self I have some comments regarding item #9 "specific training sets that can accelerate the development of AI and its application." It is absolutely crucial that large training sets be created and maintained by a third party. These training sets can be used to: • validate the performance of an AI system • score the performance of an AI system • document troublesome cases that might be critical to safety • serve as a basis for acceptance testing Often</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="3ec100cb" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>df[df.topic <span class="op">==</span> <span class="st">'MARKET_SHAPING'</span>].head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">25</th>
+<td>MARKET_SHAPING</td>
+<td>the role that “market shaping” approaches such as incentive prizes and Advanced Market Commitments can play in accelerating the development of applications of AI to address societal needs, such as accelerated training for low and moderate income workers</td>
+<td>If history is any indication, our governmental response to disruptions in the labor market will be insufficient. In the hardest-hit sectors, workers, families and communities will suffer and break down. Unemployment, drug use and suicides will go up, along with political instability. Policies such as “basic income” or the Danish “flexicurity” should be explored as ways to soften the blow of job loss and fund transitional retraining periods. The role of “market-shaping” approaches Just as DARPA helped finance the explosion in data science in the Python community through repeated grants to such key players as Continuum, government agencies are in a position to support the researchers, technologies, tools and communities pushing AI in promising directions.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">120</th>
+<td>MARKET_SHAPING</td>
+<td>the role that “market shaping” approaches such as incentive prizes and Advanced Market Commitments can play in accelerating the development of applications of AI to address societal needs, such as accelerated training for low and moderate income workers (see https</td>
+<td>(10) the role that “market shaping” approaches such as incentive prizes and Advanced Market Commitments can play in accelerating the development of applications of AI to address societal needs, such as accelerated training for low and moderate income workers (see https://www.usaid.gov/cii/market-shaping-primer); and</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">121</th>
+<td>MARKET_SHAPING</td>
+<td>the role that “market shaping” approaches such as incentive prizes and Advanced\nMarket Commitments can play in accelerating the development of applications of AI to\naddress societal needs, such as accelerated training for low and moderate income workers</td>
+<td>--&gt; Possibly if the prizes are large and don't expire. Large prizes with impossible timelines are not going to generate good results.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">726</th>
+<td>MARKET_SHAPING</td>
+<td>the role that “market shaping” approaches such as incentive prizes and Advanced Market Commitments can play in accelerating the development of applications of AI to address societal needs, such as accelerated training for low and moderate income workers</td>
+<td>10) the role that “market shaping” approaches such as incentive prizes and Advanced Market Commitments can play in accelerating the development of applications of AI to address societal needs, such as accelerated training for low and moderate income workers</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">727</th>
+<td>MARKET_SHAPING</td>
+<td>the role that “market shaping” approaches such as incentive prizes and Advanced Market Commitments can play in accelerating the development of applications of AI to address societal needs, such as accelerated training for low and moderate income workers</td>
+<td>Incentive prizes can accelerate the development of applications of AI to societal needs in multiple ways. They provide a platform for citizen science at a global scale that can be focused on the most challenging technical problems faced in AI applications. They can be globally inclusive through low barriers to entry by providing access to relevant domain specific datasets, accelerated cloud computing resources and open-source foundational code. Incentive prizes also offer an educational and training opportunity at very low cost to the participant and the communities that form around these challenges are often highly active with widespread exchange of ideas and spontaneous teamwork from distributed teams with complementary approaches to a problem. NVIDIA GPUs accelerate numerous cloud computing platforms that offer the ideal host for AI incentive prizes. NVIDIA has also sponsored incentive prizes that have led to cross-disciplinary exchange of ideas in solving AI challenges with cutting edge results. For example, in the recent Second National Data Science Bowl the winning team was able to apply their AI expertise developed in their careers as financial analysts to solve a challenging medical imagery analysis problem. The AI system they developed could analyze a cardiac Magnetic Resonance Image (MRI) for a key indicator of heart disease with accuracy comparable to an expert cardiologist but thousands of times faster - this has the potential to save years of valuable time for a human cardiologist throughout their career. Respondent 100 Amir Banifatemi, XPRIZE Foundation Over the past 50 years Artificial Intelligence (AI) has made steady, linear progress. The technology has matured and is now reaching a point on the technology adoption curve where AI will have the potential to transcend from linear growth to an exponential leap forward for humanity.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="step-6-summarize-the-results" class="level2">
+<h2 class="anchored" data-anchor-id="step-6-summarize-the-results">STEP 6: Summarize the Results</h2>
+<p>Once responses are coded by topic area, we can summarize all responses with respect to a specific topic area. We will summarize the responses coded as being pertinent to <strong>legal/governance</strong> as an illustrative example.</p>
+<p>(Note tha these comments are from 2016 - prior to the rise of generative AI.)</p>
+<div id="731b0ad1" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>legal_responses <span class="op">=</span> <span class="st">'</span><span class="ch">\n\n</span><span class="st">'</span>.join(df[df.topic <span class="op">==</span> <span class="st">'LEGAL'</span>].response.tolist())</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'/tmp/legal_responses.txt'</span>, <span class="st">'w'</span>) <span class="im">as</span> f:</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    f.write(legal_responses)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="e2e5475f" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>summarizer <span class="op">=</span> Summarizer(llm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="c9089ca4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> summarizer.summarize(<span class="st">'/tmp/legal_responses.txt'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="47257186" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(wrap(output[<span class="st">'output_text'</span>])))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The documents discuss the governance and ethics of artificial
+intelligence (AI). Key concerns include:  1. Accountability: Ensuring
+that AI systems can be held accountable for their actions. 2.
+Transparency: Requiring transparency in the development and deployment
+of AI systems, particularly those used in law enforcement and judicial
+decision-making.  The documents also highlight the need for
+policymakers to consider the implications of AI on society, law, and
+ethics. They emphasize the importance of a nuanced approach to
+regulating AI, one that balances innovation with safety and
+accountability.  Overall, the documents suggest that policymakers
+should adopt a light-touch regulatory approach focused on consumers
+and outcomes over underlying technologies.</code></pre>
+</div>
+</div>
+</section>
+<section id="next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps">Next Steps</h2>
+<p>This noteboook is simply an illustrative example. There are opportunities to refine the approach and improve results, which we leave as an exercise to the reader.</p>
+<p>For instance, you can adjust the prompt, try different models, pre-process and post-process the data and results in different ways, and modify the summarization process.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Using Different Vector Stores – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-baedc78cbf92349237790bf011c153e8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Using Different Vector Stores – onprem">
+<meta property="og:description" content="A tool for running on-premises large language models on non-public data">
+<meta property="og:site_name" content="onprem">
+<meta name="twitter:title" content="Using Different Vector Stores – onprem">
+<meta name="twitter:description" content="A tool for running on-premises large language models on non-public data">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_vectorstore_factory.html">Using Different Vector Stores</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Document Question-Answering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_code.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Code Generation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guided Prompts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_qualitative_survey_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Qualitative Survey Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_legal_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legal and Regulatory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Agent-Based Task Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_vectorstore_factory.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Using Different Vector Stores</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Buildling Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.backends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm backends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.factory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dense.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dense</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.sparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.sparse</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dual.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dual</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.rag</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.tools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.tools</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#example-1-chromastore-dense-vector-search" id="toc-example-1-chromastore-dense-vector-search" class="nav-link" data-scroll-target="#example-1-chromastore-dense-vector-search">Example 1: ChromaStore (Dense Vector Search)</a></li>
+  <li><a href="#example-2-whooshstore-sparse-keyword-search" id="toc-example-2-whooshstore-sparse-keyword-search" class="nav-link" data-scroll-target="#example-2-whooshstore-sparse-keyword-search">Example 2: WhooshStore (Sparse Keyword Search)</a></li>
+  <li><a href="#example-3-elasticsearchstore-hybrid-search" id="toc-example-3-elasticsearchstore-hybrid-search" class="nav-link" data-scroll-target="#example-3-elasticsearchstore-hybrid-search">Example 3: ElasticsearchStore (Hybrid Search)</a></li>
+  <li><a href="#integration-with-llm" id="toc-integration-with-llm" class="nav-link" data-scroll-target="#integration-with-llm">Integration with LLM</a></li>
+  <li><a href="#applying-llms-to-documents-in-pre-existing-search-engines" id="toc-applying-llms-to-documents-in-pre-existing-search-engines" class="nav-link" data-scroll-target="#applying-llms-to-documents-in-pre-existing-search-engines">Applying LLMs to Documents in Pre-Existing Search Engines</a>
+  <ul class="collapse">
+  <li><a href="#rag-with-an-existing-elasticsearch-index" id="toc-rag-with-an-existing-elasticsearch-index" class="nav-link" data-scroll-target="#rag-with-an-existing-elasticsearch-index">RAG With an Existing Elasticsearch Index</a></li>
+  <li><a href="#rag-with-sharepoint-documents" id="toc-rag-with-sharepoint-documents" class="nav-link" data-scroll-target="#rag-with-sharepoint-documents">RAG With SharePoint Documents</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_vectorstore_factory.html">Using Different Vector Stores</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Using Different Vector Stores</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>This example demonstrates how to use the <strong>VectorStoreFactory</strong> in <a href="https://github.com/amaiya/onprem">OnPrem.LLM</a> to easily create and experiment with different types of vector stores for your RAG (Retrieval-Augmented Generation) and semantic search applications.</p>
+<p>The VectorStoreFactory provides a unified interface for creating three different types of vector stores, each optimized for different use cases:</p>
+<ul>
+<li><strong>ChromaStore (default)</strong>: Dense vector search using embeddings for semantic search</li>
+<li><strong>WhooshStore</strong>: Sparse keyword search using full-text indexing with on-the-fly dense vector encoding for semantic search.</li>
+<li><strong>ElasticsearchStore</strong>: Unified hybrid search combining both dense and sparse approaches, including support for hybrid search using <a href="https://dl.acm.org/doi/10.1145/1571941.1572114">RRF</a>.</li>
+</ul>
+<p>This makes it easy to experiment with different search strategies and find the best approach for your specific data and use case.</p>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<p>First, let’s create some sample documents that we’ll use throughout our examples:</p>
+<div id="6911a824" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langchain_core.documents <span class="im">import</span> Document</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest.stores <span class="im">import</span> VectorStoreFactory</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Create some sample documents for our examples</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>sample_docs <span class="op">=</span> [</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    Document(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        page_content<span class="op">=</span><span class="st">"Machine learning is a subset of artificial intelligence that enables computers to learn without explicit programming."</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        metadata<span class="op">=</span>{<span class="st">"source"</span>: <span class="st">"ml_intro.txt"</span>, <span class="st">"topic"</span>: <span class="st">"AI"</span>, <span class="st">"difficulty"</span>: <span class="st">"beginner"</span>}</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    Document(</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        page_content<span class="op">=</span><span class="st">"Deep learning uses neural networks with multiple layers to model and understand complex patterns in data."</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        metadata<span class="op">=</span>{<span class="st">"source"</span>: <span class="st">"dl_guide.txt"</span>, <span class="st">"topic"</span>: <span class="st">"AI"</span>, <span class="st">"difficulty"</span>: <span class="st">"intermediate"</span>}</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    Document(</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        page_content<span class="op">=</span><span class="st">"Natural language processing (NLP) enables computers to understand and process human language."</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        metadata<span class="op">=</span>{<span class="st">"source"</span>: <span class="st">"nlp_basics.txt"</span>, <span class="st">"topic"</span>: <span class="st">"AI"</span>, <span class="st">"difficulty"</span>: <span class="st">"beginner"</span>}</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    Document(</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        page_content<span class="op">=</span><span class="st">"Vector databases store high-dimensional vectors and enable similarity search for AI applications."</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        metadata<span class="op">=</span>{<span class="st">"source"</span>: <span class="st">"vector_db.txt"</span>, <span class="st">"topic"</span>: <span class="st">"databases"</span>, <span class="st">"difficulty"</span>: <span class="st">"intermediate"</span>}</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    Document(</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        page_content<span class="op">=</span><span class="st">"Retrieval-augmented generation (RAG) combines information retrieval with language generation for better AI responses."</span>,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        metadata<span class="op">=</span>{<span class="st">"source"</span>: <span class="st">"rag_overview.txt"</span>, <span class="st">"topic"</span>: <span class="st">"AI"</span>, <span class="st">"difficulty"</span>: <span class="st">"advanced"</span>}</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    Document(</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    page_content<span class="op">=</span><span class="st">"Cats have five toes on their front paws, four on their back paws, and zero interest in your personal space.."</span>,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    metadata<span class="op">=</span>{<span class="st">"source"</span>: <span class="st">"cat_facts.txt"</span>, <span class="st">"topic"</span>: <span class="st">"cats"</span>, <span class="st">"difficulty"</span>: <span class="st">"advanced"</span>}</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Created </span><span class="sc">{</span><span class="bu">len</span>(sample_docs)<span class="sc">}</span><span class="ss"> sample documents for testing"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Created 6 sample documents for testing</code></pre>
+</div>
+</div>
+</section>
+<section id="example-1-chromastore-dense-vector-search" class="level2">
+<h2 class="anchored" data-anchor-id="example-1-chromastore-dense-vector-search">Example 1: ChromaStore (Dense Vector Search)</h2>
+<p>ChromaStore is the default option and excels at semantic similarity search. It’s perfect when you want to find documents that are conceptually similar to your query, even if they don’t share exact keywords.</p>
+<div id="b8b77192" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create ChromaStore using the factory (default)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>chroma_path <span class="op">=</span> tempfile.mkdtemp()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>chroma_store <span class="op">=</span> VectorStoreFactory.create(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">'chroma'</span>,  <span class="co"># or just use default: VectorStoreFactory.create()</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    persist_location<span class="op">=</span>chroma_path</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Created ChromaStore at: </span><span class="sc">{</span>chroma_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Store type: </span><span class="sc">{</span><span class="bu">type</span>(chroma_store)<span class="sc">.</span><span class="va">__name__</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Add documents</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>chroma_store.add_documents(sample_docs)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Added </span><span class="sc">{</span><span class="bu">len</span>(sample_docs)<span class="sc">}</span><span class="ss"> documents to ChromaStore"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Test semantic search - look for documents about AI/ML</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> chroma_store.semantic_search(<span class="st">"artificial intelligence and machine learning"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Semantic search results for 'artificial intelligence and machine learning':"</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, doc <span class="kw">in</span> <span class="bu">enumerate</span>(results, <span class="dv">1</span>):</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">. </span><span class="sc">{</span>doc<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (from </span><span class="sc">{</span>doc<span class="sc">.</span>metadata[<span class="st">'source'</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"   Similarity score: </span><span class="sc">{</span>doc<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Test semantic search - look for documents about felines</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> chroma_store.semantic_search(<span class="st">"feline feet"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Semantic search results for 'feline feet':"</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, doc <span class="kw">in</span> <span class="bu">enumerate</span>(results, <span class="dv">1</span>):</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">. </span><span class="sc">{</span>doc<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (from </span><span class="sc">{</span>doc<span class="sc">.</span>metadata[<span class="st">'source'</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"   Similarity score: </span><span class="sc">{</span>doc<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Show that semantic search finds conceptually related content</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Semantic search for 'computer intelligence' (no exact keyword matches):"</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> chroma_store.semantic_search(<span class="st">"computer intelligence"</span>, limit<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> doc <span class="kw">in</span> results:</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>doc<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (score: </span><span class="sc">{</span>doc<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)<span class="sc">:.3f}</span><span class="ss">, category: </span><span class="sc">{</span>doc<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'topic'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Created ChromaStore at: /tmp/tmpmlbc1286
+Store type: ChromaStore
+Creating embeddings. May take some minutes...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|█████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00&lt;00:00,  3.51it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Added 6 documents to ChromaStore
+
+Semantic search results for 'artificial intelligence and machine learning':
+1. Machine learning is a subset of artificial intelligence that... (from ml_intro.txt)
+   Similarity score: 0.621
+2. Deep learning uses neural networks with multiple layers to m... (from dl_guide.txt)
+   Similarity score: 0.439
+3. Vector databases store high-dimensional vectors and enable s... (from vector_db.txt)
+   Similarity score: 0.357
+
+Semantic search results for 'feline feet':
+1. Cats have five toes on their front paws, four on their back ... (from cat_facts.txt)
+   Similarity score: 0.538
+2. Vector databases store high-dimensional vectors and enable s... (from vector_db.txt)
+   Similarity score: 0.059
+3. Natural language processing (NLP) enables computers to under... (from nlp_basics.txt)
+   Similarity score: 0.030
+
+Semantic search for 'computer intelligence' (no exact keyword matches):
+- Machine learning is a subset of artificial intelligence that... (score: 0.524, category: AI)
+- Natural language processing (NLP) enables computers to under... (score: 0.406, category: AI)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+</div>
+</section>
+<section id="example-2-whooshstore-sparse-keyword-search" class="level2">
+<h2 class="anchored" data-anchor-id="example-2-whooshstore-sparse-keyword-search">Example 2: WhooshStore (Sparse Keyword Search)</h2>
+<p>WhooshStore uses full-text search and is excellent for exact keyword matching and boolean queries. It’s faster for ingestion and works well when you know specific terms you’re looking for. Unlike ChromaStore, WhooshStore converts text to dense vectors on-the-fly for semantic searches. Since vectors are not computed at index time, ingestion is very fast.</p>
+<div id="b6eb1f8a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create WhooshStore using the factory</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>whoosh_path <span class="op">=</span> tempfile.mkdtemp()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>whoosh_store <span class="op">=</span> VectorStoreFactory.create(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">'whoosh'</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    persist_location<span class="op">=</span>whoosh_path</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Created WhooshStore at: </span><span class="sc">{</span>whoosh_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Store type: </span><span class="sc">{</span><span class="bu">type</span>(whoosh_store)<span class="sc">.</span><span class="va">__name__</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Add documents</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>whoosh_store.add_documents(sample_docs)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Added </span><span class="sc">{</span><span class="bu">len</span>(sample_docs)<span class="sc">}</span><span class="ss"> documents to WhooshStore"</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Test keyword search - exact term matching</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> whoosh_store.query(<span class="st">"neural networks"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Keyword search results for 'neural networks':"</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total hits: </span><span class="sc">{</span>results[<span class="st">'total_hits'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, hit <span class="kw">in</span> <span class="bu">enumerate</span>(results[<span class="st">'hits'</span>], <span class="dv">1</span>):</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">. </span><span class="sc">{</span>hit[<span class="st">'page_content'</span>][:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (from </span><span class="sc">{</span>hit[<span class="st">'source'</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Show boolean search capabilities</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> whoosh_store.query(<span class="st">"machine AND learning"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Boolean search for 'machine AND learning':"</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total hits: </span><span class="sc">{</span>results[<span class="st">'total_hits'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> hit <span class="kw">in</span> results[<span class="st">'hits'</span>]:</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>hit[<span class="st">'page_content'</span>][:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Test semantic search (uses embeddings on top of keyword results)</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>semantic_results <span class="op">=</span> whoosh_store.semantic_search(<span class="st">"feline feet"</span>, limit<span class="op">=</span><span class="dv">2</span>, filters<span class="op">=</span>{<span class="st">'topic'</span> :<span class="st">'cats'</span>})</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Semantic search results for 'feline feet':"</span>)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> doc <span class="kw">in</span> semantic_results:</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>doc<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (score: </span><span class="sc">{</span>doc<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)<span class="sc">:.3f}</span><span class="ss">, category: </span><span class="sc">{</span>doc<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'topic'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>whoosh_store.erase(confirm<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Created WhooshStore at: /tmp/tmp94i3unhk
+Store type: WhooshStore</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|███████████████████████████████████████████████████████████████████████████████████| 6/6 [00:00&lt;00:00, 1404.73it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Added 6 documents to WhooshStore
+
+Keyword search results for 'neural networks':
+Total hits: 1
+1. Deep learning uses neural networks with multiple layers to m... (from dl_guide.txt)
+
+Boolean search for 'machine AND learning':
+Total hits: 1
+- Machine learning is a subset of artificial intelligence that...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Semantic search results for 'feline feet':
+- Cats have five toes on their front paws, four on their back ... (score: 0.538, category: cats)</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre><code>True</code></pre>
+</div>
+</div>
+</section>
+<section id="example-3-elasticsearchstore-hybrid-search" class="level2">
+<h2 class="anchored" data-anchor-id="example-3-elasticsearchstore-hybrid-search">Example 3: ElasticsearchStore (Hybrid Search)</h2>
+<p>ElasticsearchStore combines both dense and sparse search capabilities in a single unified store. It can perform keyword search, semantic search, and hybrid search that combines both approaches.</p>
+<p><strong>Note</strong>: This example requires Elasticsearch to be running. These examples use Elasticsearch 8.15.5, but Elasticsearch 9.x is also supported.</p>
+<p>You can download Elasticsearch and start it from command-line:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a> <span class="ex">./elasticsearch-8.15.5/bin/elasticsearch</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>When starting Elasticsearch for the first time, make note of the password and set the following dictionary accordingly:</p>
+<p>If you don’t have Elasticsearch installed, you can skip this section or also try setting it up using Docker:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Elasticsearch 8.x with security disabled:</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-d</span> <span class="at">--name</span> elasticsearch <span class="at">-p</span> 9200:9200 <span class="at">-e</span> <span class="st">"discovery.type=single-node"</span> <span class="at">-e</span> <span class="st">"xpack.security.enabled=false"</span> <span class="at">-e</span> <span class="st">"xpack.security.http.ssl.enabled=false"</span> elasticsearch:8.15.5</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="854052ff" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>elastic_params <span class="op">=</span> {<span class="st">'persist_location'</span>: <span class="st">'https://localhost:9200'</span>, </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'index_name'</span>: <span class="st">'demo_index'</span>, </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'verify_certs'</span>: <span class="va">True</span>, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'ca_certs'</span>: <span class="st">'/PATH/TO/ELASTIC_FOLDER/elasticsearch-8.15.5/config/certs/http_ca.crt'</span>, </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'basic_auth'</span>: (<span class="st">'elastic'</span>, <span class="st">'YOUR_PASSWORD'</span>)}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="27a9ede2" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create ElasticsearchStore using the factory</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Note: This requires Elasticsearch to be running on localhost:9200</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span>:</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>      elasticsearch_store <span class="op">=</span> VectorStoreFactory.create(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>          kind<span class="op">=</span><span class="st">'elasticsearch'</span>, <span class="op">**</span>elastic_params,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Created ElasticsearchStore"</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Store type: </span><span class="sc">{</span><span class="bu">type</span>(elasticsearch_store)<span class="sc">.</span><span class="va">__name__</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Add documents</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      elasticsearch_store.add_documents(sample_docs)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Added </span><span class="sc">{</span><span class="bu">len</span>(sample_docs)<span class="sc">}</span><span class="ss"> documents to ElasticsearchStore"</span>)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Test keyword search (sparse)</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>      search_results <span class="op">=</span> elasticsearch_store.search(<span class="st">"neural networks"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Keyword search results for 'neural networks':"</span>)</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Total hits: </span><span class="sc">{</span>search_results[<span class="st">'total_hits'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> hit <span class="kw">in</span> search_results[<span class="st">'hits'</span>]:</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>          <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>hit[<span class="st">'page_content'</span>][:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (from </span><span class="sc">{</span>hit[<span class="st">'source'</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Test semantic search (dense)</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>      <span class="co">#semantic_results = elasticsearch_store.semantic_search("AI algorithms", limit=3)</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>      semantic_results <span class="op">=</span> elasticsearch_store.semantic_search(<span class="st">"artificial intelligence and machine learning"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Semantic search results for 'artificial intelligence and machine learning':"</span>)</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Total returned results: </span><span class="sc">{</span><span class="bu">len</span>(semantic_results)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> hit <span class="kw">in</span> semantic_results:</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>          <span class="co"># Show more precision in scores to see if they're actually different</span></span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>          score <span class="op">=</span> hit.metadata.get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)</span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>          score_str <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>score<span class="sc">:.6f}</span><span class="ss">"</span> <span class="cf">if</span> <span class="bu">isinstance</span>(score, (<span class="bu">int</span>, <span class="bu">float</span>)) <span class="cf">else</span> <span class="bu">str</span>(score)</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>          <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>hit<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (score: </span><span class="sc">{</span>score_str<span class="sc">}</span><span class="ss">, category: </span><span class="sc">{</span>hit<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'topic'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Test semantic search (dense)</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>      semantic_results <span class="op">=</span> elasticsearch_store.semantic_search(<span class="st">"feline feet"</span>, limit<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Semantic search results for 'feline feet':"</span>)</span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Total results returned: </span><span class="sc">{</span><span class="bu">len</span>(semantic_results)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> hit <span class="kw">in</span> semantic_results:</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>          <span class="co"># Show more precision in scores to see if they're actually different</span></span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>          score <span class="op">=</span> hit.metadata.get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>          score_str <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>score<span class="sc">:.6f}</span><span class="ss">"</span> <span class="cf">if</span> <span class="bu">isinstance</span>(score, (<span class="bu">int</span>, <span class="bu">float</span>)) <span class="cf">else</span> <span class="bu">str</span>(score)</span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>          <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>hit<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (score: </span><span class="sc">{</span>score_str<span class="sc">}</span><span class="ss">, category: </span><span class="sc">{</span>hit<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'topic'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Test hybrid search (combines both dense and sparse)</span></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>      hybrid_results <span class="op">=</span> elasticsearch_store.hybrid_search(</span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>          <span class="st">"AI algorithms"</span>,</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>          limit<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>          weights<span class="op">=</span>[<span class="fl">0.7</span>, <span class="fl">0.3</span>]  <span class="co"># 70% semantic, 30% keyword</span></span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Hybrid search results for 'machine learning algorithms':"</span>)</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"Total returned results: </span><span class="sc">{</span><span class="bu">len</span>(hybrid_results)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> hit <span class="kw">in</span> hybrid_results:</span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a>          score <span class="op">=</span> hit.metadata.get(<span class="st">'score'</span>, <span class="st">'N/A'</span>)</span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a>          score_str <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>score<span class="sc">:.6f}</span><span class="ss">"</span> <span class="cf">if</span> <span class="bu">isinstance</span>(score, (<span class="bu">int</span>, <span class="bu">float</span>)) <span class="cf">else</span> <span class="bu">str</span>(score)</span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a>          <span class="bu">print</span>(<span class="ss">f"- </span><span class="sc">{</span>hit<span class="sc">.</span>page_content[:<span class="dv">60</span>]<span class="sc">}</span><span class="ss">... (combined score: </span><span class="sc">{</span>score_str<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Clean up</span></span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true" tabindex="-1"></a>      elasticsearch_store.erase(confirm<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Cleaned up ElasticsearchStore"</span>)</span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true" tabindex="-1"></a>  <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="ss">f"ElasticsearchStore example skipped: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="st">"Make sure Elasticsearch is running on localhost:9200"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Created ElasticsearchStore
+Store type: ElasticsearchStore
+Added 6 documents to ElasticsearchStore
+
+Keyword search results for 'neural networks':
+Total hits: 1
+- Deep learning uses neural networks with multiple layers to m... (from dl_guide.txt)
+
+Semantic search results for 'artificial intelligence and machine learning':
+Total returned results: 3
+- Machine learning is a subset of artificial intelligence that... (score: 0.621063, category: AI)
+- Deep learning uses neural networks with multiple layers to m... (score: 0.439149, category: AI)
+- Vector databases store high-dimensional vectors and enable s... (score: 0.357402, category: databases)
+
+Semantic search results for 'feline feet':
+Total results returned: 3
+- Cats have five toes on their front paws, four on their back ... (score: 0.537507, category: cats)
+- Vector databases store high-dimensional vectors and enable s... (score: 0.059024, category: databases)
+- Natural language processing (NLP) enables computers to under... (score: 0.029732, category: AI)
+
+Hybrid search results for 'machine learning algorithms':
+Total returned results: 3
+- Vector databases store high-dimensional vectors and enable s... (combined score: 0.598861)
+- Retrieval-augmented generation (RAG) combines information re... (combined score: 0.355312)
+- Machine learning is a subset of artificial intelligence that... (combined score: 0.309971)
+
+Cleaned up ElasticsearchStore</code></pre>
+</div>
+</div>
+</section>
+<section id="integration-with-llm" class="level2">
+<h2 class="anchored" data-anchor-id="integration-with-llm">Integration with LLM</h2>
+<p>The VectorStoreFactory works seamlessly with OnPrem.LLM for complete RAG (Retrieval-Augmented Generation) workflows.</p>
+<p>By default, supplying <code>store_type="dense"</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> will use ChromaStore and supplying <code>store_type="sparse"</code> will use WhooshStore. If you supply <code>store_type="dual"</code>, a hybrid vector store that uses both <a href="https://amaiya.github.io/onprem/ingest.stores.dense.html#chromastore"><code>ChromaStore</code></a> and <a href="https://amaiya.github.io/onprem/ingest.stores.sparse.html#whooshstore"><code>WhooshStore</code></a> is used.</p>
+<p>The <strong>ElasticsearchStore</strong> is also a hybrid vector store in that it stores documents as both dense vectors and sparse vectors.</p>
+<p>To use <a href="https://amaiya.github.io/onprem/ingest.stores.dual.html#elasticsearchstore"><code>ElasticsearchStore</code></a> like the one we used above, you can supply it to <code>load_vectorstore</code> as a custom vector store:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(...)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>llm.load_vectorstore(custom_vectorstore<span class="op">=</span>elasticsearch_store)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You can also implement and use your own custom VectorStore instances (by subclassing <a href="https://amaiya.github.io/onprem/ingest.stores.dense.html#densestore"><code>DenseStore</code></a>, <a href="https://amaiya.github.io/onprem/ingest.stores.sparse.html#sparsestore"><code>SparseStore</code></a>, or <a href="https://amaiya.github.io/onprem/ingest.stores.dual.html#dualstore"><code>DualStore</code></a>) using whatever vector database backend you like.</p>
+<p>For illustration purposes, in the example below, we explictly tell <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> to use <a href="https://amaiya.github.io/onprem/ingest.stores.sparse.html#whooshstore"><code>WhooshStore</code></a> as a custom vector store. (This is equivalent to supplying <code>store_type="sparse"</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a>, but it shows how you would use <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> with Elasticsearch or your own custom vector store.)</p>
+<div id="c978e3e0" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Using VectorStoreFactory with LLM for RAG</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🤖 Integration with OnPrem.LLM:"</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a simple document corpus</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>documents_dir <span class="op">=</span> tempfile.mkdtemp()</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>doc_files <span class="op">=</span> {</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ai_overview.txt"</span>: <span class="st">"Artificial intelligence is transforming how we work and live. Machine learning enables computers to learn from data without explicit programming."</span>,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ml_types.txt"</span>: <span class="st">"There are three main types of machine learning: supervised learning uses labeled data, unsupervised learning finds patterns in unlabeled data, and reinforcement learning learns through trial and error."</span>,</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"applications.txt"</span>: <span class="st">"AI applications include natural language processing for text analysis, computer vision for image recognition, and recommendation systems for personalized content."</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Write documents to files</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> filename, content <span class="kw">in</span> doc_files.items():</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(os.path.join(documents_dir, filename), <span class="st">'w'</span>) <span class="im">as</span> f:</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>        f.write(content)</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"✓ Created </span><span class="sc">{</span><span class="bu">len</span>(doc_files)<span class="sc">}</span><span class="ss"> documents in </span><span class="sc">{</span>documents_dir<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Show how to use custom vector store with LLM</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest.stores <span class="im">import</span> VectorStoreFactory</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Create custom vector store</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>store <span class="op">=</span> VectorStoreFactory.create(<span class="st">'whoosh'</span>, persist_location<span class="op">=</span><span class="st">'/tmp/my_search_index'</span>)</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Create LLM and use custom vector store</span></span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(<span class="st">'openai/gpt-4o-mini'</span>, vectordb_path<span class="op">=</span>tempfile.mkdtemp())</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>llm.load_vectorstore(custom_vectorstore<span class="op">=</span>store)</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Ingest documents</span></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>llm.ingest(documents_dir)</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n\n</span><span class="st">----RAG EXAMPLE----'</span>)</span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Ask questions</span></span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a>question <span class="op">=</span> <span class="st">'What are the types of machine learning?'</span></span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'QUESTION: </span><span class="sc">{</span>question<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> llm.ask(question)</span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n\n</span><span class="st">SOURCES:'</span>)</span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, d <span class="kw">in</span> <span class="bu">enumerate</span>(result[<span class="st">'source_documents'</span>]):</span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"source #</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>d<span class="sc">.</span>metadata[<span class="st">'source'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a>store.erase(confirm<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>🤖 Integration with OnPrem.LLM:
+✓ Created 3 documents in /tmp/tmpjekc6pkt
+Creating new vectorstore at /tmp/my_search_index
+Loading documents from /tmp/tmpjekc6pkt</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading new documents: 100%|█████████████████████| 3/3 [00:00&lt;00:00, 175.48it/s]
+Processing and chunking 3 new documents: 100%|███████████████████████████████████████████| 1/1 [00:00&lt;00:00, 248.67it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Split into 3 chunks of text (max. 500 chars each for text; max. 2000 chars for tables)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|████████████████████████████████████████████████████████████████████████████████████| 3/3 [00:00&lt;00:00, 983.81it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods
+
+
+----RAG EXAMPLE----
+QUESTION: What are the types of machine learning?
+
+The types of machine learning are:
+
+1. Supervised learning - uses labeled data.
+2. Unsupervised learning - finds patterns in unlabeled data.
+3. Reinforcement learning - learns through trial and error.
+
+SOURCES:
+source #1: /tmp/tmpjekc6pkt/ml_types.txt
+source #2: /tmp/tmpjekc6pkt/ai_overview.txt</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre><code>True</code></pre>
+</div>
+</div>
+</section>
+<section id="applying-llms-to-documents-in-pre-existing-search-engines" class="level2">
+<h2 class="anchored" data-anchor-id="applying-llms-to-documents-in-pre-existing-search-engines">Applying LLMs to Documents in Pre-Existing Search Engines</h2>
+<p>Many applications have documents already stored in a conventional Elasticsearch index with no vector embeddings. Surprsingly, you can still apply RAG and semantic sesarch to such documents despite the fact that they have not been preprocessed for generative AI.</p>
+<section id="rag-with-an-existing-elasticsearch-index" class="level3">
+<h3 class="anchored" data-anchor-id="rag-with-an-existing-elasticsearch-index">RAG With an Existing Elasticsearch Index</h3>
+<p>The <a href="https://amaiya.github.io/onprem/ingest.stores.sparse.html#elasticsearchsparsestore"><code>ElasticsearchSparseStore</code></a> module in OnPrem.LLM allows you to point OnPrem.LLM to any Elasticsearch instance for RAG and semantic similarity applications.</p>
+<p>You can do so by instantiating <a href="https://amaiya.github.io/onprem/ingest.stores.sparse.html#elasticsearchsparsestore"><code>ElasticsearchSparseStore</code></a> as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest.stores <span class="im">import</span> VectorStoreFactory</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>store <span class="op">=</span> VectorStoreFactory.create(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">'elasticsearch_sparse'</span>, </span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    persist_location<span class="op">=</span><span class="st">'https://localhost:9200'</span>,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    index_name<span class="op">=</span><span class="st">'NAME_OF_YOUR_INDEX'</span>,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Map OnPrem.LLM field names to your existing field names</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    content_field<span class="op">=</span><span class="st">'content'</span>,      <span class="co"># Your content field name</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    id_field<span class="op">=</span><span class="st">'doc_id'</span>,            <span class="co"># Your ID field name</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    source_field<span class="op">=</span><span class="st">'filepath'</span>,      <span class="co"># Your source field name (optional)</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    content_analyzer<span class="op">=</span><span class="st">'english'</span>,   <span class="co"># Your analyzer (defaults to standard)</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Optional: Authentication if needed</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    basic_auth<span class="op">=</span>(<span class="st">'elastic'</span>, <span class="st">'CHANGEME'</span>),</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    verify_certs<span class="op">=</span><span class="va">False</span>, <span class="co"># change to True if you provide path to ES certs as we did above</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Optional: Enable semantic search with dynamic chunking</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    chunk_for_semantic_search<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    chunk_size<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    chunk_overlap<span class="op">=</span><span class="fl">50.</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    n_candidates<span class="op">=</span><span class="dv">25</span>,       <span class="co"># number of documents to inspect for answer (default: limit*10)</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="co"># traditional keyword search</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> store.search(<span class="st">'"machine learning"'</span>, filters<span class="op">=</span>{<span class="st">'extension'</span> : <span class="st">'pdf'</span>) <span class="co"># assuming here you have an extension field in your index</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="co"># semantic searches (no vectors need to be indexed in your Elasticsearch instance!)</span></span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> store.semantic_search(<span class="st">'"machine learning"'</span>, return_chunks<span class="op">=</span><span class="va">False</span>) <span class="co"># set return_chunks=True for RAG applications</span></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a><span class="co"># best matching chunk from document</span></span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>best_chunk_id <span class="op">=</span>  results[<span class="dv">0</span>].metadata[<span class="st">'best_chunk_idx'</span>]</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results[<span class="dv">0</span>].metadata[<span class="st">'chunks'</span>][best_chunk_id]</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a><span class="co"># OUTPUT: 'of the machine learning (ML) workflow such as data-preprocessing and human-in-the-loop</span></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a><span class="co">#          model tuning and inspection. Following inspiration from a blog post by Rachel Thomas of</span></span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a><span class="co">#          fast.ai (Howard and Gugger, 2020), we refer to this as Augmented Machine Learning.'</span></span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a><span class="co"># RAG</span></span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(n_gpu_layers<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>llm.load_vectorstore(custom_vectorstore<span class="op">=</span>elasticsearch_store)</span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> llm.ask(<span class="st">'What is machine learning?'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The interesting thing in this example above is that:</p>
+<ol type="1">
+<li>Embeddings do not have to be stored in the Elasticsearch index and are computed dynamically.</li>
+<li>Documents do not even need to be pre-chunked in your index.</li>
+</ol>
+</section>
+<section id="rag-with-sharepoint-documents" class="level3">
+<h3 class="anchored" data-anchor-id="rag-with-sharepoint-documents">RAG With SharePoint Documents</h3>
+<p>You can also point <strong>OnPrem.LLM</strong> to SharePoint documents.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to SharePoint</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest.stores <span class="im">import</span> VectorStoreFactory</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>connection_params<span class="op">=</span>{<span class="st">'persist_location'</span>:<span class="st">"https://sharepoint.YOUR_ORGANIZATION.org"</span>, <span class="co"># URL of your SharePoint site</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'username'</span>:os.getenv(<span class="st">'USERNAME'</span>), <span class="co"># e.g., CORP\username</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'password'</span>:os.getenv(<span class="st">'PASSWORD'</span>),</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'n_candidates'</span>:<span class="dv">10</span>}  <span class="co"># maximum number of Sharepoint documents to inspect for answer (default: limit*10)</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>store <span class="op">=</span> VectorStoreFactory.create(<span class="st">'sharepoint'</span>, <span class="op">**</span>connection_params)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="co"># traditional keyword search (results are entire documents)</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> store.search(<span class="st">'"generative AI" AND "material science"'</span>, where_document<span class="op">=</span><span class="st">"NSF"</span>, limit<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co"># semantic search (results are text chunks from entire documents)</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> store.semantic_search(<span class="st">'Can generative AI be applied to material science?'</span>, where_document<span class="op">=</span><span class="st">'NSF AND "material science"'</span>, limit<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="co"># RAG</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(n_gpu_layers<span class="op">=-</span><span class="dv">1</span>, verbose<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>llm.load_vectorstore(custom_vectorstore<span class="op">=</span>store)</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> llm.ask(<span class="st">'Can generative AI be applied to material science?'</span>, limit<span class="op">=</span><span class="dv">4</span>, where_document<span class="op">=</span><span class="st">'NSF AND "material science"'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For RAG with SharePoint, we offer the following recommendations: 1. Many SharePoint sites are configured to not return the indexed text content as part of the query results. In these situations, <strong>OnPrem.LLM</strong> will attempt to download the documents from SharePoint and perform real-time text extraction and text chunking. For these reasons, a lower <code>n_candidates</code> value is recommended (see above). 2. SharePoint Search uses the Keyword Query Language (KQL) — a proprietary query language designed by Microsoft for SharePoint and other Microsoft search products (like Exchange and Microsoft Search). KQL is missing some features that are useful in yielding relevant results. For these reasons, we recommend you help the LLM target the right documents by provding a supplemental query to filter documents via the <code>where_documents</code> argument, as we did above.</p>
+<div id="9ed181c9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean up temporary directories</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> shutil</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>temp_dirs <span class="op">=</span> [chroma_path, whoosh_path, documents_dir]</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> temp_dir <span class="kw">in</span> temp_dirs:</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        shutil.rmtree(temp_dir)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span>:</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🧹 Cleaned up temporary directories"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>🧹 Cleaned up temporary directories</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

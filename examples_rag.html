@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Document Question-Answering – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-baedc78cbf92349237790bf011c153e8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Document Question-Answering – onprem">
+<meta property="og:description" content="A tool for running on-premises large language models on non-public data">
+<meta property="og:site_name" content="onprem">
+<meta name="twitter:title" content="Document Question-Answering – onprem">
+<meta name="twitter:description" content="A tool for running on-premises large language models on non-public data">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_rag.html">Document Question-Answering</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Document Question-Answering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_code.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Code Generation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guided Prompts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_qualitative_survey_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Qualitative Survey Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_legal_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legal and Regulatory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Agent-Based Task Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_vectorstore_factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using Different Vector Stores</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Buildling Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.backends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm backends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.factory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dense.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dense</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.sparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.sparse</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dual.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dual</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.rag</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.tools.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.tools</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#basic-rag" id="toc-basic-rag" class="nav-link active" data-scroll-target="#basic-rag">Basic RAG</a>
+  <ul class="collapse">
+  <li><a href="#step-1-setup-the-llm-instance" id="toc-step-1-setup-the-llm-instance" class="nav-link" data-scroll-target="#step-1-setup-the-llm-instance">STEP 1: Setup the <code>LLM</code> instance</a></li>
+  <li><a href="#step-2-ingest-documents" id="toc-step-2-ingest-documents" class="nav-link" data-scroll-target="#step-2-ingest-documents">STEP 2: Ingest Documents</a></li>
+  <li><a href="#step-3-asking-questions-to-your-documents" id="toc-step-3-asking-questions-to-your-documents" class="nav-link" data-scroll-target="#step-3-asking-questions-to-your-documents">STEP 3: Asking Questions to Your Documents</a></li>
+  </ul></li>
+  <li><a href="#advanced-example-nsf-awards" id="toc-advanced-example-nsf-awards" class="nav-link" data-scroll-target="#advanced-example-nsf-awards">Advanced Example: NSF Awards</a>
+  <ul class="collapse">
+  <li><a href="#step-1-download-the-pre-process-the-nsf-data" id="toc-step-1-download-the-pre-process-the-nsf-data" class="nav-link" data-scroll-target="#step-1-download-the-pre-process-the-nsf-data">STEP 1: Download the Pre-Process the NSF Data</a></li>
+  <li><a href="#step-2-ingest-documents-1" id="toc-step-2-ingest-documents-1" class="nav-link" data-scroll-target="#step-2-ingest-documents-1">STEP 2: Ingest Documents</a></li>
+  <li><a href="#step-3-explore-nsf-awards" id="toc-step-3-explore-nsf-awards" class="nav-link" data-scroll-target="#step-3-explore-nsf-awards">STEP 3: Explore NSF Awards</a></li>
+  </ul></li>
+  <li><a href="#additional-tips" id="toc-additional-tips" class="nav-link" data-scroll-target="#additional-tips">Additional Tips</a>
+  <ul class="collapse">
+  <li><a href="#llm.ingest-options" id="toc-llm.ingest-options" class="nav-link" data-scroll-target="#llm.ingest-options">LLM.ingest options</a></li>
+  <li><a href="#llm.ask-options" id="toc-llm.ask-options" class="nav-link" data-scroll-target="#llm.ask-options">LLM.ask options</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_rag.html">Document Question-Answering</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Document Question-Answering</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>This example of <a href="https://github.com/amaiya/onprem">OnPrem.LLM</a> demonstrates retrieval augmented generation or RAG.</p>
+<section id="basic-rag" class="level2">
+<h2 class="anchored" data-anchor-id="basic-rag">Basic RAG</h2>
+<section id="step-1-setup-the-llm-instance" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-setup-the-llm-instance">STEP 1: Setup the <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> instance</h3>
+<p>In this first example, we will use a model called <strong><a href="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF">Zephyr-7B-beta</a></strong>. When selecting a model, it is important to inspect the model’s home page and identify the correct prompt format. The prompt format for this model is <a href="https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF#prompt-template-zephyr">located here</a>, and we will supply it directly to the <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> constructor along with the URL to the specific model file we want (i.e., <em>zephyr-7b-beta.Q4_K_M.gguf</em>). We will offload layers to our GPU(s) to speed up inference using the <code>n_gpu_layers</code> parameter. (For more information on GPU acceleration, see <a href="https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu">here</a>.) For the purposes of this notebook, we also supply <code>temperature=0</code> so that there is no variability in outputs. You can increase this value for more creativity in the outputs. Finally, we will choose a non-default location for our vector database.</p>
+<div id="8100e0f3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM, utils <span class="im">as</span> U</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> textwrap <span class="im">import</span> wrap</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="c0fc9689" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>vectordb_path <span class="op">=</span> tempfile.mkdtemp()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(model_url<span class="op">=</span><span class="st">'https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf'</span>, </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>          prompt_template<span class="op">=</span> <span class="st">"&lt;|system|&gt;</span><span class="ch">\n</span><span class="st">&lt;/s&gt;</span><span class="ch">\n</span><span class="st">&lt;|user|&gt;</span><span class="ch">\n</span><span class="sc">{prompt}</span><span class="st">&lt;/s&gt;</span><span class="ch">\n</span><span class="st">&lt;|assistant|&gt;"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>          n_gpu_layers<span class="op">=-</span><span class="dv">1</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>          temperature<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>          store_type<span class="op">=</span><span class="st">'dense'</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>          vectordb_path<span class="op">=</span>vectordb_path,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>         verbose<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>llama_new_context_with_model: n_ctx_per_seq (3904) &lt; n_ctx_train (32768) -- the full capacity of the model will not be utilized</code></pre>
+</div>
+</div>
+<p>Since OnPrem.LLM includes built-in support for Zephyr, an easier way to instantiate the LLM with Zephyr is as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(default_model<span class="op">=</span><span class="st">'zephyr'</span>, </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>          n_gpu_layers<span class="op">=-</span><span class="dv">1</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>          temperature<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>          store_type<span class="op">=</span><span class="st">'dense'</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>          vectordb_path<span class="op">=</span>vectordb_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="step-2-ingest-documents" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-ingest-documents">STEP 2: Ingest Documents</h3>
+<p>When ingesting documents, they can be stored in one of two ways: 1. a <strong>dense</strong> vector store: a conventional vector database like Chroma 2. a <strong>sparse</strong> vector store: a keyword-search engine</p>
+<p>Sparse vector stores compute embeddings on-the-fly at inference time. As a result, sparse vector stores sacrifice a small amount of inference speed for significant speed ups in ingestion speed. This makes it better suited for larger document sets. Note that sparse vector stores include the contraint that any passages considered as sources for answers should have at least one word in common with the question being asked. You can specify the kind of vector store by supplying either <code>store_type="dense"</code> or <code>store_type="sparse"</code> when creating the <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a> above. We use a dense vector store in this example, as shown above.</p>
+<p>For this example, we will download the 2024 National Defense Autorization Act (NDAA) report and ingest it.</p>
+<div id="57e58062" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>U.download(<span class="st">'https://www.congress.gov/118/crpt/hrpt125/CRPT-118hrpt125.pdf'</span>, <span class="st">'/tmp/ndaa/ndaa.pdf'</span>, verify<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[██████████████████████████████████████████████████]</code></pre>
+</div>
+</div>
+<div id="74a52779" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>llm.ingest(<span class="st">"/tmp/ndaa/"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Creating new vectorstore at /tmp/tmpmnt6g6l8/dense
+Loading documents from /tmp/ndaa/</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading new documents: 100%|██████████████████████| 1/1 [00:00&lt;00:00,  1.62it/s]
+Processing and chunking 672 new documents: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00&lt;00:00, 10.22it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Split into 5202 chunks of text (max. 500 chars each for text; max. 2000 chars for tables)
+Creating embeddings. May take some minutes...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 6/6 [00:17&lt;00:00,  2.95s/it]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+</div>
+</section>
+<section id="step-3-asking-questions-to-your-documents" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-asking-questions-to-your-documents">STEP 3: Asking Questions to Your Documents</h3>
+<div id="276430b3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> llm.ask(<span class="st">"What is said about artificial intelligence training and education?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+The context provided discusses the implementation of an AI education strategy required by Section 256 of the National Defense Authorization Act for Fiscal Year 2020. The strategy aims to educate servicemembers in relevant occupational fields, with a focus on data literacy across a broader population within the Department of Defense. The committee encourages the Air Force and Space Force to leverage government-owned training platforms informed by private sector expertise to accelerate learning and career path development. Additionally, the committee suggests expanding existing mobile enabled platforms to train and develop the cyber workforce of the Air Force and Space Force. Overall, there is a recognition that AI continues to be central to warfighting and that proper implementation of these new technologies requires a focus on education and training.</code></pre>
+</div>
+</div>
+<p>The answer is stored in <code>results['answer']</code>. The documents retrieved from the vector store used to generate the answer are stored in <code>results['source_documents']</code> above.</p>
+<div id="1bc9e5e4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'ANSWER:'</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(wrap(result[<span class="st">'answer'</span>])))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'REFERENCES'</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> result[<span class="st">'source_documents'</span>]:</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"On Page </span><span class="sc">{</span>d<span class="sc">.</span>metadata[<span class="st">'page'</span>]<span class="sc">}</span><span class="ss"> in </span><span class="sc">{</span>d<span class="sc">.</span>metadata[<span class="st">'source'</span>]<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(d.page_content)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'----------------------------------------'</span>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ANSWER:
+ The context provided discusses the implementation of an AI education
+strategy required by Section 256 of the National Defense Authorization
+Act for Fiscal Year 2020. The strategy aims to educate servicemembers
+in relevant occupational fields, with a focus on data literacy across
+a broader population within the Department of Defense. The committee
+encourages the Air Force and Space Force to leverage government-owned
+training platforms informed by private sector expertise to accelerate
+learning and career path development. Additionally, the committee
+suggests expanding existing mobile enabled platforms to train and
+develop the cyber workforce of the Air Force and Space Force. Overall,
+there is a recognition that AI continues to be central to warfighting
+and that proper implementation of these new technologies requires a
+focus on education and training.
+
+
+REFERENCES
+
+On Page 359 in /tmp/ndaa/ndaa.pdf:
+‘‘servicemembers in relevant occupational fields on matters relating 
+to artificial intelligence.’’ 
+Given the continued centrality of AI to warfighting, the com-
+mittee directs the Chief Digital and Artificial Intelligence Officer of 
+the Department of Defense to provide a briefing to the House Com-
+mittee on Armed Services not later than March 31, 2024, on the 
+implementation status of the AI education strategy, with emphasis 
+on current efforts underway, such as the AI Primer course within
+----------------------------------------
+
+On Page 359 in /tmp/ndaa/ndaa.pdf:
+intelligence (AI) and machine learning capabilities available within 
+the Department of Defense. To ensure the proper implementation 
+of these new technologies, there must be a focus on data literacy 
+across a broader population within the Department. Section 256 of 
+the National Defense Authorization Act for Fiscal Year 2020 (Pub-
+lic Law 116–92) required the Department of Defense to develop an 
+AI education strategy, with the stated objective to educate
+----------------------------------------
+
+On Page 102 in /tmp/ndaa/ndaa.pdf:
+tificial intelligence and machine learning (AI/ML), and cloud com-
+puting. The committee encourages the Air Force and Space Force 
+to leverage government owned training platforms with curricula in-
+formed by private sector expertise to accelerate learning and career 
+path development. 
+To that end, the committee encourages the Secretary of the Air 
+Force to expand existing mobile enabled platforms to train and de-
+velop the cyber workforce of Air Force and Space Force. To better
+----------------------------------------
+
+On Page 109 in /tmp/ndaa/ndaa.pdf:
+70 
+role of senior official with principal responsibility for artificial intel-
+ligence and machine learning. In February 2022, the Department 
+stood up the Chief Digital and Artificial Intelligence Office to accel-
+erate the Department’s adoption of AI. The committee encourages 
+the Department to build upon this progress and sustain efforts to 
+research, develop, test, and where appropriate, operationalize AI 
+capabilities. 
+Artificial intelligence capabilities of foreign adversaries
+----------------------------------------
+</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="advanced-example-nsf-awards" class="level2">
+<h2 class="anchored" data-anchor-id="advanced-example-nsf-awards">Advanced Example: NSF Awards</h2>
+<p>The example above employed the use of the default dense vector store, Chroma. By supplying <code>store_type="sparse"</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a>, a sparse vector store (i.e., keyword search engine) is used instead. Sparse vector stores index documents faster but requires keyword matches between sources containing answers and the question or query. Semantic search is still supported through on-demand dense vectorization in OnPrem.LLM.</p>
+<p>In this example, we will instantiate a spare store directly and customize the ingestion process to include custom fields using a dataset of 2024 NSF Awards.</p>
+<section id="step-1-download-the-pre-process-the-nsf-data" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-download-the-pre-process-the-nsf-data">STEP 1: Download the Pre-Process the NSF Data</h3>
+<p>NSF awards data stores as thousands of JSON files. The code below downloads and parses each JSON file.</p>
+<div id="d11d3bf4" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> zipfile</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm.notebook <span class="im">import</span> tqdm</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Download the ZIP file</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://www.nsf.gov/awardsearch/download?DownloadFileName=2024&amp;All=true&amp;isJson=true"</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>zip_path <span class="op">=</span> <span class="st">"/tmp/nsf_awards_2024.zip"</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> os.path.exists(zip_path):</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Downloading NSF data..."</span>)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> requests.get(url, stream<span class="op">=</span><span class="va">True</span>) <span class="im">as</span> r:</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>        r.raise_for_status()</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(zip_path, <span class="st">'wb'</span>) <span class="im">as</span> f:</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> chunk <span class="kw">in</span> r.iter_content(chunk_size<span class="op">=</span><span class="dv">8192</span>):</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>                f.write(chunk)</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Download complete."</span>)</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"ZIP file already exists."</span>)</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Unzip the file</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>extract_dir <span class="op">=</span> <span class="st">"nsf_awards_2024"</span></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> os.path.exists(extract_dir):</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Extracting ZIP file..."</span>)</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> zipfile.ZipFile(zip_path, <span class="st">'r'</span>) <span class="im">as</span> zip_ref:</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>        zip_ref.extractall(extract_dir)</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Extraction complete."</span>)</span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Already extracted."</span>)</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Function to extract fields from JSON</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_fields(data):</span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> data.get(<span class="st">"awd_titl_txt"</span>, <span class="st">"N/A"</span>)</span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>    abstract <span class="op">=</span> data.get(<span class="st">"awd_abstract_narration"</span>, <span class="st">"N/A"</span>)</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>    pgm_ele <span class="op">=</span> data.get(<span class="st">"pgm_ele"</span>)</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(pgm_ele, <span class="bu">list</span>) <span class="kw">and</span> pgm_ele:</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>        category <span class="op">=</span> pgm_ele[<span class="dv">0</span>].get(<span class="st">"pgm_ele_name"</span>, <span class="st">"N/A"</span>)</span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>        category <span class="op">=</span> <span class="st">"N/A"</span></span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Authors</span></span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>    authors <span class="op">=</span> []</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> pi <span class="kw">in</span> data.get(<span class="st">"pi"</span>, []):</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>        full_name <span class="op">=</span> pi.get(<span class="st">"pi_full_name"</span>, <span class="st">""</span>)</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> full_name:</span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>            authors.append(full_name)</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>    authors_str <span class="op">=</span> <span class="st">", "</span>.join(authors) <span class="cf">if</span> authors <span class="cf">else</span> <span class="st">"N/A"</span></span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Affiliation</span></span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a>    affiliation <span class="op">=</span> data.get(<span class="st">"inst"</span>, {}).get(<span class="st">"inst_name"</span>, <span class="st">"N/A"</span>)</span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Amount</span></span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true" tabindex="-1"></a>    raw_amount <span class="op">=</span> data.get(<span class="st">"awd_amount"</span>, data.get(<span class="st">"tot_intn_awd_amt"</span>, <span class="va">None</span>))</span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true" tabindex="-1"></a>        amount <span class="op">=</span> <span class="bu">float</span>(raw_amount)</span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> (<span class="pp">TypeError</span>, <span class="pp">ValueError</span>):</span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true" tabindex="-1"></a>        amount <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb18-64"><a href="#cb18-64" aria-hidden="true" tabindex="-1"></a>        <span class="st">"title"</span>: title <span class="kw">or</span> <span class="st">''</span>,</span>
+<span id="cb18-65"><a href="#cb18-65" aria-hidden="true" tabindex="-1"></a>        <span class="st">"abstract"</span>: <span class="ss">f'</span><span class="sc">{</span>title <span class="kw">or</span> <span class="st">""</span><span class="sc">}</span><span class="ss">'</span> <span class="op">+</span> <span class="st">'</span><span class="ch">\n\n</span><span class="st">'</span> <span class="op">+</span> <span class="ss">f'</span><span class="sc">{</span>abstract <span class="kw">or</span> <span class="st">""</span><span class="sc">}</span><span class="ss">'</span>,</span>
+<span id="cb18-66"><a href="#cb18-66" aria-hidden="true" tabindex="-1"></a>        <span class="st">"category"</span>: category,</span>
+<span id="cb18-67"><a href="#cb18-67" aria-hidden="true" tabindex="-1"></a>        <span class="st">"authors"</span>: authors_str,</span>
+<span id="cb18-68"><a href="#cb18-68" aria-hidden="true" tabindex="-1"></a>        <span class="st">"affiliation"</span>: affiliation,</span>
+<span id="cb18-69"><a href="#cb18-69" aria-hidden="true" tabindex="-1"></a>        <span class="st">"amount"</span>: amount</span>
+<span id="cb18-70"><a href="#cb18-70" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb18-71"><a href="#cb18-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-72"><a href="#cb18-72" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Process all JSON files and write results to .txt</span></span>
+<span id="cb18-73"><a href="#cb18-73" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/tmp/nsf_text_output"</span></span>
+<span id="cb18-74"><a href="#cb18-74" aria-hidden="true" tabindex="-1"></a>os.makedirs(output_dir, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb18-75"><a href="#cb18-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-76"><a href="#cb18-76" aria-hidden="true" tabindex="-1"></a>json_files <span class="op">=</span> <span class="bu">list</span>(Path(extract_dir).glob(<span class="st">"*.json"</span>))</span>
+<span id="cb18-77"><a href="#cb18-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-78"><a href="#cb18-78" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Processing </span><span class="sc">{</span><span class="bu">len</span>(json_files)<span class="sc">}</span><span class="ss"> JSON files..."</span>)</span>
+<span id="cb18-79"><a href="#cb18-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-80"><a href="#cb18-80" aria-hidden="true" tabindex="-1"></a>nsf_data <span class="op">=</span> []</span>
+<span id="cb18-81"><a href="#cb18-81" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> json_file <span class="kw">in</span> tqdm(json_files):</span>
+<span id="cb18-82"><a href="#cb18-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(json_file, <span class="st">'r'</span>, encoding<span class="op">=</span><span class="st">'utf-8'</span>) <span class="im">as</span> f:</span>
+<span id="cb18-83"><a href="#cb18-83" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb18-84"><a href="#cb18-84" aria-hidden="true" tabindex="-1"></a>            data <span class="op">=</span> json.load(f)</span>
+<span id="cb18-85"><a href="#cb18-85" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> json.JSONDecodeError:</span>
+<span id="cb18-86"><a href="#cb18-86" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span>  <span class="co"># skip bad files</span></span>
+<span id="cb18-87"><a href="#cb18-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-88"><a href="#cb18-88" aria-hidden="true" tabindex="-1"></a>    fields <span class="op">=</span> extract_fields(data)</span>
+<span id="cb18-89"><a href="#cb18-89" aria-hidden="true" tabindex="-1"></a>    fields[<span class="st">'source'</span>] <span class="op">=</span> <span class="bu">str</span>(json_file)</span>
+<span id="cb18-90"><a href="#cb18-90" aria-hidden="true" tabindex="-1"></a>    nsf_data.append(fields)</span>
+<span id="cb18-91"><a href="#cb18-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-92"><a href="#cb18-92" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All JSON files processed and saved to list of dictionaries."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ZIP file already exists.
+Already extracted.
+Processing 11687 JSON files...</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"ab62febcd8304ab7b192f5df7f41cb11","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>All JSON files processed and saved to list of dictionaries.</code></pre>
+</div>
+</div>
+</section>
+<section id="step-2-ingest-documents-1" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-ingest-documents-1">STEP 2: Ingest Documents</h3>
+<p>Let’s now store these NSF awards data in a Whoosh-backed sparse vector store. This is equivalent to supplying <code>store_type="sparse"</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm"><code>LLM</code></a>. However, we will explicitly create the SparseStore instance to customize the ingestion process for NSF data. See the <a href="https://amaiya.github.io/onprem/examples_vectorstore_factory.html">vectorstore factory example</a> for more information.</p>
+<p>Since award abstracts are relatively short, we will skip document chunking (whether using <code>onprem.ingest.chunk_documents</code> or an external tool like <a href="https://github.com/chonkie-inc/chonkie">chonkie</a>) and instead store each award as a single record in the index. By accessing the vector store directly, any custom chunking strategy can be applied at this stage.</p>
+<div id="8cdbb9cf" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest <span class="im">import</span> helpers, chunk_documents</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.ingest.stores <span class="im">import</span> VectorStoreFactory</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>store <span class="op">=</span> VectorStoreFactory.create(</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">'whoosh'</span>, <span class="co"># you can change to kind="chroma" to use ChromaDB.</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    persist_location<span class="op">=</span><span class="st">'/tmp/nsf_store'</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Note that the default embedding model is: <code>sentence-transformers/all-MiniLM-L6-v2</code>. You can change it by supplying <code>embedding_model_name</code> to <a href="https://amaiya.github.io/onprem/ingest.stores.factory.html#vectorstorefactory.create"><code>VectorStoreFactory.create</code></a>.</p>
+<div id="73f536e0" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> []</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> nsf_data:</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    doc <span class="op">=</span> helpers.doc_from_dict(d, content_field<span class="op">=</span><span class="st">'abstract'</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    docs.append(doc)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>store.add_documents(docs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 11687/11687 [00:10&lt;00:00, 1119.63it/s]</code></pre>
+</div>
+</div>
+<p>Let’s examine the total number of awards stored.</p>
+<div id="67daae86" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>store.get_size()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>11687</code></pre>
+</div>
+</div>
+</section>
+<section id="step-3-explore-nsf-awards" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-explore-nsf-awards">STEP 3: Explore NSF Awards</h3>
+<p>We can explore NSF awards by either using an LLM or querying the vector store directly.</p>
+<p>The NSF buckets awards into different catgories. Let’s examine all the material-related categories.</p>
+<div id="cabe633a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span>([d[<span class="st">'category'</span>] <span class="cf">for</span> d <span class="kw">in</span> store.search(<span class="st">'category:*material*'</span>, limit<span class="op">=</span><span class="dv">100</span>)[<span class="st">'hits'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'BIOMATERIALS PROGRAM',
+ 'ELECTRONIC/PHOTONIC MATERIALS',
+ 'Mechanics of Materials and Str',
+ 'SOLID STATE &amp; MATERIALS CHEMIS'}</code></pre>
+</div>
+</div>
+<p>Let’s see how many of the material-related awards mention AI.</p>
+<p>One of the advantages of sparse vector stores is the ability to easily use complex boolean queries to target specific documents.</p>
+<div id="fdf46d8e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>store.search(<span class="st">'("machine learning" OR "artificial intelligence") AND category:*material*'</span>, limit<span class="op">=</span><span class="dv">100</span>)[<span class="st">'total_hits'</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<pre><code>15</code></pre>
+</div>
+</div>
+<p>We wil now use an LLM to summarize how AI is utilized in this research.</p>
+<p>Since NSF awards data are publicly-available, we will use OpenAI’s GPT-4o-mini, a cloud LLM.</p>
+<div id="68589e78" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem <span class="im">import</span> LLM</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> LLM(<span class="st">'openai/gpt-4o-mini'</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>llm.load_vectorstore(custom_vectorstore<span class="op">=</span>store)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> llm.ask(<span class="st">'How is articial intelligene and machine learning used in these research projects?'</span>, </span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>                 limit<span class="op">=</span><span class="dv">16</span>,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>                  where_document<span class="op">=</span><span class="st">'("machine learning" OR "artificial intelligence") AND category:*material*'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Artificial intelligence (AI) and machine learning (ML) are utilized in various research projects described in the provided context in several ways:
+
+1. **Data-Driven Approaches**: Many projects leverage AI techniques to analyze complex datasets and identify patterns that are not easily discernible through traditional methods. For example, in the project on engineered photonic materials, AI is used to develop new materials with tailored properties by consolidating information on material compositions and geometries.
+
+2. **Model Development and Prediction**: AI and ML are employed to create predictive models that can simulate the behavior of materials under different conditions. The project on recycled polymers utilizes AI to predict deformation and failure mechanisms in recyclates, enhancing their mechanical performance.
+
+3. **Optimization**: Machine learning algorithms are used for optimizing the design and synthesis processes of materials. In the project focused on luminescent biomaterials, iterative Bayesian optimization is applied to screen proteins for desired luminescent properties, facilitating the discovery of new materials.
+
+4. **Enhanced Characterization**: In the study of nanofibers, machine learning aids in understanding and mitigating defects that compromise strength by predicting stress fields around nanovoids and assessing the impact of atomic crosslinks on material properties.
+
+5. **Multiscale Simulations**: AI enhances multiscale modeling approaches, where simulations at different scales (from atomic to macro) are integrated to provide insights into material performance. For instance, the project on 3D printed polymer composites combines computational modeling with experimental data to understand fracture mechanisms.
+
+6. **Education and Workforce Development**: Several projects include educational components that involve teaching AI and ML techniques to students from diverse backgrounds, thereby preparing the next generation of engineers and scientists with skills relevant to emerging technologies.
+
+Overall, AI and ML are essential tools in these projects, facilitating advancements in material science, improving predictive capabilities, and enhancing the understanding of complex physical phenomena.</code></pre>
+</div>
+</div>
+<p>Awards used to answer the question are shown below.</p>
+<div id="d1e1f534" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> result[<span class="st">'source_documents'</span>]:</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(d.metadata[<span class="st">'title'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Conference: Uncertainty Quantification for Machine Learning Integrated Physics Modeling (UQ-MLIP 2024); Arlington, Virginia; 12-14 August 2024
+Collaborative Research: DMREF: Accelerating the Design and Development of Engineered Photonic Materials based on a Data-Driven Deep Learning Approach
+Collaborative Research: DMREF: Accelerating the Design and Development of Engineered Photonic Materials based on a Data-Driven Deep Learning Approach
+EAGER: Generative AI for Learning Emergent Complexity in  Mechanics-driven Coupled Physics Problems
+CAREER: Investigating the Role of Microstructure in the High Strain Rate Behavior of Stable Nanocrystalline Alloys
+Conference: 10th International Conference on Spectroscopic Ellipsometry
+CAREER: Informed Testing — From Full-Field Characterization of Mechanically Graded Soft Materials to Student Equity in the Classroom
+2024 Solid State Chemistry Gordon Research Conference and Gordon Research Seminar
+Designing Luminescent Biomaterials from First Principles
+CAREER: Recycled Polymers of Enhanced Strength and Toughness: Predicting Failure and Unraveling Deformation to Enable Circular Transitions
+Collaborative Research: DMREF: Organic Materials Architectured for Researching Vibronic Excitations with Light in the Infrared (MARVEL-IR)
+Designing Pyrolyzed Nanofibers at the Atomic Level: Toward Synthesis of Ultra-high-strength Nano-carbon
+CAREER: Design and synthesis of functional van der Waals magnets
+Integrated Multiscale Computational and Experimental Investigations on Fracture of Additively Manufactured Polymer Composites</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="additional-tips" class="level2">
+<h2 class="anchored" data-anchor-id="additional-tips">Additional Tips</h2>
+<p>The <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ask"><code>LLM.ask</code></a>and <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a> methods include many options for more complex scenarios.</p>
+<section id="llm.ingest-options" class="level3">
+<h3 class="anchored" data-anchor-id="llm.ingest-options">LLM.ingest options</h3>
+<ul>
+<li><strong>Chunk Size</strong>: The default <code>chunk_size</code> is 1000 characters. You can increase/decrease as necessary as a parameter to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a>.</li>
+<li><strong>Chunking Strategies</strong>: Supplying <code>pdf_markdown=True</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a> will chunk documents in a markdown-aware way. As mentioned above, you can also use specialized chunking strategies (e.g., <em>semantic chunking</em> via the <a href="https://github.com/chonkie-inc/chonkie">chonkie</a>) by creating/storing chunks directly with <code>store.add_documents</code>, as illustrated above. Finally, suppling <code>preserve_paragraphs=True</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a> will attempt to faithfully preserve paragraphs.</li>
+<li><strong>Embeddding Model</strong>: You can change the default embedding model used for retrieval (default is <code>sentence-transformers/all-MiniLM-L6-v2</code>). See <a href="https://amaiya.github.io/onprem/llm.base.html#llm">here</a> for more information.</li>
+<li><strong>Table Structure</strong>: If supplying <code>infer_table_structure=True</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a>, the <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ask"><code>LLM.ask</code></a> method will automatically consider tables within PDFs when answering questions. This behavior can be controlled with the <code>table_k</code> and <code>table_score_threshold</code> parameters in <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ask"><code>LLM.ask</code></a>.</li>
+<li><strong>Table Captions:</strong> If supplying <code>caption_tables=True</code>, an LLM-generated caption will be added to every extracted table for potentially better table retrieval.</li>
+<li><strong>Document Titles</strong>: If suppyling <code>extract_document_titles=True</code> to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a>, the title of each document will be inferred and added to each document chunk for potentially better retrieval.</li>
+<li><strong>Custom Metadata</strong>: You can assign custom metadata to document chunks in various ways. For instance, the <code>file_callables</code> parameter to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ingest"><code>LLM.ingest</code></a> allows you to assign fields based on the file path. The <code>text_callables</code> parameter allows you to assign fields based on the text content. (See the <a href="https://amaiya.github.io/onprem/pipelines.extractor.html">RAG pipeline documentation</a> for an example.) Such metadata can then be used by <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ask"><code>LLM.ask</code></a>, as further explained below.</li>
+</ul>
+</section>
+<section id="llm.ask-options" class="level3">
+<h3 class="anchored" data-anchor-id="llm.ask-options">LLM.ask options</h3>
+<ul>
+<li><strong>Number of Sources:</strong> Increasing number of sources to consider (<code>limit</code> parameter to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ask"><code>LLM.ask</code></a>)</li>
+<li><strong>Question Decomposition</strong>: If supplying <code>selfask=True</code> as an argument, a <a href="https://learnprompting.org/docs/advanced/few_shot/self_ask">Self-Ask prompting strategy</a> will be used to decompose the question into subquestions.</li>
+<li><strong>Query Routing:</strong> You can route questions to specific subsets of documents using the <a href="https://amaiya.github.io/onprem/pipelines.rag.html#kvrouter"><code>KVRouter</code></a>. See the <a href="https://amaiya.github.io/onprem/pipelines.extractor.html">RAG pipeline documentation</a> for an example.</li>
+<li><strong>Custom RAG Prompts</strong>: Adjusting prompts for QA with <code>prompt_template</code> argument to <a href="https://amaiya.github.io/onprem/llm.base.html#llm.ask"><code>LLM.ask</code></a></li>
+<li><strong>Metadata Filtering</strong>: You can explicitly filter sources considered for an answer using filters<code>and</code>where_document<code>parameters. For instance, the</code>filters` parameter is a dictionary of field_name:field_value pairs used to filter potential answer sources.</li>
+<li><strong>Score Thresholds</strong>: Adding a score threshold for sources</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script type="application/vnd.jupyter.widget-state+json">
+{"state":{},"version_major":2,"version_minor":0}
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
