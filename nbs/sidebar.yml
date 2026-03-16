@@ -14,7 +14,7 @@ website:
         - 99h_examples_classification.ipynb
         - 99i_examples_qualitative_survey_analysis.ipynb
         - 99j_examples_legal_analysis.ipynb
-        - 99k_examples_agent.ipynb
+        #- 99k_examples_agent.ipynb
         - 99x_examples_openai.ipynb
         - 99l_examples_vectorstore_factory.ipynb
         - workflows.qmd
