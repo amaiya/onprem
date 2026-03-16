@@ -20,69 +20,48 @@ __all__ = ['AgentExecutor']
 class AgentExecutor:
     """
     Sandboxed agent executor using patchpal-sandbox.
-    
+
     This executor is a Python wrapper around patchpal-sandbox, providing:
     - Resource isolation and security via Docker/Podman containers
     - Support for both cloud and local LLMs
     - Custom tool integration via ~/.patchpal/tools/
-    - Automatic context length configuration for Ollama
     - API key management via .env files
     
     Args:
-      - model (str): LiteLLM model identifier (e.g., 'openai/gpt-5.2-codex', 'ollama_chat/llama3.1')
-      - agent_type (str): Type of agent ('function_calling' or 'react')
-      - max_iterations (int): Maximum number of autopilot iterations
-      - env_file (str): Path to .env file with API keys
-      - sandbox (bool): Run in container sandbox (default: False). Set True for isolated/secure execution.
-      - image (str): Container image to use (default: python:3.11-slim) [sandbox only]
-      - network (str): Network mode ('bridge', 'host', 'none') [sandbox only]
-      - memory (str): Memory limit (e.g., '2g', '4g') [sandbox only]
-      - cpus (float): CPU limit (e.g., 2, 4) [sandbox only]
-      - enabled_tools (list): List of tool names to enable
-      - completion_promise (str): String that signals task completion (default: 'COMPLETE')
-      - verbose (bool): Print container output in real-time
-    
-    Example:
-        # Basic usage (no sandbox, faster)
-        executor = AgentExecutor(
-            model='openai/gpt-5-mini',
-            env_file='.env'
-        )
-        result = executor.run("Analyze the codebase and create a README")
-        
-        # With sandboxing for untrusted code or isolation
-        executor = AgentExecutor(
-            model='openai/gpt-5-mini',
-            env_file='.env',
-            sandbox=True
-        )
-        result = executor.run("Run tests and build the project")
-        
-        # Web research (no sandbox needed)
-        executor = AgentExecutor(
-            model='anthropic/claude-sonnet-4-5',
-            env_file='.env'
-        )
-        result = executor.run("Research AI trends and write a report")
-        
-        # With local Ollama model
-        executor = AgentExecutor(
-            model='ollama_chat/glm-4.7-flash:q4_K_M',
-            network='host',  # Required for localhost access in Linux/WSL
-        )
-        result = executor.run("Refactor the authentication module")
-        
-        # With resource limits (sandbox only)
-        executor = AgentExecutor(
-            model='anthropic/claude-sonnet-4-5',
-            env_file='.env',
-            sandbox=True,
-            memory='4g',
-            cpus=2
-        )
-        result = executor.run("Build a REST API with tests")
+        model (str): LiteLLM model identifier (e.g., 'anthropic/claude-sonnet-4-5', 'ollama_chat/gpt-oss-120b')
+        agent_type (str): Type of agent ('function_calling' or 'react')
+        max_iterations (int): Maximum number of autopilot iterations
+        env_file (str): Path to .env file with API keys
+        sandbox (bool): Run in container sandbox (default: False). Set True for isolated/secure execution.
+        image (str): Container image to use (default: python:3.11-slim) [sandbox only]
+        network (str): Network mode ('bridge', 'host', 'none') [sandbox only]
+        memory (str): Memory limit (e.g., '2g', '4g') [sandbox only]
+        cpus (float): CPU limit (e.g., 2, 4) [sandbox only]
+        enabled_tools (list): List of tool names to enable. If None, uses DEFAULT_TOOLS:
+                             ['read_file', 'read_lines', 'edit_file', 'write_file',
+                              'grep', 'find', 'run_shell', 'web_search', 'web_fetch']
+                             Pass an empty list [] to use all available patchpal tools.
+        disable_shell (bool): If True, remove 'run_shell' from default tools (default: False).
+                             Only applies when enabled_tools=None. Useful for security when you
+                             want defaults but no shell access.
+        completion_promise (str): String that signals task completion (default: 'COMPLETE')
+        verbose (bool): Show progress output in real-time (default: True). When False, output is
+                       captured but not displayed (useful for automated scripts/logging).
     """
     
+    # Default tools for code-focused agent tasks
+    DEFAULT_TOOLS = [
+        'read_file',      # Read complete files
+        'read_lines',     # Read specific line ranges
+        'edit_file',      # Edit files via find/replace
+        'write_file',     # Write complete files
+        'grep',           # Search for patterns in files
+        'find',           # Find files by glob pattern
+        'run_shell',      # Execute shell commands
+        'web_search',     # Search the web for information
+        'web_fetch',      # Fetch content from URLs
+    ]
+
     def __init__(
         self,
         model: str,
@@ -95,13 +74,14 @@ class AgentExecutor:
         memory: Optional[str] = None,
         cpus: Optional[float] = None,
         enabled_tools: Optional[List[str]] = None,
+        disable_shell: bool = False,
         completion_promise: str = "COMPLETE",
-        verbose: bool = False,
+        verbose: bool = True,
     ):
         # Normalize ollama/ to ollama_chat/ for LiteLLM compatibility
         if model.startswith("ollama/"):
             model = model.replace("ollama/", "ollama_chat/", 1)
-        
+
         self.model = model
         self.agent_type = agent_type
         self.max_iterations = max_iterations
@@ -111,10 +91,71 @@ class AgentExecutor:
         self.network = network
         self.memory = memory
         self.cpus = cpus
-        self.enabled_tools = enabled_tools
+        
+        # Handle tool configuration
+        if enabled_tools is not None:
+            # User explicitly specified tools
+            self.enabled_tools = enabled_tools
+        else:
+            # Use defaults, but remove run_shell if disable_shell=True
+            self.enabled_tools = self.DEFAULT_TOOLS.copy()
+            if disable_shell and 'run_shell' in self.enabled_tools:
+                self.enabled_tools.remove('run_shell')
+        
         self.completion_promise = completion_promise
         self.verbose = verbose
-    
+
+    @classmethod
+    def print_default_tools(cls):
+        """
+        Pretty-print the default tools available in AgentExecutor.
+        
+        This shows the tools that are used when enabled_tools=None (the default).
+        Users can customize by passing a different list to enabled_tools parameter.
+        """
+        print("=" * 70)
+        print("AgentExecutor Default Tools")
+        print("=" * 70)
+        print("\nThese tools are used by default when enabled_tools=None:\n")
+        
+        tool_descriptions = {
+            'read_file': 'Read complete file contents',
+            'read_lines': 'Read specific line ranges from files',
+            'edit_file': 'Edit files via find/replace',
+            'write_file': 'Write complete file contents',
+            'grep': 'Search for patterns in files',
+            'find': 'Find files by glob pattern',
+            'run_shell': 'Execute shell commands',
+            'web_search': 'Search the web for information',
+            'web_fetch': 'Fetch and read content from URLs',
+        }
+        
+        for i, tool in enumerate(cls.DEFAULT_TOOLS, 1):
+            desc = tool_descriptions.get(tool, 'No description available')
+            print(f"  {i:2d}. {tool:15s} - {desc}")
+        
+        print("\n" + "=" * 70)
+        print("Customization Examples:")
+        print("=" * 70)
+        print("\n# Use defaults (all tools including shell):")
+        print("executor = AgentExecutor(model='anthropic/claude-sonnet-4-5')")
+        print("\n# Defaults but no shell access (safer):")
+        print("executor = AgentExecutor(")
+        print("    model='openai/gpt-5-mini',")
+        print("    disable_shell=True")
+        print(")")
+        print("\n# Minimal tools:")
+        print("executor = AgentExecutor(")
+        print("    model='openai/gpt-5-mini',")
+        print("    enabled_tools=['read_file', 'write_file']")
+        print(")")
+        print("\n# Web research only:")
+        print("executor = AgentExecutor(")
+        print("    model='openai/gpt-5-mini',")
+        print("    enabled_tools=['web_search', 'web_fetch']")
+        print(")")
+        print()
+
     def _build_sandbox_command(self, task_file: Path) -> List[str]:
         """Build the patchpal-sandbox command."""
         cmd = ['patchpal-sandbox']
@@ -162,15 +203,15 @@ class AgentExecutor:
     
     def run(
         self,
-        task: str, # the prompt describing your task
-        working_dir: Optional[str] = None,  # the folder in which the agent operates
+        task: str,
+        working_dir: Optional[str] = None,
     ) -> str:
         """
         Run the agent on a given task in a sandboxed environment.
         
         Args:
-          - task (str): The task description/prompt
-          - working_dir (str): Directory to run in (default: current directory)
+            task (str): The task description/prompt
+            working_dir (str): Directory to run in (default: current directory)
             
         Returns:
             str: The agent's response/output
@@ -207,9 +248,9 @@ class AgentExecutor:
                 # Skip autopilot confirmation prompt (we're running non-interactively)
                 env['PATCHPAL_AUTOPILOT_CONFIRMED'] = 'true'
 
-                # Disable streaming output unless verbose mode is enabled
-                if not self.verbose:
-                    env['PATCHPAL_STREAM_OUTPUT'] = 'false'
+                # Disable token-by-token streaming but still show action summaries
+                # (e.g., "🤔 Thinking...", "🌐 Searching web:", etc.)
+                env['PATCHPAL_STREAM_OUTPUT'] = 'false'
 
                 # Set agent type
                 if self.agent_type == "react":
@@ -237,59 +278,32 @@ class AgentExecutor:
                 else:
                     cmd = self._build_direct_command(task_file)
 
-                # Run patchpal-sandbox
-                if self.verbose:
-                    # Real-time output
-                    process = subprocess.Popen(
-                        cmd,
-                        env=env,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        bufsize=1,
-                    )
-                    
-                    output_lines = []
-                    for line in process.stdout:
+                #print(cmd)
+
+                # Run patchpal-autopilot with real-time output
+                process = subprocess.Popen(
+                    cmd,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                )
+
+                output_lines = []
+                for line in process.stdout:
+                    if self.verbose:
                         print(line, end='')
-                        output_lines.append(line)
-                    
-                    process.wait()
-                    
-                    if process.returncode != 0:
-                        raise RuntimeError(
-                            f"Agent execution failed with return code {process.returncode}"
-                        )
-                    
-                    return ''.join(output_lines)
-                else:
-                    # Capture all output
-                    result = subprocess.run(
-                        cmd,
-                        env=env,
-                        capture_output=True,
-                        text=True,
-                        timeout=3600,  # 1 hour timeout
+                    output_lines.append(line)
+
+                process.wait()
+
+                if process.returncode != 0:
+                    raise RuntimeError(
+                        f"Agent execution failed with return code {process.returncode}"
                     )
-                    
-                    if result.returncode != 0:
-                        # Check if it's actually an error or just warnings
-                        # Podman/pip warnings go to stderr but aren't fatal
-                        output = result.stdout + result.stderr
-                        
-                        # Look for actual error indicators
-                        is_error = any(phrase in output.lower() for phrase in [
-                            'error:', 'exception:', 'traceback', 'command not found',
-                            'no such file', 'permission denied', 'connection refused'
-                        ])
-                        
-                        if is_error or not result.stdout.strip():
-                            # Real error or no output at all
-                            error_msg = result.stderr or result.stdout
-                            raise RuntimeError(f"Agent execution failed: {error_msg}")
-                        # else: warnings only, treat as success
-                    
-                    return result.stdout
+
+                return ''.join(output_lines)
                     
             except FileNotFoundError:
                 if self.sandbox:
@@ -451,4 +465,5 @@ class AgentExecutor:
             agent_type='function_calling',
             **kwargs
         )
+
 
