@@ -153,12 +153,12 @@ class ClassifierBase(ABC):
         try:
             import shap
         except ImportError:
-            raise ImportError('Please install the shap library: pip install shap')
+            raise ImportError('Please install the explain packages: pip install onprem[explain]')
 
         try:
             import matplotlib
         except ImportError:
-            raise ImportError('Please install the matplotlib library: pip install matplotlib')
+            raise ImportError('Please install the explain packages: pip install onprem[explain]')
 
         f, tokenizer = self._get_explain_predictor()
         if f is None:

@@ -12,7 +12,7 @@ license = {text = "Apache-2.0"}
 authors = [{name = "Arun S. Maiya", email = "arun@maiya.net"}]
 keywords = ['nbdev', 'jupyter', 'notebook', 'python']
 classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
-dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'guidance>=0.1.5', 'langchain>=0.3.18', 'langchain-community>=0.3.18', 'langchain_litellm==0.1.4', 'litellm', 'langchain-openai', 'langchain-huggingface', 'huggingface_hub', 'transformers<5', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'smolagents', 'markdownify', 'mcpadapt', 'gmft', 'datasets==3.6.0']
+dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'langchain>=0.3.18', 'langchain-community>=0.3.18', 'langchain_litellm==0.1.4', 'litellm', 'langchain-openai', 'langchain-huggingface', 'huggingface_hub', 'transformers<5', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'gmft']
 
 [project.urls]
 Repository = "https://github.com/amaiya/onprem"
@@ -23,6 +23,15 @@ onprem = "onprem._modidx:d"
 
 [project.optional-dependencies]
 dev = ['nbdev']
+chroma = ['langchain_chroma', 'chromadb']
+elasticsearch = ['elasticsearch']
+sharepoint = ['requests_ntlm']
+explain = ['shap', 'matplotlib']
+chinese = ['jieba']
+aws = ['boto3']
+agent = ['patchpal']
+guidance = ['guidance>=0.1.5']
+all = ['langchain_chroma', 'chromadb', 'elasticsearch', 'requests_ntlm', 'shap', 'matplotlib', 'jieba', 'boto3', 'patchpal', 'guidance>=0.1.5']
 
 
 [project.scripts]
@@ -44,3 +53,12 @@ onprem = [
 [tool.nbdev]
 branch = 'master'
 custom_sidebar = true
+
+
+# Notes:
+# pinning to transformers>5 due to SetFit issue https://github.com/huggingface/setfit/issues/629
+# pinning to ChromaDB due to backwards compatibility issues
+# pinning: pymupdf4llm==0.0.17 because later versions produce lower-quality outputs based on tests
+# pinning langchain_litellm==0.1.4 because 0.2.1 breaks when streaming=True
+# downloads: nltk punkt/averaged_perceptron_tagger (required by utils.extract_noun_phrases)
+# downloads: models for infer_table_structure and ocr (required by load_single_document)

@@ -308,11 +308,11 @@ class AgentExecutor:
             except FileNotFoundError:
                 if self.sandbox:
                     raise FileNotFoundError(
-                        "patchpal-sandbox command not found. Install PatchPal with: pip install patchpal"
+                        "patchpal-sandbox command not found. Install PatchPal with: pip install onprem[agent]"
                     )
                 else:
                     raise FileNotFoundError(
-                        "patchpal command not found. Install PatchPal with: pip install patchpal"
+                        "patchpal command not found. Install PatchPal with: pip install onprem[agent]"
                     )
             except subprocess.TimeoutExpired:
                 raise RuntimeError(f"Agent execution timed out after 1 hour")

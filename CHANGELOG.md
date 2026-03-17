@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - Revamp of agent module.
 
 ### changed
-- N/A
+- Overhauled optional dependencies in `pyproject.toml`
 
 ### fixed:
 - Fix issue with new fields not being added to index

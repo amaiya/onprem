@@ -48,8 +48,8 @@ class SparseStore(VectorStore):
             return WhooshStore(persist_location=persist_location, **kwargs)
         elif kind == 'elasticsearch':
             if not ELASTICSEARCH_INSTALLED:
-                raise ImportError("Please install the elasticsearch package version for your "
-                                  "Elasticsearch instance: e.g., pip install elasticsearch==9")
+                raise ImportError("Please install the elasticsearch package: pip install onprem[elasticsearch] "
+                                  "or for a specific version: pip install elasticsearch==9")
             return ElasticsearchSparseStore(persist_location=persist_location, **kwargs)
         else:
             raise ValueError(f"Unknown SparseStore type: {kind}")
@@ -483,7 +483,7 @@ class SharePointStore(ReadOnlySparseStore):
         """
 
         if not REQUESTS_NTLM_INSTALLED:
-            raise ImportError('Please install requests_ntlm: pip install requests_ntlm')
+            raise ImportError('Please install the sharepoint package: pip install onprem[sharepoint]')
 
         self.persist_location = persist_location # SharePoint URL
         self.username = username
@@ -1188,7 +1188,8 @@ class ElasticsearchSparseStore(SparseStore):
                                      embedding model (e.g., `{'normalize_embeddings': False}`).
         """
         if not ELASTICSEARCH_INSTALLED:
-            raise ImportError('Please install a version of elasticsearch compatible with your running Elasticsearch instance. For latest: pip install elasticsearch')
+            raise ImportError('Please install the elasticsearch package: pip install onprem[elasticsearch] '
+                              'or for a specific version: pip install elasticsearch==9')
 
         # Use persist_location as Elasticsearch URL
         self.elasticsearch_url = persist_location if persist_location else 'http://localhost:9200'
@@ -1332,8 +1333,8 @@ class ElasticsearchSparseStore(SparseStore):
         - *elasticsearch_url*: Elasticsearch URL (e.g., 'http://localhost:9200')
         """
         if not ELASTICSEARCH_INSTALLED:
-            raise ImportError("Please install the elasticsearch package version for your "
-                              "Elasticsearch instance: e.g., pip install elasticsearch==9)")
+            raise ImportError("Please install the elasticsearch package: pip install onprem[elasticsearch] "
+                              "or for a specific version: pip install elasticsearch==9")
         
         es = Elasticsearch([elasticsearch_url])
         return es.indices.exists(index=index_name)

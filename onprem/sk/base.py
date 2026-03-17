@@ -125,7 +125,7 @@ def split_chinese(texts):
     try:
         import jieba
     except ImportError:
-        raise ImportError('Please install jieba: pip install jieba')
+        raise ImportError('Please install the chinese package: pip install onprem[chinese]')
         
     if isinstance(texts, str):
         texts = [texts]
