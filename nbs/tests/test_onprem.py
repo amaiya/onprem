@@ -909,29 +909,63 @@ def test_search(**kwargs):
 
 def test_agent(**kwargs):
     """
-    Test agent
+    Test agent with custom tools using AgentExecutor
     """
-    from onprem import LLM
-    from onprem.pipelines import Agent
-    llm = LLM('openai/gpt-4o-mini', mute_stream=True)
-    agent = Agent(llm)
-
-    def today() -> str:
+    from typing import Dict
+    from datetime import datetime
+    import os
+    
+    # Define custom tool
+    def get_current_datetime() -> Dict[str, str]:
         """
-        Gets the current date and time
-
+        Get the current date and time.
+        
         Returns:
-            current date and time
+            Dictionary with current date and time information
         """
         from datetime import datetime
-        return datetime.today().isoformat()
-
-    agent.add_function_tool(today)
-    assert (len(agent.tools) == 1)
-    assert('today' in agent.tools)
-    answer = agent.run("What is today's date?")
-    print(answer)
-    assert(today().split('T')[0] in answer)
+        now = datetime.now()
+        return {
+            "date": now.strftime("%Y-%m-%d"),
+            "time": now.strftime("%H:%M:%S"),
+            "iso": now.isoformat()
+        }
+    
+    from onprem.pipelines.agent import AgentExecutor
+    import tempfile
+    
+    # Create agent with custom tool
+    executor = AgentExecutor(
+        model='openai/gpt-4o-mini',
+        custom_tools=[get_current_datetime],
+        enabled_tools=['write_file'],  # Only allow writing files
+        sandbox=False,
+        verbose=False
+    )
+    
+    # Test with a task that requires the custom tool
+    with tempfile.TemporaryDirectory() as tmpdir:
+        task = """
+        Use the get_current_datetime tool to get today's date.
+        Then write a file called 'date_report.txt' that contains:
+        "Today's date is: [the date from the tool]"
+        
+        When done, output: <promise>COMPLETE</promise>
+        """
+        
+        result = executor.run(task, working_dir=tmpdir)
+        
+        # Verify the file was created with today's date
+        report_file = os.path.join(tmpdir, 'date_report.txt')
+        assert os.path.exists(report_file), f"Expected date_report.txt to be created"
+        
+        with open(report_file, 'r') as f:
+            content = f.read()
+        
+        today = datetime.now().strftime("%Y-%m-%d")
+        assert today in content, f"Expected today's date {today} in report file, got: {content}"
+        
+        print(f"✓ Agent successfully used custom tool and wrote today's date: {today}")
 
 
 TESTS = { 'test_prompt' : test_prompt,

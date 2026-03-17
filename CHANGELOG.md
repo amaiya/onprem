@@ -7,10 +7,10 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.22.0 (TBD)
+## 0.22.0 (2026-03-17)
 
 ### new:
-- Revamp of agent module.
+- **`AgentExecutor`**: A new agent pipeline to safely launch agents in sandboxed environments
 
 ### changed
 - Overhauled optional dependencies in `pyproject.toml`

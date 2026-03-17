@@ -70,6 +70,19 @@ class MeasuredQuantity(BaseModel):
 structured_output = llm.pydantic_prompt('He was going 35 mph.', pydantic_model=MeasuredQuantity)
 print(structured_output.value) # 35
 print(structured_output.unit)  # mph
+
+# Safely launch a sandboxed AI agent
+from onprem.piplelines import AgentExecutor
+executor = AgentExecutor(model='openai/gpt-5-mini', sandbox=True)
+result = executor.run("""
+Search this directory for all .md files and:
+1. Extract all headings (# ## ###)
+2. Count total words in each file
+3. Create an index file 'documentation_index.md' with:
+   - List of all markdown files
+   - Word count for each
+   - Main topics covered (from headings)
+""")
 ```
 
 Many LLM backends are supported (e.g.,
@@ -92,9 +105,9 @@ etc.).
 <p align="center">
 
 **[Install](https://amaiya.github.io/onprem/#install) \|
-[Usage](https://amaiya.github.io/onprem/#how-to-use) \|
-[Examples](https://amaiya.github.io/onprem/#examples) \| [Web
+[Usage](https://amaiya.github.io/onprem/#how-to-use) \| [Web
 UI](https://amaiya.github.io/onprem/webapp.html) \|
+[Examples](https://amaiya.github.io/onprem/#examples) \|
 [FAQ](https://amaiya.github.io/onprem/#faq) \| [How to
 Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
@@ -103,6 +116,10 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 *Latest News* 🔥
 
+- \[2026/03\] v0.22.0 released and now includes the **AgentExecutor**:
+  safely launch AI agents in a sandboxed environment to solve problems
+  in two lines of code. See [the example notebook on
+  agents](https://amaiya.github.io/onprem/examples_agent.html).
 - \[2026/01\] v0.21.0 released and now includes support for
   **metadata-based query routing**. See the [query routing example
   here](https://amaiya.github.io/onprem/pipelines.rag.html#example-using-query-routing-with-rag).
@@ -126,33 +143,6 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
   SharePoint for search and RAG. See the [example notebook on vector
   stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html#rag-with-sharepoint-documents)
   for more information.
-- \[2025/07\] v0.16.0 released and now includes out-of-the-box support
-  for **Elasticsearch** as a vector store for RAG and semantic search in
-  addition to other vector store backends. See the [example notebook on
-  vector
-  stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
-  for more information.
-- \[2025/06\] v0.15.0 released and now includes support for solving
-  tasks with **agents**. See the [example notebook on
-  agents](https://amaiya.github.io/onprem/examples_agent.html) for more
-  information.
-- \[2025/05\] v0.14.0 released and now includes a point-and-click
-  interface for **Document Analysis**: applying prompts to individual
-  passages in uploaded documents. See the [Web UI
-  documentation](https://amaiya.github.io/onprem/webapp.html) for more
-  information.
-- \[2025/04\] v0.13.0 released and now includes streamlined support for
-  Ollama and many cloud LLMs via special URLs (e.g.,
-  `model_url="ollama://llama3.2"`,
-  `model_url="anthropic://claude-3-7-sonnet-latest"`). See the [cheat
-  sheet](https://amaiya.github.io/onprem/#how-to-use) for examples.
-  (**Note: Please use `onprem>=0.13.1` due to bug in v0.13.0.**)
-- \[2025/04\] v0.12.0 released and now includes a re-vamped and improved
-  Web UI with support for interactive chatting, document
-  question-answering (RAG), and document search (both keyword searches
-  and semantic searches). See the [Web UI
-  documentation](https://amaiya.github.io/onprem/webapp.html) for more
-  information.
 
 ------------------------------------------------------------------------
 
@@ -332,19 +322,23 @@ llm = LLM(default_model='llama')
 ```
 
 *Choosing Your Own Models:* Of course, you can also easily supply the
-URL or path to an LLM of your choosing to `LLM` (see the
+URL or path to an LLM of your choosing to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (see the
 [FAQ](https://amaiya.github.io/onprem/#faq) for an example).
 
-*Supplying Extra Parameters:* Any extra parameters supplied to `LLM` are
-forwarded directly to
+*Supplying Extra Parameters:* Any extra parameters supplied to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) are forwarded
+directly to
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), the
 default LLM backend.
 
 #### Changing the Default LLM Backend
 
-If `default_engine="transformers"` is supplied to `LLM`, Hugging Face
+If `default_engine="transformers"` is supplied to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face
 [transformers](https://github.com/huggingface/transformers) is used as
-the LLM backend. Extra parameters to `LLM` (e.g.,
+the LLM backend. Extra parameters to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (e.g.,
 ‘device=’cuda’`) are forwarded diretly to`transformers.pipeline`. If supplying a`model_id\`
 parameter, the default LLM backend is automatically changed to Hugging
 Face [transformers](https://github.com/huggingface/transformers).
@@ -390,398 +384,33 @@ is [here](https://amaiya.github.io/onprem/examples_openai.html).
 
 #### Supplying Parameters to the LLM Backend
 
-Extra parameters supplied to `LLM` and `LLM.prompt` are passed directly
-to the LLM backend. Parameter names will vary depending on the backend
-you chose.
+Extra parameters supplied to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt)
+are passed directly to the LLM backend. Parameter names will vary
+depending on the backend you chose.
 
 For instance, with the default llama-cpp backend, the default context
 window size (`n_ctx`) is set to 3900 and the default output size
-(`max_tokens`) is set 512. Both are configurable parameters to `LLM`.
-Increase if you have larger prompts or need longer outputs. Other
-parameters (e.g., `api_key`, `device_map`, etc.) can be supplied
-directly to `LLM` and will be routed to the LLM backend or API (e.g.,
-llama-cpp-python, Hugging Face transformers, vLLM, OpenAI, etc.). The
-`max_tokens` parameter can also be adjusted on-the-fly by supplying it
-to `LLM.prompt`.
+(`max_tokens`) is set 512. Both are configurable parameters to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase if
+you have larger prompts or need longer outputs. Other parameters (e.g.,
+`api_key`, `device_map`, etc.) can be supplied directly to
+[`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be
+routed to the LLM backend or API (e.g., llama-cpp-python, Hugging Face
+transformers, vLLM, OpenAI, etc.). The `max_tokens` parameter can also
+be adjusted on-the-fly by supplying it to
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
 
 On the other hand, for Ollama models, context window and output size are
 controlled by `num_ctx` and `num_predict`, respectively.
 
 With the Hugging Face transformers, setting the context window size is
 not needed, but the output size is controlled by the `max_new_tokens`
-parameter to `LLM.prompt`.
+parameter to
+[`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
 
-### Send Prompts to the LLM to Solve Problems
-
-This is an example of few-shot prompting, where we provide an example of
-what we want the LLM to do.
-
-``` python
-prompt = """Extract the names of people in the supplied sentences.
-Separate names with commas and place on a single line.
-
-# Example 1:
-Sentence: James Gandolfini and Paul Newman were great actors.
-People:
-James Gandolfini, Paul Newman
-
-# Example 2:
-Sentence:
-I like Cillian Murphy's acting. Florence Pugh is great, too.
-People:"""
-
-saved_output = llm.prompt(prompt, stop=['\n\n'])
-```
-
-
-    Cillian Murphy, Florence Pugh
-
-**Additional prompt examples are [shown
-here](https://amaiya.github.io/onprem/examples.html).**
-
-### Talk to Your Documents
-
-Answers are generated from the content of your documents (i.e.,
-[retrieval augmented generation](https://arxiv.org/abs/2005.11401) or
-RAG). Here, we will use [GPU
-offloading](https://amaiya.github.io/onprem/#speeding-up-inference-using-a-gpu)
-to speed up answer generation using the default model. However, the
-Zephyr-7B model may perform even better, responds faster, and is used in
-our **[RAG example
-notebook](https://amaiya.github.io/onprem/examples_rag.html)**.
-
-``` python
-from onprem import LLM
-
-llm = LLM(n_gpu_layers=-1, store_type='sparse', verbose=False)
-```
-
-    llama_new_context_with_model: n_ctx_per_seq (3904) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
-
-The default embedding model is:
-`sentence-transformers/all-MiniLM-L6-v2`. You can change it by supplying
-the `embedding_model_name` to `LLM`.
-
-#### Step 1: Ingest the Documents into a Vector Database
-
-As of v0.10.0, you have the option of storing documents in either a
-dense vector store (i.e., Chroma) or a sparse vector store (i.e., a
-built-in keyword search index). Sparse vector stores sacrifice a small
-amount of inference speed for significant improvements in ingestion
-speed (useful for larger document sets) and also assume answer sources
-will include at least one word from the question. To select the store
-type, supply either `store_type="dense"` or `store_type="sparse"` when
-creating the `LLM`. As you can see above, we use a sparse vector store
-here.
-
-``` python
-llm.ingest("./tests/sample_data")
-```
-
-    Creating new vectorstore at /home/amaiya/onprem_data/vectordb/sparse
-    Loading documents from ./tests/sample_data
-    Split into 354 chunks of text (max. 500 chars each for text; max. 2000 chars for tables)
-    Ingestion complete! You can now query your documents using the LLM.ask or LLM.chat methods
-
-    Loading new documents: 100%|██████████████████████| 6/6 [00:09<00:00,  1.51s/it]
-    Processing and chunking 43 new documents: 100%|██████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 116.11it/s]
-    100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 354/354 [00:00<00:00, 2548.70it/s]
-
-The default `chunk_size` is set quite low at 1000 characters. You
-increase by supplying `chunk_size` to `llm.ingest`. You can customize
-the ingestion process even further by accessing the underlying vector
-store directly, as illustrated in the [advanced RAG
-example](https://amaiya.github.io/onprem/examples_rag.html#advanced-example-nsf-awards).
-
-#### Step 2: Answer Questions About the Documents
-
-``` python
-question = """What is  ktrain?"""
-result = llm.ask(question)
-```
-
-     ktrain is a low-code machine learning platform. It provides out-of-the-box support for training models on various types of data such as text, vision, graph, and tabular.
-
-The sources used by the model to generate the answer are stored in
-`result['source_documents']`. You can adjust the number of sources
-(i.e., chunks) considered by suppyling the `limit` parameter to
-`llm.ask`.
-
-``` python
-print("\nSources:\n")
-for i, document in enumerate(result["source_documents"]):
-    print(f"\n{i+1}.> " + document.metadata["source"] + ":")
-    print(document.page_content)
-```
-
-
-    Sources:
-
-
-    1.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
-    transferred to, and executed on new data in a production environment.
-    ktrain is a Python library for machine learning with the goal of presenting a simple,
-    uniﬁed interface to easily perform the above steps regardless of the type of data (e.g., text
-    vs. images vs. graphs). Moreover, each of the three steps above can be accomplished in
-    ©2022 Arun S. Maiya.
-    License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/. Attribution requirements are
-
-    2.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
-    custom models and data formats, as well. Inspired by other low-code (and no-code) open-
-    source ML libraries such as fastai (Howard and Gugger, 2020) and ludwig (Molino et al.,
-    2019), ktrain is intended to help further democratize machine learning by enabling begin-
-    ners and domain experts with minimal programming or data science experience to build
-    sophisticated machine learning models with minimal coding. It is also a useful toolbox for
-
-    3.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
-    Apache license, and available on GitHub at: https://github.com/amaiya/ktrain.
-    2. Building Models
-    Supervised learning tasks in ktrain follow a standard, easy-to-use template.
-    STEP 1: Load and Preprocess Data. This step involves loading data from diﬀerent
-    sources and preprocessing it in a way that is expected by the model. In the case of text,
-    this may involve language-speciﬁc preprocessing (e.g., tokenization). In the case of images,
-
-    4.> /home/amaiya/projects/ghub/onprem/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf:
-    AutoKeras (Jin et al., 2019) and AutoGluon (Erickson et al., 2020) lack some key “pre-
-    canned” features in ktrain, which has the strongest support for natural language processing
-    and graph-based data. Support for additional features is planned for the future.
-    5. Conclusion
-    This work presented ktrain, a low-code platform for machine learning. ktrain currently in-
-    cludes out-of-the-box support for training models on text, vision, graph, and tabular
-
-### Extract Text from Documents
-
-The `load_single_document` function can extract text from a range of
-different document formats (e.g., PDFs, Microsoft PowerPoint, Microsoft
-Word, etc.). It is automatically invoked when calling `LLM.ingest`.
-Extracted text is represented as LangChain `Document` objects, where
-`Document.page_content` stores the extracted text and
-`Document.metadata` stores any extracted document metadata.
-
-For PDFs, in particular, a number of different options are available
-depending on your use case.
-
-**Fast PDF Extraction (default)**
-
-- **Pro:** Fast
-- **Con:** Does not infer/retain structure of tables in PDF documents
-
-``` python
-from onprem.ingest import load_single_document
-
-docs = load_single_document('tests/sample_data/ktrain_paper/ktrain_paper.pdf')
-docs[0].metadata
-```
-
-    {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf',
-     'file_path': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/1/ktrain_paper.pdf',
-     'page': 0,
-     'total_pages': 9,
-     'format': 'PDF 1.4',
-     'title': '',
-     'author': '',
-     'subject': '',
-     'keywords': '',
-     'creator': 'LaTeX with hyperref',
-     'producer': 'dvips + GPL Ghostscript GIT PRERELEASE 9.22',
-     'creationDate': "D:20220406214054-04'00'",
-     'modDate': "D:20220406214054-04'00'",
-     'trapped': ''}
-
-**Automatic OCR of PDFs**
-
-- **Pro:** Automatically extracts text from scanned PDFs
-- **Con:** Slow
-
-The `load_single_document` function will automatically OCR PDFs that
-require it (i.e., PDFs that are scanned hard-copies of documents). If a
-document is OCR’ed during extraction, the `metadata['ocr']` field will
-be populated with `True`.
-
-``` python
-docs = load_single_document('tests/sample_data/ocr_document/lynn1975.pdf')
-docs[0].metadata
-```
-
-    {'source': '/home/amaiya/projects/ghub/onprem/nbs/sample_data/4/lynn1975.pdf',
-     'ocr': True}
-
-**Markdown Conversion in PDFs**
-
-- **Pro**: Better chunking for QA
-- **Con**: Slower than default PDF extraction
-
-The `load_single_document` function can convert PDFs to Markdown instead
-of plain text by supplying the `pdf_markdown=True` as an argument:
-
-``` python
-docs = load_single_document('your_pdf_document.pdf', 
-                            pdf_markdown=True)
-```
-
-Converting to Markdown can facilitate downstream tasks like
-question-answering. For instance, when supplying `pdf_markdown=True` to
-`LLM.ingest`, documents are chunked in a Markdown-aware fashion (e.g.,
-the abstract of a research paper tends to be kept together into a single
-chunk instead of being split up). Note that Markdown will not be
-extracted if the document requires OCR.
-
-**Inferring Table Structure in PDFs**
-
-- **Pro**: Makes it easier for LLMs to analyze information in tables
-- **Con**: Slower than default PDF extraction
-
-When supplying `infer_table_structure=True` to either
-`load_single_document` or `LLM.ingest`, tables are inferred and
-extracted from PDFs using a TableTransformer model. Tables are
-represented as **Markdown** (or **HTML** if Markdown conversion is not
-possible).
-
-``` python
-docs = load_single_document('your_pdf_document.pdf', 
-                            infer_table_structure=True)
-```
-
-**Parsing Extracted Text Into Sentences or Paragraphs**
-
-For some analyses (e.g., using prompts for information extraction), it
-may be useful to parse the text extracted from documents into individual
-sentences or paragraphs. This can be accomplished using the `segment`
-function:
-
-``` python
-from onprem.ingest import load_single_document
-from onprem.utils import segment
-text = load_single_document('tests/sample_data/sotu/state_of_the_union.txt')[0].page_content
-```
-
-``` python
-segment(text, unit='paragraph')[0]
-```
-
-    'Madam Speaker, Madam Vice President, our First Lady and Second Gentleman.  Members of Congress and the Cabinet.  Justices of the Supreme Court.  My fellow Americans.'
-
-``` python
-segment(text, unit='sentence')[0]
-```
-
-    'Madam Speaker, Madam Vice President, our First Lady and Second Gentleman.'
-
-### Summarization Pipeline
-
-Summarize your raw documents (e.g., PDFs, MS Word) with an LLM.
-
-#### Map-Reduce Summarization
-
-Summarize each chunk in a document and then generate a single summary
-from the individual summaries.
-
-``` python
-from onprem import LLM
-llm = LLM(n_gpu_layers=-1, verbose=False, mute_stream=True) # disabling viewing of intermediate summarization prompts/inferences
-```
-
-``` python
-from onprem.pipelines import Summarizer
-summ = Summarizer(llm)
-
-resp = summ.summarize('tests/sample_data/ktrain_paper/ktrain_paper.pdf', max_chunks_to_use=5) # omit max_chunks_to_use parameter to consider entire document
-print(resp['output_text'])
-```
-
-     Ktrain is an open-source machine learning library that offers a unified interface for various machine learning tasks. The library supports both supervised and non-supervised machine learning, and includes methods for training models, evaluating models, making predictions on new data, and providing explanations for model decisions. Additionally, the library integrates with various explainable AI libraries such as shap, eli5 with lime, and others to provide more interpretable models.
-
-#### Concept-Focused Summarization
-
-Summarize a large document with respect to a particular concept of
-interest.
-
-``` python
-from onprem import LLM
-from onprem.pipelines import Summarizer
-```
-
-``` python
-llm = LLM(default_model='zephyr', n_gpu_layers=-1, verbose=False, temperature=0)
-summ = Summarizer(llm)
-summary, sources = summ.summarize_by_concept('tests/sample_data/ktrain_paper/ktrain_paper.pdf', concept_description="question answering")
-```
-
-
-    The context provided describes the implementation of an open-domain question-answering system using ktrain, a low-code library for augmented machine learning. The system follows three main steps: indexing documents into a search engine, locating documents containing words in the question, and extracting candidate answers from those documents using a BERT model pretrained on the SQuAD dataset. Confidence scores are used to sort and prune candidate answers before returning results. The entire workflow can be implemented with only three lines of code using ktrain's SimpleQA module. This system allows for the submission of natural language questions and receives exact answers, as demonstrated in the provided example. Overall, the context highlights the ease and accessibility of building sophisticated machine learning models, including open-domain question-answering systems, through ktrain's low-code interface.
-
-### Information Extraction Pipeline
-
-Extract information from raw documents (e.g., PDFs, MS Word documents)
-with an LLM.
-
-``` python
-from onprem import LLM
-from onprem.pipelines import Extractor
-# Notice that we're using a cloud-based, off-premises model here! See "OpenAI" section below.
-llm = LLM(model_url='openai://gpt-3.5-turbo', verbose=False, mute_stream=True, temperature=0) 
-extractor = Extractor(llm)
-prompt = """Extract the names of research institutions (e.g., universities, research labs, corporations, etc.) 
-from the following sentence delimited by three backticks. If there are no organizations, return NA.  
-If there are multiple organizations, separate them with commas.
-```{text}```
-"""
-df = extractor.apply(prompt, fpath='tests/sample_data/ktrain_paper/ktrain_paper.pdf', pdf_pages=[1], stop=['\n'])
-df.loc[df['Extractions'] != 'NA'].Extractions[0]
-```
-
-    /home/amaiya/projects/ghub/onprem/onprem/core.py:159: UserWarning: The model you supplied is gpt-3.5-turbo, an external service (i.e., not on-premises). Use with caution, as your data and prompts will be sent externally.
-      warnings.warn(f'The model you supplied is {self.model_name}, an external service (i.e., not on-premises). '+\
-
-    'Institute for Defense Analyses'
-
-### Few-Shot Classification
-
-Make accurate text classification predictions using only a tiny number
-of labeled examples.
-
-``` python
-# create classifier
-from onprem.pipelines import FewShotClassifier
-clf = FewShotClassifier(use_smaller=True)
-
-# Fetching data
-from sklearn.datasets import fetch_20newsgroups
-import pandas as pd
-import numpy as np
-classes = ["soc.religion.christian", "sci.space"]
-newsgroups = fetch_20newsgroups(subset="all", categories=classes)
-corpus, group_labels = np.array(newsgroups.data), np.array(newsgroups.target_names)[newsgroups.target]
-
-# Wrangling data into a dataframe and selecting training examples
-data = pd.DataFrame({"text": corpus, "label": group_labels})
-train_df = data.groupby("label").sample(5)
-test_df = data.drop(index=train_df.index)
-
-# X_sample only contains 5 examples of each class!
-X_sample, y_sample = train_df['text'].values, train_df['label'].values
-
-# test set
-X_test, y_test = test_df['text'].values, test_df['label'].values
-
-# train
-clf.train(X_sample,  y_sample, max_steps=20)
-
-# evaluate
-print(clf.evaluate(X_test, y_test, print_report=False)['accuracy'])
-#output: 0.98
-
-# make predictions
-clf.predict(['Elon Musk likes launching satellites.']).tolist()[0]
-#output: sci.space
-```
-
-**TIP:** You can also easily train a wide range of [traditional text
-classification
-models](https://amaiya.github.io/onprem/pipelines.classifier.html) using
-both Hugging Face transformers and scikit-learn as backends.
-
-### Using Hugging Face Transformers Instead of Llama.cpp
+#### Using Hugging Face Transformers Instead of Llama.cpp
 
 By default, the LLM backend employed by **OnPrem.LLM** is
 [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), which
@@ -840,233 +469,6 @@ you receive errors related to bitsandbytes, please refer to the
 [bitsandbytes
 documentation](https://huggingface.co/docs/bitsandbytes/main/en/installation).
 
-### Structured and Guided Outputs
-
-LLMs do not always listen to instructions properly. **Structured
-outputs** for LLMs are a feature ensuring model responses follow a
-strict, user-defined format (like JSON or XML schema) instead of
-free-form text, making outputs predictable, machine-readable, and easily
-integrable into applications.
-
-#### Natively Supported Structured Outputs
-
-A number of LLM services (e.g., vLLM, OpenAI, Anthropic Claude, AWS
-GovCloud Bedrock) include native support for producing structured
-outputs. To take advantage of this capability when it exists, you can
-supply a Pydantic model representing the desired output format to the
-`response_format` parameter of`LLM.prompt`.
-
-Structured outputs for LLMs are a feature ensuring model responses
-follow a strict, user-defined format (like JSON or XML schema) instead
-of free-form text, making outputs predictable, machine-readable, and
-easily integrable into applications.
-
-**Anthropic or OpenAI**
-
-``` python
-from onprem import LLM
-from pydantic import BaseModel
-
-class ContactInfo(BaseModel):
-    name: str
-    email: str
-    plan_interest: str
-    demo_requested: bool
-
-# Create LLM instance for Claude
-llm = LLM("anthropic/claude-3-7-sonnet-latest")
-
-# Use structured output - this should automatically use Claude's native API
-result = llm.prompt(
-    "Extract info from: John Smith (john@example.com) is interested in our Enterprise plan and wants to schedule a demo for next Tuesday  at 2pm.",
-      response_format=ContactInfo
-  )
-
-print(f"Name: {result.name}")
-print(f"Email: {result.email}")
-print(f"Plan: {result.plan_interest}")
-print(f"Demo: {result.demo_requested}")
-```
-
-The above approach using the `response_format` parameter works with both
-**Anthropic** and **OpenAI** as LLM backends.
-
-**AWS GovCloud Bedrock**
-
-A structured output example using **AWS GovCloud Bedrock** is [shown
-here](https://amaiya.github.io/onprem/llm.backends.html#structured-outputs-with-aws-govcloud-bedrock).
-
-**VLLM**
-
-For **vLLM**, you can generate structured outputs using documented extra
-parameters like `extra_body` argument as illustrated below:
-
-``` python
-from onprem import LLM
-llm = LLM(model_url='http://localhost:8666/v1', api_key='test123', model='MyGPT')
-
-# classification-based structured outputs
-result = llm.prompt('Classify this sentiment: vLLM is wonderful!',
-                     extra_body={"structured_outputs": {"choice": ["positive", "negative"]}})
-# OUTPUT: positive
-
-# JSON-based structured outputs
-from pydantic import BaseModel, Field
-class MeasuredQuantity(BaseModel):
-    value: str = Field(description="numerical value - number only")
-    unit: str = Field(description="unit of measurement")
-response_format = {"type": "json_schema",
-                     "json_schema": {
-                     "name": MeasuredQuantity.__name__.lower(),
-                      "schema": MeasuredQuantity.model_json_schema()}}
-result = llm.prompt('Extract unit and value from the following: He was going 35 mph.',                                                                                       response_format=response_format)
-# OUTPUT: { "value": "35", "unit": "mph" }
-
-# RegEx-based strucured outputs
-result = llm.prompt(
-    "Generate an example email address for Alan Turing, who works in Enigma. End in "
-    ".com and new line.",
-    extra_body={"structured_outputs": {"regex": r"\w+@\w+\.com\n"}, "stop": ["\n"]},
-)
-# OUTPUT: Alan_Turing@enigma.com
-```
-
-**Ollama**
-
-``` python
-from pydantic import BaseModel
-
-class Pet(BaseModel):
-  name: str
-  animal: str
-  age: int
-  color: str | None
-  favorite_toy: str | None
-
-class PetList(BaseModel):
-  pets: list[Pet]
-
-llm = LLM('ollama/llama3.1')
-result = llm.prompt('I have two cats named Luna and Loki...', format=PetList.model_json_schema())
-```
-
-When using an LLM backend that does not natively support structured
-outputs, supplying a Pydantic model via the `response_format` parameter
-to `LLM.prompt` should result in an automatic fall back to a
-prompt-based approach to structured outputs as described next.
-
-**Tip:** When using natively-supported structured outputs, it is
-important to include an actual instruction in the prompt (e.g.,
-*“Classify this sentiment”*, *“Extract info from”*, etc.). With
-prompt-based structured outputs (described below), the instruction can
-often be omitted.
-
-#### Prompt-Based Structured Outputs
-
-The `LLM.pydantic_prompt` method also allows you to specify the desired
-structure of the LLM’s output as a Pydantic model. Internally,
-`LLM.pydantic_prompt` wraps the user-supplied prompt within a larger
-prompt telling the LLM to output results in a specific JSON format. It
-is sometimes less efficient/reliable than aforementioned native methods,
-but is more generally applicable to any LLM. Since calling `LLM.prompt`
-with the `response_format` parameter will automatically invoke
-`LLM.pydantic_prompt` when necessary, you will typically not have to
-call `LLM.pydantic_prompt` directly.
-
-``` python
-from pydantic import BaseModel, Field
-
-class Joke(BaseModel):
-    setup: str = Field(description="question to set up a joke")
-    punchline: str = Field(description="answer to resolve the joke")
-
-from onprem import LLM
-llm = LLM(default_model='llama', verbose=False)
-structured_output = llm.pydantic_prompt('Tell me a joke.', pydantic_model=Joke)
-```
-
-    llama_new_context_with_model: n_ctx_per_seq (3904) < n_ctx_train (131072) -- the full capacity of the model will not be utilized
-
-    {
-      "setup": "Why couldn't the bicycle stand alone?",
-      "punchline": "Because it was two-tired!"
-    }
-
-The output is a Pydantic object instead of a string:
-
-``` python
-structured_output
-```
-
-    Joke(setup="Why couldn't the bicycle stand alone?", punchline='Because it was two-tired!')
-
-``` python
-print(structured_output.setup)
-print()
-print(structured_output.punchline)
-```
-
-    Why couldn't the bicycle stand alone?
-
-    Because it was two-tired!
-
-You can also use **OnPrem.LLM** with the
-[Guidance](https://github.com/guidance-ai/guidance) package to guide the
-LLM to generate outputs based on your conditions and constraints. We’ll
-show a couple of examples here, but see [our documentation on guided
-prompts](https://amaiya.github.io/onprem/examples_guided_prompts.html)
-for more information.
-
-``` python
-from onprem import LLM
-
-llm = LLM(n_gpu_layers=-1, verbose=False)
-from onprem.pipelines.guider import Guider
-guider = Guider(llm)
-```
-
-With the Guider, you can use use Regular Expressions to control LLM
-generation:
-
-``` python
-prompt = f"""Question: Luke has ten balls. He gives three to his brother. How many balls does he have left?
-Answer: """ + gen(name='answer', regex='\d+')
-
-guider.prompt(prompt, echo=False)
-```
-
-    {'answer': '7'}
-
-``` python
-prompt = '19, 18,' + gen(name='output', max_tokens=50, stop_regex='[^\d]7[^\d]')
-guider.prompt(prompt)
-```
-
-<pre style='margin: 0px; padding: 0px; padding-left: 8px; margin-left: -8px; border-radius: 0px; border-left: 1px solid rgba(127, 127, 127, 0.2); white-space: pre-wrap; font-family: ColfaxAI, Arial; font-size: 15px; line-height: 23px;'>19, 18<span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>7</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>6</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>5</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>4</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>3</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>2</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 1</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>0</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 9</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'> 8</span><span style='background-color: rgba(0, 165, 0, 0.15); border-radius: 3px;' title='0.0'>,</span></pre>
-
-    {'output': ' 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,'}
-
-See [the
-documentation](https://amaiya.github.io/onprem/examples_guided_prompts.html)
-for more examples of how to use
-[Guidance](https://github.com/guidance-ai/guidance) with **OnPrem.LLM**.
-
-### Solving Tasks With Agents
-
-``` python
-from onprem import LLM
-from onprem.pipelines import Agent
-llm = LLM('openai/gpt-4o-mini', mute_stream=True) 
-agent = Agent(llm)
-agent.add_webview_tool()
-answer = agent.run("What is the highest level of education of the person listed on this page: https://arun.maiya.net?")
-# ANSWER: Ph.D. in Computer Science
-```
-
-See the **[example notebook on
-agents](https://amaiya.github.io/onprem/examples_agent.html)** for more
-information
-
 ## Built-In Web App
 
 **OnPrem.LLM** includes a built-in Web app to access the LLM. To start
@@ -1087,26 +489,45 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 ## Examples
 
 The [documentation](https://amaiya.github.io/onprem/) includes many
-examples, including:
+examples.
 
-- [Prompts for
-  Problem-Solving](https://amaiya.github.io/onprem/examples.html)
-- [RAG Example](https://amaiya.github.io/onprem/examples_rag.html)
-- [Code Generation](https://amaiya.github.io/onprem/examples_code.html)
-- [Semantic
-  Similarity](https://amaiya.github.io/onprem/examples_semantic.html)
-- [Document
-  Summarization](https://amaiya.github.io/onprem/examples_summarization.html)
-- [Information
-  Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
-- [Text
-  Classification](https://amaiya.github.io/onprem/examples_classification.html)
-- [Agent-Based Task
-  Execution](https://amaiya.github.io/onprem/examples_agent.html)
-- [Audo-Coding Survey
-  Responses](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
-- [Legal and Regulatory
-  Analysis](https://amaiya.github.io/onprem/examples_legal_analysis.html)
+\### 📚 Document Processing \| Documentation Link \| Example \|
+\|——————-\|———\| \| [Text
+Extraction](https://amaiya.github.io/onprem/examples_text_extraction.html)
+\| Document Text Extraction (PDFs, Word, PowerPoint) \| \| [Document
+Summarization](https://amaiya.github.io/onprem/examples_summarization.html)
+\| Document Summarization \| \| [Information
+Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
+\| Information Extraction from Documents \|
+
+\### 🧠 Question-Answering & Search \| Documentation Link \| Example \|
+\|——————-\|———\| \| [RAG
+Example](https://amaiya.github.io/onprem/examples_rag.html) \|
+Question-Answering with RAG \| \| [Vector Stores
+Tutorial](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
+\| Using Different Vector Stores \| \| [Semantic
+Similarity](https://amaiya.github.io/onprem/examples_semantic.html) \|
+Computing Semantic Similarity Between Texts \|
+
+\### 🎯 Classification & Analysis \| Documentation Link \| Example \|
+\|——————-\|———\| \| [Text
+Classification](https://amaiya.github.io/onprem/examples_classification.html)
+\| Few-Shot Text Classification \| \| [Survey
+Analysis](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
+\| Auto-Coding Qualitative Survey Responses \| \| [Legal
+Analysis](https://amaiya.github.io/onprem/examples_legal_analysis.html)
+\| Legal and Regulatory Document Analysis \|
+
+\### 🛠️ Advanced Features  
+\| Documentation Link \| Example \| \|——————-\|———\| \| [Prompting
+Examples](https://amaiya.github.io/onprem/examples.html) \|
+Problem-Solving With Prompts \| \| [Agent
+Examples](https://amaiya.github.io/onprem/examples_agent.html) \|
+Agent-Based Task Execution with Tools \| \| [Structured
+Outputs](https://amaiya.github.io/onprem/examples_guided_prompts.html)
+\| Structured and Guided Outputs with Pydantic Models \| \| [Workflow
+Builder](https://amaiya.github.io/onprem/workflows.html) \| Workflow
+Builder for Document Analysis \|
 
 ## FAQ
 
@@ -1266,7 +687,8 @@ examples, including:
     > CMAKE_ARGS="-DGGML_CUDA=ON -DGGML_AVX2=OFF -DGGML_AVX=OFF -DGGML_F16C=OFF -DGGML_FMA=OFF" FORCE_CMAKE=1 pip install --force-reinstall llama-cpp-python --no-cache-dir
     > ```
 
-7.  **How can I speed up `LLM.ingest`?**
+7.  **How can I speed up
+    [`LLM.ingest`](https://amaiya.github.io/onprem/llm.base.html#llm.ingest)?**
 
     > By default, a GPU, if available, will be used to compute
     > embeddings, so ensure PyTorch is installed with GPU support. You

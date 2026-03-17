@@ -8,9 +8,11 @@ __all__ = ['AgentExecutor']
 # %% ../../../nbs/04_pipelines.agent.base.ipynb #3a4d43ce
 """Agent executor that wraps patchpal-sandbox for sandboxed autonomous execution."""
 
+import inspect
 import os
 import subprocess
 import tempfile
+import textwrap
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -26,7 +28,7 @@ class AgentExecutor:
     - Support for both cloud and local LLMs
     - Custom tool integration via ~/.patchpal/tools/
     - API key management via .env files
-    
+
     Args:
         model (str): LiteLLM model identifier (e.g., 'anthropic/claude-sonnet-4-5', 'ollama_chat/gpt-oss-120b')
         agent_type (str): Type of agent ('function_calling' or 'react')
@@ -37,6 +39,28 @@ class AgentExecutor:
         network (str): Network mode ('bridge', 'host', 'none') [sandbox only]
         memory (str): Memory limit (e.g., '2g', '4g') [sandbox only]
         cpus (float): CPU limit (e.g., 2, 4) [sandbox only]
+        custom_tools (list): List of Python functions to use as custom tools. Each function should have
+                            type hints and a docstring. These will be written to .patchpal/tools/ directory
+                            in the working directory and automatically discovered by PatchPal.
+                            
+                            Example:
+                                def calculate_sum(a: int, b: int) -> int:
+                                    '''Add two numbers together.
+                                    
+                                    Args:
+                                        a: First number
+                                        b: Second number
+                                    
+                                    Returns:
+                                        Sum of a and b
+                                    '''
+                                    return a + b
+                                
+                                executor = AgentExecutor(
+                                    model='anthropic/claude-sonnet-4-5',
+                                    custom_tools=[calculate_sum]
+                                )
+                            
         enabled_tools (list): List of tool names to enable. If None, uses DEFAULT_TOOLS:
                              ['read_file', 'read_lines', 'edit_file', 'write_file',
                               'grep', 'find', 'run_shell', 'web_search', 'web_fetch']
@@ -73,6 +97,7 @@ class AgentExecutor:
         network: str = "bridge",
         memory: Optional[str] = None,
         cpus: Optional[float] = None,
+        custom_tools: Optional[List[Callable]] = None,
         enabled_tools: Optional[List[str]] = None,
         disable_shell: bool = False,
         completion_promise: str = "COMPLETE",
@@ -91,6 +116,7 @@ class AgentExecutor:
         self.network = network
         self.memory = memory
         self.cpus = cpus
+        self.custom_tools = custom_tools or []
         
         # Handle tool configuration
         if enabled_tools is not None:
@@ -155,6 +181,129 @@ class AgentExecutor:
         print("    enabled_tools=['web_search', 'web_fetch']")
         print(")")
         print()
+
+    def _write_custom_tools(self, tools_dir: Path):
+        """Write custom tool functions to Python files in the tools directory."""
+        if not self.custom_tools:
+            return
+        
+        tools_dir.mkdir(parents=True, exist_ok=True)
+        
+        for func in self.custom_tools:
+            # Get function name
+            func_name = func.__name__
+            
+            # Try to get source code
+            try:
+                source = inspect.getsource(func)
+            except (OSError, TypeError):
+                if self.verbose:
+                    print(f"⚠️  Warning: Could not extract source for custom tool '{func_name}', skipping")
+                continue
+            
+            # Dedent the source code
+            source = textwrap.dedent(source)
+            
+            # Try to get imports from the source file (works for .py files)
+            imports = []
+            try:
+                source_file = inspect.getsourcefile(func)
+                if source_file and Path(source_file).exists():
+                    with open(source_file, 'r') as f:
+                        for line in f:
+                            stripped = line.strip()
+                            if stripped.startswith('import ') or stripped.startswith('from '):
+                                if 'onprem' not in stripped:
+                                    imports.append(stripped)
+            except Exception:
+                pass
+            
+            # If no imports found (e.g., Jupyter notebook), reconstruct from globals
+            if not imports:
+                func_globals = func.__globals__
+                
+                # Parse the source to find what names are actually used
+                import ast
+                try:
+                    # Parse the function source to find referenced names
+                    tree = ast.parse(source)
+                    used_names = set()
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Name):
+                            used_names.add(node.id)
+                except:
+                    # If parsing fails, we'll include everything (fallback)
+                    used_names = None
+                
+                # Group objects by their source module
+                from_imports = {}  # module -> [names]
+                direct_imports = set()
+                
+                # Skip these modules/names
+                skip_modules = {'IPython', '__main__', 'builtins', '__builtin__', 'onprem', 'io'}
+                skip_names = {'open', 'exit', 'quit', 'get_ipython', '__builtins__'}
+                
+                for name, obj in func_globals.items():
+                    if name.startswith('_') or name in skip_names:
+                        continue
+                    
+                    # Only include if the name is actually used in the function
+                    if used_names is not None and name not in used_names:
+                        continue
+                    
+                    # Skip onprem imports
+                    if hasattr(obj, '__module__'):
+                        obj_module = str(obj.__module__)
+                        if any(skip in obj_module for skip in skip_modules):
+                            continue
+                    
+                    # Check if it's a module (import xxx)
+                    if hasattr(obj, '__name__') and hasattr(obj, '__file__'):
+                        module_name = obj.__name__
+                        if module_name and not any(skip in module_name for skip in skip_modules):
+                            direct_imports.add(f"import {module_name}")
+                    
+                    # Check if it's from typing module
+                    elif str(type(obj)).startswith("<class 'typing."):
+                        if 'typing' not in from_imports:
+                            from_imports['typing'] = []
+                        from_imports['typing'].append(name)
+                    
+                    # Check if it's from another module (from xxx import yyy)
+                    elif hasattr(obj, '__module__'):
+                        module = obj.__module__
+                        if module and not any(skip in module for skip in skip_modules):
+                            # Only include standard library or well-known packages
+                            if '.' not in name:  # Skip complex nested objects
+                                if module not in from_imports:
+                                    from_imports[module] = []
+                                from_imports[module].append(name)
+                
+                # Build import statements
+                for module, names in sorted(from_imports.items()):
+                    imports.append(f"from {module} import {', '.join(sorted(set(names)))}")
+                
+                imports.extend(sorted(direct_imports))
+            
+            # Build file content with imports at the top
+            file_content = ""
+            if imports:
+                # Remove duplicates while preserving order
+                seen = set()
+                unique_imports = []
+                for imp in imports:
+                    if imp not in seen:
+                        seen.add(imp)
+                        unique_imports.append(imp)
+                file_content = "\n".join(unique_imports) + "\n\n"
+            file_content += source
+            
+            # Write to file
+            tool_file = tools_dir / f"{func_name}.py"
+            tool_file.write_text(file_content)
+            
+            if self.verbose:
+                print(f"✓ Wrote custom tool '{func_name}' to {tool_file}")
 
     def _build_sandbox_command(self, task_file: Path) -> List[str]:
         """Build the patchpal-sandbox command."""
@@ -223,12 +372,20 @@ class AgentExecutor:
         # Save current directory
         original_dir = os.getcwd()
         
+        # Track if we created a custom tools directory
+        custom_tools_dir = None
+        
         try:
             # Change to working directory if specified
             if working_dir:
                 working_path = Path(working_dir)
                 working_path.mkdir(parents=True, exist_ok=True)
                 os.chdir(working_dir)
+            
+            # Write custom tools to .patchpal/tools/ directory
+            if self.custom_tools:
+                custom_tools_dir = Path('.patchpal/tools')
+                self._write_custom_tools(custom_tools_dir)
             
             # Create task file in current directory
             task_file = Path('task_prompt.md')
@@ -320,6 +477,11 @@ class AgentExecutor:
                 # Clean up task file
                 if task_file.exists():
                     task_file.unlink()
+                
+                # Clean up custom tools directory if we created it
+                if custom_tools_dir and custom_tools_dir.exists():
+                    import shutil
+                    shutil.rmtree(custom_tools_dir)
         
         finally:
             # Restore original directory
