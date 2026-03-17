@@ -5,9 +5,6 @@
 # %% auto #0
 __all__ = ['Guider']
 
-# %% ../../nbs/04_pipelines.guider.ipynb #d1446c77
-from guidance import models
-
 # %% ../../nbs/04_pipelines.guider.ipynb #ceb356ac
 class Guider:
     def __init__(
@@ -43,6 +40,7 @@ class Guider:
 
         - A dictionary with keys specified in the Guidance program and values containing the model outputs
         """
+        from guidance import models
         model = models.LlamaCpp(self.llm.llm.client, echo=echo) 
         output = model + guidance_program
         return output.__dict__['_variables']
