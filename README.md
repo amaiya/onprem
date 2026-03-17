@@ -491,6 +491,12 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 The [documentation](https://amaiya.github.io/onprem/) includes many
 examples.
 
+### 💡 Getting Started
+
+| Documentation Link                                                  | Example                      |
+|---------------------------------------------------------------------|------------------------------|
+| [Prompting Examples](https://amaiya.github.io/onprem/examples.html) | Problem-Solving With Prompts |
+
 ### 📚 Document Processing
 
 | Documentation Link                                                                             | Example                                           |
@@ -519,7 +525,6 @@ examples.
 
 | Documentation Link                                                                 | Example                                            |
 |------------------------------------------------------------------------------------|----------------------------------------------------|
-| [Prompting Examples](https://amaiya.github.io/onprem/examples.html)                | Problem-Solving With Prompts                       |
 | [Agent Examples](https://amaiya.github.io/onprem/examples_agent.html)              | Agent-Based Task Execution with Tools              |
 | [Structured Outputs](https://amaiya.github.io/onprem/examples_guided_prompts.html) | Structured and Guided Outputs with Pydantic Models |
 | [Workflow Builder](https://amaiya.github.io/onprem/workflows.html)                 | Workflow Builder for Document Analysis             |
