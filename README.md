@@ -491,43 +491,38 @@ documentation](https://amaiya.github.io/onprem/webapp.html).
 The [documentation](https://amaiya.github.io/onprem/) includes many
 examples.
 
-\### 📚 Document Processing \| Documentation Link \| Example \|
-\|——————-\|———\| \| [Text
-Extraction](https://amaiya.github.io/onprem/examples_text_extraction.html)
-\| Document Text Extraction (PDFs, Word, PowerPoint) \| \| [Document
-Summarization](https://amaiya.github.io/onprem/examples_summarization.html)
-\| Document Summarization \| \| [Information
-Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html)
-\| Information Extraction from Documents \|
+### 📚 Document Processing
 
-\### 🧠 Question-Answering & Search \| Documentation Link \| Example \|
-\|——————-\|———\| \| [RAG
-Example](https://amaiya.github.io/onprem/examples_rag.html) \|
-Question-Answering with RAG \| \| [Vector Stores
-Tutorial](https://amaiya.github.io/onprem/examples_vectorstore_factory.html)
-\| Using Different Vector Stores \| \| [Semantic
-Similarity](https://amaiya.github.io/onprem/examples_semantic.html) \|
-Computing Semantic Similarity Between Texts \|
+| Documentation Link                                                                             | Example                                           |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| [Text Extraction](https://amaiya.github.io/onprem/examples_text_extraction.html)               | Document Text Extraction (PDFs, Word, PowerPoint) |
+| [Document Summarization](https://amaiya.github.io/onprem/examples_summarization.html)          | Document Summarization                            |
+| [Information Extraction](https://amaiya.github.io/onprem/examples_information_extraction.html) | Information Extraction from Documents             |
 
-\### 🎯 Classification & Analysis \| Documentation Link \| Example \|
-\|——————-\|———\| \| [Text
-Classification](https://amaiya.github.io/onprem/examples_classification.html)
-\| Few-Shot Text Classification \| \| [Survey
-Analysis](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html)
-\| Auto-Coding Qualitative Survey Responses \| \| [Legal
-Analysis](https://amaiya.github.io/onprem/examples_legal_analysis.html)
-\| Legal and Regulatory Document Analysis \|
+### 🧠 Question-Answering & Search
 
-\### 🛠️ Advanced Features  
-\| Documentation Link \| Example \| \|——————-\|———\| \| [Prompting
-Examples](https://amaiya.github.io/onprem/examples.html) \|
-Problem-Solving With Prompts \| \| [Agent
-Examples](https://amaiya.github.io/onprem/examples_agent.html) \|
-Agent-Based Task Execution with Tools \| \| [Structured
-Outputs](https://amaiya.github.io/onprem/examples_guided_prompts.html)
-\| Structured and Guided Outputs with Pydantic Models \| \| [Workflow
-Builder](https://amaiya.github.io/onprem/workflows.html) \| Workflow
-Builder for Document Analysis \|
+| Documentation Link                                                                          | Example                                     |
+|---------------------------------------------------------------------------------------------|---------------------------------------------|
+| [RAG Example](https://amaiya.github.io/onprem/examples_rag.html)                            | Question-Answering with RAG                 |
+| [Vector Stores Tutorial](https://amaiya.github.io/onprem/examples_vectorstore_factory.html) | Using Different Vector Stores               |
+| [Semantic Similarity](https://amaiya.github.io/onprem/examples_semantic.html)               | Computing Semantic Similarity Between Texts |
+
+### 🎯 Classification & Analysis
+
+| Documentation Link                                                                           | Example                                  |
+|----------------------------------------------------------------------------------------------|------------------------------------------|
+| [Text Classification](https://amaiya.github.io/onprem/examples_classification.html)          | Few-Shot Text Classification             |
+| [Survey Analysis](https://amaiya.github.io/onprem/examples_qualitative_survey_analysis.html) | Auto-Coding Qualitative Survey Responses |
+| [Legal Analysis](https://amaiya.github.io/onprem/examples_legal_analysis.html)               | Legal and Regulatory Document Analysis   |
+
+### 🛠️ Advanced Features
+
+| Documentation Link                                                                 | Example                                            |
+|------------------------------------------------------------------------------------|----------------------------------------------------|
+| [Prompting Examples](https://amaiya.github.io/onprem/examples.html)                | Problem-Solving With Prompts                       |
+| [Agent Examples](https://amaiya.github.io/onprem/examples_agent.html)              | Agent-Based Task Execution with Tools              |
+| [Structured Outputs](https://amaiya.github.io/onprem/examples_guided_prompts.html) | Structured and Guided Outputs with Pydantic Models |
+| [Workflow Builder](https://amaiya.github.io/onprem/workflows.html)                 | Workflow Builder for Document Analysis             |
 
 ## FAQ
 
