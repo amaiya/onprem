@@ -150,24 +150,33 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 Once you have [installed
 PyTorch](https://pytorch.org/get-started/locally/), you can install
-**OnPrem.LLM** with the following steps:
+**OnPrem.LLM** with:
 
-1.  Install **llama-cpp-python** (*optional* - see below):
-    - **CPU:** `pip install llama-cpp-python` ([extra
-      steps](https://github.com/amaiya/onprem/blob/master/MSWindows.md)
-      required for Microsoft Windows)
-    - **GPU**: Follow [instructions
-      below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference).
-2.  Install **OnPrem.LLM** with Chroma packages:
-    `pip install onprem[chroma]`
+``` sh
+pip install onprem
+```
 
-For RAG using only a [sparse
-vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database),
-you can install OnPrem.LLM without the extra chroma packages:
-`pip install onprem`.
+**Chroma**: If using RAG with the default Chroma “Dense” vectorstore
+(instead of [sparse
+vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)),
+run `pip install[chroma]`.
 
-**Note:** Installing **llama-cpp-python** is *optional* if any of the
-following is true:
+**AI Agents**: If using OnPrem.LLM to launch [AI
+agents](https://amaiya.github.io/onprem/examples_agent.html), run
+`pip install onprem[agent]`.
+
+**Llama-cpp-python is optional:**
+
+If using llama-cpp-python as the LLM backend:
+
+- **CPU:** `pip install llama-cpp-python` ([extra
+  steps](https://github.com/amaiya/onprem/blob/master/MSWindows.md)
+  required for Microsoft Windows)
+- **GPU**: Follow [instructions
+  below](https://amaiya.github.io/onprem/#on-gpu-accelerated-inference-with-llama-cpp-python).
+
+Installing llama-cpp-python is *optional* if any of the following is
+true:
 
 - You are using [Ollama](https://ollama.com/) as the LLM backend.
 - You use Hugging Face Transformers (instead of llama-cpp-python) as the
@@ -178,7 +187,7 @@ following is true:
   [external REST API](https://amaiya.github.io/onprem/#cheat-sheet)
   (e.g., vLLM, OpenLLM).
 - You are using **OnPrem.LLM** with a [cloud
-  LLM](https://amaiya.github.io/onprem/#cheat-sheet) (more information
+  LLM](https://amaiya.github.io/onprem/#cheat-sheet) (see cheat sheet
   below).
 
 ### On GPU-Accelerated Inference With `llama-cpp-python`
