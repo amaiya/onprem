@@ -6,7 +6,6 @@ website:
         contents:
         - 99a_examples.ipynb
         - 99b_examples_rag.ipynb
-        - 99c_examples_code.ipynb
         - 99d_examples_semantic.ipynb
         - 99e_examples_guided_prompts.ipynb
         - 99f_examples_summarization.ipynb
@@ -14,7 +13,8 @@ website:
         - 99h_examples_classification.ipynb
         - 99i_examples_qualitative_survey_analysis.ipynb
         - 99j_examples_legal_analysis.ipynb
-        #- 99k_examples_agent.ipynb
+        - 99k_examples_agent.ipynb
+        - 99m_examples_text_extraction.ipynb
         - 99x_examples_openai.ipynb
         - 99l_examples_vectorstore_factory.ipynb
         - workflows.qmd
