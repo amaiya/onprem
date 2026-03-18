@@ -72,7 +72,7 @@ print(structured_output.value) # 35
 print(structured_output.unit)  # mph
 
 # Safely launch a sandboxed AI agent
-from onprem.piplelines import AgentExecutor
+from onprem.pipelines import AgentExecutor
 executor = AgentExecutor(model='openai/gpt-5-mini', sandbox=True)
 result = executor.run("""
 Search this directory for all .md files and:
