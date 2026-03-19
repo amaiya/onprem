@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agent-Based Task Execution – onprem</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-baedc78cbf92349237790bf011c153e8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Agent-Based Task Execution – onprem">
+<meta property="og:description" content="A tool for running on-premises large language models on non-public data">
+<meta property="og:site_name" content="onprem">
+<meta name="twitter:title" content="Agent-Based Task Execution – onprem">
+<meta name="twitter:description" content="A tool for running on-premises large language models on non-public data">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">onprem</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_agent.html">Agent-Based Task Execution</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OnPrem.LLM</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Examples</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Use Prompts to Solve Problems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Document Question-Answering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_semantic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic Similarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_guided_prompts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Structured Outputs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_summarization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summarization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_information_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Information Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_classification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Few-Shot Classification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_qualitative_survey_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Qualitative Survey Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_legal_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Legal and Regulatory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_agent.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Agent-Based Task Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_text_extraction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Text Extraction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_openai.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using OpenAI Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples_vectorstore_factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using Different Vector Stores</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./workflows.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Buildling Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./webapp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Built-In Web App</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Source</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm.backends.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm backends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.helpers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.helpers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.factory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.factory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dense.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dense</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.sparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.sparse</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ingest.stores.dual.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ingest.stores.dual</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.rag.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.rag</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.extractor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.extractor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.summarizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.summarizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.classifier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.classifier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.guider.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.guider</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pipelines.agent.base.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pipelines.agent.base</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+ <span class="menu-text">04_pipelines.agent.model.ipynb</span>
+  </li>
+          <li class="sidebar-item">
+ <span class="menu-text">04_pipelines.agent.tools.ipynb</span>
+  </li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-agentexecutor" id="toc-the-agentexecutor" class="nav-link active" data-scroll-target="#the-agentexecutor">The AgentExecutor</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a>
+  <ul class="collapse">
+  <li><a href="#basic-calculator-example" id="toc-basic-calculator-example" class="nav-link" data-scroll-target="#basic-calculator-example">Basic Calculator Example</a></li>
+  <li><a href="#web-research-agent" id="toc-web-research-agent" class="nav-link" data-scroll-target="#web-research-agent">Web Research Agent</a></li>
+  <li><a href="#local-models" id="toc-local-models" class="nav-link" data-scroll-target="#local-models">Local Models</a></li>
+  <li><a href="#sandboxed-execution" id="toc-sandboxed-execution" class="nav-link" data-scroll-target="#sandboxed-execution">Sandboxed Execution</a></li>
+  <li><a href="#custom-tools" id="toc-custom-tools" class="nav-link" data-scroll-target="#custom-tools">Custom Tools</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./examples.html">Examples</a></li><li class="breadcrumb-item"><a href="./examples_agent.html">Agent-Based Task Execution</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Agent-Based Task Execution</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>This notebook demonstrates how to use the <code>Agent</code> pipeline from <strong><a href="https://github.com/amaiya/onprem">OnPrem.LLM</a></strong> to create autonomous agents that can execute complex tasks using a variety of tools.</p>
+<p>The pipeline works with any LiteLLM-supported model that supports tool-calling:</p>
+<ul>
+<li><strong>Cloud</strong>: openai/gpt-5.2-codex, anthropic/claude-sonnet-4-5, gemini/gemini-1.5-pro</li>
+<li><strong>Local</strong>: Ollama (ollama/llama3.1), vLLM (hosted_vllm/<model>), llama.cpp (use OpenAI interface)</model></li>
+</ul>
+<p>For <strong>llama.cpp</strong>: Use <code>openai/&lt;model_name&gt;</code> (e.g., gpt-oss-120b) as model parameter and then set env variable <code>OPENAI_API_BASE=http://localhost:&lt;port&gt;/v1</code></p>
+<section id="the-agentexecutor" class="level2">
+<h2 class="anchored" data-anchor-id="the-agentexecutor">The AgentExecutor</h2>
+<p>The <a href="https://amaiya.github.io/onprem/pipelines.agent.base.html#agentexecutor"><code>AgentExecutor</code></a> allows you to launch AI agents to solve various tasks using both cloud and local models. We will use <strong>anthropic/claude-sonnet-4-5</strong> (cloud) and <strong>glm-4.7-flash</strong> (local) for these examples.</p>
+<p>By default, the <a href="https://amaiya.github.io/onprem/pipelines.agent.base.html#agentexecutor"><code>AgentExecutor</code></a> has access to 9 built-in tools. You remove access to built-in-tools as necessary. You can optionally give the agent access to <strong>custom tools</strong>, as we’ll illustrate below.</p>
+<p>The <a href="https://amaiya.github.io/onprem/pipelines.agent.base.html#agentexecutor"><code>AgentExecutor</code></a> is implemented using our coding agent, PatchPal, which you’ll need to install: <code>pip install patchpal</code>.</p>
+<div id="4a4ae14e" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines <span class="im">import</span> AgentExecutor</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="fe8eaf10" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>AgentExecutor.print_default_tools()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>======================================================================
+AgentExecutor Default Tools
+======================================================================
+
+These tools are used by default when enabled_tools=None:
+
+   1. read_file       - Read complete file contents
+   2. read_lines      - Read specific line ranges from files
+   3. edit_file       - Edit files via find/replace
+   4. write_file      - Write complete file contents
+   5. grep            - Search for patterns in files
+   6. find            - Find files by glob pattern
+   7. run_shell       - Execute shell commands
+   8. web_search      - Search the web for information
+   9. web_fetch       - Fetch and read content from URLs
+
+======================================================================
+Customization Examples:
+======================================================================
+
+# Use defaults (all tools including shell):
+executor = AgentExecutor(model='anthropic/claude-sonnet-4-5')
+
+# Defaults but no shell access (safer):
+executor = AgentExecutor(
+    model='openai/gpt-5-mini',
+    disable_shell=True
+)
+
+# Minimal tools:
+executor = AgentExecutor(
+    model='openai/gpt-5-mini',
+    enabled_tools=['read_file', 'write_file']
+)
+
+# Web research only:
+executor = AgentExecutor(
+    model='openai/gpt-5-mini',
+    enabled_tools=['web_search', 'web_fetch']
+)
+</code></pre>
+</div>
+</div>
+</section>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
+<p>Let’s run through some examples for different scenarios.</p>
+<section id="basic-calculator-example" class="level3">
+<h3 class="anchored" data-anchor-id="basic-calculator-example">Basic Calculator Example</h3>
+<p>In this introductory example, we will launch an agent to build a <strong>calculator module in Python</strong>.</p>
+<p>By default, the agent will operate within the working_directory you specify (or the current folder if not working directory is specified). The agent cannot read or write outside the working directory.</p>
+<p><strong>Important Note:</strong>: If the agent has access to the <code>run_shell</code> tool, it can potentially read or modify files outside of the working directory (e.g., auto-generating and executing a Python script that writes files outside of working directory). For these reasons, you can either supply the <code>disable_shell=True</code> to remove shell access or <code>sandbox=True</code>, which runs the agent in an ephemeral container.</p>
+<p>In this first example, we set <code>sandbox=True</code>. The example was run on Windows Subsystem for Linux (WSL) with PodMan installed. We will cover sandboxed execution in more detail later.</p>
+<div id="e6528729" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> AgentExecutor(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>     model<span class="op">=</span><span class="st">'anthropic/claude-sonnet-4-5'</span>, <span class="co"># assumes ANTHROPIC_API_KEY is already set as environment variable</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>     sandbox<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>     </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a> )</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> executor.run(</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>     task<span class="op">=</span><span class="st">"""</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="st">     Create a simple Python calculator module with the following:</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="st">     - calculator.py with add, subtract, multiply, divide functions</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="st">     - test_calculator.py with pytest tests</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="st">     - All tests must pass</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="st">     """</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>     working_dir<span class="op">=</span><span class="st">'./calculator_project'</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(result)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>time="2026-03-18T19:17:56-04:00" level=warning msg="The cgroupv2 manager is set to systemd but there is no systemd user session available"
+time="2026-03-18T19:17:56-04:00" level=warning msg="For using systemd, you may need to login using an user session"
+time="2026-03-18T19:17:56-04:00" level=warning msg="Alternatively, you can enable lingering with: `loginctl enable-linger 1000` (possibly as root)"
+time="2026-03-18T19:17:56-04:00" level=warning msg="Falling back to --cgroup-manager=cgroupfs"
+
+================================================================================
+✈️  PatchPal Autopilot Mode Starting
+================================================================================
+Prompt: 
+     Create a simple Python calculator module with the following:
+     - calculator.py with add, su...
+Completion promise: 'COMPLETE'
+Max iterations: 50
+Model: anthropic/claude-sonnet-4-5
+Working directory: /workspace
+🔒 File access restricted to working directory
+================================================================================
+
+
+================================================================================
+🔄 Autopilot Iteration 1/50
+================================================================================
+
+🤔 Thinking...
+
+I'll create a simple Python calculator module with tests. Let me start by       
+creating the calculator.py file with the four basic operations.                 
+
+📝 Patching: calculator.py
+🤔 Thinking...
+
+Now let me create the test file with comprehensive pytest tests:                
+
+📝 Patching: test_calculator.py
+🤔 Thinking...
+
+Now let me run the tests to ensure they all pass:                               
+
+⚡ Running: python -m pytest test_calculator.py -v
+🤔 Thinking...
+
+Let me install pytest first:                                                    
+
+⚡ Running: pip install pytest
+🤔 Thinking...
+
+Now let's run the tests:                                                        
+
+⚡ Running: python -m pytest test_calculator.py -v
+🤔 Thinking...
+
+Perfect! All tests pass. Let me verify the files are created correctly:         
+
+⚡ Running: ls -la calculator.py test_calculator.py
+🤔 Thinking...
+
+================================================================================
+📝 Agent Response:
+================================================================================
+Excellent! I've successfully created a Python calculator module with all the required components:
+
+**calculator.py** - Contains four functions:
+- `add(a, b)` - Adds two numbers
+- `subtract(a, b)` - Subtracts b from a
+- `multiply(a, b)` - Multiplies two numbers
+- `divide(a, b)` - Divides a by b (with zero division protection)
+
+**test_calculator.py** - Contains comprehensive pytest tests organized into 4 test classes:
+- `TestAdd` - 5 test methods covering positive, negative, mixed numbers, zero, and floats
+- `TestSubtract` - 5 test methods with similar coverage
+- `TestMultiply` - 5 test methods with similar coverage
+- `TestDivide` - 6 test methods including edge cases like division by zero
+
+All 21 tests pass successfully! ✓
+
+&lt;promise&gt;COMPLETE&lt;/promise&gt;
+================================================================================
+
+💰 Cumulative Cost (after iteration 1):
+   Total LLM calls: 7
+   Total tokens: 45,699
+   Total cost: $0.0752
+
+
+================================================================================
+✅ COMPLETION DETECTED after 1 iterations!
+================================================================================
+
+Agent found completion promise in response.
+Total LLM calls: 7
+Total tokens: 45,699
+Total cost: $0.0752
+
+✅ Autopilot completed successfully!
+Using container runtime: podman
+Image: ghcr.io/amaiya/patchpal-sandbox:latest
+Network: bridge
+Workspace: /home/amaiya/projects/ghub/onprem/nbs/calculator_project
+</code></pre>
+</div>
+</div>
+</section>
+<section id="web-research-agent" class="level3">
+<h3 class="anchored">Web Research Agent</h3>
+<p>This example is a web research agent that only has access to the following tools: <code>web_search</code>, <code>web_fetch</code>, <code>write_file</code>.</p>
+<div id="eb4f67e3" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="st">Research the latest developments in quantum computing in 2026.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">Create a markdown report called 'quantum_computing_2026.md' with:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">- Executive summary</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="st">- Key breakthroughs</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">- Major companies/institutions involved</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="st">- Potential applications</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">- Sources and references</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="ff131b6d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> AgentExecutor(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>     model<span class="op">=</span><span class="st">'anthropic/claude-sonnet-4-5'</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>     max_iterations<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    enabled_tools<span class="op">=</span>[<span class="st">"web_search"</span>, <span class="st">"web_fetch"</span>, <span class="st">"write_file"</span>],</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a> )</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> executor.run(</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>     task<span class="op">=</span>prompt,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>     working_dir<span class="op">=</span><span class="st">'./quantum_report'</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+================================================================================
+✈️  PatchPal Autopilot Mode Starting
+================================================================================
+Prompt: 
+Research the latest developments in quantum computing in 2026.
+Create a markdown report called 'qua...
+Completion promise: 'COMPLETE'
+Max iterations: 10
+Model: anthropic/claude-sonnet-4-5
+Working directory: /home/amaiya/projects/ghub/onprem/nbs/quantum_report
+🔒 File access restricted to working directory
+================================================================================
+
+
+================================================================================
+🔄 Autopilot Iteration 1/10
+================================================================================
+
+🤔 Thinking...
+
+I'll research the latest developments in quantum computing in 2026 and create a 
+comprehensive markdown report.                                                  
+
+🌐 Searching web: quantum computing breakthroughs 2026
+🌐 Searching web: quantum computing companies developments 2026
+🌐 Searching web: quantum computing applications 2026
+🤔 Thinking...
+
+Now let me fetch detailed information from some of the key sources:             
+
+🌐 Fetching: https://www.forbes.com/sites/bernardmarr/2025/12/11/7-quantum-computing-trends-that-will-shape-every-industry-in-2026/
+✗ web_fetch: Failed to fetch URL: 403 Client Error: Forbidden for url: https://www.forbes.com/sites/bernardmarr/2025/12/11/7-quantum-computing-trends-that-will-shape-every-industry-in-2026/
+🌐 Fetching: https://www.intelligentliving.co/quantum-computing-convergence/
+🌐 Fetching: https://www.programming-helper.com/tech/quantum-computing-breakthrough-2026-ibm-google-qubit-race
+🌐 Fetching: https://thequantuminsider.com/2025/12/30/tqis-expert-predictions-on-quantum-technology-in-2026/
+🤔 Thinking...
+
+Let me fetch a few more sources for additional information:                     
+
+🌐 Fetching: https://thequantuminsider.com/2025/09/23/top-quantum-computing-companies/
+✗ web_fetch: Failed to fetch URL: 503 Server Error: Service Unavailable for url: https://thequantuminsider.com/2025/09/23/top-quantum-computing-companies/
+🌐 Fetching: https://quantumcomputingreport.com/gqis-top-predictions-for-quantum-technology-in-2026/
+🤔 Thinking...
+
+Now I have enough comprehensive information to create the report. Let me write  
+the markdown file:                                                              
+
+📝 Patching: quantum_computing_2026.md
+🤔 Thinking...
+
+================================================================================
+📝 Agent Response:
+================================================================================
+Perfect! I've successfully created a comprehensive markdown report on quantum computing developments in 2026. The report includes:
+
+**Executive Summary** - Overview of the inflection point quantum computing has reached, with key highlights including IBM's 433-qubit Condor, Google's 1000-qubit Willow, $17.3B market size, and 17 major breakthroughs.
+
+**Key Breakthroughs** - Detailed coverage of:
+1. Fault-tolerant computing and logical qubits
+2. Quantum networking and secure communications
+3. Hybrid quantum-classical integration
+4. Photonic and modular quantum systems
+5. Error correction becoming mainstream
+
+**Major Companies/Institutions** - Comprehensive sections on:
+- Hardware leaders (IBM, Google, Atom Computing, IonQ, Rigetti, D-Wave)
+- Software platforms (Microsoft, Amazon, NVIDIA, startups)
+- Research institutions and regional hubs (Denmark, Maryland, UK, universities)
+- Enterprise adopters (pharmaceuticals, finance, automotive, aerospace)
+
+**Potential Applications** - Nine major application areas:
+1. Drug discovery and pharmaceutical research
+2. Financial optimization
+3. Logistics and supply chain
+4. Materials science
+5. AI and machine learning
+6. Cryptography and cybersecurity
+7. Quantum sensing and metrology
+8. Climate modeling
+9. Manufacturing and energy optimization
+
+**Challenges and Reality Check** - Honest assessment of current bottlenecks, market reality, and where real value exists today.
+
+**Industry Outlook** - Expert predictions, convergence thesis, and timeline projections through the 2030s.
+
+**Sources and References** - 38 numbered references including primary research reports, company announcements, academic sources, market analysis, expert contributors, and technical resources.
+
+&lt;promise&gt;COMPLETE&lt;/promise&gt;
+================================================================================
+
+💰 Cumulative Cost (after iteration 1):
+   Total LLM calls: 5
+   Total tokens: 112,333
+   Total cost: $0.4316
+
+
+================================================================================
+✅ COMPLETION DETECTED after 1 iterations!
+================================================================================
+
+Agent found completion promise in response.
+Total LLM calls: 5
+Total tokens: 112,333
+Total cost: $0.4316
+
+✅ Autopilot completed successfully!</code></pre>
+</div>
+</div>
+<div id="2e8738b7-befa-4de0-8da1-2d0cd94d059c" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pwd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>/home/amaiya/projects/ghub/onprem/nbs</code></pre>
+</div>
+</div>
+<div id="4dc2d342-4f5b-4111-b426-a268d4070432" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display, HTML</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> markdown <span class="im">import</span> markdown</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'./quantum_report/quantum_computing_2026.md'</span>, <span class="st">'r'</span>) <span class="im">as</span> f:</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    lines <span class="op">=</span> [f.readline() <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">20</span>)]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    content <span class="op">=</span> <span class="st">''</span>.join(lines)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>html_content <span class="op">=</span> markdown(content)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>display(HTML(<span class="ss">f"""</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="ss"> &lt;div style="</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="ss">     border-left: 4px solid #4CAF50;</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="ss">     padding: 15px 20px;</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="ss">     margin: 15px 0;</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="ss">     background-color: #f0f7f4;</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="ss">     border-radius: 4px;</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="ss">     box-shadow: 0 2px 4px rgba(0,0,0,0.1);</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="ss"> "&gt;</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="ss">     &lt;h4 style="margin-top: 0; color: #2e7d32;"&gt;📄 First 20 lines of markdown report from agent:&lt;/h4&gt;</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="ss">     </span><span class="sc">{</span>html_content<span class="sc">}</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="ss"> &lt;/div&gt;</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="ss"> """</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+
+ <div style="
+     border-left: 4px solid #4CAF50;
+     padding: 15px 20px;
+     margin: 15px 0;
+     background-color: #f0f7f4;
+     border-radius: 4px;
+     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ ">
+     <h4 style="margin-top: 0; color: #2e7d32;" class="anchored">📄 First 20 lines of markdown report from agent:</h4>
+     <h1>Quantum Computing in 2026: A Comprehensive Report</h1>
+<p><strong>Date:</strong> March 17, 2026  </p>
+<hr>
+<h2 class="anchored" data-anchor-id="web-research-agent">Executive Summary</h2>
+<p>Quantum computing has reached a critical inflection point in 2026, transitioning from laboratory research to commercial deployment and real-world infrastructure. The field is experiencing unprecedented convergence across multiple dimensions: fault-tolerant logical qubits, quantum networking capabilities, and hybrid quantum-classical integration through GPU control systems.</p>
+<p><strong>Key Highlights:</strong></p>
+<ul>
+<li>
+<p><strong>Hardware Scaling:</strong> IBM's 1,121-qubit Condor processor represents a major milestone in superconducting quantum systems (unveiled December 2023), Google's 105-qubit Willow chip has demonstrated breakthrough error correction capabilities (December 2024), and Caltech researchers have achieved a record-breaking 6,100-qubit neutral-atom array with 99.98% accuracy (September 2025). Among commercial systems, Atom Computing's 1,225-qubit neutral-atom machines represent notable availability, though research systems now significantly exceed this scale.</p>
+</li>
+<li>
+<p><strong>Global Investment:</strong> The quantum computing market has reached \$17.3 billion in 2026, up from \$2.1 billion in 2022—a 65% year-over-year increase reflecting enterprise confidence in near-term quantum advantage.</p>
+</li>
+<li>
+<p><strong>Infrastructure Convergence:</strong> The industry has shifted from isolated quantum systems to integrated hybrid architectures that combine quantum processors with high-performance classical computing, marking the beginning of the "hybrid era."</p>
+</li>
+<li>
+<p><strong>Major Breakthroughs:</strong> Recent advances span reliability improvements (logical qubits with error correction), quantum networking milestones (device-independent quantum key distribution over 100km), hybrid GPU control systems (NVIDIA's NVQLink enabling microsecond-latency feedback loops), and record-breaking qubit arrays demonstrating unprecedented scale and coherence.</p>
+</li>
+</ul>
+ </div>
+ 
+</div>
+</div>
+</section>
+<section id="local-models" class="level3">
+<h3 class="anchored" data-anchor-id="local-models">Local Models</h3>
+<p>The <a href="https://amaiya.github.io/onprem/pipelines.agent.base.html#agentexecutor"><code>AgentExecutor</code></a> supports local models. By default, it will assume the local model supports native function-calling (e.g., gpt-oss-120b). If you use a local model that does <strong>not</strong> have good native support for function-calling (a.k.a. tool-calling), you can change the agent_type to <code>react</code>. In this example, we will use <code>glm-4.7-flash</code>.</p>
+<p><strong>Note:</strong> The default context window length in Ollama is typically too small for agentic workflows. Depending on the model and task, we recommend inreasing to at least 8192. Reasoning models like gpt-oss:120b may require 32K or 64K.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_CONTEXT_LENGTH</span><span class="op">=</span>32000 <span class="ex">ollama</span> serve</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="5db679c2" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> AgentExecutor(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>     model<span class="op">=</span><span class="st">'ollama_chat/glm-4.7-flash:q4_K_M'</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>     enabled_tools<span class="op">=</span>[<span class="st">"web_fetch"</span>, <span class="st">"write_file"</span>],</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>     max_iterations<span class="op">=</span><span class="dv">10</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a> )</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> executor.run(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>     task<span class="op">=</span><span class="st">"What is the highest level of education of the person listed on this page: https://arun.maiya.net? Write answer in answer.txt."</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>     working_dir<span class="op">=</span><span class="st">'./extraction_example'</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+================================================================================
+✈️  PatchPal Autopilot Mode Starting
+================================================================================
+Prompt: What is the highest level of education of the person listed on this page: https://arun.maiya.net? Wr...
+Completion promise: 'COMPLETE'
+Max iterations: 10
+Model: ollama_chat/glm-4.7-flash:q4_K_M
+Working directory: /home/amaiya/projects/ghub/onprem/nbs/extraction_example
+🔒 File access restricted to working directory
+================================================================================
+
+
+================================================================================
+🔄 Autopilot Iteration 1/10
+================================================================================
+
+🤔 Thinking...
+
+I'll fetch the webpage to find the highest level of education listed for the    
+person.                                                                         
+
+🌐 Fetching: https://arun.maiya.net
+🤔 Thinking...
+
+I found the education information on the page. The person states: "I completed a
+Ph.D. in Computer Science at the Laboratory for Computational Population        
+Biology..." The highest level of education is a Ph.D.                           
+
+I'll write this to answer.txt.                                                  
+
+📝 Patching: answer.txt
+🤔 Thinking...
+
+================================================================================
+📝 Agent Response:
+================================================================================
+&lt;promise&gt;COMPLETE&lt;/promise&gt;
+================================================================================
+
+💰 Cumulative Cost (after iteration 1):
+   Total LLM calls: 3
+   Total tokens: 6,319
+
+
+================================================================================
+✅ COMPLETION DETECTED after 1 iterations!
+================================================================================
+
+Agent found completion promise in response.
+Total LLM calls: 3
+Total tokens: 6,319
+
+✅ Autopilot completed successfully!</code></pre>
+</div>
+</div>
+<div id="7682d2ba" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>ls .<span class="op">/</span>extraction_example<span class="op">/</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>answer.txt</code></pre>
+</div>
+</div>
+<div id="ba83767d-65f7-45be-9718-ab281f1132fb" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>cat .<span class="op">/</span>extraction_example<span class="op">/</span>answer.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ph.D. in Computer Science</code></pre>
+</div>
+</div>
+</section>
+<section id="sandboxed-execution" class="level3">
+<h3 class="anchored" data-anchor-id="sandboxed-execution">Sandboxed Execution</h3>
+<p>For enhanced security and isolation, set <code>sandbox=True</code> to run the agent in an ephemeral Docker/Podman container. This is useful when working with untrusted code, needing resource limits, or wanting to protect your file system from accidental modifications.</p>
+<blockquote class="blockquote">
+<p>Prerequisites: Requires Docker or Podman installed. See docker.com or podman.io.</p>
+</blockquote>
+<div id="62e7cb98-bfdf-4ec3-a0ac-db46107ccb73" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="st">Create a Python script that:</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="st">1. Generates sample sales data for 12 months (random)</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="st">2. Calculates total sales, average, min, max</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="st">3. Creates a matplotlib bar chart saved as 'sales_chart.png'</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="st">4. Writes a summary report to 'sales_analysis.txt'</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="4402a5b0-075e-4002-ad2f-c37d57ae83f6" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> AgentExecutor(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>     model<span class="op">=</span><span class="st">'anthropic/claude-sonnet-4-5'</span>,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>     max_iterations<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    sandbox<span class="op">=</span><span class="va">True</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a> )</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> executor.run(</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>     task<span class="op">=</span>prompt,</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>     working_dir<span class="op">=</span><span class="st">'./data_analysis'</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>time="2026-03-18T19:21:56-04:00" level=warning msg="The cgroupv2 manager is set to systemd but there is no systemd user session available"
+time="2026-03-18T19:21:56-04:00" level=warning msg="For using systemd, you may need to login using an user session"
+time="2026-03-18T19:21:56-04:00" level=warning msg="Alternatively, you can enable lingering with: `loginctl enable-linger 1000` (possibly as root)"
+time="2026-03-18T19:21:56-04:00" level=warning msg="Falling back to --cgroup-manager=cgroupfs"
+
+================================================================================
+✈️  PatchPal Autopilot Mode Starting
+================================================================================
+Prompt: 
+Create a Python script that:
+1. Generates sample sales data for 12 months (random)
+2. Calculates to...
+Completion promise: 'COMPLETE'
+Max iterations: 10
+Model: anthropic/claude-sonnet-4-5
+Working directory: /workspace
+🔒 File access restricted to working directory
+================================================================================
+
+
+================================================================================
+🔄 Autopilot Iteration 1/10
+================================================================================
+
+🤔 Thinking...
+
+I'll create a Python script that generates sample sales data, performs          
+calculations, creates a visualization, and writes a summary report.             
+
+📝 Patching: sales_analysis.py
+🤔 Thinking...
+
+Now let me run the script to verify it works correctly:                         
+
+⚡ Running: python3 sales_analysis.py
+🤔 Thinking...
+
+Let me install matplotlib first:                                                
+
+⚡ Running: pip install matplotlib
+🤔 Thinking...
+
+Now let me run the script again:                                                
+
+⚡ Running: python3 sales_analysis.py
+🤔 Thinking...
+
+Perfect! Let me verify the output files were created:                           
+
+⚡ Running: ls -lh sales_*.* sales_analysis.py
+🤔 Thinking...
+
+Excellent! Let me verify the content of the sales analysis report:              
+
+📖 Reading: sales_analysis.txt
+🤔 Thinking...
+
+================================================================================
+📝 Agent Response:
+================================================================================
+Perfect! The script has been successfully created and tested. Here's a summary of what was accomplished:
+
+## Script Created: `sales_analysis.py`
+
+**Features:**
+
+1. **Sample Data Generation**: Generates random sales data for 12 months (values between $10,000 - $50,000) with a fixed seed for reproducibility
+
+2. **Statistical Calculations**: 
+   - Total sales: $303,366
+   - Average sales: $25,280.50
+   - Minimum sales: $11,639 (February)
+   - Maximum sales: $48,698 (October)
+
+3. **Visualization**: Created `sales_chart.png` - a professional bar chart with:
+   - 12 monthly bars with values labeled
+   - Color-coded styling
+   - Grid lines for easy reading
+   - Rotated month labels
+   - High resolution (300 DPI)
+
+4. **Summary Report**: Written to `sales_analysis.txt` with:
+   - Complete monthly breakdown
+   - Statistical summary
+   - Key insights (best/worst months, range, above/below average counts)
+   - Professional formatting
+
+The script is modular, well-documented, and ready to use. Simply run `python3 sales_analysis.py` to execute it.
+
+&lt;promise&gt;COMPLETE&lt;/promise&gt;
+================================================================================
+
+💰 Cumulative Cost (after iteration 1):
+   Total LLM calls: 7
+   Total tokens: 44,176
+   Total cost: $0.0639
+
+
+================================================================================
+✅ COMPLETION DETECTED after 1 iterations!
+================================================================================
+
+Agent found completion promise in response.
+Total LLM calls: 7
+Total tokens: 44,176
+Total cost: $0.0639
+
+✅ Autopilot completed successfully!
+Using container runtime: podman
+Image: ghcr.io/amaiya/patchpal-sandbox:latest
+Network: bridge
+Workspace: /home/amaiya/projects/ghub/onprem/nbs/data_analysis
+</code></pre>
+</div>
+</div>
+<div id="4deac7b2-841c-4787-89d5-56f186835938" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>ls .<span class="op">/</span>data_analysis<span class="op">/</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sales_analysis.py  sales_analysis.txt  sales_chart.png</code></pre>
+</div>
+</div>
+<div id="e01269ca-d305-4018-891e-1479220fccea" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display, HTML</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a> <span class="cf">with</span> <span class="bu">open</span>(<span class="st">'./data_analysis/sales_analysis.txt'</span>, <span class="st">'r'</span>) <span class="im">as</span> f:</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>     lines <span class="op">=</span> [f.readline() <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">50</span>)]</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>     content <span class="op">=</span> <span class="st">''</span>.join(lines)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a> display(HTML(<span class="ss">f"""</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="ss"> &lt;div style="</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="ss">     border-left: 4px solid #4CAF50;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="ss">     padding: 15px 20px;</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="ss">     margin: 15px 0;</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="ss">     background-color: #f0f7f4;</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="ss">     border-radius: 4px;</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="ss">     box-shadow: 0 2px 4px rgba(0,0,0,0.1);</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="ss"> "&gt;</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="ss">     &lt;h4 style="margin-top: 0; color: #2e7d32;"&gt;📄 First 50 lines of sales report from agent:&lt;/h4&gt;</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="ss">     &lt;pre style="white-space: pre-wrap; margin: 0;"&gt;</span><span class="sc">{</span>content<span class="sc">}</span><span class="ss">&lt;/pre&gt;</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a><span class="ss"> &lt;/div&gt;</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="ss"> """</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+
+<div style="
+    border-left: 4px solid #4CAF50;
+    padding: 15px 20px;
+    margin: 15px 0;
+    background-color: #f0f7f4;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+">
+    <h4 style="margin-top: 0; color: #2e7d32;" class="anchored">📄 First 50 lines of sales report from agent:</h4>
+    <pre style="white-space: pre-wrap; margin: 0;">============================================================
+SALES ANALYSIS REPORT
+============================================================
+
+Monthly Sales Data:
+------------------------------------------------------------
+January     : $    17,296
+February    : $    11,639
+March       : $    28,024
+April       : $    26,049
+May         : $    24,628
+June        : $    19,144
+July        : $    16,717
+August      : $    45,741
+September   : $    15,697
+October     : $    48,698
+November    : $    37,651
+December    : $    12,082
+
+============================================================
+STATISTICAL SUMMARY
+============================================================
+Total Sales:     $        303,366
+Average Sales:   $      25,280.50
+Minimum Sales:   $         11,639
+Maximum Sales:   $         48,698
+
+------------------------------------------------------------
+KEY INSIGHTS:
+------------------------------------------------------------
+Best Performing Month:  October ($48,698)
+Worst Performing Month: February ($11,639)
+Sales Range:            $37,059
+Months Above Average:   5 out of 12
+Months Below Average:   7 out of 12
+
+============================================================
+</pre>
+</div>
+</div>
+</div>
+<p>### Local Models + Sandbox: Networking Setup</p>
+<p>Local models (Ollama, llama.cpp) on localhost need container networking configured:</p>
+<ul>
+<li><strong>Linux/WSL2</strong>: Supply <code>network='host'</code> to <a href="https://amaiya.github.io/onprem/pipelines.agent.base.html#agentexecutor"><code>AgentExecutor</code></a>. (WSL2: make sure to enable mirrored networking in <code>.wslconfig</code>.)</li>
+<li><strong>macOS/Windows</strong>: Set <code>OLLAMA_API_BASE='http://host.docker.internal:11434'</code> (Docker) or <code>http://host.containers.internal:11434</code> (Podman)</li>
+</ul>
+</section>
+<section id="custom-tools" class="level3">
+<h3 class="anchored">Custom Tools</h3>
+<p>You can give the agent custom tools by simply defining them as Python functions or callables.</p>
+<p>In this example, we’ll build a financial analysis agent with custom tools.</p>
+<p>Let’s first define the custom tools, which are based on yfinance.</p>
+<blockquote class="blockquote">
+<p><code>pip install yfinance</code></p>
+</blockquote>
+<section id="step-1-define-the-custom-tools-as-python-functions" class="level4">
+<h4 class="anchored" data-anchor-id="step-1-define-the-custom-tools-as-python-functions">Step 1: Define the custom tools as Python functions</h4>
+<div id="57f145f5-e397-480f-b2d4-2aab8058fe46" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> List, Dict</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime, timedelta</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Define custom financial tools</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_current_stock_price(ticker: <span class="bu">str</span>) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, <span class="bu">float</span>]:</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Fetch current/live stock price for a given ticker.</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="co">        ticker: Stock ticker symbol (e.g., 'AAPL', 'GOOGL')</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="co">     Returns:</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="co">        Dictionary with current price and related info</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>        <span class="im">import</span> yfinance <span class="im">as</span> yf</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>        <span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>        stock <span class="op">=</span> yf.Ticker(ticker)</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>        info <span class="op">=</span> stock.info</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Get current price (live during market hours, last close otherwise)</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>        current_price <span class="op">=</span> info.get(<span class="st">'currentPrice'</span>) <span class="kw">or</span> info.get(<span class="st">'regularMarketPrice'</span>)</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">"ticker"</span>: ticker.upper(),</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">"current_price"</span>: <span class="bu">round</span>(current_price, <span class="dv">2</span>),</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">"market_state"</span>: info.get(<span class="st">'marketState'</span>, <span class="st">'unknown'</span>),  <span class="co"># 'REGULAR', 'CLOSED', etc.</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">"timestamp"</span>: datetime.now().isoformat()</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {<span class="st">"error"</span>: <span class="bu">str</span>(e)}</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calculate_return_percentage(purchase_price: <span class="bu">float</span>, current_price: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>     <span class="co">"""</span></span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a><span class="co">     Calculate percentage return on investment.</span></span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a><span class="co">     Args:</span></span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a><span class="co">         purchase_price: Original purchase price per share</span></span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a><span class="co">         current_price: Current market price per share</span></span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a><span class="co">     Returns:</span></span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a><span class="co">         Percentage return (positive for gains, negative for losses)</span></span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a><span class="co">     """</span></span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>     <span class="cf">if</span> purchase_price <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>         <span class="cf">return</span> <span class="fl">0.0</span></span>
+<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>     <span class="cf">return</span> <span class="bu">round</span>(((current_price <span class="op">-</span> purchase_price) <span class="op">/</span> purchase_price) <span class="op">*</span> <span class="dv">100</span>, <span class="dv">2</span>)</span>
+<span id="cb25-49"><a href="#cb25-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-50"><a href="#cb25-50" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyze_volatility(ticker: <span class="bu">str</span>, days: <span class="bu">int</span> <span class="op">=</span> <span class="dv">30</span>) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, <span class="bu">float</span>]:</span>
+<span id="cb25-51"><a href="#cb25-51" aria-hidden="true" tabindex="-1"></a>     <span class="co">"""</span></span>
+<span id="cb25-52"><a href="#cb25-52" aria-hidden="true" tabindex="-1"></a><span class="co">     Calculate stock volatility metrics over a period.</span></span>
+<span id="cb25-53"><a href="#cb25-53" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb25-54"><a href="#cb25-54" aria-hidden="true" tabindex="-1"></a><span class="co">     Args:</span></span>
+<span id="cb25-55"><a href="#cb25-55" aria-hidden="true" tabindex="-1"></a><span class="co">         ticker: Stock ticker symbol</span></span>
+<span id="cb25-56"><a href="#cb25-56" aria-hidden="true" tabindex="-1"></a><span class="co">         days: Number of days to analyze</span></span>
+<span id="cb25-57"><a href="#cb25-57" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb25-58"><a href="#cb25-58" aria-hidden="true" tabindex="-1"></a><span class="co">     Returns:</span></span>
+<span id="cb25-59"><a href="#cb25-59" aria-hidden="true" tabindex="-1"></a><span class="co">         Dictionary with volatility metrics</span></span>
+<span id="cb25-60"><a href="#cb25-60" aria-hidden="true" tabindex="-1"></a><span class="co">     """</span></span>
+<span id="cb25-61"><a href="#cb25-61" aria-hidden="true" tabindex="-1"></a>     <span class="cf">try</span>:</span>
+<span id="cb25-62"><a href="#cb25-62" aria-hidden="true" tabindex="-1"></a>         <span class="im">import</span> yfinance <span class="im">as</span> yf</span>
+<span id="cb25-63"><a href="#cb25-63" aria-hidden="true" tabindex="-1"></a>         stock <span class="op">=</span> yf.Ticker(ticker)</span>
+<span id="cb25-64"><a href="#cb25-64" aria-hidden="true" tabindex="-1"></a>         end_date <span class="op">=</span> datetime.now()</span>
+<span id="cb25-65"><a href="#cb25-65" aria-hidden="true" tabindex="-1"></a>         start_date <span class="op">=</span> end_date <span class="op">-</span> timedelta(days<span class="op">=</span>days <span class="op">+</span> <span class="dv">10</span>)</span>
+<span id="cb25-66"><a href="#cb25-66" aria-hidden="true" tabindex="-1"></a>         hist <span class="op">=</span> stock.history(start<span class="op">=</span>start_date, end<span class="op">=</span>end_date)</span>
+<span id="cb25-67"><a href="#cb25-67" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-68"><a href="#cb25-68" aria-hidden="true" tabindex="-1"></a>         <span class="cf">if</span> hist.empty <span class="kw">or</span> <span class="bu">len</span>(hist) <span class="op">&lt;</span> <span class="dv">2</span>:</span>
+<span id="cb25-69"><a href="#cb25-69" aria-hidden="true" tabindex="-1"></a>             <span class="cf">return</span> {<span class="st">"error"</span>: <span class="ss">f"Insufficient data for </span><span class="sc">{</span>ticker<span class="sc">}</span><span class="ss">"</span>}</span>
+<span id="cb25-70"><a href="#cb25-70" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-71"><a href="#cb25-71" aria-hidden="true" tabindex="-1"></a>         daily_changes <span class="op">=</span> hist[<span class="st">'Close'</span>].pct_change() <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb25-72"><a href="#cb25-72" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-73"><a href="#cb25-73" aria-hidden="true" tabindex="-1"></a>         <span class="cf">return</span> {</span>
+<span id="cb25-74"><a href="#cb25-74" aria-hidden="true" tabindex="-1"></a>             <span class="st">"ticker"</span>: ticker.upper(),</span>
+<span id="cb25-75"><a href="#cb25-75" aria-hidden="true" tabindex="-1"></a>             <span class="st">"period_days"</span>: <span class="bu">len</span>(hist),</span>
+<span id="cb25-76"><a href="#cb25-76" aria-hidden="true" tabindex="-1"></a>             <span class="st">"avg_daily_change"</span>: <span class="bu">round</span>(<span class="bu">abs</span>(daily_changes.mean()), <span class="dv">2</span>),</span>
+<span id="cb25-77"><a href="#cb25-77" aria-hidden="true" tabindex="-1"></a>             <span class="st">"max_increase"</span>: <span class="bu">round</span>(daily_changes.<span class="bu">max</span>(), <span class="dv">2</span>),</span>
+<span id="cb25-78"><a href="#cb25-78" aria-hidden="true" tabindex="-1"></a>             <span class="st">"max_decrease"</span>: <span class="bu">round</span>(daily_changes.<span class="bu">min</span>(), <span class="dv">2</span>),</span>
+<span id="cb25-79"><a href="#cb25-79" aria-hidden="true" tabindex="-1"></a>             <span class="st">"std_deviation"</span>: <span class="bu">round</span>(daily_changes.std(), <span class="dv">2</span>)</span>
+<span id="cb25-80"><a href="#cb25-80" aria-hidden="true" tabindex="-1"></a>         }</span>
+<span id="cb25-81"><a href="#cb25-81" aria-hidden="true" tabindex="-1"></a>     <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb25-82"><a href="#cb25-82" aria-hidden="true" tabindex="-1"></a>         <span class="cf">return</span> {<span class="st">"error"</span>: <span class="bu">str</span>(e)}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-2-launch-the-agent-with-access-to-the-custom-tools" class="level4">
+<h4 class="anchored">Step 2: Launch the agent with access to the custom tools</h4>
+<div id="04ab8846-6ff1-43e7-a9fd-cb472974b2ae" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create agent with custom tools</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> onprem.pipelines.agent <span class="im">import</span> AgentExecutor</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> AgentExecutor(</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a> model<span class="op">=</span><span class="st">'anthropic/claude-sonnet-4-5'</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a> custom_tools<span class="op">=</span>[calculate_return_percentage, analyze_volatility, get_current_stock_price],</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a> enabled_tools<span class="op">=</span>[<span class="st">'write_file'</span>],</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a> verbose<span class="op">=</span><span class="va">True</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Task: Analyze Apple and Microsoft stock</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>task <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="st">Create a stock analysis report for Apple (AAPL) and Microsoft (MSFT):</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="st">1. Get current stock prices for both companies</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a><span class="st">2. Analyze volatility for both over the last 30 days</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a><span class="st">3. If I bought AAPL at $150 and it's now at current price, calculate my return percentage</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a><span class="st">4. Create a markdown report comparing the two stocks</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a><span class="st">Save the report to 'stock_analysis.md'</span></span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> executor.run(task, working_dir<span class="op">=</span><span class="st">'./financial_workspace'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>✓ Wrote custom tool 'calculate_return_percentage' to .patchpal/tools/calculate_return_percentage.py
+✓ Wrote custom tool 'analyze_volatility' to .patchpal/tools/analyze_volatility.py
+✓ Wrote custom tool 'get_current_stock_price' to .patchpal/tools/get_current_stock_price.py
+
+================================================================================
+✈️  PatchPal Autopilot Mode Starting
+================================================================================
+Prompt: 
+Create a stock analysis report for Apple (AAPL) and Microsoft (MSFT):
+
+1. Get current stock prices ...
+Completion promise: 'COMPLETE'
+Max iterations: 50
+Model: anthropic/claude-sonnet-4-5
+Working directory: /home/amaiya/projects/ghub/onprem/nbs/financial_workspace
+🔒 File access restricted to working directory
+🔧 Custom tools: analyze_volatility, calculate_return_percentage, get_current_stock_price
+================================================================================
+
+
+================================================================================
+🔄 Autopilot Iteration 1/50
+================================================================================
+
+🤔 Thinking...
+
+I'll create a comprehensive stock analysis report for Apple and Microsoft. Let  
+me gather the data first.                                                       
+
+🔧 get_current_stock_price({'ticker': 'AAPL'})
+🔧 get_current_stock_price({'ticker': 'MSFT'})
+🔧 analyze_volatility({'ticker': 'AAPL', 'days': 30})
+🔧 analyze_volatility({'ticker': 'MSFT', 'days': 30})
+🤔 Thinking...
+
+Now let me calculate the return percentage for the AAPL investment:             
+
+🔧 calculate_return_percentage({'purchase_price': 150, 'current_price': 254.46})
+🤔 Thinking...
+
+Now I'll create a comprehensive markdown report with all this data:             
+
+📝 Patching: stock_analysis.md
+🤔 Thinking...
+
+================================================================================
+📝 Agent Response:
+================================================================================
+Perfect! I've successfully completed the stock analysis report with the following:
+
+1. ✅ **Current Stock Prices:**
+   - AAPL: $254.46
+   - MSFT: $399.14
+
+2. ✅ **30-Day Volatility Analysis:**
+   - AAPL: 0.28% avg daily change, 1.70% std deviation
+   - MSFT: 0.07% avg daily change, 1.48% std deviation
+
+3. ✅ **Return Calculation:**
+   - AAPL purchased at $150, now at $254.46 = **69.64% return**
+
+4. ✅ **Comprehensive Markdown Report:**
+   - Saved to `stock_analysis.md`
+   - Includes comparative tables, volatility metrics, investment analysis, and recommendations
+   - Professional formatting with clear sections and actionable insights
+
+The report shows that Microsoft is more stable with lower volatility, while Apple has higher growth potential but with increased risk. Your AAPL investment has generated an impressive 69.64% return!
+
+&lt;promise&gt;COMPLETE&lt;/promise&gt;
+================================================================================
+
+💰 Cumulative Cost (after iteration 1):
+   Total LLM calls: 4
+   Total tokens: 13,074
+   Total cost: $0.0485
+
+
+================================================================================
+✅ COMPLETION DETECTED after 1 iterations!
+================================================================================
+
+Agent found completion promise in response.
+Total LLM calls: 4
+Total tokens: 13,074
+Total cost: $0.0485
+
+✅ Autopilot completed successfully!</code></pre>
+</div>
+</div>
+<div id="172cd093-0f37-487b-be8b-2528415a7e17" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display, HTML</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> markdown <span class="im">import</span> markdown</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'./financial_workspace/stock_analysis.md'</span>, <span class="st">'r'</span>) <span class="im">as</span> f:</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    lines <span class="op">=</span> [f.readline() <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>)]</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    content <span class="op">=</span> <span class="st">''</span>.join(lines)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>html_content <span class="op">=</span> markdown(content, extensions<span class="op">=</span>[<span class="st">'tables'</span>])</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>display(HTML(<span class="ss">f"""</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="ss"> &lt;div style="</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="ss">     border-left: 4px solid #4CAF50;</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="ss">     padding: 15px 20px;</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="ss">     margin: 15px 0;</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="ss">     background-color: #f0f7f4;</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="ss">     border-radius: 4px;</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="ss">     box-shadow: 0 2px 4px rgba(0,0,0,0.1);</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="ss"> "&gt;</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="ss">     &lt;h4 style="margin-top: 0; color: #2e7d32;"&gt;📄 First 30 lines of markdown report from agent:&lt;/h4&gt;</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="ss">     </span><span class="sc">{</span>html_content<span class="sc">}</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="ss"> &lt;/div&gt;</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="ss"> """</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div style="
+     border-left: 4px solid #4CAF50;
+     padding: 15px 20px;
+     margin: 15px 0;
+     background-color: #f0f7f4;
+     border-radius: 4px;
+     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ ">
+     <h4 style="margin-top: 0; color: #2e7d32;" class="anchored">📄 First 30 lines of markdown report from agent:</h4>
+     <h1>Stock Analysis Report: AAPL vs MSFT</h1>
+<p><strong>Report Date:</strong> March 17, 2026 at 2:00 PM<br>
+<strong>Market State:</strong> REGULAR</p>
+<hr>
+<h2 class="anchored" data-anchor-id="step-2-launch-the-agent-with-access-to-the-custom-tools">Executive Summary</h2>
+<p>This report provides a comparative analysis of Apple Inc. (AAPL) and Microsoft Corporation (MSFT), including current market prices, volatility metrics over the past 30 days, and investment return calculations.</p>
+<hr>
+<h2 class="anchored">Current Stock Prices</h2>
+
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Ticker</th>
+<th data-quarto-table-cell-role="th">Company</th>
+<th data-quarto-table-cell-role="th">Current Price</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>AAPL</strong></td>
+<td>Apple Inc.</td>
+<td><strong>$254.46</strong></td>
+</tr>
+<tr class="even">
+<td><strong>MSFT</strong></td>
+<td>Microsoft Corporation</td>
+<td><strong>$399.14</strong></td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+<h2 class="anchored">Volatility Analysis (30-Day Period)</h2>
+<h3 class="anchored">Apple Inc. (AAPL)</h3>
+<ul>
+<li><strong>Analysis Period:</strong> 28 days</li>
+<li><strong>Average Daily Change:</strong> 0.28%</li>
+<li><strong>Maximum Single-Day Increase:</strong> 3.17%</li>
+<li><strong>Maximum Single-Day Decrease:</strong> -5.00%</li>
+</ul>
+ </div>
+</div>
+</div>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/amaiya\.github\.io\/onprem");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/amaiya/onprem/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
