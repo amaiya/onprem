@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- Pin to `litellm<=1.82.6` due to [this](=https://github.com/BerriAI/litellm/issues/24512)
+- Pin to `litellm<=1.82.6` due to [this](https://github.com/BerriAI/litellm/issues/24512)
 
 
 ## 0.22.0 (2026-03-17)
