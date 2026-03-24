@@ -12,7 +12,7 @@ license = {text = "Apache-2.0"}
 authors = [{name = "Arun S. Maiya", email = "arun@maiya.net"}]
 keywords = ['nbdev', 'jupyter', 'notebook', 'python']
 classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
-dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'langchain>=0.3.18', 'langchain-community>=0.3.18', 'langchain_litellm==0.1.4', 'litellm<=1.82.3', 'langchain-openai', 'langchain-huggingface', 'huggingface_hub', 'transformers<5', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'gmft']
+dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'langchain>=0.3.18', 'langchain-community>=0.3.18', 'langchain_litellm==0.1.4', 'litellm<=1.82.6', 'langchain-openai', 'langchain-huggingface', 'huggingface_hub', 'transformers<5', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'gmft']
 
 [project.urls]
 Repository = "https://github.com/amaiya/onprem"
