@@ -39,14 +39,21 @@ def _pydantic_to_bedrock_tool_schema(pydantic_model: BaseModel, tool_name: str =
     required = schema.get("required", [])
     description = schema.get("description", f"Structured output for {pydantic_model.__name__}")
     
+    # Build input schema
+    input_schema = {
+        "type": "object",
+        "properties": properties,
+        "required": required
+    }
+    
+    # Include $defs if present (needed for nested Pydantic models)
+    if "$defs" in schema:
+        input_schema["$defs"] = schema["$defs"]
+    
     return {
         "name": tool_name,
         "description": description,
-        "input_schema": {
-            "type": "object",
-            "properties": properties,
-            "required": required
-        }
+        "input_schema": input_schema
     }
 
 

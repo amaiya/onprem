@@ -7,6 +7,19 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.22.2 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Unpin  `litellm`
+- Fix for nested Pydantic models
+
+
 ## 0.22.1 (2026-03-24)
 
 ### new:
