@@ -950,11 +950,17 @@ class LLM:
 
     def _invoke_llm(self, llm, prompt, stop=[], **kwargs):
         """Sync LLM invocation"""
-        return llm.invoke(prompt, stop=stop, **kwargs)
+        if stop:
+            return llm.invoke(prompt, stop=stop, **kwargs)
+        else:
+            return llm.invoke(prompt, **kwargs)
 
     async def _ainvoke_llm(self, llm, prompt, stop=[], **kwargs):
         """Async LLM invocation"""
-        return await llm.ainvoke(prompt, stop=stop, **kwargs)
+        if stop:
+            return await llm.ainvoke(prompt, stop=stop, **kwargs)
+        else:
+            return await llm.ainvoke(prompt, **kwargs)
 
 
 

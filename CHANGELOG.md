@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.22.3 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Only pass stop parameter when non-empty (for models like GPT-5-mini)
+
+
 ## 0.22.2 (2026-04-22)
 
 ### new:
