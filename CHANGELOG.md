@@ -776,7 +776,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Added `k` and `score_threshold` arguments to `LLM.ask` (#122)
-- Added `n_proc` paramter to control the number of CPUs used 
+- Added `n_proc` parameter to control the number of CPUs used
   by `LLM.ingest` (ee09807)
 - Upgrade version of `chromadb` (#125)
 
@@ -1103,7 +1103,7 @@ Added `preproc_fn` to `Extractor.apply` (#74)
 - Uses [Zephyr-7B](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF) as default model in `webapp.yml`. (#52)
 
 ### changed
-- Added `stop` paramter to `LLM.prompt` (overrides `stop` paramter supplied to constructor) (#53)
+- Added `stop` parameter to `LLM.prompt` (overrides `stop` parameter supplied to constructor) (#53)
 
 ### fixed:
 - N/A
