@@ -666,7 +666,7 @@ class TopicModel:
 
          - n_neighbors: # of neighbors to use
          - metric: metric to use
-         - p: paramter to default Minkowsi metric
+         - p: parameter to default Minkowsi metric
         """
         from sklearn.neighbors import NearestNeighbors
 
