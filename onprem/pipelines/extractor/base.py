@@ -368,6 +368,7 @@ class Extractor:
             New model instance with filtered and renamed parameters
         """
         import json
+        from onprem.llm.helpers import parse_json_markdown
         
         # Convert model to dict
         model_dict = model.model_dump() if hasattr(model, 'model_dump') else model.dict()
@@ -407,29 +408,17 @@ Return the filtered list as a JSON array:"""
         try:
             response_text = self.llm.prompt(prompt, stop=stop)
             
-            # Try to parse the response as JSON
-            # Handle potential markdown code blocks
-            response_text = response_text.strip()
-            if response_text.startswith('```'):
-                # Remove markdown code blocks
-                lines = response_text.split('\n')
-                response_text = '\n'.join([line for line in lines if not line.startswith('```')])
-                response_text = response_text.strip()
-            
-            filtered_items = json.loads(response_text)
+            # Use existing parse_json_markdown utility to extract and parse JSON
+            filtered_items = parse_json_markdown(response_text)
             
             # Validate that it's a list
             if not isinstance(filtered_items, list):
                 print(f"Warning: LLM returned non-list response, keeping original items")
                 filtered_items = items
                 
-        except json.JSONDecodeError as e:
-            print(f"Warning: Failed to parse LLM response as JSON: {e}")
-            print(f"Response was: {response_text[:200]}...")
-            print("Keeping original items")
-            filtered_items = items
         except Exception as e:
             print(f"Warning: Error during LLM whitelist filtering: {e}")
+            print(f"Response was: {response_text[:200] if 'response_text' in locals() else 'N/A'}...")
             print("Keeping original items")
             filtered_items = items
         
