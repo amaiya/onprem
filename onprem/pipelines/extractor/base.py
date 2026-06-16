@@ -219,11 +219,24 @@ class Extractor:
             # If no placeholder, append the content
             final_prompt = f"{prompt}\n\n{content}"
         
+        # Prepare response_format - automatically convert to vLLM format if needed
+        response_format = self._prepare_response_format(pydantic_model)
+        is_vllm_format = isinstance(response_format, dict)
+        
         # Make the LLM call with structured output
         try:
-            response = self.llm.prompt(final_prompt, response_format=pydantic_model, stop=stop)
+            response = self.llm.prompt(final_prompt, response_format=response_format, stop=stop)
         except Exception as e:
             raise RuntimeError(f"Failed to extract structured data: {e}")
+        
+        # Convert response to Pydantic model if vLLM format was used
+        if is_vllm_format:
+            if isinstance(response, str):
+                # Parse JSON string response
+                response = pydantic_model.model_validate_json(response)
+            elif isinstance(response, dict):
+                # Convert dict to Pydantic model
+                response = pydantic_model.model_validate(response)
         
         # Apply post-processing BEFORE format conversion
         if postproc_fn:
@@ -239,6 +252,36 @@ class Extractor:
             return response.model_dump() if hasattr(response, 'model_dump') else response.dict()
         else:  # return_as == 'json'
             return response.model_dump_json() if hasattr(response, 'model_dump_json') else response.json()
+    
+    
+    def _prepare_response_format(self, pydantic_model):
+        """
+        Prepare response_format for LLM call.
+        
+        For local APIs (vLLM, OpenLLM, etc.), automatically convert Pydantic model 
+        to vLLM's json_schema dict format for better compatibility.
+        For other backends (OpenAI, Anthropic, etc.), pass through the Pydantic 
+        model to use LangChain's native structured output support.
+        
+        Args:
+            pydantic_model: Pydantic BaseModel class
+            
+        Returns:
+            Either dict (for vLLM) or Pydantic model (for other backends)
+        """
+        if self.llm.is_local_api():
+            # Convert to vLLM json_schema format
+            # See: https://amaiya.github.io/onprem/examples_guided_prompts.html
+            return {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": pydantic_model.__name__.lower(),
+                    "schema": pydantic_model.model_json_schema()
+                }
+            }
+        else:
+            # Pass through Pydantic model for LangChain's native support
+            return pydantic_model
     
     
     def _get_list_fields(self, model: BaseModel) -> List[str]:

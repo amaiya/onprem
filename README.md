@@ -60,7 +60,7 @@ llm.ingest('/tmp/my_documents')
 result = llm.ask('What is OnPrem.LLM?')
 
 # switch to cloud LLM using Anthropic as backend
-llm = LLM("anthropic/claude-3-7-sonnet-latest")
+llm = LLM("anthropic/claude-sonnet-4-5-20250929")
 
 # structured outputs
 from pydantic import BaseModel, Field

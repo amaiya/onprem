@@ -31,7 +31,8 @@ chinese = ['jieba']
 aws = ['boto3']
 agent = ['patchpal']
 guidance = ['guidance>=0.1.5']
-all = ['langchain_chroma', 'chromadb', 'elasticsearch', 'requests_ntlm', 'shap', 'matplotlib', 'jieba', 'boto3', 'patchpal', 'guidance>=0.1.5']
+extract = ['rapidfuzz']
+all = ['langchain_chroma', 'chromadb', 'elasticsearch', 'requests_ntlm', 'shap', 'matplotlib', 'jieba', 'boto3', 'patchpal', 'guidance>=0.1.5', 'rapidfuzz']
 
 
 [project.scripts]
