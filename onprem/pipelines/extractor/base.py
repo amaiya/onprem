@@ -383,7 +383,7 @@ class Extractor:
         whitelist_list = sorted(list(whitelist))
         
         # Build the prompt
-        prompt = f"""Below is a list of valid parameter names:
+        prompt = f"""Below is a list of valid parameter names (with optional descriptions):
 
 <begin_list>
 {json.dumps(whitelist_list, indent=2)}
@@ -397,7 +397,8 @@ Rules:
 2. Update the 'name' field to the exact valid name from the list
 3. Keep all other fields (value, unit, name_of_system) unchanged
 4. Exclude parameters that don't match any valid name
-5. Return valid JSON format
+5. Be sure to not exclude relevant matches by accident
+6. Return valid JSON format
 
 Extracted parameters to filter:
 {json.dumps(items, indent=2)}
