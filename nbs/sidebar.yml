@@ -34,7 +34,7 @@ website:
         - 02_utils.ipynb
         - 04_pipelines.rag.ipynb
         - 04_pipelines.extractor.base.ipynb
-        #- 04_pipelines.extractor.models.ipynb
+        - 04_pipelines.extractor.models.ipynb
         - 04_pipelines.summarizer.ipynb
         - 04_pipelines.classifier.ipynb
         - 04_pipelines.guider.ipynb

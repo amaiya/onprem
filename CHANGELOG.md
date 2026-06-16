@@ -13,10 +13,13 @@ Most recent releases are shown at the top. Each release shows:
 - `Extractor.extract_structured`: a pipeline for structured information extraction
 
 ### changed
-- N/A
+- `verbose` parameter in `onprem.LLM` is now set to false by default to suppress
+  **CUDA Graph Id <num> is reused** messages.
 
 ### fixed:
 - Only pass stop parameter when non-empty (for models like GPT-5-mini)
+- Ensure progress bar in `HFClassifier` by default
+
 
 
 ## 0.22.2 (2026-04-22)

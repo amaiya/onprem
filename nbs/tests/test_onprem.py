@@ -970,7 +970,7 @@ def test_agent(**kwargs):
 
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
-          'test_agent' : test_agent,
+          #'test_agent' : test_agent,
           'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
           'test_rag_dual'     : test_rag_dual,

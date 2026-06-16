@@ -88,7 +88,7 @@ class LLM:
         rag_score_threshold: float = 0.0,
         check_model_download:bool=True,
         confirm: bool = True,
-        verbose: bool = True,
+        verbose: bool = False,
         **kwargs,
     ):
         """
