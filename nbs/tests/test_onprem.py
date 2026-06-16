@@ -8,6 +8,21 @@ from onprem import LLM, utils as U
 import os, tempfile, shutil, argparse, numpy as np
 
 
+def download_or_copy_local(relative_path, target_path):
+    """
+    Check if file exists locally in sample_data before downloading.
+    
+    Args:
+        relative_path: Path relative to sample_data directory (e.g., 'ktrain_paper/ktrain_paper.pdf')
+        target_path: Destination path to copy/download the file to
+    """
+    local_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'sample_data', relative_path)
+    if os.path.exists(local_path):
+        shutil.copy(local_path, target_path)
+    else:
+        url = f"https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/{relative_path}"
+        U.download(url, target_path)
+
 
 def test_prompt(**kwargs):
     llm = kwargs.get('llm', None)
@@ -44,11 +59,8 @@ def test_rag_dual(**kwargs):
     # make source folder
     source_folder = tempfile.mkdtemp()
 
-    # download ktrain paper
-    U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf",
-        os.path.join(source_folder, "ktrain.pdf"),
-    )
+    # download ktrain paper (or copy from local if available)
+    download_or_copy_local('ktrain_paper/ktrain_paper.pdf', os.path.join(source_folder, "ktrain.pdf"))
 
     # ingest ktrain paper
     llm.ingest(source_folder)
@@ -117,11 +129,8 @@ def test_rag_sparse(**kwargs):
     # make source folder
     source_folder = tempfile.mkdtemp()
 
-    # download ktrain paper
-    U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf",
-        os.path.join(source_folder, "ktrain.pdf"),
-    )
+    # download ktrain paper (or copy from local if available)
+    download_or_copy_local('ktrain_paper/ktrain_paper.pdf', os.path.join(source_folder, "ktrain.pdf"))
 
     # ingest ktrain paper
     llm.ingest(source_folder)
@@ -134,16 +143,13 @@ def test_rag_sparse(**kwargs):
     result = llm.ask("What is ktrain?", limit=3)
     assert len(result["answer"]) > 8
     print(len(result['source_documents']))
-    assert len(result["source_documents"]) == 3 
+    assert len(result["source_documents"]) == 3
     assert "question" in result
     print()
 
 
-    # download SOTU
-    U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/sotu/state_of_the_union.txt",
-        os.path.join(source_folder, "sotu.txt"),
-    )
+    # download SOTU (or copy from local if available)
+    download_or_copy_local('sotu/state_of_the_union.txt', os.path.join(source_folder, "sotu.txt"))
 
     # ingest SOTU
     llm.ingest(source_folder)
@@ -221,11 +227,8 @@ def test_rag_dense(**kwargs):
     # make source folder
     source_folder = tempfile.mkdtemp()
 
-    # download ktrain paper
-    U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/ktrain_paper/ktrain_paper.pdf",
-        os.path.join(source_folder, "ktrain.pdf"),
-    )
+    # download ktrain paper (or copy from local if available)
+    download_or_copy_local('ktrain_paper/ktrain_paper.pdf', os.path.join(source_folder, "ktrain.pdf"))
 
     # ingest ktrain paper
     llm.ingest(source_folder, file_callables={'folder': set_folder})
@@ -242,11 +245,8 @@ def test_rag_dense(**kwargs):
     print()
 
 
-    # download SOTU
-    U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/sotu/state_of_the_union.txt",
-        os.path.join(source_folder, "sotu.txt"),
-    )
+    # download SOTU (or copy from local if available)
+    download_or_copy_local('sotu/state_of_the_union.txt', os.path.join(source_folder, "sotu.txt"))
 
     # ingest SOTU
     llm.ingest(source_folder, file_callables={'folder': set_folder})
@@ -268,11 +268,9 @@ def test_rag_dense(**kwargs):
     assert(len(result['source_documents']) > 2)
     print(f'# of sources from selfask: {len(result["source_documents"])}')
 
-    # download MS financial statement
-    U.download(
-        "https://raw.githubusercontent.com/amaiya/onprem/master/nbs/tests/sample_data/financial_statement/ms-financial-statement.pdf",
-        os.path.join(source_folder, "ms-financial-statement.pdf"),
-    )
+    # download MS financial statement (or copy from local if available)
+    download_or_copy_local('financial_statement/ms-financial-statement.pdf', 
+                          os.path.join(source_folder, "ms-financial-statement.pdf"))
 
     # ingest but ignore MS financial statement
     llm.ingest(source_folder, ignore_fn=lambda x: os.path.basename(x) == 'ms-financial-statement.pdf')
