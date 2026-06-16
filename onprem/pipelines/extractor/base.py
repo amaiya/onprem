@@ -9,7 +9,7 @@ __all__ = ['Extractor']
 
 # %% ../../../nbs/04_pipelines.extractor.base.ipynb #d0c1dfa3
 import os
-from typing import List, Optional, Callable, Union, Any
+from typing import List, Optional, Callable, Union, Any, Set
 import pandas as pd
 import json
 from ...utils import segment
@@ -344,12 +344,113 @@ class Extractor:
         return model.__class__(**model_dict)
     
     
+    def _apply_whitelist_filter_llm(
+        self,
+        model: BaseModel,
+        whitelist: Union[List[str], Set[str]],
+        field_name: str = 'params',
+        stop: list = []
+    ) -> BaseModel:
+        """
+        Apply whitelist filtering using LLM-based matching.
+        
+        Uses the LLM to intelligently match extracted parameter names against
+        a whitelist of valid field names, handling variations and renaming
+        parameters to use the canonical whitelist names.
+        
+        Args:
+            model: The Pydantic model instance containing extracted parameters
+            whitelist: Set or list of valid parameter names
+            field_name: Name of the list field to filter (default: 'params')
+            stop: Stop sequences for LLM generation
+            
+        Returns:
+            New model instance with filtered and renamed parameters
+        """
+        import json
+        
+        # Convert model to dict
+        model_dict = model.model_dump() if hasattr(model, 'model_dump') else model.dict()
+        
+        # Get the list of items to filter
+        items = model_dict.get(field_name, [])
+        
+        if not items:
+            return model
+        
+        # Convert whitelist to sorted list for consistent display
+        whitelist_list = sorted(list(whitelist))
+        
+        # Build the prompt
+        prompt = f"""Below is a list of valid parameter names:
+
+<begin_list>
+{json.dumps(whitelist_list, indent=2)}
+</end_list>
+
+For the following list of extracted parameters, identify which parameters match the valid parameter names above. 
+Return a new list containing ONLY the parameters that match valid names, with the 'name' field updated to use the exact valid parameter name from the list.
+
+Rules:
+1. Match parameters intelligently (handle abbreviations, modifiers, units, case differences)
+2. Update the 'name' field to the exact valid name from the list
+3. Keep all other fields (value, unit, name_of_system) unchanged
+4. Exclude parameters that don't match any valid name
+5. Return valid JSON format
+
+Extracted parameters to filter:
+{json.dumps(items, indent=2)}
+
+Return the filtered list as a JSON array:"""
+        
+        # Call the LLM
+        try:
+            response_text = self.llm.prompt(prompt, stop=stop)
+            
+            # Try to parse the response as JSON
+            # Handle potential markdown code blocks
+            response_text = response_text.strip()
+            if response_text.startswith('```'):
+                # Remove markdown code blocks
+                lines = response_text.split('\n')
+                response_text = '\n'.join([line for line in lines if not line.startswith('```')])
+                response_text = response_text.strip()
+            
+            filtered_items = json.loads(response_text)
+            
+            # Validate that it's a list
+            if not isinstance(filtered_items, list):
+                print(f"Warning: LLM returned non-list response, keeping original items")
+                filtered_items = items
+                
+        except json.JSONDecodeError as e:
+            print(f"Warning: Failed to parse LLM response as JSON: {e}")
+            print(f"Response was: {response_text[:200]}...")
+            print("Keeping original items")
+            filtered_items = items
+        except Exception as e:
+            print(f"Warning: Error during LLM whitelist filtering: {e}")
+            print("Keeping original items")
+            filtered_items = items
+        
+        # Update the model dict with filtered items
+        model_dict[field_name] = filtered_items
+        
+        original_count = len(items)
+        filtered_count = len(filtered_items)
+        
+        if filtered_count < original_count:
+            print(f"  Whitelist filtered {field_name}: {original_count} → {filtered_count} items")
+        
+        # Return new model instance
+        return model.__class__(**model_dict)
+    
+    
     def extract_parameters(
         self,
         fpath: Optional[str] = None,
         content: Optional[str] = None,
         parameter_whitelist: Optional[Union[List[str], set, str]] = None,
-        fuzzy_threshold: float = 0.55,
         max_length: Optional[int] = None,
         preproc_fn: Optional[Callable] = None,
         pdf_pages: List[int] = [],
@@ -366,7 +467,7 @@ class Extractor:
         This is a specialized convenience method for parameter extraction that:
         1. Uses SystemParameter/ParamCollection models automatically
         2. Uses SYSTEM_PARAMETERS_PROMPT by default
-        3. Provides intelligent fuzzy matching against a parameter whitelist
+        3. Provides intelligent LLM-based matching against a parameter whitelist
         4. Handles LLM name variations (case, abbreviations, units, etc.)
         
         Args:
@@ -375,13 +476,11 @@ class Extractor:
             
             parameter_whitelist: Set/list of parameter names to keep, or path to file.
                                If provided, only parameters matching these names are returned.
-                               Handles name variations intelligently (case, abbreviations, units).
+                               Uses LLM-based intelligent matching to handle name variations.
                                Can be:
                                - Set/list: {'range', 'speed', 'weight'}
                                - Excel/CSV path: 'data_dictionary.xlsx'
                                - None: Return all extracted parameters (no filtering)
-            
-            fuzzy_threshold: Minimum similarity for fuzzy matching (0-1, default 0.55, increase to 0.85 for stricter matches)
             
             max_length: Truncate document to this many characters
             preproc_fn: Preprocessing function for document text
@@ -394,7 +493,7 @@ class Extractor:
                       Example: lambda p: p['value'] > 0 and p['unit'] in ['mph', 'knots']
             
             postproc_fn: Post-processing function for ParamCollection
-                        Applied AFTER filtering
+                        Applied AFTER filtering and whitelist matching
                         Example: deduplication, sorting, name standardization
             
             prompt: Custom prompt (overrides SYSTEM_PARAMETERS_PROMPT)
@@ -421,8 +520,7 @@ class Extractor:
             # With whitelist from Excel file
             >>> result = extractor.extract_parameters(
             ...     fpath="specs.pdf",
-            ...     parameter_whitelist="data_dictionary.xlsx",
-            ...     fuzzy_threshold=0.85
+            ...     parameter_whitelist="data_dictionary.xlsx"
             ... )
             
             # With additional custom filtering
@@ -438,31 +536,18 @@ class Extractor:
         if prompt is None:
             prompt = SYSTEM_PARAMETERS_PROMPT
         
-        # Build the filter function based on whitelist
-        whitelist_filter = None
+        # Load whitelist if it's a file path
+        whitelist_set = None
         if parameter_whitelist is not None:
-            from .helpers import create_parameter_filter
-            
-            whitelist_filter = create_parameter_filter(
-                whitelist=parameter_whitelist,
-                field_name='name',
-                fuzzy_threshold=fuzzy_threshold,
-                case_sensitive=False,
-                normalize=True
-            )
+            if isinstance(parameter_whitelist, str):
+                # It's a file path - load it
+                from .helpers import load_parameter_whitelist
+                whitelist_set = load_parameter_whitelist(parameter_whitelist, case_sensitive=False)
+            else:
+                # It's already a set or list
+                whitelist_set = set(parameter_whitelist) if not isinstance(parameter_whitelist, set) else parameter_whitelist
         
-        # Combine whitelist filter with custom filter
-        combined_filter = None
-        if whitelist_filter and filter_fn:
-            # Both filters: parameter must pass both (AND logic)
-            def combined_filter(param):
-                return whitelist_filter(param) and filter_fn(param)
-        elif whitelist_filter:
-            combined_filter = whitelist_filter
-        elif filter_fn:
-            combined_filter = filter_fn
-        
-        # Call extract_structured with the parameter-specific setup
+        # Call extract_structured to get initial results
         result = self.extract_structured(
             prompt=prompt,
             pydantic_model=ParamCollection,
@@ -471,11 +556,38 @@ class Extractor:
             max_length=max_length,
             preproc_fn=preproc_fn,
             pdf_pages=pdf_pages,
-            return_as=return_as,
+            return_as='model',  # Always get model first for processing
             stop=stop,
-            filter_fn=combined_filter,
-            postproc_fn=postproc_fn,
+            filter_fn=None,  # Don't apply filter_fn yet
+            postproc_fn=None,  # Don't apply postproc_fn yet
             **kwargs
         )
         
-        return result
+        # Apply whitelist filtering using LLM if whitelist is provided
+        if whitelist_set is not None:
+            result = self._apply_whitelist_filter_llm(
+                model=result,
+                whitelist=whitelist_set,
+                field_name='params',
+                stop=stop
+            )
+        
+        # Apply custom filter function if provided
+        if filter_fn is not None:
+            result = self._apply_filter_fn(
+                model=result,
+                filter_fn=filter_fn,
+                filter_field='params'
+            )
+        
+        # Apply post-processing function if provided
+        if postproc_fn is not None:
+            result = postproc_fn(result)
+        
+        # Convert to requested format
+        if return_as == 'model':
+            return result
+        elif return_as == 'dict':
+            return result.model_dump() if hasattr(result, 'model_dump') else result.dict()
+        else:  # return_as == 'json'
+            return result.model_dump_json() if hasattr(result, 'model_dump_json') else result.json()
