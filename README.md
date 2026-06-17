@@ -116,6 +116,9 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 
 *Latest News* 🔥
 
+- \[2026/06\] v0.23.0 released and now includes the
+  [`Extractor.extract_structured`](https://amaiya.github.io/onprem/pipelines.extractor.base.html#extractor.extract_structured)
+  for structured information extraction.
 - \[2026/03\] v0.22.0 released and now includes the **AgentExecutor**:
   safely launch AI agents in a sandboxed environment to solve problems
   in two lines of code. See [the example notebook on
@@ -138,10 +141,6 @@ Cite](https://amaiya.github.io/onprem/#how-to-cite)**
 - \[2025/08\] v0.18.0 released and can now be used with AWS GovCloud
   LLMs. See [this
   example](https://amaiya.github.io/onprem/llm.backends.html#examples)
-  for more information.
-- \[2025/07\] v0.17.0 released and now allows you to connect directly to
-  SharePoint for search and RAG. See the [example notebook on vector
-  stores](https://amaiya.github.io/onprem/examples_vectorstore_factory.html#rag-with-sharepoint-documents)
   for more information.
 
 ------------------------------------------------------------------------
