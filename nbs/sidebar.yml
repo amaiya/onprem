@@ -39,5 +39,3 @@ website:
         - 04_pipelines.classifier.ipynb
         - 04_pipelines.guider.ipynb
         - 04_pipelines.agent.base.ipynb
-        - 04_pipelines.agent.model.ipynb
-        - 04_pipelines.agent.tools.ipynb
