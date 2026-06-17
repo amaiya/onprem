@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.23.0 (TBD)
+## 0.23.0 (2026-06-16)
 
 ### new:
 - `Extractor.extract_structured`: a pipeline for structured information extraction
