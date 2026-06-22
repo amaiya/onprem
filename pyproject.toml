@@ -41,7 +41,7 @@ onprem = "onprem.app.console:cli"
 version = {attr = "onprem.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["onprem"]
+include = ["onprem*"]
 
 [tool.setuptools.package-data]
 onprem = [

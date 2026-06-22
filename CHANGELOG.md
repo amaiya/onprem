@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.23.1 (2026-06-22)
+
+### new:
+- N/A
+
+### changed
+- Updated `pyproject.toml` to use wildcard pattern for package discovery to ensure all subpackages are included
+
+### fixed:
+- Fixed packaging issue where `extractor/` subpackage was not included in PyPI distribution due to naming conflict with legacy `extractor.py` file
+
+
 ## 0.23.0 (2026-06-16)
 
 ### new:
