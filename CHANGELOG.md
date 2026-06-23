@@ -7,6 +7,70 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.23.1 (2026-06-22)
+
+### new:
+- N/A
+
+### changed
+- Updated `pyproject.toml` to use wildcard pattern for package discovery to ensure all subpackages are included
+
+### fixed:
+- Fixed packaging issue where `extractor/` subpackage was not included in PyPI distribution due to naming conflict with legacy `extractor.py` file
+
+
+## 0.23.0 (2026-06-16)
+
+### new:
+- `Extractor.extract_structured`: a pipeline for structured information extraction
+
+### changed
+- `verbose` parameter in `onprem.LLM` is now set to false by default to suppress
+  **CUDA Graph Id <num> is reused** messages.
+
+### fixed:
+- Only pass stop parameter when non-empty (for models like GPT-5-mini)
+- Ensure progress bar in `HFClassifier` by default
+
+
+
+## 0.22.2 (2026-04-22)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Unpin  `litellm`
+- Fix for nested Pydantic models
+
+
+## 0.22.1 (2026-03-24)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Pin to `litellm<=1.82.6` due to [this](https://github.com/BerriAI/litellm/issues/24512)
+
+
+## 0.22.0 (2026-03-17)
+
+### new:
+- **`AgentExecutor`**: A new agent pipeline to safely launch agents in sandboxed environments
+
+### changed
+- Overhauled optional dependencies in `pyproject.toml`
+
+### fixed:
+- Fix issue with new fields not being added to index
+
+
 ## 0.21.5 (2026-03-03)
 
 ### new:
