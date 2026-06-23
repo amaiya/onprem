@@ -44,25 +44,25 @@ class AgentExecutor:
         custom_tools (list): List of Python functions to use as custom tools. Each function should have
                             type hints and a docstring. These will be written to .patchpal/tools/ directory
                             in the working directory and automatically discovered by PatchPal.
-                            
+
                             Example:
                                 def calculate_sum(a: int, b: int) -> int:
                                     '''Add two numbers together.
-                                    
+
                                     Args:
                                         a: First number
                                         b: Second number
-                                    
+
                                     Returns:
                                         Sum of a and b
                                     '''
                                     return a + b
-                                
+
                                 executor = AgentExecutor(
                                     model='anthropic/claude-sonnet-4-5',
                                     custom_tools=[calculate_sum]
                                 )
-                            
+
         enabled_tools (list): List of tool names to enable. If None, uses DEFAULT_TOOLS:
                              ['read_file', 'read_lines', 'edit_file', 'write_file',
                               'grep', 'find', 'run_shell', 'web_search', 'web_fetch']
@@ -74,7 +74,7 @@ class AgentExecutor:
         verbose (bool): Show progress output in real-time (default: True). When False, output is
                        captured but not displayed (useful for automated scripts/logging).
     """
-    
+
     # Default tools for code-focused agent tasks
     DEFAULT_TOOLS = [
         'read_file',      # Read complete files
@@ -119,7 +119,7 @@ class AgentExecutor:
         self.memory = memory
         self.cpus = cpus
         self.custom_tools = custom_tools or []
-        
+
         # Handle tool configuration
         if enabled_tools is not None:
             # User explicitly specified tools
@@ -129,7 +129,7 @@ class AgentExecutor:
             self.enabled_tools = self.DEFAULT_TOOLS.copy()
             if disable_shell and 'run_shell' in self.enabled_tools:
                 self.enabled_tools.remove('run_shell')
-        
+
         self.completion_promise = completion_promise
         self.verbose = verbose
 
@@ -137,7 +137,7 @@ class AgentExecutor:
     def print_default_tools(cls):
         """
         Pretty-print the default tools available in AgentExecutor.
-        
+
         This shows the tools that are used when enabled_tools=None (the default).
         Users can customize by passing a different list to enabled_tools parameter.
         """
@@ -145,7 +145,7 @@ class AgentExecutor:
         print("AgentExecutor Default Tools")
         print("=" * 70)
         print("\nThese tools are used by default when enabled_tools=None:\n")
-        
+
         tool_descriptions = {
             'read_file': 'Read complete file contents',
             'read_lines': 'Read specific line ranges from files',
@@ -157,11 +157,11 @@ class AgentExecutor:
             'web_search': 'Search the web for information',
             'web_fetch': 'Fetch and read content from URLs',
         }
-        
+
         for i, tool in enumerate(cls.DEFAULT_TOOLS, 1):
             desc = tool_descriptions.get(tool, 'No description available')
             print(f"  {i:2d}. {tool:15s} - {desc}")
-        
+
         print("\n" + "=" * 70)
         print("Customization Examples:")
         print("=" * 70)
@@ -188,13 +188,13 @@ class AgentExecutor:
         """Write custom tool functions to Python files in the tools directory."""
         if not self.custom_tools:
             return
-        
+
         tools_dir.mkdir(parents=True, exist_ok=True)
-        
+
         for func in self.custom_tools:
             # Get function name
             func_name = func.__name__
-            
+
             # Try to get source code
             try:
                 source = inspect.getsource(func)
@@ -202,10 +202,10 @@ class AgentExecutor:
                 if self.verbose:
                     print(f"⚠️  Warning: Could not extract source for custom tool '{func_name}', skipping")
                 continue
-            
+
             # Dedent the source code
             source = textwrap.dedent(source)
-            
+
             # Try to get imports from the source file (works for .py files)
             imports = []
             try:
@@ -219,11 +219,11 @@ class AgentExecutor:
                                     imports.append(stripped)
             except Exception:
                 pass
-            
+
             # If no imports found (e.g., Jupyter notebook), reconstruct from globals
             if not imports:
                 func_globals = func.__globals__
-                
+
                 # Parse the source to find what names are actually used
                 import ast
                 try:
@@ -236,41 +236,41 @@ class AgentExecutor:
                 except:
                     # If parsing fails, we'll include everything (fallback)
                     used_names = None
-                
+
                 # Group objects by their source module
                 from_imports = {}  # module -> [names]
                 direct_imports = set()
-                
+
                 # Skip these modules/names
                 skip_modules = {'IPython', '__main__', 'builtins', '__builtin__', 'onprem', 'io'}
                 skip_names = {'open', 'exit', 'quit', 'get_ipython', '__builtins__'}
-                
+
                 for name, obj in func_globals.items():
                     if name.startswith('_') or name in skip_names:
                         continue
-                    
+
                     # Only include if the name is actually used in the function
                     if used_names is not None and name not in used_names:
                         continue
-                    
+
                     # Skip onprem imports
                     if hasattr(obj, '__module__'):
                         obj_module = str(obj.__module__)
                         if any(skip in obj_module for skip in skip_modules):
                             continue
-                    
+
                     # Check if it's a module (import xxx)
                     if hasattr(obj, '__name__') and hasattr(obj, '__file__'):
                         module_name = obj.__name__
                         if module_name and not any(skip in module_name for skip in skip_modules):
                             direct_imports.add(f"import {module_name}")
-                    
+
                     # Check if it's from typing module
                     elif str(type(obj)).startswith("<class 'typing."):
                         if 'typing' not in from_imports:
                             from_imports['typing'] = []
                         from_imports['typing'].append(name)
-                    
+
                     # Check if it's from another module (from xxx import yyy)
                     elif hasattr(obj, '__module__'):
                         module = obj.__module__
@@ -280,13 +280,13 @@ class AgentExecutor:
                                 if module not in from_imports:
                                     from_imports[module] = []
                                 from_imports[module].append(name)
-                
+
                 # Build import statements
                 for module, names in sorted(from_imports.items()):
                     imports.append(f"from {module} import {', '.join(sorted(set(names)))}")
-                
+
                 imports.extend(sorted(direct_imports))
-            
+
             # Build file content with imports at the top
             file_content = ""
             if imports:
@@ -299,49 +299,49 @@ class AgentExecutor:
                         unique_imports.append(imp)
                 file_content = "\n".join(unique_imports) + "\n\n"
             file_content += source
-            
+
             # Write to file
             tool_file = tools_dir / f"{func_name}.py"
             tool_file.write_text(file_content)
-            
+
             if self.verbose:
                 print(f"✓ Wrote custom tool '{func_name}' to {tool_file}")
 
     def _build_sandbox_command(self, task_file: Path) -> List[str]:
         """Build the patchpal-sandbox command."""
         cmd = ['patchpal-sandbox']
-        
+
         # Add sandbox options
         if self.image != "python:3.11-slim":
             cmd.extend(['--image', self.image])
-        
+
         if self.network == 'host':
             cmd.append('--host-network')
         elif self.network == 'none':
             cmd.append('--no-network')
         # 'bridge' is default, no flag needed
-        
+
         if self.memory:
             cmd.extend(['--memory', self.memory])
-        
+
         if self.cpus:
             cmd.extend(['--cpus', str(self.cpus)])
-        
+
         if self.env_file:
             cmd.extend(['--env-file', self.env_file])
-        
+
         # Separator between sandbox args and patchpal args
         cmd.append('--')
-        
+
         # Add patchpal autopilot command
         cmd.append('autopilot')
         cmd.extend(['--model', self.model])
         cmd.extend(['--prompt-file', str(task_file)])
         cmd.extend(['--completion-promise', self.completion_promise])
         cmd.extend(['--max-iterations', str(self.max_iterations)])
-        
+
         return cmd
-    
+
     def _build_direct_command(self, task_file: Path) -> List[str]:
         """Build the direct patchpal-autopilot command (no sandbox)."""
         cmd = ['patchpal-autopilot']
@@ -351,7 +351,7 @@ class AgentExecutor:
         cmd.extend(['--max-iterations', str(self.max_iterations)])
 
         return cmd
-    
+
     def run(
         self,
         task: str,
@@ -359,39 +359,39 @@ class AgentExecutor:
     ) -> str:
         """
         Run the agent on a given task in a sandboxed environment.
-        
+
         Args:
             task (str): The task description/prompt
             working_dir (str): Directory to run in (default: current directory)
-            
+
         Returns:
             str: The agent's response/output
-            
+
         Raises:
             RuntimeError: If agent execution fails
             FileNotFoundError: If patchpal-sandbox is not installed
         """
         # Save current directory
         original_dir = os.getcwd()
-        
+
         # Track if we created a custom tools directory
         custom_tools_dir = None
-        
+
         try:
             # Change to working directory if specified
             if working_dir:
                 working_path = Path(working_dir)
                 working_path.mkdir(parents=True, exist_ok=True)
                 os.chdir(working_dir)
-            
+
             # Write custom tools to .patchpal/tools/ directory
             if self.custom_tools:
                 custom_tools_dir = Path('.patchpal/tools')
                 self._write_custom_tools(custom_tools_dir)
-            
+
             # Create task file in current directory
             task_file = Path('task_prompt.md')
-            
+
             # Add completion promise instruction
             task_with_completion = (
                 f"{task}\n\n"
@@ -399,7 +399,7 @@ class AgentExecutor:
                 f"<promise>{self.completion_promise}</promise>"
             )
             task_file.write_text(task_with_completion)
-            
+
             try:
                 # Set environment variables for agent configuration
                 env = os.environ.copy()
@@ -463,7 +463,7 @@ class AgentExecutor:
                     )
 
                 return ''.join(output_lines)
-                    
+
             except FileNotFoundError:
                 if self.sandbox:
                     raise FileNotFoundError(
@@ -479,12 +479,12 @@ class AgentExecutor:
                 # Clean up task file
                 if task_file.exists():
                     task_file.unlink()
-                
+
                 # Clean up custom tools directory if we created it
                 if custom_tools_dir and custom_tools_dir.exists():
                     import shutil
                     shutil.rmtree(custom_tools_dir)
-        
+
         finally:
             # Restore original directory
             os.chdir(original_dir)

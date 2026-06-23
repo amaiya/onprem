@@ -42,7 +42,7 @@ class Extractor:
               ex_prompt_template:str, # A prompt to apply to each `unit` in document. Should have a single variable, `{text}`
               fpath: Optional[str] = None, # A path to to a single file of interest (e.g., a PDF or MS Word document). Mutually-exclusive with `content`.
               content: Optional[str] = None, # Text content of a document of interest.  Mutually-exclusive with `fpath`.
-              unit:str='paragraph', # One of {'sentence', 'paragraph'}. 
+              unit:str='paragraph', # One of {'sentence', 'paragraph'}.
               pydantic_model=None, # If a Pydantic model is supplied, `LLM.pydantic_prompt` is used instead of `LLM.prompt`.
               attempt_fix:bool=False, # If True and `pydantic_model` is supplied, attempt to fix malformed/incomplete outputs.
               fix_llm=None, # LLM used to attempt fix when `attempt_fix=True`. If None, then use `self.llm.llm`.
@@ -65,9 +65,9 @@ class Extractor:
             raise ValueError('The parameters pdf_pages and pdf_unstructured are mutually exclusive.')
         if pdf_pages and kwargs.get('pdf_markdown', False):
             raise ValueError('The parameters pdf_pages and pdf_markdown are mutually exclusive.')
-            
+
         # setup extraction prompt
-        extraction_prompt = ex_prompt_template if self.prompt_template is None else self.prompt_template.format(**{'prompt': ex_prompt_template})   
+        extraction_prompt = ex_prompt_template if self.prompt_template is None else self.prompt_template.format(**{'prompt': ex_prompt_template})
 
         # extract text
         if not content:
@@ -79,7 +79,7 @@ class Extractor:
             if ext == 'pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
             content = '\n\n'.join([preproc_fn(doc.page_content) if preproc_fn else doc.page_content for doc in docs])
-        
+
         # segment
         chunks = segment(content, maxchars=maxchars, unit=unit)
         extractions = []
@@ -120,26 +120,26 @@ class Extractor:
                          ) -> Union[BaseModel, dict, str]:
         """
         Perform document-level structured extraction using Pydantic models.
-        
+
         This method processes the entire document (or a large section) in a single LLM call,
         using a Pydantic model to enforce structured output. This is more efficient than
         chunk-by-chunk processing when you need to extract structured information that may
         span multiple sections of the document.
-        
+
         Unlike `apply()` which processes each paragraph/sentence separately, this method:
         - Makes a single LLM call for the entire document
         - Maintains full document context for better relationship detection
         - Enforces schema compliance via Pydantic models
         - Returns structured data in your desired format
-        
+
         Example use cases:
         - Extract all system parameters with values and units
         - Extract key performance parameters with thresholds and objectives
         - Extract entities, relationships, or structured specifications
         - Any extraction requiring cross-document context
-        
+
         Args:
-            prompt: Prompt template for extraction. Use {text} placeholder if you want 
+            prompt: Prompt template for extraction. Use {text} placeholder if you want
                    the document text inserted (recommended for clarity).
             pydantic_model: Pydantic BaseModel class defining output structure
             fpath: Path to document file (PDF, Word, text, etc.)
@@ -150,26 +150,26 @@ class Extractor:
             return_as: Output format - 'model' (Pydantic model), 'dict', or 'json' string
             stop: Stop sequences for LLM generation
             **kwargs: Additional arguments passed to load_single_document
-            
+
         Returns:
             Extracted data in format specified by return_as parameter:
             - 'model': Pydantic model instance
             - 'dict': Python dictionary
             - 'json': JSON string
-            
+
         Example:
             ```python
             from pydantic import BaseModel, Field
             from typing import List
-            
+
             class Parameter(BaseModel):
                 name: str = Field(description="Parameter name")
                 value: float = Field(description="Numeric value")
                 unit: str = Field(description="Unit of measurement")
-                
+
             class ParameterList(BaseModel):
                 parameters: List[Parameter] = Field(default=[], description="All parameters found")
-            
+
             extractor = Extractor(llm)
             result = extractor.extract_structured(
                 prompt="Extract all technical parameters from: {text}",
@@ -182,7 +182,7 @@ class Extractor:
         """
         if BaseModel is None:
             raise ImportError("Pydantic is required for structured extraction. Install with: pip install pydantic")
-        
+
         if not(bool(fpath) != bool(content)):
             raise ValueError('Either fpath argument or content argument must be supplied but not both.')
         if pdf_pages and kwargs.get('pdf_unstructured', False):
@@ -191,44 +191,44 @@ class Extractor:
             raise ValueError('The parameters pdf_pages and pdf_markdown are mutually exclusive.')
         if return_as not in ['model', 'dict', 'json']:
             raise ValueError("return_as must be one of: 'model', 'dict', or 'json'")
-            
+
         # Extract text from document
         if not content:
             if not os.path.isfile(fpath):
                 raise ValueError(f'{fpath} is not a file')
             docs = load_single_document(fpath, **kwargs)
-            if not docs: 
+            if not docs:
                 raise ValueError(f'No content loaded from {fpath}')
             ext = extract_extension(fpath)
             if ext == 'pdf' and pdf_pages:
                 docs = [doc for i,doc in enumerate(docs) if i+1 in pdf_pages]
             content = '\n\n'.join([preproc_fn(doc.page_content) if preproc_fn else doc.page_content for doc in docs])
-        
+
         # Apply preprocessing if provided
         if preproc_fn and content:
             content = preproc_fn(content)
-            
+
         # Truncate if max_length specified
         if max_length is not None:
             content = content[:max_length]
-        
+
         # Format the prompt with the text if {text} placeholder exists
         if '{text}' in prompt:
             final_prompt = prompt.format(text=content)
         else:
             # If no placeholder, append the content
             final_prompt = f"{prompt}\n\n{content}"
-        
+
         # Prepare response_format - automatically convert to vLLM format if needed
         response_format = self._prepare_response_format(pydantic_model)
         is_vllm_format = isinstance(response_format, dict)
-        
+
         # Make the LLM call with structured output
         try:
             response = self.llm.prompt(final_prompt, response_format=response_format, stop=stop)
         except Exception as e:
             raise RuntimeError(f"Failed to extract structured data: {e}")
-        
+
         # Convert response to Pydantic model if vLLM format was used
         if is_vllm_format:
             if isinstance(response, str):
@@ -237,14 +237,14 @@ class Extractor:
             elif isinstance(response, dict):
                 # Convert dict to Pydantic model
                 response = pydantic_model.model_validate(response)
-        
+
         # Apply post-processing BEFORE format conversion
         if postproc_fn:
             response = postproc_fn(response)
-        
+
         if filter_fn:
             response = self._apply_filter_fn(response, filter_fn, filter_field)
-        
+
         # Return in requested format
         if return_as == 'model':
             return response
@@ -252,20 +252,20 @@ class Extractor:
             return response.model_dump() if hasattr(response, 'model_dump') else response.dict()
         else:  # return_as == 'json'
             return response.model_dump_json() if hasattr(response, 'model_dump_json') else response.json()
-    
-    
+
+
     def _prepare_response_format(self, pydantic_model):
         """
         Prepare response_format for LLM call.
-        
-        For local APIs (vLLM, OpenLLM, etc.), automatically convert Pydantic model 
+
+        For local APIs (vLLM, OpenLLM, etc.), automatically convert Pydantic model
         to vLLM's json_schema dict format for better compatibility.
-        For other backends (OpenAI, Anthropic, etc.), pass through the Pydantic 
+        For other backends (OpenAI, Anthropic, etc.), pass through the Pydantic
         model to use LangChain's native structured output support.
-        
+
         Args:
             pydantic_model: Pydantic BaseModel class
-            
+
         Returns:
             Either dict (for vLLM) or Pydantic model (for other backends)
         """
@@ -282,21 +282,21 @@ class Extractor:
         else:
             # Pass through Pydantic model for LangChain's native support
             return pydantic_model
-    
-    
+
+
     def _get_list_fields(self, model: BaseModel) -> List[str]:
         """Automatically detect List[T] fields in Pydantic model."""
         from typing import get_origin
-        
+
         list_fields = []
         for field_name, field_info in model.model_fields.items():
             origin = get_origin(field_info.annotation)
             if origin is list:
                 list_fields.append(field_name)
-        
+
         return list_fields
-    
-    
+
+
     def _apply_filter_fn(
         self,
         model: BaseModel,
@@ -305,45 +305,45 @@ class Extractor:
     ) -> BaseModel:
         """
         Apply filter_fn to list field(s) in the Pydantic model.
-        
+
         Args:
             model: The Pydantic model instance
             filter_fn: Function that takes an item and returns True to keep it
             filter_field: Specific field name to filter (None = auto-detect)
-        
+
         Returns:
             New model instance with filtered data
         """
         import warnings
-        
+
         # Get all list fields or specific field
         if filter_field:
             list_fields = [filter_field] if filter_field in model.model_fields else []
         else:
             list_fields = self._get_list_fields(model)
-        
+
         if not list_fields:
             warnings.warn(
                 f"No list fields found in {model.__class__.__name__}. "
                 f"filter_fn has no effect. Available fields: {list(model.model_fields.keys())}"
             )
             return model
-        
+
         # Create new dict with filtered lists
         model_dict = model.model_dump() if hasattr(model, 'model_dump') else model.dict()
-        
+
         for field_name in list_fields:
             original_list = model_dict.get(field_name, [])
             filtered_list = [item for item in original_list if filter_fn(item)]
             model_dict[field_name] = filtered_list
-            
+
             if len(filtered_list) < len(original_list):
                 print(f"  Filtered {field_name}: {len(original_list)} → {len(filtered_list)} items")
-        
+
         # Return new model instance
         return model.__class__(**model_dict)
-    
-    
+
+
     def _apply_whitelist_filter_llm(
         self,
         model: BaseModel,
@@ -353,35 +353,35 @@ class Extractor:
     ) -> BaseModel:
         """
         Apply whitelist filtering using LLM-based matching.
-        
+
         Uses the LLM to intelligently match extracted parameter names against
         a whitelist of valid field names, handling variations and renaming
         parameters to use the canonical whitelist names.
-        
+
         Args:
             model: The Pydantic model instance containing extracted parameters
             whitelist: Set or list of valid parameter names
             field_name: Name of the list field to filter (default: 'params')
             stop: Stop sequences for LLM generation
-            
+
         Returns:
             New model instance with filtered and renamed parameters
         """
         import json
         from onprem.llm.helpers import parse_json_markdown
-        
+
         # Convert model to dict
         model_dict = model.model_dump() if hasattr(model, 'model_dump') else model.dict()
-        
+
         # Get the list of items to filter
         items = model_dict.get(field_name, [])
-        
+
         if not items:
             return model
-        
+
         # Convert whitelist to sorted list for consistent display
         whitelist_list = sorted(list(whitelist))
-        
+
         # Build the prompt
         prompt = f"""Below is a list of valid parameter names (with optional descriptions):
 
@@ -389,7 +389,7 @@ class Extractor:
 {json.dumps(whitelist_list, indent=2)}
 </end_list>
 
-For the following list of extracted parameters, identify which parameters match the valid parameter names above. 
+For the following list of extracted parameters, identify which parameters match the valid parameter names above.
 Return a new list containing ONLY the parameters that match valid names, with the 'name' field updated to use the exact valid parameter name from the list.
 
 Rules:
@@ -404,38 +404,38 @@ Extracted parameters to filter:
 {json.dumps(items, indent=2)}
 
 Return the filtered list as a JSON array:"""
-        
+
         # Call the LLM
         try:
             response_text = self.llm.prompt(prompt, stop=stop)
-            
+
             # Use existing parse_json_markdown utility to extract and parse JSON
             filtered_items = parse_json_markdown(response_text)
-            
+
             # Validate that it's a list
             if not isinstance(filtered_items, list):
                 print(f"Warning: LLM returned non-list response, keeping original items")
                 filtered_items = items
-                
+
         except Exception as e:
             print(f"Warning: Error during LLM whitelist filtering: {e}")
             print(f"Response was: {response_text[:200] if 'response_text' in locals() else 'N/A'}...")
             print("Keeping original items")
             filtered_items = items
-        
+
         # Update the model dict with filtered items
         model_dict[field_name] = filtered_items
-        
+
         original_count = len(items)
         filtered_count = len(filtered_items)
-        
+
         if filtered_count < original_count:
             print(f"  Whitelist filtered {field_name}: {original_count} → {filtered_count} items")
-        
+
         # Return new model instance
         return model.__class__(**model_dict)
-    
-    
+
+
     def extract_parameters(
         self,
         fpath: Optional[str] = None,
@@ -453,17 +453,17 @@ Return the filtered list as a JSON array:"""
     ) -> Union[Any, dict, str]:
         """
         Extract system parameters from a document with intelligent name matching.
-        
+
         This is a specialized convenience method for parameter extraction that:
         1. Uses SystemParameter/ParamCollection models automatically
         2. Uses SYSTEM_PARAMETERS_PROMPT by default
         3. Provides intelligent LLM-based matching against a parameter whitelist
         4. Handles LLM name variations (case, abbreviations, units, etc.)
-        
+
         Args:
             fpath: Path to document file
             content: Raw text content (alternative to fpath)
-            
+
             parameter_whitelist: Set/list of parameter names to keep, or path to file.
                                If provided, only parameters matching these names are returned.
                                Uses LLM-based intelligent matching to handle name variations.
@@ -471,48 +471,48 @@ Return the filtered list as a JSON array:"""
                                - Set/list: {'range', 'speed', 'weight'}
                                - Excel/CSV path: 'data_dictionary.xlsx'
                                - None: Return all extracted parameters (no filtering)
-            
+
             max_length: Truncate document to this many characters
             preproc_fn: Preprocessing function for document text
             pdf_pages: Extract only from these PDF page numbers
             return_as: Output format - 'model', 'dict', or 'json'
             stop: Stop sequences for LLM
-            
+
             filter_fn: Additional filter function for custom criteria
                       Applied AFTER whitelist matching
                       Example: lambda p: p['value'] > 0 and p['unit'] in ['mph', 'knots']
-            
+
             postproc_fn: Post-processing function for ParamCollection
                         Applied AFTER filtering and whitelist matching
                         Example: deduplication, sorting, name standardization
-            
+
             prompt: Custom prompt (overrides SYSTEM_PARAMETERS_PROMPT)
-            
+
             **kwargs: Additional arguments passed to load_single_document
-        
+
         Returns:
             Extracted parameters in format specified by return_as:
             - 'model': ParamCollection Pydantic model
             - 'dict': Dictionary with 'params' key
             - 'json': JSON string
-        
+
         Examples:
             # Basic usage - extract all parameters
             >>> result = extractor.extract_parameters(fpath="specs.pdf")
-            
+
             # With whitelist filtering from Python set
             >>> whitelist = {'range', 'cruise speed', 'weight', 'power'}
             >>> result = extractor.extract_parameters(
             ...     fpath="specs.pdf",
             ...     parameter_whitelist=whitelist
             ... )
-            
+
             # With whitelist from Excel file
             >>> result = extractor.extract_parameters(
             ...     fpath="specs.pdf",
             ...     parameter_whitelist="data_dictionary.xlsx"
             ... )
-            
+
             # With additional custom filtering
             >>> result = extractor.extract_parameters(
             ...     fpath="specs.pdf",
@@ -521,11 +521,11 @@ Return the filtered list as a JSON array:"""
             ... )
         """
         from .models import ParamCollection, SYSTEM_PARAMETERS_PROMPT
-        
+
         # Use default prompt if not provided
         if prompt is None:
             prompt = SYSTEM_PARAMETERS_PROMPT
-        
+
         # Load whitelist if it's a file path
         whitelist_set = None
         if parameter_whitelist is not None:
@@ -536,7 +536,7 @@ Return the filtered list as a JSON array:"""
             else:
                 # It's already a set or list
                 whitelist_set = set(parameter_whitelist) if not isinstance(parameter_whitelist, set) else parameter_whitelist
-        
+
         # Call extract_structured to get initial results
         result = self.extract_structured(
             prompt=prompt,
@@ -552,7 +552,7 @@ Return the filtered list as a JSON array:"""
             postproc_fn=None,  # Don't apply postproc_fn yet
             **kwargs
         )
-        
+
         # Apply whitelist filtering using LLM if whitelist is provided
         if whitelist_set is not None:
             result = self._apply_whitelist_filter_llm(
@@ -561,7 +561,7 @@ Return the filtered list as a JSON array:"""
                 field_name='params',
                 stop=stop
             )
-        
+
         # Apply custom filter function if provided
         if filter_fn is not None:
             result = self._apply_filter_fn(
@@ -569,11 +569,11 @@ Return the filtered list as a JSON array:"""
                 filter_fn=filter_fn,
                 filter_field='params'
             )
-        
+
         # Apply post-processing function if provided
         if postproc_fn is not None:
             result = postproc_fn(result)
-        
+
         # Convert to requested format
         if return_as == 'model':
             return result

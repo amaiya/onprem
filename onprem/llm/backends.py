@@ -26,32 +26,32 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 def _pydantic_to_bedrock_tool_schema(pydantic_model: BaseModel, tool_name: str = "structured_output") -> Dict:
     """
     Convert a Pydantic model to Bedrock tool schema format.
-    
+
     Args:
         pydantic_model: Pydantic model class
         tool_name: Name for the tool
-        
+
     Returns:
         Dictionary in Bedrock tool format
     """
     schema = pydantic_model.model_json_schema()
-    
+
     # Extract properties and required fields from the Pydantic schema
     properties = schema.get("properties", {})
     required = schema.get("required", [])
     description = schema.get("description", f"Structured output for {pydantic_model.__name__}")
-    
+
     # Build input schema
     input_schema = {
         "type": "object",
         "properties": properties,
         "required": required
     }
-    
+
     # Include $defs if present (needed for nested Pydantic models)
     if "$defs" in schema:
         input_schema["$defs"] = schema["$defs"]
-    
+
     return {
         "name": tool_name,
         "description": description,
@@ -62,11 +62,11 @@ def _pydantic_to_bedrock_tool_schema(pydantic_model: BaseModel, tool_name: str =
 class ChatGovCloudBedrock(BaseChatModel):
     """
     Custom LangChain Chat model for AWS GovCloud Bedrock.
-    
+
     This class provides integration with Amazon Bedrock running in AWS GovCloud regions,
     supporting custom VPC endpoints and GovCloud-specific configurations.
     """
-    
+
     model_id: str = Field(description="The Bedrock model ID or inference profile ARN")
     region_name: str = Field(default="us-gov-east-1", description="AWS GovCloud region")
     endpoint_url: Optional[str] = Field(default=None, description="Custom endpoint URL for VPC endpoints")
@@ -92,7 +92,7 @@ class ChatGovCloudBedrock(BaseChatModel):
     ):
         """
         Initialize ChatGovCloudBedrock.
-        
+
         Args:
             model_id: The Bedrock model ID or inference profile ARN
             region_name: AWS GovCloud region (us-gov-east-1 or us-gov-west-1)
@@ -125,20 +125,20 @@ class ChatGovCloudBedrock(BaseChatModel):
             "service_name": "bedrock-runtime",
             "region_name": self.region_name,
         }
-        
+
         if self.endpoint_url:
             client_kwargs["endpoint_url"] = self.endpoint_url
-            
+
         if self.aws_access_key_id:
             client_kwargs["aws_access_key_id"] = self.aws_access_key_id
         else:
             client_kwargs["aws_access_key_id"] = os.environ.get('AWS_ACCESS_KEY_ID')
-            
+
         if self.aws_secret_access_key:
             client_kwargs["aws_secret_access_key"] = self.aws_secret_access_key
         else:
             client_kwargs["aws_secret_access_key"] = os.environ.get('AWS_SECRET_ACCESS_KEY')
-        
+
         try:
             import boto3
         except ImportError:
@@ -149,40 +149,40 @@ class ChatGovCloudBedrock(BaseChatModel):
     def _convert_messages_to_bedrock_format(self, messages: List[BaseMessage]) -> List[Dict[str, str]]:
         """
         Convert LangChain messages to Bedrock API format.
-        
+
         Args:
             messages: List of LangChain BaseMessage objects
-            
+
         Returns:
             List of dictionaries in Bedrock API format
         """
         bedrock_messages = []
-        
+
         for message in messages:
             if isinstance(message, HumanMessage):
                 bedrock_messages.append({
-                    "role": "user", 
+                    "role": "user",
                     "content": message.content
                 })
             elif isinstance(message, AIMessage):
                 bedrock_messages.append({
-                    "role": "assistant", 
+                    "role": "assistant",
                     "content": message.content
                 })
             elif isinstance(message, SystemMessage):
                 # For Claude models, system messages can be handled as user messages
                 # or through the system parameter in the request body
                 bedrock_messages.append({
-                    "role": "user", 
+                    "role": "user",
                     "content": f"System: {message.content}"
                 })
             else:
                 # Default to user role for unknown message types
                 bedrock_messages.append({
-                    "role": "user", 
+                    "role": "user",
                     "content": str(message.content)
                 })
-        
+
         return bedrock_messages
 
     def _generate(
@@ -194,13 +194,13 @@ class ChatGovCloudBedrock(BaseChatModel):
     ) -> ChatResult:
         """
         Generate chat response using AWS Bedrock.
-        
+
         Args:
             messages: List of chat messages
             stop: List of stop sequences
             run_manager: Callback manager
             **kwargs: Additional parameters
-            
+
         Returns:
             ChatResult containing the response
         """
@@ -212,15 +212,15 @@ class ChatGovCloudBedrock(BaseChatModel):
                 chunks.append(chunk)
                 if chunk.message.content:
                     full_content += chunk.message.content
-            
+
             # Return final result with complete content
             final_message = AIMessage(content=full_content)
             return ChatResult(generations=[ChatGeneration(message=final_message)])
-        
+
         # Non-streaming path
         # Convert messages to Bedrock format
         bedrock_messages = self._convert_messages_to_bedrock_format(messages)
-        
+
         # Prepare request body
         body = {
             "messages": bedrock_messages,
@@ -228,11 +228,11 @@ class ChatGovCloudBedrock(BaseChatModel):
             "temperature": kwargs.get("temperature", self.temperature),
             "anthropic_version": "bedrock-2023-05-31"
         }
-        
+
         # Add stop sequences if provided
         if stop:
             body["stop_sequences"] = stop
-            
+
         try:
             # Make the API call
             response = self.client.invoke_model(
@@ -241,24 +241,24 @@ class ChatGovCloudBedrock(BaseChatModel):
                 accept="application/json",
                 body=json.dumps(body).encode("utf-8")
             )
-            
+
             # Parse response
             response_body = json.loads(response["body"].read().decode("utf-8"))
-            
+
             # Extract the generated text
             if "content" in response_body and len(response_body["content"]) > 0:
                 generated_text = response_body["content"][0]["text"]
             else:
                 generated_text = ""
-            
+
             # Create AIMessage
             message = AIMessage(content=generated_text)
-            
+
             # Create ChatGeneration
             generation = ChatGeneration(message=message)
-            
+
             return ChatResult(generations=[generation])
-            
+
         except Exception as e:
             raise RuntimeError(f"Error calling AWS Bedrock: {str(e)}")
 
@@ -274,7 +274,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         """
         # Convert messages to Bedrock format
         bedrock_messages = self._convert_messages_to_bedrock_format(messages)
-        
+
         # Prepare request body
         body = {
             "messages": bedrock_messages,
@@ -282,11 +282,11 @@ class ChatGovCloudBedrock(BaseChatModel):
             "temperature": kwargs.get("temperature", self.temperature),
             "anthropic_version": "bedrock-2023-05-31"
         }
-        
+
         # Add stop sequences if provided
         if stop:
             body["stop_sequences"] = stop
-            
+
         try:
             # Use streaming API
             response = self.client.invoke_model_with_response_stream(
@@ -295,11 +295,11 @@ class ChatGovCloudBedrock(BaseChatModel):
                 accept="application/json",
                 body=json.dumps(body).encode("utf-8")
             )
-            
+
             # Process streaming response
             for event in response["body"]:
                 chunk = json.loads(event["chunk"]["bytes"].decode("utf-8"))
-                
+
                 if chunk.get("type") == "content_block_delta":
                     if "delta" in chunk and "text" in chunk["delta"]:
                         text = chunk["delta"]["text"]
@@ -318,7 +318,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                             else:
                                 run_manager.on_llm_new_token(text)
                         yield ChatGeneration(message=AIMessage(content=text))
-                        
+
         except Exception as e:
             # Fallback to non-streaming if streaming fails
             result = self._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
@@ -338,7 +338,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         import asyncio
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None, 
+            None,
             lambda: self._generate(messages, stop, run_manager, **kwargs)
         )
 
@@ -355,39 +355,39 @@ class ChatGovCloudBedrock(BaseChatModel):
         # For now, run the sync version in a thread pool
         import asyncio
         loop = asyncio.get_event_loop()
-        
+
         def sync_stream():
             return list(self._stream(messages, stop, run_manager, **kwargs))
-        
+
         chunks = await loop.run_in_executor(None, sync_stream)
         for chunk in chunks:
             yield chunk
 
     def structured_generate(
         self,
-        messages: List[BaseMessage], 
+        messages: List[BaseMessage],
         pydantic_model: BaseModel,
         tool_name: str = "structured_output",
         **kwargs: Any
     ) -> BaseModel:
         """
         Generate structured output using Bedrock tool calling.
-        
+
         Args:
             messages: List of chat messages
             pydantic_model: Pydantic model class to structure the output
             tool_name: Name for the tool
             **kwargs: Additional parameters
-            
+
         Returns:
             Instance of the pydantic_model with parsed data
         """
         # Convert Pydantic model to Bedrock tool schema
         tool_schema = _pydantic_to_bedrock_tool_schema(pydantic_model, tool_name)
-        
+
         # Convert messages to Bedrock format
         bedrock_messages = self._convert_messages_to_bedrock_format(messages)
-        
+
         # Build request body
         request_body = {
             "anthropic_version": "bedrock-2023-05-31",
@@ -397,26 +397,26 @@ class ChatGovCloudBedrock(BaseChatModel):
             "tools": [tool_schema],
             "tool_choice": {"type": "tool", "name": tool_name}
         }
-        
+
         # Filter out parameters that aren't supported by Bedrock tool calling
         bedrock_kwargs = {}
         supported_params = {'system', 'anthropic_version'}
         for key, value in kwargs.items():
             if key in supported_params:
                 bedrock_kwargs[key] = value
-        
-        # Add supported kwargs to request body  
+
+        # Add supported kwargs to request body
         request_body.update(bedrock_kwargs)
-        
+
         try:
             # Call Bedrock
             response = self.client.invoke_model(
                 modelId=self.model_id,
                 body=json.dumps(request_body)
             )
-            
+
             response_body = json.loads(response['body'].read())
-            
+
             # Extract tool use from response
             content = response_body.get('content', [])
             for item in content:
@@ -424,7 +424,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                     tool_input = item.get('input', {})
                     # Parse the tool input into the Pydantic model
                     return pydantic_model(**tool_input)
-            
+
             # If no tool use found, try to parse the text content as JSON
             for item in content:
                 if item.get('type') == 'text':
@@ -433,9 +433,9 @@ class ChatGovCloudBedrock(BaseChatModel):
                         return pydantic_model(**data)
                     except (json.JSONDecodeError, ValueError):
                         continue
-            
+
             raise ValueError("No valid structured output found in response")
-            
+
         except Exception as e:
             raise RuntimeError(f"Error in structured generation: {str(e)}")
 
@@ -448,7 +448,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             def __init__(self, chat_model, pydantic_model):
                 self.chat_model = chat_model
                 self.pydantic_model = pydantic_model
-                
+
             def invoke(self, input_data, **invoke_kwargs):
                 # Handle different input formats
                 if hasattr(input_data, 'messages'):
@@ -460,13 +460,13 @@ class ChatGovCloudBedrock(BaseChatModel):
                     messages = [HumanMessage(content=input_data)]
                 else:
                     raise ValueError(f"Unsupported input type: {type(input_data)}")
-                
+
                 return self.chat_model.structured_generate(
                     messages=messages,
                     pydantic_model=self.pydantic_model,
                     **invoke_kwargs
                 )
-        
+
         return StructuredOutputWrapper(self, pydantic_model)
 
     @property

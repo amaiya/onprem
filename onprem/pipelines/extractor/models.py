@@ -188,7 +188,7 @@ Text to analyze:
 """
 
 
-DOCUMENT_METADATA_PROMPT = """Extract high-level metadata from this document. 
+DOCUMENT_METADATA_PROMPT = """Extract high-level metadata from this document.
 
 Look for:
 - Document title (usually on first page)
@@ -224,4 +224,3 @@ Examples:
 Document text:
 {text}
 """
-

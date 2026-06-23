@@ -21,69 +21,69 @@ def load_parameter_whitelist(
 ) -> Set[str]:
     """
     Load a whitelist of parameter names from Excel, CSV, or text file.
-    
+
     Args:
         filepath: Path to Excel (.xlsx, .xls), CSV (.csv), or text file (.txt, .md)
         column: Column name for Excel/CSV (uses first column if None)
         case_sensitive: If False, converts all names to lowercase
         normalize_fn: Optional function to normalize names
-        
+
     Returns:
         Set of parameter names
-        
+
     Examples:
         >>> # From Excel
         >>> whitelist = load_parameter_whitelist('data_dict.xlsx', column='Parameter Name')
-        >>> 
+        >>>
         >>> # From CSV
         >>> whitelist = load_parameter_whitelist('params.csv')
-        >>> 
+        >>>
         >>> # From text file (one parameter per line)
         >>> whitelist = load_parameter_whitelist('params.txt')
     """
     filepath = Path(filepath)
-    
+
     if not filepath.exists():
         raise FileNotFoundError(f"File not found: {filepath}")
-    
+
     # Load based on file extension
     if filepath.suffix in ['.xlsx', '.xls']:
         try:
             import pandas as pd
         except ImportError:
             raise ImportError("pandas is required to read Excel files. Install with: pip install pandas openpyxl")
-        
+
         df = pd.read_excel(filepath)
         col = column if column else df.columns[0]
         if col not in df.columns:
             raise ValueError(f"Column '{col}' not found in {filepath}. Available: {list(df.columns)}")
         names = df[col].dropna().astype(str).tolist()
-        
+
     elif filepath.suffix == '.csv':
         try:
             import pandas as pd
         except ImportError:
             raise ImportError("pandas is required to read CSV files. Install with: pip install pandas")
-        
+
         df = pd.read_csv(filepath)
         col = column if column else df.columns[0]
         if col not in df.columns:
             raise ValueError(f"Column '{col}' not found in {filepath}. Available: {list(df.columns)}")
         names = df[col].dropna().astype(str).tolist()
-        
+
     elif filepath.suffix in ['.txt', '.md']:
         with open(filepath, 'r', encoding='utf-8') as f:
             names = [line.strip() for line in f if line.strip()]
     else:
         raise ValueError(f"Unsupported file type: {filepath.suffix}. Supported: .xlsx, .xls, .csv, .txt, .md")
-    
+
     # Apply normalization
     if not case_sensitive:
         names = [n.lower() for n in names]
-    
+
     if normalize_fn:
         names = [normalize_fn(n) for n in names]
-    
+
     return set(names)
 
 
@@ -95,39 +95,39 @@ def create_regex_filter(
 ) -> Callable[[Any], bool]:
     """
     Create filter based on regex patterns.
-    
+
     Args:
         patterns: List of regex patterns
         field_name: Field to check in each item
         match_any: If True, match any pattern (OR logic). If False, match all (AND logic)
         case_sensitive: Whether patterns are case-sensitive
-        
+
     Returns:
         Filter function
-        
+
     Examples:
         >>> # Match parameters containing "speed" or "velocity"
         >>> filter_fn = create_regex_filter([r'speed', r'velocity'], match_any=True)
-        >>> 
+        >>>
         >>> # Match parameters that are distances (end with distance units)
         >>> filter_fn = create_regex_filter([r'\b(nm|km|mi|miles?)\b'], match_any=True)
     """
     flags = 0 if case_sensitive else re.IGNORECASE
     compiled_patterns = [re.compile(p, flags) for p in patterns]
-    
+
     def filter_fn(item):
         if isinstance(item, dict):
             value = item.get(field_name, '')
         else:
             value = getattr(item, field_name, '')
-        
+
         if match_any:
             # OR logic - match any pattern
             return any(pattern.search(value) for pattern in compiled_patterns)
         else:
             # AND logic - match all patterns
             return all(pattern.search(value) for pattern in compiled_patterns)
-    
+
     return filter_fn
 
 
@@ -139,28 +139,28 @@ def create_value_range_filter(
 ) -> Callable[[Any], bool]:
     """
     Filter parameters by value range and/or unit.
-    
+
     Args:
         min_value: Minimum allowed value (inclusive)
         max_value: Maximum allowed value (inclusive)
         unit_whitelist: Set of allowed units (None = allow all)
         case_sensitive: Whether unit matching is case-sensitive
-        
+
     Returns:
         Filter function
-        
+
     Examples:
         >>> # Only positive values
         >>> filter_fn = create_value_range_filter(min_value=0.001)
-        >>> 
+        >>>
         >>> # Values between 0 and 1000
         >>> filter_fn = create_value_range_filter(min_value=0, max_value=1000)
-        >>> 
+        >>>
         >>> # Only speed units
         >>> filter_fn = create_value_range_filter(
         ...     unit_whitelist={'mph', 'knots', 'kts', 'km/h'}
         ... )
-        >>> 
+        >>>
         >>> # Combine: positive speeds only
         >>> filter_fn = create_value_range_filter(
         ...     min_value=0,
@@ -170,7 +170,7 @@ def create_value_range_filter(
     # Normalize unit whitelist if provided
     if unit_whitelist is not None and not case_sensitive:
         unit_whitelist = {u.lower() for u in unit_whitelist}
-    
+
     def filter_fn(item):
         # Check value range
         if min_value is not None or max_value is not None:
@@ -178,30 +178,30 @@ def create_value_range_filter(
                 value = item.get('value')
             else:
                 value = getattr(item, 'value', None)
-            
+
             if value is None:
                 return False
-            
+
             if min_value is not None and value < min_value:
                 return False
             if max_value is not None and value > max_value:
                 return False
-        
+
         # Check unit whitelist
         if unit_whitelist is not None:
             if isinstance(item, dict):
                 unit = item.get('unit', '')
             else:
                 unit = getattr(item, 'unit', '')
-            
+
             if not case_sensitive:
                 unit = unit.lower()
-            
+
             if unit not in unit_whitelist:
                 return False
-        
+
         return True
-    
+
     return filter_fn
 
 
@@ -211,20 +211,20 @@ def combine_filters(
 ) -> Callable[[Any], bool]:
     """
     Combine multiple filter functions with AND/OR logic.
-    
+
     Args:
         *filters: Variable number of filter functions
         logic: 'AND' or 'OR' (case-insensitive)
-        
+
     Returns:
         Combined filter function
-        
+
     Examples:
         >>> # Parameter must match whitelist AND have positive value
         >>> name_filter = create_parameter_filter(whitelist)
         >>> value_filter = create_value_range_filter(min_value=0)
         >>> combined = combine_filters(name_filter, value_filter, logic='AND')
-        >>> 
+        >>>
         >>> # Parameter must match whitelist OR match regex pattern
         >>> name_filter = create_parameter_filter(whitelist)
         >>> regex_filter = create_regex_filter([r'critical'])
@@ -238,5 +238,5 @@ def combine_filters(
             return any(f(item) for f in filters)
     else:
         raise ValueError("logic must be 'AND' or 'OR'")
-    
+
     return combined_filter
