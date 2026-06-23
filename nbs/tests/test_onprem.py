@@ -269,7 +269,7 @@ def test_rag_dense(**kwargs):
     print(f'# of sources from selfask: {len(result["source_documents"])}')
 
     # download MS financial statement (or copy from local if available)
-    download_or_copy_local('financial_statement/ms-financial-statement.pdf', 
+    download_or_copy_local('financial_statement/ms-financial-statement.pdf',
                           os.path.join(source_folder, "ms-financial-statement.pdf"))
 
     # ingest but ignore MS financial statement
@@ -912,12 +912,12 @@ def test_agent(**kwargs):
     from typing import Dict
     from datetime import datetime
     import os
-    
+
     # Define custom tool
     def get_current_datetime() -> Dict[str, str]:
         """
         Get the current date and time.
-        
+
         Returns:
             Dictionary with current date and time information
         """
@@ -931,7 +931,7 @@ def test_agent(**kwargs):
     
     from onprem.pipelines.agent import AgentExecutor
     import tempfile
-    
+
     # Create agent with custom tool
     executor = AgentExecutor(
         model='openai/gpt-4o-mini',
@@ -940,7 +940,7 @@ def test_agent(**kwargs):
         sandbox=False,
         verbose=False
     )
-    
+
     # Test with a task that requires the custom tool
     with tempfile.TemporaryDirectory() as tmpdir:
         task = """
