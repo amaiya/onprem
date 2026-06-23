@@ -11,7 +11,7 @@ import os, tempfile, shutil, argparse, numpy as np
 def download_or_copy_local(relative_path, target_path):
     """
     Check if file exists locally in sample_data before downloading.
-    
+
     Args:
         relative_path: Path relative to sample_data directory (e.g., 'ktrain_paper/ktrain_paper.pdf')
         target_path: Destination path to copy/download the file to
@@ -53,7 +53,7 @@ def test_rag_dual(**kwargs):
     original_store_type = llm.store_type
     llm.vectordb_path = tempfile.mkdtemp()
     llm.set_store_type('dual')
-    
+
     print(llm.vectordb_path)
 
     # make source folder
@@ -65,17 +65,17 @@ def test_rag_dual(**kwargs):
     # ingest ktrain paper
     llm.ingest(source_folder)
     assert os.path.exists(source_folder)
-    
+
     # Verify both stores have documents
     assert os.path.exists(os.path.join(llm.vectordb_path, 'dense'))
     assert os.path.exists(os.path.join(llm.vectordb_path, 'sparse'))
-    
+
     # Verify we can retrieve documents from both stores
     dense_docs = llm.vectorstore.dense_store.get_all_docs()
     sparse_docs = llm.vectorstore.sparse_store.get_all_docs()
     assert len(list(dense_docs)) > 0
     assert len(list(sparse_docs)) > 0
-    
+
     # QA on ktrain paper (should use dense store by default)
     print()
     print("LLM.ask test (using both stores)")
@@ -83,38 +83,38 @@ def test_rag_dual(**kwargs):
     result = llm.ask("What is ktrain?")
     assert len(result["answer"]) > 8
     assert len(result["source_documents"]) > 0
-    
+
     # Test keyword search (should use sparse store)
     keyword_results = llm.vectorstore.search("ktrain")
     assert len(keyword_results['hits']) > 0
-    
+
     # Test semantic search (should use dense store)
     semantic_results = llm.vectorstore.semantic_search("image classification")
     assert len(semantic_results) > 0
     assert(semantic_results[0].metadata['score'] > 0.35)
-    
+
     # Test hybrid search (combines both dense and sparse results)
     hybrid_results = llm.vectorstore.hybrid_search("image classification", limit=5)
     assert len(hybrid_results) > 0
     assert 'score' in hybrid_results[0].metadata
-    
+
     # Test hybrid search with different weights
     hybrid_dense_heavy = llm.vectorstore.hybrid_search("image classification", limit=5, weights=0.8)
     hybrid_sparse_heavy = llm.vectorstore.hybrid_search("image classification", limit=5, weights=0.2)
     assert len(hybrid_dense_heavy) > 0
     assert len(hybrid_sparse_heavy) > 0
-    
+
     # Test hybrid search with explicit weight array
     hybrid_explicit = llm.vectorstore.hybrid_search("image classification", limit=5, weights=[0.6, 0.4])
     assert len(hybrid_explicit) > 0
     assert hybrid_explicit[0].metadata['score'] > 0
-    
+
     # cleanup
     shutil.rmtree(source_folder)
     shutil.rmtree(llm.vectordb_path)
     llm.vectordb_path = original_vectordb_path
     llm.set_store_type(original_store_type)
-    
+
     return
 
 def test_rag_sparse(**kwargs):
@@ -317,7 +317,7 @@ def test_rag_dense(**kwargs):
 def test_guider(**kwargs):
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
- 
+
     if llm.is_openai_model(): return
 
     from onprem.pipelines.guider import Guider
@@ -332,7 +332,7 @@ def test_guider(**kwargs):
 
 
 def test_summarization(**kwargs):
- 
+
     llm = kwargs.get('llm', None)
     if not llm: raise ValueError('llm arg is required')
 
@@ -344,7 +344,7 @@ def test_summarization(**kwargs):
     docs = loader.load()
     with open('/tmp/blog.txt', 'w') as f:
         f.write(docs[0].page_content)
-    text = summ.summarize('/tmp/blog.txt', max_chunks_to_use=1) 
+    text = summ.summarize('/tmp/blog.txt', max_chunks_to_use=1)
     assert('output_text' in text)
     print(text['output_text'])
     assert(len(text['output_text']) > 0)
@@ -358,7 +358,7 @@ def test_summarization(**kwargs):
     summary_result = summ.summarize(raw_text=raw_text[:2000], max_chunks_to_use=1)  # Use first 2000 chars
     assert('output_text' in summary_result)
     assert(len(summary_result['output_text']) > 0)
-    
+
     # Test summarize_by_concept with chunks parameter
     test_chunks = [
         "Machine learning is a field of artificial intelligence that focuses on algorithms.",
@@ -423,8 +423,8 @@ def test_classifier(**kwargs):
 
     #clf.train(X_sample,  y_sample, max_steps=20)
     clf.train(X_sample,  y_sample, max_steps=1)
-    
-    acc =  clf.evaluate(X_test, y_test, labels=clf.model.labels, print_report=False)['accuracy'] 
+
+    acc =  clf.evaluate(X_test, y_test, labels=clf.model.labels, print_report=False)['accuracy']
     print(acc)
     assert acc > 0.9
 
@@ -526,41 +526,41 @@ def test_loading(**kwargs):
     # Test with multi-page PDF
     docs_normal = load_single_document(fpath)
     docs_full = load_single_document(fpath, keep_full_document=True)
-    
+
     # Normal loading should have multiple pages/documents
     assert len(docs_normal) > 1, f"Expected multiple documents, got {len(docs_normal)}"
-    
+
     # keep_full_document should concatenate into single document
     assert len(docs_full) == 1, f"Expected single document, got {len(docs_full)}"
-    
+
     # The concatenated document should contain page break markers
     assert "--- PAGE BREAK ---" in docs_full[0].page_content, "Expected page break markers in concatenated document"
-    
+
     # Metadata should indicate concatenation
     assert docs_full[0].metadata.get('concatenated') == True, "Expected concatenated metadata flag"
     assert docs_full[0].metadata.get('page_count') == len(docs_normal), f"Expected page_count to match original document count"
     assert docs_full[0].metadata.get('page') == -1, "Expected page=-1 for concatenated document"
-    
+
     # Test with max_words truncation
     docs_truncated = load_single_document(fpath, keep_full_document=True, max_words=100)
     assert len(docs_truncated) == 1, "Expected single document with truncation"
-    
+
     # Check word count
     word_count = len(docs_truncated[0].page_content.split())
     assert word_count <= 100, f"Expected <= 100 words, got {word_count}"
-    
+
     # Metadata should indicate truncation
     assert docs_truncated[0].metadata.get('truncated') == True, "Expected truncated metadata flag"
     assert docs_truncated[0].metadata.get('truncated_word_count') == 100, "Expected truncated_word_count=100"
     assert 'original_word_count' in docs_truncated[0].metadata, "Expected original_word_count in metadata"
-    
+
     # Test that chunking is disabled with keep_full_document
     from onprem.ingest.base import chunk_documents
-    
+
     # Regular chunking should split documents
     chunked_normal = chunk_documents(docs_normal, chunk_size=500, chunk_overlap=50)
     assert len(chunked_normal) > len(docs_normal), "Expected chunking to create more pieces"
-    
+
     # keep_full_document should skip chunking entirely
     chunked_full = chunk_documents(docs_full, chunk_size=500, chunk_overlap=50, keep_full_document=True)
     assert len(chunked_full) == 1, "Expected keep_full_document to skip chunking"
@@ -584,7 +584,7 @@ def test_pdftables(**kwargs):
     from onprem.ingest.pdftables import PDFTables
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/billionaires/The_Worlds_Billionaires.pdf')
     pdftab = PDFTables.from_file(fpath, verbose=True)
-    assert len(pdftab.dfs) > 30 
+    assert len(pdftab.dfs) > 30
     assert len(pdftab.captions) > 30
     assert len(pdftab.dfs) == len(pdftab.captions)
     assert pdftab.captions[-6] == "Number and combined net worth of billionaires by year [66] See also"
@@ -692,7 +692,7 @@ def test_skclassifier(**kwargs):
     clf.train(x_train, y_train)
     test_doc = "god christ jesus mother mary church sunday lord heaven amen"
     acc = clf.evaluate(x_test, y_test, print_report=False)['accuracy']
-    assert(3 == clf.predict(test_doc))  
+    assert(3 == clf.predict(test_doc))
     assert(3 == np.argmax(clf.predict_proba(test_doc)))
     assert(acc > 0.85) # should 0.89+ for default SGDClassifier and 0.93 for NBSVM
     print(acc)
@@ -726,7 +726,7 @@ def test_hfclassifier(**kwargs):
     clf = HFClassifier()
     # Explicitly set training args for consistency across transformers versions
     # Use adamw_torch for reproducibility (adamw_torch_fused is faster but less stable)
-    clf.train(x_train, y_train, 
+    clf.train(x_train, y_train,
               num_train_epochs=3,
               per_device_train_batch_size=8,
               learning_rate=5e-5,
@@ -734,7 +734,7 @@ def test_hfclassifier(**kwargs):
               seed=42)
     test_doc = "god christ jesus mother mary church sunday lord heaven amen"
     acc = clf.evaluate(x_test, y_test, print_report=False)['accuracy']
-    assert(3 == clf.predict(test_doc))  
+    assert(3 == clf.predict(test_doc))
     print(acc)
     assert(acc > 0.8) # Should get ~0.88 with explicit settings
     return
@@ -746,7 +746,7 @@ def test_search(**kwargs):
     """
     from onprem.ingest.stores import SparseStore
     from onprem.ingest import load_single_document, chunk_documents
-    docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf', 
+    docs = load_single_document('sample_data/ktrain_paper/ktrain_paper.pdf',
                                 store_md5=True)
     docs = chunk_documents(docs, chunk_size=500, chunk_overlap=50)
     se = SparseStore.create()
@@ -778,7 +778,7 @@ def test_search(**kwargs):
 
     # Test dynamic field types
     from langchain_core.documents import Document
-    
+
     # Test various field types
     test_doc = Document(
         page_content="This is a test document for dynamic field types",
@@ -792,41 +792,41 @@ def test_search(**kwargs):
             'test_list': ['tag1', 'tag2', 'tag3']
         }
     )
-    
+
     se.add_documents([test_doc])
-    
+
     # Get the test document to examine stored values
     test_doc_stored = list(se.get_all_docs())[-1]  # Get the last added document
-    
+
     # Test boolean field
     bool_results = se.query('test_boolean:True')
     assert len(bool_results['hits']) == 1
     assert bool_results['hits'][0]['test_boolean'] == True
-    
+
     # Test short string (keyword field)
     keyword_results = se.query('test_short_string:keyword')
     assert len(keyword_results['hits']) == 1
     assert keyword_results['hits'][0]['test_short_string'] == 'keyword'
-    
+
     # Test long string (text field) - should be searchable by partial content
     text_results = se.query('capabilities', fields=['test_long_string'])
     assert len(text_results['hits']) == 1
     assert 'capabilities' in text_results['hits'][0]['test_long_string']
-    
+
     # Test date field (must end with _date to trigger DATETIME field type)
     # Note: Date fields might be stored differently, so just check existence
     assert 'test_created_date' in test_doc_stored
     assert test_doc_stored['test_created_date'] == '2023-01-01'
-    
+
     # Test int field
     int_results = se.query('test_int:42')
     assert len(int_results['hits']) == 1
     assert int_results['hits'][0]['test_int'] == 42
-    
+
     # Test float field - check if it's stored correctly
     assert 'test_float' in test_doc_stored
     assert test_doc_stored['test_float'] == 3.14
-    
+
     # Test list field (stored as comma-separated keywords)
     list_results = se.query('test_list:tag2')
     assert len(list_results['hits']) == 1
@@ -835,7 +835,7 @@ def test_search(**kwargs):
     print(f"Actual list value: {repr(actual_list_value)}")
     # More flexible assertion - check if it contains the expected tags
     assert 'tag1' in actual_list_value
-    assert 'tag2' in actual_list_value  
+    assert 'tag2' in actual_list_value
     assert 'tag3' in actual_list_value
 
     # Test case-insensitive filter handling
@@ -847,15 +847,15 @@ def test_search(**kwargs):
         }
     )
     se.add_documents([case_test_doc])
-    
+
     # Test that uppercase filter now works (this was the original failing case)
     upper_filter_results = se.query("id:*", filters={"system_name": "WEBAPP"})
     assert len(upper_filter_results['hits']) >= 1, "Uppercase filter should find matches"
-    
+
     # Test that lowercase filter still works
     lower_filter_results = se.query("id:*", filters={"system_name": "webapp"})
     assert len(lower_filter_results['hits']) >= 1, "Lowercase filter should find matches"
-    
+
     # Both should return the same document with original case preserved in stored value
     assert upper_filter_results['hits'][0]['system_name'] == 'WEBAPP'
     assert lower_filter_results['hits'][0]['system_name'] == 'WEBAPP'
@@ -880,27 +880,27 @@ def test_search(**kwargs):
         )
     ]
     se.add_documents(agg_test_docs)
-    
+
     # Test terms aggregation
     facets = {
         'categories': {'type': 'terms', 'field': 'category'},
         'statuses': {'type': 'terms', 'field': 'status'}
     }
     agg_results = se.get_aggregations("*", facets=facets)
-    
+
     # Verify aggregation results
     assert 'categories' in agg_results
     assert 'statuses' in agg_results
     assert isinstance(agg_results['categories'], dict)
     assert isinstance(agg_results['statuses'], dict)
-    
+
     # Verify counts are correct (2 docs with same category, different statuses)
     assert agg_results['categories']['test_category'] == 2
     assert agg_results['statuses']['active'] == 1
     assert agg_results['statuses']['inactive'] == 1
-    
+
     # Test aggregation with filters (numeric filter)
-    filtered_aggs = se.get_aggregations("*", facets={'statuses': {'type': 'terms', 'field': 'status'}}, 
+    filtered_aggs = se.get_aggregations("*", facets={'statuses': {'type': 'terms', 'field': 'status'}},
                                        filters={'priority': 5})
     assert 'statuses' in filtered_aggs
 
@@ -928,7 +928,7 @@ def test_agent(**kwargs):
             "time": now.strftime("%H:%M:%S"),
             "iso": now.isoformat()
         }
-    
+
     from onprem.pipelines.agent import AgentExecutor
     import tempfile
 
@@ -947,24 +947,24 @@ def test_agent(**kwargs):
         Use the get_current_datetime tool to get today's date.
         Then write a file called 'date_report.txt' that contains:
         "Today's date is: [the date from the tool]"
-        
+
         When done, output: <promise>COMPLETE</promise>
         """
-        
+
         result = executor.run(task, working_dir=tmpdir)
-        
+
         # Verify the file was created with today's date
         report_file = os.path.join(tmpdir, 'date_report.txt')
         assert os.path.exists(report_file), f"Expected date_report.txt to be created"
-        
+
         with open(report_file, 'r') as f:
             content = f.read()
-        
+
         today = datetime.now().strftime("%Y-%m-%d")
         # Check if date is in the content (allow for different formats)
         assert today in content or datetime.now().strftime("%B") in content, \
             f"Expected today's date in report file, got: {content}"
-        
+
         print(f"✓ Agent successfully used custom tool and wrote today's date: {today}")
 
 
