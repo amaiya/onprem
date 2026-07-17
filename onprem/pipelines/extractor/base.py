@@ -116,6 +116,7 @@ class Extractor:
                           filter_fn: Optional[Callable[[Any], bool]] = None, # Filter function for extracted items (applied after extraction)
                           postproc_fn: Optional[Callable[[Any], Any]] = None, # Post-processing function (applied after filtering)
                           filter_field: Optional[str] = None, # Field name to filter (auto-detect if None)
+                          use_pydantic_fallback: bool = False, # If True, always use pydantic_prompt instead of native structured output
                           **kwargs, # Extra kwargs fed to `load_single_document`
                          ) -> Union[BaseModel, dict, str]:
         """
@@ -149,6 +150,10 @@ class Extractor:
             pdf_pages: For PDFs, extract only from these page numbers (1-indexed)
             return_as: Output format - 'model' (Pydantic model), 'dict', or 'json' string
             stop: Stop sequences for LLM generation
+            use_pydantic_fallback: If True, always use pydantic_prompt method instead of
+                                  native structured output. Set this to True if your LLM
+                                  provider doesn't support native structured outputs
+                                  (e.g., custom gateways, older models).
             **kwargs: Additional arguments passed to load_single_document
 
         Returns:
@@ -219,24 +224,33 @@ class Extractor:
             # If no placeholder, append the content
             final_prompt = f"{prompt}\n\n{content}"
 
-        # Prepare response_format - automatically convert to vLLM format if needed
-        response_format = self._prepare_response_format(pydantic_model)
-        is_vllm_format = isinstance(response_format, dict)
+        # If use_pydantic_fallback is True, bypass native structured output
+        if use_pydantic_fallback:
+            response = self.llm.pydantic_prompt(
+                final_prompt,
+                pydantic_model=pydantic_model,
+                attempt_fix=False,
+                stop=stop
+            )
+        else:
+            # Prepare response_format - automatically convert to vLLM format if needed
+            response_format = self._prepare_response_format(pydantic_model)
+            is_vllm_format = isinstance(response_format, dict)
 
-        # Make the LLM call with structured output
-        try:
-            response = self.llm.prompt(final_prompt, response_format=response_format, stop=stop)
-        except Exception as e:
-            raise RuntimeError(f"Failed to extract structured data: {e}")
+            # Make the LLM call with structured output
+            try:
+                response = self.llm.prompt(final_prompt, response_format=response_format, stop=stop)
+            except Exception as e:
+                raise RuntimeError(f"Failed to extract structured data: {e}")
 
-        # Convert response to Pydantic model if vLLM format was used
-        if is_vllm_format:
-            if isinstance(response, str):
-                # Parse JSON string response
-                response = pydantic_model.model_validate_json(response)
-            elif isinstance(response, dict):
-                # Convert dict to Pydantic model
-                response = pydantic_model.model_validate(response)
+            # Convert response to Pydantic model if vLLM format was used
+            if is_vllm_format:
+                if isinstance(response, str):
+                    # Parse JSON string response
+                    response = pydantic_model.model_validate_json(response)
+                elif isinstance(response, dict):
+                    # Convert dict to Pydantic model
+                    response = pydantic_model.model_validate(response)
 
         # Apply post-processing BEFORE format conversion
         if postproc_fn:
@@ -449,6 +463,7 @@ Return the filtered list as a JSON array:"""
         filter_fn: Optional[Callable[[dict], bool]] = None,
         postproc_fn: Optional[Callable] = None,
         prompt: Optional[str] = None,
+        use_pydantic_fallback: bool = False,
         **kwargs
     ) -> Union[Any, dict, str]:
         """
@@ -487,6 +502,11 @@ Return the filtered list as a JSON array:"""
                         Example: deduplication, sorting, name standardization
 
             prompt: Custom prompt (overrides SYSTEM_PARAMETERS_PROMPT)
+
+            use_pydantic_fallback: If True, always use pydantic_prompt method instead of
+                                  native structured output. Set this to True if your LLM
+                                  provider doesn't support native structured outputs
+                                  (e.g., custom gateways, older models).
 
             **kwargs: Additional arguments passed to load_single_document
 
@@ -550,6 +570,7 @@ Return the filtered list as a JSON array:"""
             stop=stop,
             filter_fn=None,  # Don't apply filter_fn yet
             postproc_fn=None,  # Don't apply postproc_fn yet
+            use_pydantic_fallback=use_pydantic_fallback,
             **kwargs
         )
 

@@ -7,16 +7,16 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.23.1 (2026-06-22)
+## 0.23.2 (2026-07-17)
 
 ### new:
 - N/A
 
 ### changed
-- Updated `pyproject.toml` to use wildcard pattern for package discovery to ensure all subpackages are included
+- N/A
 
 ### fixed:
-- Fixed packaging issue where `extractor/` subpackage was not included in PyPI distribution due to naming conflict with legacy `extractor.py` file
+- Fixed issue where `extract_structured` and `extract_parameters` would fail with custom LLM providers (e.g., GovCloud Bedrock, Azure Government gateways) that don't fully support native structured outputs. Added `use_pydantic_fallback` parameter and improved automatic fallback to `pydantic_prompt` method.
 
 
 ## 0.23.0 (2026-06-16)

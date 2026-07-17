@@ -762,8 +762,17 @@ class LLM:
                         # Try native structured output first with kwargs
                         llm = llm.with_structured_output(response_format, **structured_output_kwargs)
                         # Continue with normal processing using the wrapped LLM
-                    except NotImplementedError:
-                        # Fall back to pydantic_prompt immediately, before any template processing
+                    except Exception as e:
+                        # Fall back to pydantic_prompt for any exception
+                        # (NotImplementedError, unsupported parameters, etc.)
+                        import warnings
+                        warnings.warn(
+                            f"Native structured output failed ({type(e).__name__}: {e}), "
+                            f"falling back to pydantic_prompt. "
+                            f"This usually indicates your LLM provider doesn't fully support native structured outputs. "
+                            f"You can call llm.pydantic_prompt() directly, or if using Extractor methods, "
+                            f"set use_pydantic_fallback=True to skip this attempt and avoid this warning."
+                        )
                         return self.pydantic_prompt(prompt if isinstance(prompt, str) else prompt,
                                                   pydantic_model=response_format)
                 else:
