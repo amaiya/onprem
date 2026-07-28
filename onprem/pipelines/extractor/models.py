@@ -125,6 +125,7 @@ EXTRACTION RULES:
 1. Extract ONLY parameters with explicit numeric values AND units clearly stated in the text
 2. DO NOT extract: form field codes, rating scales, stand-alone numbers without context, or list positions
 3. Each parameter must have: name, value (numeric), unit (measurement), and name_of_system
+4. Extract longitude and latitude values as parameters, if present.
 
 THRESHOLD/OBJECTIVE HANDLING:
 - If a parameter value is marked with (T) or (Threshold), append " (Threshold)" to the parameter name

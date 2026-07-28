@@ -8,7 +8,7 @@ Modules:
 - `onprem.workflow.exporters`: Exporter node implementations for workflow pipelines.
 - `onprem.workflow.processors`: Processor node implementations for workflow pipelines."""
 
-__version__ = "0.23.2"
+__version__ = "0.23.3"
 
 # reference: https://stackoverflow.com/questions/74918614/error-importing-seaborn-module-attributeerror/76760670#76760670
 import numpy as np
