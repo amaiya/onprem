@@ -138,7 +138,7 @@ Offline Usage:
     3. Create the pointer reference file:
        echo "main" > ../../refs/main
 
-    4. Set Python environment variable before running your offline script:
+    4. Set Python environment variable before running this script offline:
        export HF_HUB_OFFLINE=1
 
         """
