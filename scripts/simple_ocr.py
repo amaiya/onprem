@@ -107,25 +107,40 @@ Dependencies:
   - tesseract-ocr (for OCR)
   - poppler-utils (for PDF processing)
 
+
 Offline Usage:
-  Method 1 - Copy from internet machine (easiest):
-    1. On internet machine: python simple_ocr.py sample.pdf  # Downloads models
-    2. tar -czf models.tar.gz ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout
-    3. Transfer models.tar.gz to offline machine
-    4. On offline machine:
+
+  Method 1 - Copy from internet machine (Recommended):
+    1. On internet machine, run the pipeline to populate the cache:
+       python simple_ocr.py sample.pdf
+    
+    2. Tar the folder while PRESERVING symlinks (Crucial: use the -h flag to follow/archive target data, or omit it but ensure your tar flags preserve links):
+       tar -chzf models.tar.gz -C ~/.cache/huggingface/hub/ models--unstructuredio--yolo_x_layout
+    
+    3. Transfer models.tar.gz to the offline machine.
+    
+    4. On the offline machine, extract it:
        mkdir -p ~/.cache/huggingface/hub
        tar -xzf models.tar.gz -C ~/.cache/huggingface/hub/
-  
-  Method 2 - Manual download:
-    1. Download: wget https://huggingface.co/unstructuredio/yolo_x_layout/resolve/main/yolox_l0.05.onnx
-    2. Create directories:
-       mkdir -p ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/{blobs,snapshots/main,refs}
-    3. Setup cache:
-       HASH=$(sha256sum yolox_l0.05.onnx | cut -d' ' -f1)
-       mv yolox_l0.05.onnx ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/blobs/$HASH
+
+  Method 2 - Manual download (Simple "No-Symlink" Hack):
+    Instead of recreating the highly temperamental internal blobs layout, you can trick Hugging Face by placing the raw downloads directly into a dummy snapshot folder.
+
+    1. Create the explicit main snapshot directory:
+       mkdir -p ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/snapshots/main
+       mkdir -p ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/refs
+
+    2. Download the model file AND its repo configurations into that exact snapshot folder:
        cd ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/snapshots/main
-       ln -s ../../blobs/$HASH yolox_l0.05.onnx
+       wget https://huggingface.co/unstructuredio/yolo_x_layout/resolve/main/yolox_l0.05.onnx
+       wget https://huggingface.co
+
+    3. Create the pointer reference file:
        echo "main" > ../../refs/main
+
+    4. Set Python environment variable before running your offline script:
+       export HF_HUB_OFFLINE=1
+
         """
     )
     
