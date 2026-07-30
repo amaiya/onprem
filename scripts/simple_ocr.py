@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def ocr_document(input_path, output_path=None, mode="elements", strategy="hi_res", 
-                 infer_tables=False, include_page_breaks=True):
+                 model_name=None, infer_tables=False, include_page_breaks=True):
     """
     Perform OCR on a document using unstructured library.
     
@@ -19,6 +19,7 @@ def ocr_document(input_path, output_path=None, mode="elements", strategy="hi_res
         output_path: Optional path to output text file
         mode: Processing mode ("single", "elements", or "paged")
         strategy: Processing strategy ("fast", "hi_res", "ocr_only")
+        model_name: Custom model name or path for layout detection
         infer_tables: Whether to infer table structure
         include_page_breaks: Whether to include page break markers
     
@@ -39,15 +40,23 @@ def ocr_document(input_path, output_path=None, mode="elements", strategy="hi_res
     
     print(f"Processing: {input_path}")
     print(f"Mode: {mode}, Strategy: {strategy}")
+    if model_name:
+        print(f"Model: {model_name}")
     
     try:
         # Partition the document
-        elements = partition(
-            filename=input_path,
-            strategy=strategy,
-            infer_table_structure=infer_tables,
-            include_page_breaks=include_page_breaks,
-        )
+        partition_kwargs = {
+            'filename': input_path,
+            'strategy': strategy,
+            'infer_table_structure': infer_tables,
+            'include_page_breaks': include_page_breaks,
+        }
+        
+        # Add model name if specified
+        if model_name:
+            partition_kwargs['hi_res_model_name'] = model_name
+        
+        elements = partition(**partition_kwargs)
         
         # Extract text from elements
         text_parts = []
@@ -86,6 +95,7 @@ Examples:
   %(prog)s document.pdf output.txt
   %(prog)s scanned_page.jpg --strategy ocr_only
   %(prog)s input.pdf -o output.txt --tables
+  %(prog)s input.pdf --model yolox_tiny  # Use smaller/faster model
 
 Dependencies:
   pip install unstructured[all-docs]
@@ -96,6 +106,26 @@ Dependencies:
   System dependencies:
   - tesseract-ocr (for OCR)
   - poppler-utils (for PDF processing)
+
+Offline Usage:
+  Method 1 - Copy from internet machine (easiest):
+    1. On internet machine: python simple_ocr.py sample.pdf  # Downloads models
+    2. tar -czf models.tar.gz ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout
+    3. Transfer models.tar.gz to offline machine
+    4. On offline machine:
+       mkdir -p ~/.cache/huggingface/hub
+       tar -xzf models.tar.gz -C ~/.cache/huggingface/hub/
+  
+  Method 2 - Manual download:
+    1. Download: wget https://huggingface.co/unstructuredio/yolo_x_layout/resolve/main/yolox_l0.05.onnx
+    2. Create directories:
+       mkdir -p ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/{blobs,snapshots/main,refs}
+    3. Setup cache:
+       HASH=$(sha256sum yolox_l0.05.onnx | cut -d' ' -f1)
+       mv yolox_l0.05.onnx ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/blobs/$HASH
+       cd ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/snapshots/main
+       ln -s ../../blobs/$HASH yolox_l0.05.onnx
+       echo "main" > ../../refs/main
         """
     )
     
@@ -123,6 +153,14 @@ Dependencies:
         help='Processing strategy: fast=text extraction only (no models), '
              'hi_res=layout detection + auto OCR (~207MB yolox_layout, default), '
              'ocr_only=force OCR + layout detection'
+    )
+    
+    parser.add_argument(
+        '--model',
+        dest='model_name',
+        help='Model name for layout detection. '
+             'Options: yolox (default, ~207MB), yolox_tiny (~100MB), yolox_quantized. '
+             'Note: Only predefined model names are supported, not custom file paths.'
     )
     
     parser.add_argument(
@@ -154,6 +192,7 @@ Dependencies:
         input_path,
         output_path,
         strategy=args.strategy,
+        model_name=args.model_name,
         infer_tables=args.tables,
         include_page_breaks=not args.no_page_breaks
     )
