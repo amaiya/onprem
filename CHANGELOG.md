@@ -7,6 +7,20 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.23.4 (2026-07-31)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Fixed `langchain.chroma.vectorstores.Chroma got multiple
+  values for keyword argument k` in Web UI for semantic search.
+
+
+
 ## 0.23.3 (2026-07-28)
 
 ### new:
