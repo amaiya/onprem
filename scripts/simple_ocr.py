@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Standalone OCR Script using unstructured-io library
+Standalone OCR Script using Tesseract only
 """
 
 import sys
@@ -9,28 +9,26 @@ import argparse
 from pathlib import Path
 
 
-def ocr_document(input_path, output_path=None, mode="elements", strategy="hi_res", 
-                 model_name=None, infer_tables=False, include_page_breaks=True):
+def ocr_document(input_path, output_path=None, lang='eng', psm=3, dpi=300):
     """
-    Perform OCR on a document using unstructured library.
+    Perform OCR on a document using Tesseract.
     
     Args:
         input_path: Path to input file (PDF or image)
         output_path: Optional path to output text file
-        mode: Processing mode ("single", "elements", or "paged")
-        strategy: Processing strategy ("fast", "hi_res", "ocr_only")
-        model_name: Custom model name or path for layout detection
-        infer_tables: Whether to infer table structure
-        include_page_breaks: Whether to include page break markers
+        lang: Tesseract language code (default: 'eng')
+        psm: Page segmentation mode (default: 3 - fully automatic)
+        dpi: DPI for PDF rendering (default: 300)
     
     Returns:
         Extracted text as string
     """
     try:
-        from unstructured.partition.auto import partition
-    except ImportError:
-        print("Error: unstructured library not found.")
-        print("Install with: pip install unstructured[all-docs]")
+        import pytesseract
+        from PIL import Image
+    except ImportError as e:
+        print(f"Error: Required library not found: {e}")
+        print("Install with: pip install pytesseract pillow")
         sys.exit(1)
     
     # Check if input file exists
@@ -39,34 +37,61 @@ def ocr_document(input_path, output_path=None, mode="elements", strategy="hi_res
         sys.exit(1)
     
     print(f"Processing: {input_path}")
-    print(f"Mode: {mode}, Strategy: {strategy}")
-    if model_name:
-        print(f"Model: {model_name}")
+    print(f"Language: {lang}, PSM: {psm}, DPI: {dpi}")
     
     try:
-        # Partition the document
-        partition_kwargs = {
-            'filename': input_path,
-            'strategy': strategy,
-            'infer_table_structure': infer_tables,
-            'include_page_breaks': include_page_breaks,
-        }
+        # Determine file type
+        file_ext = Path(input_path).suffix.lower()
         
-        # Add model name if specified
-        if model_name:
-            partition_kwargs['hi_res_model_name'] = model_name
+        if file_ext == '.pdf':
+            # Handle PDF files
+            try:
+                from pdf2image import convert_from_path
+            except ImportError:
+                print("Error: pdf2image library not found.")
+                print("Install with: pip install pdf2image")
+                print("System dependency: poppler-utils (apt-get install poppler-utils)")
+                sys.exit(1)
+            
+            print("Converting PDF to images...")
+            images = convert_from_path(input_path, dpi=dpi)
+            print(f"Converted {len(images)} page(s)")
+            
+            # OCR each page
+            text_parts = []
+            for i, image in enumerate(images, 1):
+                print(f"Processing page {i}/{len(images)}...")
+                
+                # Configure Tesseract
+                custom_config = f'--psm {psm}'
+                
+                # Perform OCR
+                page_text = pytesseract.image_to_string(
+                    image,
+                    lang=lang,
+                    config=custom_config
+                )
+                
+                text_parts.append(f"--- Page {i} ---\n{page_text}")
+            
+            full_text = "\n\n".join(text_parts)
+            
+        else:
+            # Handle image files directly
+            print("Processing image...")
+            image = Image.open(input_path)
+            
+            # Configure Tesseract
+            custom_config = f'--psm {psm}'
+            
+            # Perform OCR
+            full_text = pytesseract.image_to_string(
+                image,
+                lang=lang,
+                config=custom_config
+            )
         
-        elements = partition(**partition_kwargs)
-        
-        # Extract text from elements
-        text_parts = []
-        for element in elements:
-            text_parts.append(str(element))
-        
-        full_text = "\n\n".join(text_parts)
-        
-        print(f"Extracted {len(text_parts)} elements")
-        print(f"Total characters: {len(full_text)}")
+        print(f"Total characters extracted: {len(full_text)}")
         
         # Save to file if output path provided
         if output_path:
@@ -87,60 +112,51 @@ def main():
     """Main entry point for command line usage"""
     
     parser = argparse.ArgumentParser(
-        description='Standalone OCR Script using unstructured-io library',
+        description='Standalone OCR Script using Tesseract only',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   %(prog)s document.pdf
   %(prog)s document.pdf output.txt
-  %(prog)s scanned_page.jpg --strategy ocr_only
-  %(prog)s input.pdf -o output.txt --tables
-  %(prog)s input.pdf --model yolox_tiny  # Use smaller/faster model
+  %(prog)s scanned_page.jpg
+  %(prog)s input.pdf -o output.txt --lang eng
+  %(prog)s input.pdf --dpi 600 --psm 6
+
+Page Segmentation Modes (PSM):
+  0  = Orientation and script detection (OSD) only
+  1  = Automatic page segmentation with OSD
+  2  = Automatic page segmentation, but no OSD, or OCR
+  3  = Fully automatic page segmentation, but no OSD (default)
+  4  = Assume a single column of text of variable sizes
+  5  = Assume a single uniform block of vertically aligned text
+  6  = Assume a single uniform block of text
+  7  = Treat the image as a single text line
+  8  = Treat the image as a single word
+  9  = Treat the image as a single word in a circle
+  10 = Treat the image as a single character
+  11 = Sparse text. Find as much text as possible in no particular order
+  12 = Sparse text with OSD
+  13 = Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific
 
 Dependencies:
-  pip install unstructured[all-docs]
+  pip install pytesseract pillow pdf2image
   
-  Or minimal install:
-  pip install unstructured "unstructured[pdf]" pillow pytesseract
-  
-  System dependencies:
+System dependencies:
   - tesseract-ocr (for OCR)
+    Ubuntu/Debian: apt-get install tesseract-ocr
+    macOS: brew install tesseract
+    
   - poppler-utils (for PDF processing)
+    Ubuntu/Debian: apt-get install poppler-utils
+    macOS: brew install poppler
 
-
-Offline Usage:
-
-  Method 1 - Copy from internet machine (Recommended):
-    1. On internet machine, run the pipeline to populate the cache:
-       python simple_ocr.py sample.pdf
+Language Support:
+  To use languages other than English, install language data:
+    Ubuntu/Debian: apt-get install tesseract-ocr-[lang]
+    Example: apt-get install tesseract-ocr-spa (Spanish)
     
-    2. Tar the folder while PRESERVING symlinks (Crucial: use the -h flag to follow/archive target data, or omit it but ensure your tar flags preserve links):
-       tar -chzf models.tar.gz -C ~/.cache/huggingface/hub/ models--unstructuredio--yolo_x_layout
-    
-    3. Transfer models.tar.gz to the offline machine.
-    
-    4. On the offline machine, extract it:
-       mkdir -p ~/.cache/huggingface/hub
-       tar -xzf models.tar.gz -C ~/.cache/huggingface/hub/
-
-  Method 2 - Manual download (Simple "No-Symlink" Hack):
-    Instead of recreating the highly temperamental internal blobs layout, you can trick Hugging Face by placing the raw downloads directly into a dummy snapshot folder.
-
-    1. Create the explicit main snapshot directory:
-       mkdir -p ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/snapshots/main
-       mkdir -p ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/refs
-
-    2. Download the model file AND its repo configurations into that exact snapshot folder:
-       cd ~/.cache/huggingface/hub/models--unstructuredio--yolo_x_layout/snapshots/main
-       wget https://huggingface.co/unstructuredio/yolo_x_layout/resolve/main/yolox_l0.05.onnx
-       wget https://huggingface.co
-
-    3. Create the pointer reference file:
-       echo "main" > ../../refs/main
-
-    4. Set Python environment variable before running this script offline:
-       export HF_HUB_OFFLINE=1
-
+  Common language codes: eng, spa, fra, deu, ita, por, rus, chi_sim, chi_tra, jpn, ara
+  List installed languages: tesseract --list-langs
         """
     )
     
@@ -162,33 +178,24 @@ Offline Usage:
     )
     
     parser.add_argument(
-        '--strategy',
-        choices=['fast', 'hi_res', 'ocr_only'],
-        default='hi_res',
-        help='Processing strategy: fast=text extraction only (no models), '
-             'hi_res=layout detection + auto OCR (~207MB yolox_layout, default), '
-             'ocr_only=force OCR + layout detection'
+        '--lang',
+        default='eng',
+        help='Tesseract language code (default: eng). Use + for multiple languages, e.g., eng+fra'
     )
     
     parser.add_argument(
-        '--model',
-        dest='model_name',
-        help='Model name for layout detection. '
-             'Options: yolox (default, ~207MB), yolox_tiny (~100MB), yolox_quantized. '
-             'Note: Only predefined model names are supported, not custom file paths.'
+        '--psm',
+        type=int,
+        default=3,
+        choices=range(0, 14),
+        help='Page segmentation mode (default: 3). See PSM list above for details.'
     )
     
     parser.add_argument(
-        '--tables',
-        action='store_true',
-        help='Enable table structure inference as HTML '
-             '(downloads ~47MB resnet18 + ~111MB table-transformer models)'
-    )
-    
-    parser.add_argument(
-        '--no-page-breaks',
-        action='store_true',
-        help='Disable page break markers'
+        '--dpi',
+        type=int,
+        default=300,
+        help='DPI for PDF rendering (default: 300). Higher values improve quality but increase processing time.'
     )
     
     args = parser.parse_args()
@@ -206,10 +213,9 @@ Offline Usage:
     text = ocr_document(
         input_path,
         output_path,
-        strategy=args.strategy,
-        model_name=args.model_name,
-        infer_tables=args.tables,
-        include_page_breaks=not args.no_page_breaks
+        lang=args.lang,
+        psm=args.psm,
+        dpi=args.dpi
     )
     
     # Print preview
