@@ -26,9 +26,20 @@ def ocr_document(input_path, output_path=None, lang='eng', psm=3, dpi=300):
     try:
         import pytesseract
         from PIL import Image
+        from pdf2image import convert_from_path
     except ImportError as e:
-        print(f"Error: Required library not found: {e}")
-        print("Install with: pip install pytesseract pillow")
+        print(f"Error: Required Python library not found: {e}")
+        print("Install with: pip install pytesseract pillow pdf2image")
+        sys.exit(1)
+    
+    # Check if tesseract is installed
+    try:
+        pytesseract.get_tesseract_version()
+    except Exception:
+        print("Error: Tesseract OCR not found in system PATH")
+        print("Install tesseract:")
+        print("  Ubuntu/Debian: apt-get install tesseract-ocr")
+        print("  macOS: brew install tesseract")
         sys.exit(1)
     
     # Check if input file exists
@@ -45,14 +56,6 @@ def ocr_document(input_path, output_path=None, lang='eng', psm=3, dpi=300):
         
         if file_ext == '.pdf':
             # Handle PDF files
-            try:
-                from pdf2image import convert_from_path
-            except ImportError:
-                print("Error: pdf2image library not found.")
-                print("Install with: pip install pdf2image")
-                print("System dependency: poppler-utils (apt-get install poppler-utils)")
-                sys.exit(1)
-            
             print("Converting PDF to images...")
             images = convert_from_path(input_path, dpi=dpi)
             print(f"Converted {len(images)} page(s)")
