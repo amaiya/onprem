@@ -141,9 +141,9 @@ def main():
     2. **Talk to Your Documents**: Ask questions about your documents using RAG technology
     3. **Search Documents**: Search through your indexed documents using keywords or semantic search
     4. **Document Analysis**: Apply custom prompts to document chunks and export results
-    5. **Topic Models**: Discover hidden themes and subjects in your document collection
-    6. **Workflow Builder**: Create complex multi-step document processing workflows visually
-    7. **Manage**: Upload documents, manage folders, and configure the application settings
+    #5. **Topic Models**: Discover hidden themes and subjects in your document collection
+    5. **Workflow Builder**: Create complex multi-step document processing workflows visually
+    6. **Manage**: Upload documents, manage folders, and configure the application settings
     
     Use the sidebar to navigate between these different features.
     """)
@@ -173,11 +173,11 @@ def main():
         if st.button("📊 Document Analysis", width='stretch'):
             st.switch_page("pages/4_Document_Analysis.py")
 
-    with col5:
-        if st.button("🎯 Topic Models", width='stretch'):
-            st.switch_page("pages/5_Topic_Models.py")
+    # with col5:
+    #     if st.button("🎯 Topic Models", width='stretch'):
+    #         st.switch_page("pages/5_Topic_Models.py")
 
-    with col6:
+    with col5:
         if st.button("🔧 Workflow Builder", width='stretch'):
             st.switch_page("pages/6_Workflow_Builder.py")
     

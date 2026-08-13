@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.23.5 (2026-08-13)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Removed orphaned "TM" references in app
+
+
 ## 0.23.4 (2026-07-31)
 
 ### new:
