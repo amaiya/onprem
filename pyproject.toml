@@ -37,6 +37,9 @@ all = ['langchain_chroma', 'chromadb', 'elasticsearch', 'requests_ntlm', 'shap',
 [project.scripts]
 onprem = "onprem.app.console:cli"
 
+[tool.setuptools]
+license-files = ["LICENSE"]
+
 [tool.setuptools.dynamic]
 version = {attr = "onprem.__version__"}
 
