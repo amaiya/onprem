@@ -75,7 +75,17 @@ class ChatGovCloudBedrock(BaseChatModel):
     max_tokens: int = Field(default=512, description="Maximum tokens to generate")
     temperature: Optional[float] = Field(default=None, description="Sampling temperature (only included if explicitly set)")
     streaming: bool = Field(default=False, description="Enable streaming responses")
+    include_reasoning: bool = Field(default=False, description="Include reasoning in response (GPT-OSS models wrap reasoning in <reasoning> tags)")
     client: Any = Field(default=None, exclude=True, description="Boto3 client instance")
+
+    def _strip_reasoning(self, text: str) -> str:
+        """
+        Remove <reasoning>...</reasoning> tags from text.
+        Used for GPT-OSS models when include_reasoning=False.
+        """
+        import re
+        # Remove reasoning tags and their content
+        return re.sub(r'<reasoning>.*?</reasoning>', '', text, flags=re.DOTALL).strip()
 
     def __init__(
         self,
@@ -87,6 +97,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         max_tokens: int = 512,
         temperature: Optional[float] = None,
         streaming: bool = False,
+        include_reasoning: bool = False,
         callbacks: Optional[List] = None,
         **kwargs
     ):
@@ -102,6 +113,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature (only included in request if explicitly set)
             streaming: Enable streaming responses
+            include_reasoning: Include reasoning in response (for GPT-OSS models)
             callbacks: LangChain callbacks
             **kwargs: Additional parameters
         """
@@ -114,6 +126,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             max_tokens=max_tokens,
             temperature=temperature,
             streaming=streaming,
+            include_reasoning=include_reasoning,
             callbacks=callbacks,
             **kwargs
         )
@@ -213,6 +226,10 @@ class ChatGovCloudBedrock(BaseChatModel):
                 if chunk.message.content:
                     full_content += chunk.message.content
 
+            # Strip reasoning tags from complete content if needed (for GPT-OSS models)
+            if not self.include_reasoning:
+                full_content = self._strip_reasoning(full_content)
+
             # Return final result with complete content
             final_message = AIMessage(content=full_content)
             return ChatResult(generations=[ChatGeneration(message=final_message)])
@@ -250,10 +267,22 @@ class ChatGovCloudBedrock(BaseChatModel):
             response_body = json.loads(response["body"].read().decode("utf-8"))
 
             # Extract the generated text
-            if "content" in response_body and len(response_body["content"]) > 0:
+            generated_text = ""
+            
+            # Handle OpenAI-style responses (GPT-OSS models)
+            if "choices" in response_body:
+                for choice in response_body.get("choices", []):
+                    message = choice.get("message", {})
+                    if "content" in message:
+                        content = message["content"]
+                        # Strip reasoning tags if requested
+                        if not self.include_reasoning:
+                            content = self._strip_reasoning(content)
+                        generated_text += content
+            
+            # Handle Anthropic-style responses (Claude models)
+            elif "content" in response_body and len(response_body["content"]) > 0:
                 generated_text = response_body["content"][0]["text"]
-            else:
-                generated_text = ""
 
             # Create AIMessage
             message = AIMessage(content=generated_text)
@@ -308,16 +337,43 @@ class ChatGovCloudBedrock(BaseChatModel):
             for event in response["body"]:
                 chunk = json.loads(event["chunk"]["bytes"].decode("utf-8"))
 
-                if chunk.get("type") == "content_block_delta":
+                # Handle OpenAI-style responses (GPT-OSS models)
+                if "choices" in chunk:
+                    for choice in chunk.get("choices", []):
+                        delta = choice.get("delta", {})
+                        if "content" in delta and delta["content"]:
+                            text = delta["content"]
+                            # Strip reasoning tags if requested
+                            # Note: This works best when reasoning comes in complete chunks
+                            # If tags are split, some may slip through to streaming output
+                            # but final result will be clean (stripped in _generate)
+                            if not self.include_reasoning:
+                                text = self._strip_reasoning(text)
+                            # Only yield if there's content after stripping
+                            if text:
+                                if run_manager:
+                                    if hasattr(run_manager.on_llm_new_token, '__call__'):
+                                        try:
+                                            import asyncio
+                                            if asyncio.iscoroutinefunction(run_manager.on_llm_new_token):
+                                                pass
+                                            else:
+                                                run_manager.on_llm_new_token(text)
+                                        except:
+                                            run_manager.on_llm_new_token(text)
+                                    else:
+                                        run_manager.on_llm_new_token(text)
+                                yield ChatGeneration(message=AIMessage(content=text))
+
+                # Handle Anthropic-style responses (Claude models)
+                elif chunk.get("type") == "content_block_delta":
                     if "delta" in chunk and "text" in chunk["delta"]:
                         text = chunk["delta"]["text"]
                         if run_manager:
-                            # Check if run_manager is async or sync
                             if hasattr(run_manager.on_llm_new_token, '__call__'):
                                 try:
                                     import asyncio
                                     if asyncio.iscoroutinefunction(run_manager.on_llm_new_token):
-                                        # Skip async callback in sync context for now
                                         pass
                                     else:
                                         run_manager.on_llm_new_token(text)

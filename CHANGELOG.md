@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Don't suppy temperature to Anthropic/Bedrock if it is not explicitly supplied. (#255)
+- Fixed bug with GPT-OSS output from AWS GovCloud Bedrock. (#256)
 
 
 
