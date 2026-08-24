@@ -73,7 +73,7 @@ class ChatGovCloudBedrock(BaseChatModel):
     aws_access_key_id: Optional[str] = Field(default=None, description="AWS access key ID")
     aws_secret_access_key: Optional[str] = Field(default=None, description="AWS secret access key")
     max_tokens: int = Field(default=512, description="Maximum tokens to generate")
-    temperature: float = Field(default=0.7, description="Sampling temperature")
+    temperature: Optional[float] = Field(default=None, description="Sampling temperature (only included if explicitly set)")
     streaming: bool = Field(default=False, description="Enable streaming responses")
     client: Any = Field(default=None, exclude=True, description="Boto3 client instance")
 
@@ -85,7 +85,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
         max_tokens: int = 512,
-        temperature: float = 0.7,
+        temperature: Optional[float] = None,
         streaming: bool = False,
         callbacks: Optional[List] = None,
         **kwargs
@@ -100,7 +100,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             aws_access_key_id: AWS access key ID (or use environment variables)
             aws_secret_access_key: AWS secret access key (or use environment variables)
             max_tokens: Maximum tokens to generate
-            temperature: Sampling temperature
+            temperature: Sampling temperature (only included in request if explicitly set)
             streaming: Enable streaming responses
             callbacks: LangChain callbacks
             **kwargs: Additional parameters
@@ -225,9 +225,13 @@ class ChatGovCloudBedrock(BaseChatModel):
         body = {
             "messages": bedrock_messages,
             "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-            "temperature": kwargs.get("temperature", self.temperature),
             "anthropic_version": "bedrock-2023-05-31"
         }
+        
+        # Only include temperature if explicitly provided (either in kwargs or as instance variable)
+        temperature = kwargs.get("temperature", self.temperature)
+        if temperature is not None:
+            body["temperature"] = temperature
 
         # Add stop sequences if provided
         if stop:
@@ -279,9 +283,13 @@ class ChatGovCloudBedrock(BaseChatModel):
         body = {
             "messages": bedrock_messages,
             "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-            "temperature": kwargs.get("temperature", self.temperature),
             "anthropic_version": "bedrock-2023-05-31"
         }
+        
+        # Only include temperature if explicitly provided (either in kwargs or as instance variable)
+        temperature = kwargs.get("temperature", self.temperature)
+        if temperature is not None:
+            body["temperature"] = temperature
 
         # Add stop sequences if provided
         if stop:
@@ -320,9 +328,9 @@ class ChatGovCloudBedrock(BaseChatModel):
                         yield ChatGeneration(message=AIMessage(content=text))
 
         except Exception as e:
-            # Fallback to non-streaming if streaming fails
-            result = self._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
-            yield result.generations[0]
+            # Don't call _generate as fallback - it would cause infinite recursion
+            # Instead, raise the error so it can be handled at a higher level
+            raise RuntimeError(f"Error during streaming from AWS Bedrock: {str(e)}")
 
     async def _agenerate(
         self,
@@ -392,11 +400,14 @@ class ChatGovCloudBedrock(BaseChatModel):
         request_body = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
             "messages": bedrock_messages,
             "tools": [tool_schema],
             "tool_choice": {"type": "tool", "name": tool_name}
         }
+        
+        # Only include temperature if explicitly set
+        if self.temperature is not None:
+            request_body["temperature"] = self.temperature
 
         # Filter out parameters that aren't supported by Bedrock tool calling
         bedrock_kwargs = {}
