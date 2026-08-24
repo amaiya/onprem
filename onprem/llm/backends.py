@@ -75,7 +75,9 @@ class ChatGovCloudBedrock(BaseChatModel):
     max_tokens: int = Field(default=512, description="Maximum tokens to generate")
     temperature: Optional[float] = Field(default=None, description="Sampling temperature (only included if explicitly set)")
     streaming: bool = Field(default=False, description="Enable streaming responses")
-    include_reasoning: bool = Field(default=False, description="Include reasoning in response (GPT-OSS models wrap reasoning in <reasoning> tags)")
+    include_reasoning: bool = Field(default=False, description="Include reasoning in response (GPT-OSS: <reasoning> tags, Anthropic: thinking blocks)")
+    enable_thinking: bool = Field(default=False, description="Enable extended thinking for Anthropic models (Claude 4.6+ use adaptive thinking)")
+    thinking_effort: Optional[str] = Field(default=None, description="Thinking effort level for Claude 4.6+: 'low', 'medium', 'high' (default), 'xhigh', 'max'. Only used when enable_thinking=True")
     client: Any = Field(default=None, exclude=True, description="Boto3 client instance")
 
     def _strip_reasoning(self, text: str) -> str:
@@ -98,6 +100,8 @@ class ChatGovCloudBedrock(BaseChatModel):
         temperature: Optional[float] = None,
         streaming: bool = False,
         include_reasoning: bool = False,
+        enable_thinking: bool = False,
+        thinking_effort: Optional[str] = None,
         callbacks: Optional[List] = None,
         **kwargs
     ):
@@ -113,7 +117,9 @@ class ChatGovCloudBedrock(BaseChatModel):
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature (only included in request if explicitly set)
             streaming: Enable streaming responses
-            include_reasoning: Include reasoning in response (for GPT-OSS models)
+            include_reasoning: Include reasoning in response (for GPT-OSS and Anthropic)
+            enable_thinking: Enable adaptive thinking for Anthropic Claude 4.6+ models
+            thinking_effort: Effort level ('low', 'medium', 'high', 'xhigh', 'max'). Defaults to 'high' if omitted
             callbacks: LangChain callbacks
             **kwargs: Additional parameters
         """
@@ -127,6 +133,8 @@ class ChatGovCloudBedrock(BaseChatModel):
             temperature=temperature,
             streaming=streaming,
             include_reasoning=include_reasoning,
+            enable_thinking=enable_thinking,
+            thinking_effort=thinking_effort,
             callbacks=callbacks,
             **kwargs
         )
@@ -217,8 +225,12 @@ class ChatGovCloudBedrock(BaseChatModel):
         Returns:
             ChatResult containing the response
         """
+        # Note: Bedrock streaming API does not support thinking content in streaming mode
+        # When enable_thinking=True, force non-streaming to get thinking blocks
+        use_streaming = self.streaming and not self.enable_thinking
+        
         # If streaming is enabled, use streaming and collect all chunks
-        if self.streaming:
+        if use_streaming:
             chunks = []
             full_content = ""
             for chunk in self._stream(messages, stop=stop, run_manager=run_manager, **kwargs):
@@ -244,11 +256,24 @@ class ChatGovCloudBedrock(BaseChatModel):
             "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             "anthropic_version": "bedrock-2023-05-31"
         }
-        
+
         # Only include temperature if explicitly provided (either in kwargs or as instance variable)
         temperature = kwargs.get("temperature", self.temperature)
         if temperature is not None:
             body["temperature"] = temperature
+
+        # Enable adaptive thinking for Anthropic models if requested
+        if self.enable_thinking:
+            # Set display mode - "summarized" shows thinking text, "omitted" hides it
+            body["thinking"] = {
+                "type": "adaptive",
+                "display": "summarized" if self.include_reasoning else "omitted"
+            }
+            # Effort must be in a separate output_config object
+            # Note: effort requires the beta header to work properly
+            if self.thinking_effort:
+                body["anthropic_beta"] = ["effort-2025-11-24"]
+                body["output_config"] = {"effort": self.thinking_effort}
 
         # Add stop sequences if provided
         if stop:
@@ -282,7 +307,19 @@ class ChatGovCloudBedrock(BaseChatModel):
             
             # Handle Anthropic-style responses (Claude models)
             elif "content" in response_body and len(response_body["content"]) > 0:
-                generated_text = response_body["content"][0]["text"]
+                # Iterate through all content blocks
+                for content_block in response_body["content"]:
+                    block_type = content_block.get("type", "")
+
+                    # Handle text blocks
+                    if block_type == "text" and "text" in content_block:
+                        generated_text += content_block["text"]
+                    # Handle thinking blocks - include if requested and non-empty
+                    elif block_type == "thinking" and "thinking" in content_block:
+                        thinking_content = content_block["thinking"]
+                        if self.include_reasoning and thinking_content:
+                            # Use same format as GPT-OSS for consistency
+                            generated_text += f"\n<reasoning>\n{thinking_content}\n</reasoning>\n\n"
 
             # Create AIMessage
             message = AIMessage(content=generated_text)
@@ -314,11 +351,24 @@ class ChatGovCloudBedrock(BaseChatModel):
             "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             "anthropic_version": "bedrock-2023-05-31"
         }
-        
+
         # Only include temperature if explicitly provided (either in kwargs or as instance variable)
         temperature = kwargs.get("temperature", self.temperature)
         if temperature is not None:
             body["temperature"] = temperature
+
+        # Enable adaptive thinking for Anthropic models if requested
+        if self.enable_thinking:
+            # Set display mode - "summarized" shows thinking text, "omitted" hides it
+            body["thinking"] = {
+                "type": "adaptive",
+                "display": "summarized" if self.include_reasoning else "omitted"
+            }
+            # Effort must be in a separate output_config object
+            # Note: effort requires the beta header to work properly
+            if self.thinking_effort:
+                body["anthropic_beta"] = ["effort-2025-11-24"]
+                body["output_config"] = {"effort": self.thinking_effort}
 
         # Add stop sequences if provided
         if stop:
@@ -336,7 +386,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             # Process streaming response
             for event in response["body"]:
                 chunk = json.loads(event["chunk"]["bytes"].decode("utf-8"))
-
+                
                 # Handle OpenAI-style responses (GPT-OSS models)
                 if "choices" in chunk:
                     for choice in chunk.get("choices", []):
@@ -367,8 +417,12 @@ class ChatGovCloudBedrock(BaseChatModel):
 
                 # Handle Anthropic-style responses (Claude models)
                 elif chunk.get("type") == "content_block_delta":
-                    if "delta" in chunk and "text" in chunk["delta"]:
-                        text = chunk["delta"]["text"]
+                    delta = chunk.get("delta", {})
+                    delta_type = delta.get("type", "")
+                    
+                    # Handle text deltas
+                    if delta_type == "text_delta" and "text" in delta:
+                        text = delta["text"]
                         if run_manager:
                             if hasattr(run_manager.on_llm_new_token, '__call__'):
                                 try:
@@ -382,6 +436,11 @@ class ChatGovCloudBedrock(BaseChatModel):
                             else:
                                 run_manager.on_llm_new_token(text)
                         yield ChatGeneration(message=AIMessage(content=text))
+                    # Note: thinking_delta chunks are NOT provided by Bedrock streaming API
+                    # Thinking content is only available in non-streaming responses
+                
+                # Ignore other event types (message_start, content_block_start, content_block_stop, message_delta, message_stop)
+                # These are just markers and don't contain content to yield
 
         except Exception as e:
             # Don't call _generate as fallback - it would cause infinite recursion
