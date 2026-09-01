@@ -473,6 +473,14 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
     >
     > Note, however, that, unlike dense vector stores, sparse vector stores assume answer sources will contain at least one word in common with the question.
 
+8.  **When I use the [`Extractor.extract_structured`](https://amaiya.github.io/onprem/pipelines.extractor.base.html#extractor.extract_structured) method, I get an incorrect empty response?**
+
+    > Structured outputs generate more output tokens. The default value for `max_tokens` is 512. Increase to 16K or 32K.
+    >
+    > ``` python
+    > llm = LLM("anthropic/claude-4-5-sonnet-latest", max_output=32000) # example
+    > ```
+
 <!--
 8. **What are ways in which OnPrem.LLM has been used?**
     > Examples include:
