@@ -154,7 +154,9 @@ llm = LLM(verbose=False) # default model and backend are used
 
 *Local Models:* A number of different local LLM backends are supported.
 
-- **Llama-cpp**: `llm = LLM(default_model="llama", n_gpu_layers=-1)`
+- **Llama-cpp** (default model: Zephyr-7B): `llm = LLM(n_gpu_layers=-1)`
+
+- **Llama-cpp** (default model: LLama 3.1): `llm = LLM(default_model="llama", n_gpu_layers=-1)`
 
 - **Llama-cpp with selected GGUF model via URL**:
 
