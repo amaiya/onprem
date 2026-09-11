@@ -7,6 +7,19 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.24.0 (TBD)
+
+### new:
+- N/A
+
+### changed
+- Created custom LlamaCpp class, removing dependency on langchain-community
+
+### fixed:
+- N/A
+
+
+
 ## 0.23.6 (2026-08-24)
 
 ### new:

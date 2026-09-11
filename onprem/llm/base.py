@@ -17,10 +17,9 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain.output_parsers import OutputFixingParser
-from langchain_community.llms import LlamaCpp
 from langchain_openai import ChatOpenAI
 from langchain_litellm import ChatLiteLLM
-from .backends import ChatGovCloudBedrock
+from .backends import ChatGovCloudBedrock, LlamaCpp
 from langchain_core.messages.ai import AIMessage
 from langchain_core.documents import Document
 import os
