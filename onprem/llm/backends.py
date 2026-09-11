@@ -719,13 +719,31 @@ class LlamaCpp:
             params["grammar"] = self.grammar
         return params
 
-    def invoke(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
+    def invoke(self, prompt, stop: Optional[List[str]] = None,
+               use_chat_template: bool = False, **kwargs: Any) -> str:
         """
-        Generate text for a string `prompt` and return it as a string.
+        Generate a response and return it as a string.
+
+        `prompt` may be either:
+
+        - a list of chat-message dicts (e.g., ``[{"role": "user", "content": ...}]``),
+          which is routed through `create_chat_completion` so the GGUF-embedded chat
+          template is applied automatically; or
+        - a string. If `use_chat_template` is True, the string is wrapped as a single
+          user message and routed through `create_chat_completion` (auto chat template).
+          Otherwise, the (already-formatted) string is sent as a raw completion.
 
         When `streaming` is enabled, tokens are forwarded to any registered
         callbacks via `on_llm_new_token` as they are generated.
         """
+        # message-list prompts (or string prompts requesting chat templating)
+        if isinstance(prompt, list):
+            return self.create_chat_completion(prompt, stop=stop, **kwargs)
+        if use_chat_template:
+            return self.create_chat_completion(
+                [{"role": "user", "content": prompt}], stop=stop, **kwargs
+            )
+
         params = {**self._generation_params(stop), **kwargs}
 
         if self.streaming:
@@ -740,6 +758,35 @@ class LlamaCpp:
 
         result = self.client(prompt=prompt, **params)
         return result["choices"][0]["text"]
+
+    def create_chat_completion(self, messages: List[Dict[str, Any]],
+                               stop: Optional[List[str]] = None, **kwargs: Any) -> str:
+        """
+        Generate a response for a list of chat messages and return it as a string.
+
+        This uses llama.cpp's `create_chat_completion`, which applies the chat
+        template embedded in the GGUF metadata (e.g., Gemma, Llama 3, Mistral).
+        This lets modern models work without a manually-specified `prompt_template`.
+
+        When `streaming` is enabled, tokens are forwarded to any registered
+        callbacks via `on_llm_new_token` as they are generated.
+        """
+        params = {**self._generation_params(stop), **kwargs}
+
+        if self.streaming:
+            combined = ""
+            for part in self.client.create_chat_completion(messages, stream=True, **params):
+                delta = part["choices"][0].get("delta", {})
+                token = delta.get("content") or ""
+                if token:
+                    combined += token
+                    for cb in self.callbacks:
+                        if hasattr(cb, "on_llm_new_token"):
+                            cb.on_llm_new_token(token)
+            return combined
+
+        result = self.client.create_chat_completion(messages, **params)
+        return result["choices"][0]["message"]["content"]
 
     def get_num_tokens(self, text: str) -> int:
         """Return the number of tokens in `text`."""

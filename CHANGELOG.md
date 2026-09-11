@@ -10,7 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.24.0 (TBD)
 
 ### new:
-- N/A
+- Improved GGUF-handling: uses embedded chat templates when possible (#258)
 
 ### changed
 - Created custom LlamaCpp class, removing dependency on langchain-community

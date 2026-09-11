@@ -163,7 +163,12 @@ class LLM:
             if default_engine == LLAMA_CPP:
                 self.model_url = url_or_id
                 self.model_id = None
-                prompt_template = PROMPT_DICT[default_model] if not prompt_template else prompt_template
+                # Default GGUF models (mistral/zephyr/llama) do not ship with an
+                # embedded chat template, so apply their known prompt template.
+                # (Custom GGUF models supplied via model_url with prompt_template=None
+                # use the chat template embedded in the GGUF metadata automatically.)
+                if prompt_template is None:
+                    prompt_template = PROMPT_DICT[default_model]
             else:
                 self.model_url = None
                 self.model_id = url_or_id
@@ -619,6 +624,7 @@ class LLM:
                 verbose=self.verbose,
                 n_gpu_layers=self.n_gpu_layers,
                 n_ctx=self.n_ctx,
+                streaming=not self.mute_stream,
                 **kwargs)
 
         return self.llm
@@ -781,17 +787,14 @@ class LLM:
 
         # prompt is a list of dictionaries representing messages
         if isinstance(prompt, list):
-            if self.is_llamacpp():
-                # LangChain's LlamaCpp does not provide access to create_chat_completion,
-                # so access it directly (with streaming disabled)
-                res = llm.client.create_chat_completion(prompt)
-                result = res['choices'][0]['message']['content']
-            else:
-                try:
-                    res = invoke_fn(llm, prompt, stop=stop, **kwargs)
-                except Exception as e: # stop param fails with GPT-4o vision prompts
-                    res = invoke_fn(llm, prompt, **kwargs)
-                result = res.content if isinstance(res, AIMessage) else res
+            # LlamaCpp.invoke handles message-list prompts (applying the GGUF-embedded
+            # chat template) and returns a plain string, so the same path works for all
+            # backends: cloud chat models return an AIMessage that we unwrap below.
+            try:
+                res = invoke_fn(llm, prompt, stop=stop, **kwargs)
+            except Exception as e: # stop param fails with GPT-4o vision prompts
+                res = invoke_fn(llm, prompt, **kwargs)
+            result = res.content if isinstance(res, AIMessage) else res
         # prompt is string
         else:
             if image_path_or_url:
@@ -841,6 +844,10 @@ class LLM:
 
                 # handle other models (e.g., llama_cpp, LLMs served through APIs)
                 else:
+                    # For llama.cpp without an explicit prompt_template, let the
+                    # LlamaCpp class apply the GGUF-embedded chat template.
+                    if self.is_llamacpp() and not prompt_template:
+                        kwargs['use_chat_template'] = True
                     res = invoke_fn(llm, prompt, stop=stop, **kwargs)
                     result = res.content if isinstance(res, AIMessage) else res
 

@@ -437,6 +437,7 @@ def test_semantic(**kwargs):
     url = kwargs["url"]
     llm = LLM(
         model_url=url,
+        model_download_path=kwargs.get('model_download_path'),
         embedding_model_name="sentence-transformers/nli-mpnet-base-v2",
         embedding_encode_kwargs={"normalize_embeddings": True},
         store_type='dense',
@@ -1023,7 +1024,9 @@ def run(**kwargs):
     print(url)
 
     if len(set(to_run) & set(SHARE_LLM)) > 0:
-        llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128, prompt_template=prompt_template)
+        llm = LLM(model_url=url, n_gpu_layers=n_gpu_layers, max_tokens=128,
+                  prompt_template=prompt_template,
+                  model_download_path=kwargs.get('model_download_path'))
         kwargs['llm'] = llm
 
     for test in to_run:
@@ -1069,6 +1072,15 @@ if __name__ == "__main__":
         help=("Prompt template to use. Should have a single variable {prompt}. Not required if default model url is used."),
     )
     optional_args.add_argument(
+        "-d",
+        "--model-download-path",
+        type=str,
+        default=None,
+        help=("Directory containing the model file (or where it will be downloaded). "
+              "Use with a filename in --url to load a local GGUF (e.g., a gemma4 model) without downloading. "
+              "Default is onprem_data in the user's home directory."),
+    )
+    optional_args.add_argument(
         "-o",
         "--transformers-only",
         action="store_true",
@@ -1091,6 +1103,7 @@ if __name__ == "__main__":
     kwargs["gpu"] = args.gpu
     kwargs["url"] = args.url
     kwargs['prompt_template'] = args.prompt_template
+    kwargs['model_download_path'] = args.model_download_path
     kwargs['transformers_only'] = args.transformers_only
     kwargs['test'] = args.test
     kwargs['list_tests'] = args.list_tests

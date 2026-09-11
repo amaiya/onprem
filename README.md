@@ -159,7 +159,8 @@ llm = LLM(verbose=False) # default model and backend are used
 - **Llama-cpp with selected GGUF model via URL**:
 
   ``` python
-   # prompt templates are required for user-supplied GGUF models (see FAQ)
+   # Modern GGUFs with an embedded chat template need no prompt_template (auto-detected).
+   # Older GGUFs without one (e.g., Zephyr) still require prompt_template (see FAQ).
    llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf', 
              prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
   ```
@@ -167,7 +168,8 @@ llm = LLM(verbose=False) # default model and backend are used
 - **Llama-cpp with selected GGUF model via file path**:
 
   ``` python
-   # prompt templates are required for user-supplied GGUF models (see FAQ)
+   # Modern GGUFs with an embedded chat template need no prompt_template (auto-detected).
+   # Older GGUFs without one (e.g., Zephyr) still require prompt_template (see FAQ).
    llm = LLM(model_url='zephyr-7b-beta.Q4_K_M.gguf', 
              model_download_path='/path/to/folder/to/where/you/downloaded/model',
              prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
@@ -367,12 +369,12 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
 
     > <img src="https://raw.githubusercontent.com/amaiya/onprem/master/images/model_download_link.png" border="1" alt="screenshot" width="775"/>
 
-    > When using the llama.cpp backend, GGUF models have specific prompt formats that need to supplied to `LLM`.
+    > When using the llama.cpp backend, most modern GGUF models embed a chat template in their metadata, which **OnPrem.LLM** detects and applies automatically — so no `prompt_template` is required for them. However, some older GGUF models (e.g., **Zephyr-7B**) do **not** include an embedded chat template, and for those you must supply the `prompt_template` argument.
     > For instance, the prompt template required for **Zephyr-7B**, as described on the [model’s page](https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF), is:
     >
     > `<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>`
     >
-    > So, to use the **Zephyr-7B** model, you must supply the `prompt_template` argument to the `LLM` constructor (or specify it in the `webapp.yml` configuration for the Web app).
+    > Since **Zephyr-7B** has no embedded chat template, you must supply the `prompt_template` argument to the `LLM` constructor (or specify it in the `webapp.yml` configuration for the Web app).
     >
     > ``` python
     > # how to use Zephyr-7B with OnPrem.LLM
@@ -382,8 +384,7 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
     > llm.prompt("List three cute names for a cat.")
     > ```
 
-    > Prompt templates are **not** required for any other LLM backend (e.g., when using Ollama as backend or when using `model_id` parameter for transformers models).
-    > Prompt templates are also not required if using any of the default models.
+    > Prompt templates are **not** required for modern GGUF models that embed a chat template (the template is detected and applied automatically). They are also **not** required when using any of the default models, nor for any other LLM backend (e.g., Ollama, or the `model_id` parameter for transformers models). They are only needed for older GGUF models (like Zephyr) that lack an embedded chat template.
 
 2.  **When installing `onprem`, I’m getting “build” errors related to `llama-cpp-python` (or `chroma-hnswlib`) on Windows/Mac/Linux?**
 

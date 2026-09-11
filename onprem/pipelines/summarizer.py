@@ -152,6 +152,12 @@ class Summarizer:
                     max_chunks_to_use = None, **kwargs):
         """ Map-Reduce summarization"""
         langchain_llm = self.llm.llm
+        # onprem's LlamaCpp is LangChain-free; adapt it to a Runnable for LLMChain.
+        # When no explicit prompt_template is set, route through the GGUF-embedded
+        # chat template so chat-tuned models (e.g., gemma) behave correctly.
+        if hasattr(langchain_llm, "as_runnable"):
+            langchain_llm = langchain_llm.as_runnable(
+                use_chat_template=self.prompt_template is None)
 
         # Map
         # map_template = """The following is a set of documents
@@ -242,8 +248,15 @@ class Summarizer:
         if self.prompt_template:
             refine_template = self.prompt_template.format(**{'prompt':refine_template})
         refine_prompt = PromptTemplate.from_template(refine_template)
+        # onprem's LlamaCpp is LangChain-free; adapt it to a Runnable for the chain.
+        # When no explicit prompt_template is set, route through the GGUF-embedded
+        # chat template so chat-tuned models (e.g., gemma) behave correctly.
+        langchain_llm = self.llm.llm
+        if hasattr(langchain_llm, "as_runnable"):
+            langchain_llm = langchain_llm.as_runnable(
+                use_chat_template=self.prompt_template is None)
         chain = load_summarize_chain(
-            llm=self.llm.llm,
+            llm=langchain_llm,
             chain_type="refine",
             question_prompt=prompt,
             refine_prompt=refine_prompt,
