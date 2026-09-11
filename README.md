@@ -159,20 +159,20 @@ llm = LLM(verbose=False) # default model and backend are used
 - **Llama-cpp with selected GGUF model via URL**:
 
   ``` python
-   # Modern GGUFs with an embedded chat template need no prompt_template (auto-detected).
+   # Modern GGUFs (e.g., Gemma) embed a chat template, so no prompt_template is needed (auto-detected).
    # Older GGUFs without one (e.g., Zephyr) still require prompt_template (see FAQ).
-   llm = LLM(model_url='https://huggingface.co/TheBloke/zephyr-7B-beta-GGUF/resolve/main/zephyr-7b-beta.Q4_K_M.gguf', 
-             prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
+   llm = LLM(model_url='https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf', 
+             n_gpu_layers=-1)
   ```
 
 - **Llama-cpp with selected GGUF model via file path**:
 
   ``` python
-   # Modern GGUFs with an embedded chat template need no prompt_template (auto-detected).
+   # Modern GGUFs (e.g., Gemma) embed a chat template, so no prompt_template is needed (auto-detected).
    # Older GGUFs without one (e.g., Zephyr) still require prompt_template (see FAQ).
-   llm = LLM(model_url='zephyr-7b-beta.Q4_K_M.gguf', 
+   llm = LLM(model_url='gemma-4-E4B-it-Q4_K_M.gguf', 
              model_download_path='/path/to/folder/to/where/you/downloaded/model',
-             prompt_template= "<|system|>\n</s>\n<|user|>\n{prompt}</s>\n<|assistant|>", n_gpu_layers=-1)
+             n_gpu_layers=-1)
   ```
 
 - **Hugging Face Transformers**: `llm = LLM(model_id='Qwen/Qwen2.5-0.5B-Instruct', device='cuda')`
