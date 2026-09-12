@@ -145,7 +145,7 @@ class RAGPipeline:
             folders = [folders] if isinstance(folders, str) else folders
             # This is needed because only the where argument supports the $like operator
             # and Langchain does not properly forward the where parameter to Chroma
-            n_candidates = store.get_size() if store.get_size() < 10000 else 10000
+            n_candidates = min(store.get_size(), 10_000)
             results = store.semantic_search(query, 
                                             filters=filters,
                                             where_document=where_document,

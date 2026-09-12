@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.24.0 (TBD)
+## 0.24.0 (2026-09-12)
 
 ### new:
 - Improved GGUF-handling: uses embedded chat templates when possible (#258)
@@ -20,6 +20,8 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - Unbound LangChain family of dependencies (#253)
+- `RAGPipeline.semantic_search()` avoids hitting doc source twice for size (#248)
+
 
 
 
