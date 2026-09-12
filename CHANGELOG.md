@@ -19,8 +19,7 @@ Most recent releases are shown at the top. Each release shows:
 
 
 ### fixed:
-- Temporarily pinning langchain family to avoid incompatibilities with newer langchain
-- Temporarily pinning gmft for incompatibility with older PyTorch versions (e.g., 2.4)
+- Unbound LangChain family of dependencies (#253)
 
 
 

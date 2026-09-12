@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain_core.callbacks.base import BaseCallbackHandler
 from onprem import LLM, utils as U
 
 

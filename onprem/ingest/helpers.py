@@ -301,7 +301,7 @@ def extract_file_metadata(file_path:str,
 
 
 from typing import List
-from langchain.text_splitter import TextSplitter
+from langchain_text_splitters import TextSplitter
 import re
 class ParagraphTextSplitter(TextSplitter):
     def __init__(self, chunk_size: int = 5000, chunk_overlap: int = 0):

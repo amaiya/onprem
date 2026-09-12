@@ -13,10 +13,9 @@ __all__ = ['MIN_MODEL_SIZE', 'OLLAMA_URL', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_I
 # %% ../../nbs/00_llm.base.ipynb #9023ab96
 from ..utils import get_datadir, get_models_dir, download, format_string, DEFAULT_DB
 from . import helpers
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.prompts import PromptTemplate
+from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-from langchain.output_parsers import OutputFixingParser
 from langchain_openai import ChatOpenAI
 from langchain_litellm import ChatLiteLLM
 from .backends import ChatGovCloudBedrock, LlamaCpp, HFPipeline
@@ -623,6 +622,42 @@ class LLM:
         return prompt
 
 
+    def _fix_output(self, completion: str, error: str, output_parser, fix_llm=None) -> str:
+        """
+        Ask the LLM to correct a malformed/incomplete structured output so that it
+        conforms to the expected format, then return the corrected raw string.
+
+        This is a lightweight, LangChain-free replacement for
+        `langchain.output_parsers.OutputFixingParser`: it re-prompts the model with
+        the original completion, the parse error, and the format instructions.
+        """
+        fix_llm = fix_llm if fix_llm is not None else self
+        instructions = output_parser.get_format_instructions()
+        fix_prompt = (
+            "Instructions:\n"
+            "--------------\n"
+            f"{instructions}\n"
+            "--------------\n"
+            "Completion:\n"
+            "--------------\n"
+            f"{completion}\n"
+            "--------------\n\n"
+            "Above, the Completion did not satisfy the constraints given in the Instructions.\n"
+            "Error:\n"
+            "--------------\n"
+            f"{error}\n"
+            "--------------\n\n"
+            "Please try again. Please only respond with an answer that satisfies the "
+            "constraints laid out in the Instructions:"
+        )
+        # fix_llm may be an onprem LLM (has .prompt), a backend, or a LangChain Runnable
+        if hasattr(fix_llm, "prompt"):
+            return fix_llm.prompt(fix_prompt)
+        if hasattr(fix_llm, "invoke"):
+            res = fix_llm.invoke(fix_prompt)
+            return res.content if hasattr(res, "content") else str(res)
+        raise ValueError("fix_llm must be an onprem LLM or expose prompt()/invoke()")
+
     def _format_pydantic_prompt(self, prompt, pydantic_model):
         """
         Correctly format prompt for Pydantic model
@@ -666,31 +701,39 @@ class LLM:
         # generate output
         output = self.prompt(prompt, stop=stop, **kwargs)
 
-        # set parser
-        fix_llm = fix_llm if fix_llm else self.llm
-        # OutputFixingParser requires a LangChain Runnable; adapt our LangChain-free
-        # backends (LlamaCpp, HFPipeline) when needed.
-        if attempt_fix and hasattr(fix_llm, "as_runnable"):
-            fix_llm = fix_llm.as_runnable()
-        parser = OutputFixingParser.from_llm(parser=output_parser, llm=fix_llm)\
-                if attempt_fix else output_parser
-
         # parse output into Pydantic class
         try:
-            return parser.parse(output)
+            return output_parser.parse(output)
         except Exception as e:
+            # first fallback: try to extract a JSON substring and parse that
             try:
                 from onprem.llm.helpers import extract_json
                 json_string = extract_json(output)
                 if json_string:
-                    return parser.parse(json_string)
-                raise Exception(str(e))
-            except Exception as e:
-                print()
-                print()
-                warnings.warn(f'LLM output was malformed or incomplete, so returning raw string output: {str(e)}')
-                print()
-                return output
+                    return output_parser.parse(json_string)
+            except Exception:
+                pass
+
+            # second fallback: ask the LLM to fix the malformed output (LangChain-free
+            # replacement for OutputFixingParser)
+            if attempt_fix:
+                try:
+                    fixed = self._fix_output(output, str(e), output_parser, fix_llm=fix_llm)
+                    return output_parser.parse(fixed)
+                except Exception:
+                    try:
+                        from onprem.llm.helpers import extract_json
+                        json_string = extract_json(fixed)
+                        if json_string:
+                            return output_parser.parse(json_string)
+                    except Exception:
+                        pass
+
+            print()
+            print()
+            warnings.warn(f'LLM output was malformed or incomplete, so returning raw string output: {str(e)}')
+            print()
+            return output
 
 
     def _prompt_internal(self,

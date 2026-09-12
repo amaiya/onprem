@@ -153,12 +153,23 @@ source ./ai_env/bin/activate
 # Install PyTorch
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
+# Install a modern CMake FIRST.
+# The `-DCMAKE_CUDA_ARCHITECTURES=all-major` flag below requires CMake >= 3.24.
+# Without this, a fresh environment may fall back to an older system CMake (e.g., 3.22),
+# causing the build to fail with: `nvcc fatal : Unsupported gpu architecture 'compute_'`.
+pip install "cmake>=3.24"
+
 # Install and build llama-cpp-python
 CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
 
 # Install OnPrem.LLM
 pip install onprem
 ```
+
+If the `llama-cpp-python` build still fails with `nvcc fatal : Unsupported gpu architecture 'compute_'`,
+your CMake is likely too old for the `all-major` value. Either upgrade CMake (as above) or specify
+your GPU's compute capability explicitly instead, e.g. `-DCMAKE_CUDA_ARCHITECTURES=86` (find yours with
+`nvidia-smi --query-gpu=compute_cap --format=csv`).
 
 
 Reference: [Getting Started With CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl)

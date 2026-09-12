@@ -16,7 +16,7 @@ from ..utils import batch_list, filtered_generator
 from . import helpers
 
 from langchain_core.documents import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters.base import Language
 # Document loaders are vendored below (onprem-owned, LangChain-free) to avoid
 # a dependency on the deprecated/archived langchain-community package.
@@ -210,9 +210,9 @@ class _PyMuPDFLoader:
         self.text_kwargs = kwargs
 
     def _load_pages(self) -> List[Document]:
-        import fitz  # pymupdf
+        import pymupdf
         docs = []
-        with fitz.open(self.file_path) as pdf:
+        with pymupdf.open(self.file_path) as pdf:
             for page in pdf:
                 text = page.get_text("text", **self.text_kwargs)
                 docs.append(Document(page_content=text,
