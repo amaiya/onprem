@@ -10,17 +10,11 @@ __all__ = ['DEFAULT_MAP_PROMPT', 'DEFAULT_REDUCE_PROMPT', 'DEFAULT_BASE_REFINE_P
 
 # %% ../../nbs/04_pipelines.summarizer.ipynb #91742554
 import os
-from typing import Optional
+from typing import Optional, List
 import numpy as np
-from langchain.chains.combine_documents.stuff import StuffDocumentsChain
-from langchain.chains.llm import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains.summarize import load_summarize_chain
 
 from ..ingest import load_single_document, load_documents
-from ..utils import segment
+from ..utils import segment, format_string
 
 
 # %% ../../nbs/04_pipelines.summarizer.ipynb #c099befb
@@ -81,6 +75,7 @@ class Summarizer:
         self.prompt_template = prompt_template if prompt_template is not None else llm.prompt_template
         self.map_prompt = map_prompt if map_prompt else DEFAULT_MAP_PROMPT
         self.reduce_prompt = reduce_prompt if reduce_prompt else DEFAULT_REDUCE_PROMPT
+        self.refine_base_prompt = DEFAULT_BASE_REFINE_PROMPT
         self.refine_prompt = refine_prompt if refine_prompt else DEFAULT_REFINE_PROMPT
 
 
@@ -148,130 +143,138 @@ class Summarizer:
         return summary
 
     
-    def _map_reduce(self, docs, chunk_size=1000, chunk_overlap=0, token_max=1000, 
-                    max_chunks_to_use = None, **kwargs):
-        """ Map-Reduce summarization"""
-        langchain_llm = self.llm.llm
-        # onprem's LlamaCpp is LangChain-free; adapt it to a Runnable for LLMChain.
-        # When no explicit prompt_template is set, route through the GGUF-embedded
-        # chat template so chat-tuned models (e.g., gemma) behave correctly.
-        if hasattr(langchain_llm, "as_runnable"):
-            langchain_llm = langchain_llm.as_runnable(
-                use_chat_template=self.prompt_template is None)
-
-        # Map
-        # map_template = """The following is a set of documents
-        # {docs}
-        # Based on this list of docs, please identify the main themes 
-        # Helpful Answer:"""
-        # map_template = """The following is a set of documents
-        # {docs}
-        # Based on this list of docs, please write a concise summary.
-        # CONCISE SUMMARY:"""
-        map_template = self.map_prompt
-        if self.prompt_template: 
-            map_template = self.prompt_template.format(**{'prompt':map_template})
-        map_prompt = PromptTemplate.from_template(map_template)
-        map_chain = LLMChain(llm=langchain_llm, prompt=map_prompt)
-
-        # Reduce
-        # reduce_template = """The following is set of summaries:
-        # {docs}
-        # Take these and distill it into a final, consolidated summary. 
-        # SUMMARY:"""
-        reduce_template = self.reduce_prompt
+    def _wrap(self, template: str) -> str:
+        """Wrap a prompt template in the model's prompt_template (if set)."""
         if self.prompt_template:
-            reduce_template = self.prompt_template.format(**{'prompt':reduce_template})
-        reduce_prompt = PromptTemplate.from_template(reduce_template)
+            return format_string(self.prompt_template, prompt=template)
+        return template
 
-        # Run chain
-        reduce_chain = LLMChain(llm=langchain_llm, prompt=reduce_prompt)
-        
-        # Takes a list of documents, combines them into a single string, and passes this to an LLMChain
-        combine_documents_chain = StuffDocumentsChain(
-            llm_chain=reduce_chain, document_variable_name="docs"
-        )
-        
-        # Combines and iteravely reduces the mapped documents
-        reduce_documents_chain = ReduceDocumentsChain(
-            # This is final chain that is called.
-            combine_documents_chain=combine_documents_chain,
-            # If documents exceed context for `StuffDocumentsChain`
-            collapse_documents_chain=combine_documents_chain,
-            # The maximum number of tokens to group documents into.
-            token_max=token_max)
+    def _count_tokens(self, text: str) -> int:
+        """
+        Estimate the number of tokens in `text`. Uses the backend's tokenizer
+        when available (LlamaCpp/HFPipeline expose `get_num_tokens`); otherwise
+        falls back to a ~4-chars-per-token approximation (adequate for the
+        `token_max` grouping heuristic, and works for all backends).
+        """
+        backend = getattr(self.llm, 'llm', None)
+        if backend is not None and hasattr(backend, 'get_num_tokens'):
+            try:
+                return backend.get_num_tokens(text)
+            except Exception:
+                pass
+        return max(1, len(text) // 4)
 
-        # Combining documents by mapping a chain over them, then combining results
-        map_reduce_chain = MapReduceDocumentsChain(
-            # Map chain
-            llm_chain=map_chain,
-            # Reduce chain
-            reduce_documents_chain=reduce_documents_chain,
-            # The variable name in the llm_chain to put the documents in
-            document_variable_name="docs",
-            # Return the results of the map steps in the output
-            return_intermediate_steps=False,
-        )
-        
-        text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=chunk_size, chunk_overlap=chunk_overlap
-        )
-        split_docs = text_splitter.split_documents(docs)
-        split_docs = split_docs[:max_chunks_to_use] if max_chunks_to_use else split_docs
+    def _split_text(self, text: str, chunk_size: int, chunk_overlap: int) -> List[str]:
+        """Split `text` into character-based chunks with optional overlap."""
+        if chunk_size <= 0:
+            return [text]
+        chunks = []
+        start = 0
+        n = len(text)
+        step = max(1, chunk_size - chunk_overlap)
+        while start < n:
+            chunks.append(text[start:start + chunk_size])
+            start += step
+        return chunks
 
-        return map_reduce_chain.invoke(split_docs)
+    def _split_documents(self, docs, chunk_size: int, chunk_overlap: int) -> List[str]:
+        """Split a list of Documents into a flat list of text chunks."""
+        chunks = []
+        for d in docs:
+            content = d.page_content if hasattr(d, 'page_content') else str(d)
+            chunks.extend(self._split_text(content, chunk_size, chunk_overlap))
+        return chunks
 
-    def _refine(self, docs, chunk_size=1000, chunk_overlap=0, 
-                max_chunks_to_use = None, **kwargs):
-        """ Refine summarization"""
+    def _map_reduce(self, docs, chunk_size=1000, chunk_overlap=0, token_max=1000,
+                    max_chunks_to_use=None, **kwargs):
+        """
+        Map-Reduce summarization (LangChain-free).
 
-        # initial_template = """Write a concise summary of the following:
-        # {text}
-        # CONCISE SUMMARY:"""
-        initial_template = self.refine_base_prompt
-        if self.prompt_template:
-            initial_template = self.prompt_template.format(**{'prompt':initial_template})
-        prompt = PromptTemplate.from_template(initial_template)
-        
-        # refine_template = (
-        #     "Your job is to produce a final summary\n"
-        #     "We have provided an existing summary up to a certain point: {existing_answer}\n"
-        #     "We have the opportunity to refine the existing summary"
-        #     "(only if needed) with some more context below.\n"
-        #     "------------\n"
-        #     "{text}\n"
-        #     "------------\n"
-        #     "Given the new context, refine the original summary."
-        #     "If the context isn't useful, return the original summary."
-        # )
-        refine_template = self.refine_prompt
-        if self.prompt_template:
-            refine_template = self.prompt_template.format(**{'prompt':refine_template})
-        refine_prompt = PromptTemplate.from_template(refine_template)
-        # onprem's LlamaCpp is LangChain-free; adapt it to a Runnable for the chain.
-        # When no explicit prompt_template is set, route through the GGUF-embedded
-        # chat template so chat-tuned models (e.g., gemma) behave correctly.
-        langchain_llm = self.llm.llm
-        if hasattr(langchain_llm, "as_runnable"):
-            langchain_llm = langchain_llm.as_runnable(
-                use_chat_template=self.prompt_template is None)
-        chain = load_summarize_chain(
-            llm=langchain_llm,
-            chain_type="refine",
-            question_prompt=prompt,
-            refine_prompt=refine_prompt,
-            return_intermediate_steps=True,
-            input_key="input_documents",
-            output_key="output_text",
-        )
-        
-        text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=chunk_size, chunk_overlap=chunk_overlap
-        )
-        split_docs = text_splitter.split_documents(docs)
-        split_docs = split_docs[:max_chunks_to_use] if max_chunks_to_use else split_docs
-        result = chain({"input_documents": split_docs}, return_only_outputs=True)
-        return result['output_text']
+        - Map: summarize each chunk with `map_prompt`.
+        - Reduce: iteratively group the chunk summaries so each group stays under
+          `token_max`, summarize each group with `reduce_prompt`, and repeat until
+          a single summary remains.
+        """
+        split_docs = self._split_documents(docs, chunk_size, chunk_overlap)
+        if max_chunks_to_use:
+            split_docs = split_docs[:max_chunks_to_use]
+
+        map_template = self._wrap(self.map_prompt)
+        reduce_template = self._wrap(self.reduce_prompt)
+
+        # --- Map: summarize each chunk ---
+        summaries = []
+        for chunk in split_docs:
+            prompt = format_string(map_template, docs=chunk)
+            summaries.append(self.llm.prompt(prompt).strip())
+
+        # --- Reduce: iteratively collapse until a single summary remains ---
+        while len(summaries) > 1:
+            groups = self._group_by_token_max(summaries, token_max)
+            # if everything fits in one group, this is the final reduce
+            new_summaries = []
+            for group in groups:
+                combined = "\n\n".join(group)
+                prompt = format_string(reduce_template, docs=combined)
+                new_summaries.append(self.llm.prompt(prompt).strip())
+            # guard against no progress (single oversized item)
+            if len(new_summaries) >= len(summaries):
+                combined = "\n\n".join(summaries)
+                prompt = format_string(reduce_template, docs=combined)
+                summaries = [self.llm.prompt(prompt).strip()]
+                break
+            summaries = new_summaries
+
+        output_text = summaries[0] if summaries else ""
+        return {'input_documents': split_docs, 'output_text': output_text}
+
+    def _group_by_token_max(self, summaries: List[str], token_max: int) -> List[List[str]]:
+        """Group consecutive summaries so each group's combined text is <= token_max."""
+        groups = []
+        current = []
+        current_tokens = 0
+        for s in summaries:
+            s_tokens = self._count_tokens(s)
+            if current and current_tokens + s_tokens > token_max:
+                groups.append(current)
+                current = [s]
+                current_tokens = s_tokens
+            else:
+                current.append(s)
+                current_tokens += s_tokens
+        if current:
+            groups.append(current)
+        return groups
+
+    def _refine(self, docs, chunk_size=1000, chunk_overlap=0,
+                max_chunks_to_use=None, **kwargs):
+        """
+        Refine summarization (LangChain-free).
+
+        Summarize the first chunk with `refine_base_prompt`, then iteratively
+        refine that summary with each subsequent chunk using `refine_prompt`
+        (which has `{existing_answer}` and `{text}` placeholders).
+        """
+        base_template = self._wrap(self.refine_base_prompt)
+        refine_template = self._wrap(self.refine_prompt)
+
+        split_docs = self._split_documents(docs, chunk_size, chunk_overlap)
+        if max_chunks_to_use:
+            split_docs = split_docs[:max_chunks_to_use]
+
+        if not split_docs:
+            return ""
+
+        # initial summary from the first chunk
+        summary = self.llm.prompt(format_string(base_template, text=split_docs[0])).strip()
+
+        # refine with each subsequent chunk
+        for chunk in split_docs[1:]:
+            prompt = format_string(refine_template, existing_answer=summary, text=chunk)
+            summary = self.llm.prompt(prompt).strip()
+
+        return summary
+
         
     def summarize_by_concept(self,
                             fpath=None, # path to file, raw text, or list of pre-chunked text

@@ -742,6 +742,9 @@ def load_web_document(url, username=None, password=None):
     parsed_url = urlparse(url)
     path_parts = parsed_url.path.split('/')
     filename = path_parts[-1] if path_parts else 'document'
+    # If the URL path ends in '/' (or is empty), there is no filename component
+    if not filename:
+        filename = 'document'
     
     # Set up authentication if credentials provided
     auth = None
