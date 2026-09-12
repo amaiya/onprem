@@ -9,6 +9,7 @@ __all__ = ['DEFAULT_QA_PROMPT', 'DEFAULT_ROUTER_PROMPT', 'SUBQUESTION_PROMPT', '
            'CategorySelection', 'KVRouter']
 
 # %% ../../nbs/04_pipelines.rag.ipynb #8661b7a0
+import warnings
 from typing import Optional, Dict, List, Any
 from langchain_core.documents import Document
 from ..utils import format_string, SafeFormatter
@@ -218,12 +219,26 @@ class RAGPipeline:
     
     def decompose_question(self, question: str, parse=True, **kwargs):
         """
-        Decompose a question into subquestions
+        Decompose a question into subquestions.
+
+        If the LLM does not return parseable JSON subquestions (which can happen
+        with smaller/less-capable models), fall back to treating the original
+        question as a single subquestion rather than failing.
         """
         prompt = SafeFormatter({'query_str': question}).format(SUBQUESTION_PROMPT)
         json_string = self.llm.prompt(prompt)
-        json_dict = helpers.parse_json_markdown(json_string)
-        subquestions = [d['sub_question'] for d in json_dict['items']]
+        try:
+            json_dict = helpers.parse_json_markdown(json_string)
+            subquestions = [d['sub_question'] for d in json_dict['items']]
+            if not subquestions:
+                raise ValueError("no subquestions returned")
+        except Exception:
+            # LLM output was not valid subquestion JSON; fall back gracefully
+            warnings.warn(
+                "Could not parse subquestions from LLM output; "
+                "falling back to the original question without decomposition."
+            )
+            subquestions = [question]
         return subquestions
 
 
