@@ -84,6 +84,7 @@ Many LLM backends are supported (e.g., [llama_cpp](https://github.com/abetlen/ll
 
 *Latest News* 🔥
 
+- \[2026/09\] v0.24.0 released with better GGUF-handling. Embedded prompt templates are automatically used when available. See [cheatsheet](https://amaiya.github.io/onprem/#cheat-sheet) for examples.
 - \[2026/06\] v0.23.0 released and includes improved information extraction.
 - \[2026/03\] v0.22.0 released and now includes the **AgentExecutor**: safely launch AI agents in a sandboxed environment to solve problems in two lines of code. See [the example notebook on agents](https://amaiya.github.io/onprem/examples_agent.html).
 - \[2026/01\] v0.21.0 released and now includes support for **metadata-based query routing**. See the [query routing example here](https://amaiya.github.io/onprem/pipelines.rag.html#example-using-query-routing-with-rag). Also included in this release: [provider-implemented structured outputs](https://amaiya.github.io/onprem/#natively-supported-structured-outputs) (e.g., structured outputs with OpenAI, Anthropic, and AWS GovCloud Bedrock).
