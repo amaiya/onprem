@@ -18,21 +18,8 @@ from . import helpers
 from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_text_splitters.base import Language
-from langchain_community.document_loaders import (
-    CSVLoader,
-    EverNoteLoader,
-    TextLoader,
-    PyMuPDFLoader,
-    UnstructuredPDFLoader,
-    UnstructuredEmailLoader,
-    UnstructuredEPubLoader,
-    UnstructuredHTMLLoader,
-    UnstructuredMarkdownLoader,
-    UnstructuredODTLoader,
-    UnstructuredPowerPointLoader,
-    UnstructuredWordDocumentLoader,
-    UnstructuredExcelLoader,
-)
+# Document loaders are vendored below (onprem-owned, LangChain-free) to avoid
+# a dependency on the deprecated/archived langchain-community package.
 
 
 import os
@@ -54,34 +41,148 @@ TABLE_CHUNK_SIZE = 2000
 CHROMA_MAX = 41000
 
 # %% ../../nbs/01_ingest.base.ipynb #a4c22f6d
-class MyElmLoader(UnstructuredEmailLoader):
-    """Wrapper to fallback to text/plain when default does not work"""
+class _UnstructuredLoader:
+    """
+    LangChain-free loader built on the `unstructured` library. Replaces the
+    `Unstructured*Loader` classes previously imported from langchain-community.
+
+    `unstructured.partition.auto.partition` auto-detects the file type and
+    dispatches to the appropriate partitioner (PDF, HTML, docx, pptx, xlsx,
+    epub, odt, md, email, etc.). Elements are converted to LangChain `Document`
+    objects using the same `mode` semantics as the old loaders:
+
+    - ``single`` (default): all elements combined into one Document
+    - ``elements``: one Document per element (with element metadata)
+    """
+
+    def __init__(self, file_path, mode: str = "single", **unstructured_kwargs):
+        self.file_path = file_path
+        if mode not in ("single", "elements"):
+            raise ValueError(f"Got mode='{mode}', expected 'single' or 'elements'")
+        self.mode = mode
+        self.unstructured_kwargs = unstructured_kwargs
+
+    def _get_elements(self):
+        from unstructured.partition.auto import partition
+        return partition(filename=str(self.file_path), **self.unstructured_kwargs)
+
+    def _get_metadata(self):
+        return {"source": self.file_path}
 
     def load(self) -> List[Document]:
-        """Wrapper adding fallback for elm without html"""
+        elements = self._get_elements()
+        if self.mode == "elements":
+            docs = []
+            for element in elements:
+                metadata = self._get_metadata()
+                if hasattr(element, "metadata"):
+                    metadata.update(element.metadata.to_dict())
+                if hasattr(element, "category"):
+                    metadata["category"] = element.category
+                docs.append(Document(page_content=str(element), metadata=metadata))
+            return docs
+        # single
+        text = "\n\n".join([str(el) for el in elements])
+        return [Document(page_content=text, metadata=self._get_metadata())]
+
+
+class _TextLoader:
+    """LangChain-free plain-text loader (replaces langchain-community TextLoader)."""
+
+    def __init__(self, file_path, encoding: Optional[str] = None,
+                 autodetect_encoding: bool = False, **kwargs):
+        self.file_path = file_path
+        self.encoding = encoding
+        self.autodetect_encoding = autodetect_encoding
+
+    def load(self) -> List[Document]:
+        try:
+            with open(self.file_path, encoding=self.encoding) as f:
+                text = f.read()
+        except (UnicodeDecodeError, TypeError):
+            if self.autodetect_encoding:
+                import charset_normalizer
+                with open(self.file_path, "rb") as f:
+                    raw = f.read()
+                enc = charset_normalizer.from_bytes(raw).best()
+                text = str(enc) if enc is not None else raw.decode("utf-8", errors="replace")
+            else:
+                raise
+        return [Document(page_content=text, metadata={"source": str(self.file_path)})]
+
+
+class _CSVLoader:
+    """LangChain-free CSV loader (replaces langchain-community CSVLoader)."""
+
+    def __init__(self, file_path, encoding: Optional[str] = None, **kwargs):
+        self.file_path = file_path
+        self.encoding = encoding
+
+    def load(self) -> List[Document]:
+        import csv
+        docs = []
+        with open(self.file_path, newline="", encoding=self.encoding) as f:
+            reader = csv.DictReader(f)
+            for i, row in enumerate(reader):
+                content = "\n".join(f"{k.strip()}: {(v or '').strip()}" for k, v in row.items() if k is not None)
+                docs.append(Document(page_content=content,
+                                     metadata={"source": str(self.file_path), "row": i}))
+        return docs
+
+
+class _EverNoteLoader:
+    """LangChain-free EverNote (.enex) loader (replaces langchain-community EverNoteLoader)."""
+
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+
+    def load(self) -> List[Document]:
+        from lxml import etree
+        import re
+        with open(self.file_path, "rb") as f:
+            tree = etree.parse(f)
+        notes = []
+        for note in tree.findall(".//note"):
+            title_el = note.find("title")
+            content_el = note.find("content")
+            title = title_el.text if title_el is not None and title_el.text else ""
+            raw = content_el.text if content_el is not None and content_el.text else ""
+            # strip ENML/HTML tags to plain text
+            text = re.sub(r"<[^>]+>", " ", raw)
+            text = re.sub(r"\s+", " ", text).strip()
+            content = (title + "\n" + text).strip()
+            notes.append(Document(page_content=content,
+                                  metadata={"source": str(self.file_path), "title": title}))
+        return notes
+
+
+class MyElmLoader(_UnstructuredLoader):
+    """Email loader that falls back to text/plain when text/html is unavailable."""
+
+    def load(self) -> List[Document]:
         try:
             try:
-                doc = UnstructuredEmailLoader.load(self)
+                docs = _UnstructuredLoader.load(self)
             except ValueError as e:
                 if "text/html content not found in email" in str(e):
                     # Try plain text
                     self.unstructured_kwargs["content_source"] = "text/plain"
-                    doc = UnstructuredEmailLoader.load(self)
+                    docs = _UnstructuredLoader.load(self)
                 else:
                     raise
         except Exception as e:
             raise Exception(f'{self.file_path} : {e}')
 
-        return doc
+        return docs
 
 
-class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
-    """Custom PDF Loader"""
+class MyUnstructuredPDFLoader(_UnstructuredLoader):
+    """Custom PDF Loader (OCR/hi_res path) built on unstructured."""
 
     def load(self) -> List[Document]:
-        """Wrapper UnstructuredPDFLoader"""
+        """Wrapper that separates table HTML from text and builds Documents."""
         try:
-            docs = UnstructuredPDFLoader.load(self)
+            docs = _UnstructuredLoader.load(self)
             if not docs:
                 raise Exception('Document had no content. ')
             tables = [d.metadata['text_as_html'] for d in docs if d.metadata.get('text_as_html', None) is not None]
@@ -97,31 +198,42 @@ class MyUnstructuredPDFLoader(UnstructuredPDFLoader):
             raise Exception(f'{self.file_path} : {e}')
 
 
-class _PyMuPDFLoader(PyMuPDFLoader):
-    """Custom PyMUPDF Loader with optional support for inferring table structure"""
+class _PyMuPDFLoader:
+    """
+    LangChain-free PyMuPDF loader (replaces langchain-community PyMuPDFLoader),
+    with optional support for inferring table structure.
+    """
+
+    def __init__(self, file_path, infer_table_structure: bool = False, **kwargs):
+        self.file_path = file_path
+        self.infer_table_structure = infer_table_structure
+        self.text_kwargs = kwargs
+
+    def _load_pages(self) -> List[Document]:
+        import fitz  # pymupdf
+        docs = []
+        with fitz.open(self.file_path) as pdf:
+            for page in pdf:
+                text = page.get_text("text", **self.text_kwargs)
+                docs.append(Document(page_content=text,
+                                     metadata={"source": str(self.file_path),
+                                               "page": page.number}))
+        return docs
 
     def load(self) -> List[Document]:
-        """Wrapper adding fallback for elm without html"""
         try:
-            # PyMuPDFLoader complains when you add custom flags to text_kwargs,
-            # so delete before loading
-            infer_table_structure = self.parser.text_kwargs.get('infer_table_structure', False)
-            if 'infer_table_structure' in self.parser.text_kwargs:
-                del self.parser.text_kwargs['infer_table_structure']
-            docs = PyMuPDFLoader.load(self)
-            if infer_table_structure:
+            docs = self._load_pages()
+            if self.infer_table_structure:
                 docs = helpers.extract_tables(docs=docs)
             return docs
         except Exception as e:
-            # Add file_path to exception message
             raise Exception(f'{self.file_path} : {e}')
 
 
 class PDF2MarkdownLoader(_PyMuPDFLoader):
-    """Custom PDF to Markdown Loader"""
+    """Custom PDF to Markdown Loader (via pymupdf4llm)."""
 
     def load(self) -> List[Document]:
-        """Wrapper adding fallback for elm without html"""
         import pymupdf4llm
         try:
             md_text = pymupdf4llm.to_markdown(self.file_path, show_progress=False)
@@ -129,7 +241,7 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
                 raise Exception('Document had no content. ')
             doc = helpers.create_document(md_text, source=self.file_path, markdown=True)
             docs = [doc]
-            if self.parser.text_kwargs.get('infer_table_structure', False):
+            if self.infer_table_structure:
                 docs = helpers.extract_tables(docs=docs)
             return docs
         except Exception as e:
@@ -147,21 +259,21 @@ PDF = 'pdf'
 PDF_EXTS = [PDF, PDFOCR, PDFMD]
 OCR_CHAR_THRESH = 32
 LOADER_MAPPING = {
-    "csv": (CSVLoader, {}),
-    "doc": (UnstructuredWordDocumentLoader, {}),
-    "docx": (UnstructuredWordDocumentLoader, {}),
-    "xlsx": (UnstructuredExcelLoader, {}),
-    "enex": (EverNoteLoader, {}),
+    "csv": (_CSVLoader, {}),
+    "doc": (_UnstructuredLoader, {}),
+    "docx": (_UnstructuredLoader, {}),
+    "xlsx": (_UnstructuredLoader, {}),
+    "enex": (_EverNoteLoader, {}),
     "eml": (MyElmLoader, {}),
-    "epub": (UnstructuredEPubLoader, {}),
-    "html": (UnstructuredHTMLLoader, {}),
-    "htm": (UnstructuredHTMLLoader, {}),
-    "md": (UnstructuredMarkdownLoader, {}),
-    "odt": (UnstructuredODTLoader, {}),
-    "ppt": (UnstructuredPowerPointLoader, {}),
-    "pptx": (UnstructuredPowerPointLoader, {}),
-    "txt": (TextLoader, {"autodetect_encoding": True}),
-    "json": (TextLoader, {"autodetect_encoding": True}),
+    "epub": (_UnstructuredLoader, {}),
+    "html": (_UnstructuredLoader, {}),
+    "htm": (_UnstructuredLoader, {}),
+    "md": (_UnstructuredLoader, {}),
+    "odt": (_UnstructuredLoader, {}),
+    "ppt": (_UnstructuredLoader, {}),
+    "pptx": (_UnstructuredLoader, {}),
+    "txt": (_TextLoader, {"autodetect_encoding": True}),
+    "json": (_TextLoader, {"autodetect_encoding": True}),
     PDF   : (_PyMuPDFLoader, {}),
     PDFMD: (PDF2MarkdownLoader, {}),
     PDFOCR: (MyUnstructuredPDFLoader, {"infer_table_structure":False, "mode":"elements", "strategy":"hi_res"}),

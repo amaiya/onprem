@@ -338,10 +338,9 @@ def test_summarization(**kwargs):
 
     from onprem.pipelines import Summarizer
     summ = Summarizer(llm)
-    from langchain_community.document_loaders import WebBaseLoader
+    from onprem.ingest import load_web_document
 
-    loader = WebBaseLoader("https://lilianweng.github.io/posts/2023-06-23-agent/")
-    docs = loader.load()
+    docs = load_web_document("https://lilianweng.github.io/posts/2023-06-23-agent/")
     with open('/tmp/blog.txt', 'w') as f:
         f.write(docs[0].page_content)
     text = summ.summarize('/tmp/blog.txt', max_chunks_to_use=1)
