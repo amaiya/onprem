@@ -19,6 +19,7 @@ from typing import Any, Dict, Iterator, List, Optional, Union
 from pydantic import Field, BaseModel
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.language_models.llms import LLM
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 
@@ -791,3 +792,42 @@ class LlamaCpp:
     def get_num_tokens(self, text: str) -> int:
         """Return the number of tokens in `text`."""
         return len(self.client.tokenize(text.encode("utf-8")))
+
+    def as_runnable(self, use_chat_template: bool = False):
+        """
+        Return a `langchain_core`-compatible LLM (a `Runnable`) that delegates to
+        this instance. Useful for interop with LangChain constructs (e.g., legacy
+        chains like `LLMChain`) that require a `Runnable` LLM. The core `LlamaCpp`
+        class itself remains LangChain-free for normal use.
+
+        If `use_chat_template` is True, prompts are routed through the GGUF-embedded
+        chat template (via `create_chat_completion`). Set this when no explicit
+        prompt template is being applied to the prompt text.
+        """
+        return _LlamaCppRunnable(llamacpp=self, use_chat_template=use_chat_template)
+
+
+class _LlamaCppRunnable(LLM):
+    """
+    A thin `langchain_core` LLM adapter that delegates to a `LlamaCpp` instance.
+
+    This exists only for interop with LangChain constructs that require a
+    `Runnable` LLM (e.g., the legacy `LLMChain` used by the summarizer). It is
+    built on `langchain_core` (not the deprecated `langchain_community`).
+    """
+
+    llamacpp: Any = None
+    use_chat_template: bool = False
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None,
+              run_manager: Optional[CallbackManagerForLLMRun] = None, **kwargs: Any) -> str:
+        return self.llamacpp.invoke(prompt, stop=stop,
+                                    use_chat_template=self.use_chat_template, **kwargs)
+
+    @property
+    def _identifying_params(self) -> Dict[str, Any]:
+        return {"model_path": getattr(self.llamacpp, "model_path", None)}
+
+    @property
+    def _llm_type(self) -> str:
+        return "onprem-llamacpp"
