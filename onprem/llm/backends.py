@@ -1,4 +1,4 @@
-"""Support classes for different LLM backends (e.g., AWS GovCloud LLMs)
+"""Support classes for different LLM backends (e.g., LlamaCpp, HuggingFace Transformers, AWS GovCloud LLMs)
 
 Docs: https://amaiya.github.io/onprem/llm.backends.html.md"""
 
@@ -833,6 +833,9 @@ class _LlamaCppRunnable(LLM):
         return "onprem-llamacpp"
 
 
+
+
+# %% ../../nbs/00_llm.backends.ipynb #b3a73e89-fd25-4d83-8910-b32e8c6acb6a
 class HFPipeline:
     """
     A lightweight, LangChain-free wrapper around a Hugging Face `transformers`
