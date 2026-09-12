@@ -19,7 +19,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain.output_parsers import OutputFixingParser
 from langchain_openai import ChatOpenAI
 from langchain_litellm import ChatLiteLLM
-from .backends import ChatGovCloudBedrock, LlamaCpp
+from .backends import ChatGovCloudBedrock, LlamaCpp, HFPipeline
 from langchain_core.messages.ai import AIMessage
 from langchain_core.documents import Document
 import os
@@ -574,41 +574,10 @@ class LLM:
                                   max_tokens=self.max_tokens,
                                   **kwargs)
         elif not self.llm and self.is_hf():
-            from transformers import pipeline, TextStreamer, AutoTokenizer
-            from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
-            tokenizer = self.extra_kwargs['tokenizer'] if 'tokenizer' in self.extra_kwargs\
-                        else AutoTokenizer.from_pretrained(self.model_id)
-
-            if 'tokenizer' in self.extra_kwargs:
-                del self.extra_kwargs['tokenizer']
-
-
-            streamer = TextStreamer(tokenizer)
-
-
-            pipe = pipeline('text-generation',
-                              self.model_id,
-                              tokenizer=tokenizer,
-                              streamer=streamer if not self.mute_stream else None,
-                              max_new_tokens = self.max_tokens,
-                              return_full_text=False,
-                              do_sample=True if\
-                                     self.extra_kwargs.get('temperature', 0.8)>0.0 else False ,
-                              **self.extra_kwargs)
-
-            model = pipe.model
-            if not model.generation_config.pad_token_id:
-                tokenid = model.generation_config.eos_token_id
-                model.generation_config.pad_token_id = tokenid[0] if isinstance(tokenid, list) else tokenid
-
-            hfpipe = HuggingFacePipeline(pipeline=pipe)
-            self.llm = ChatHuggingFace(llm=hfpipe, model_id=self.model_id, tokenizer=tokenizer)
-
-            # Set generation_config.pad_token_id
-            model = self.llm.llm.pipeline.model
-            if not model.generation_config.pad_token_id:
-                tokenid = model.generation_config.eos_token_id
-                model.generation_config.pad_token_id = tokenid[0] if isinstance(tokenid, list) else tokenid
+            # LangChain-free HF backend: HFPipeline builds and wraps the raw
+            # transformers text-generation pipeline directly.
+            self.llm = HFPipeline(self.model_id, max_tokens=self.max_tokens,
+                                  mute_stream=self.mute_stream, **self.extra_kwargs)
 
         elif not self.llm:
             model_path = self.check_model()
@@ -699,6 +668,10 @@ class LLM:
 
         # set parser
         fix_llm = fix_llm if fix_llm else self.llm
+        # OutputFixingParser requires a LangChain Runnable; adapt our LangChain-free
+        # backends (LlamaCpp, HFPipeline) when needed.
+        if attempt_fix and hasattr(fix_llm, "as_runnable"):
+            fix_llm = fix_llm.as_runnable()
         parser = OutputFixingParser.from_llm(parser=output_parser, llm=fix_llm)\
                 if attempt_fix else output_parser
 
@@ -807,7 +780,7 @@ class LLM:
 
                 # truncate prompt
                 if truncate_prompt and self.is_hf():
-                    prompt = helpers.truncate_prompt(llm.llm.pipeline,
+                    prompt = helpers.truncate_prompt(llm.pipeline,
                                                      prompt,
                                                      max_gen_tokens=self.max_tokens,
                                                      truncate_from=truncate_strategy,
@@ -826,21 +799,9 @@ class LLM:
                 # set stop characters
                 stop = stop if stop else self.stop
 
-                # handle hf models
+                # handle hf models (HFPipeline.invoke applies chat template + stop_strings)
                 if self.is_hf():
-                    tokenizer = llm.llm.pipeline.tokenizer
-                    # FIX for #113/#114
-                    prompt = [{'role':'user', 'content':prompt}] if tokenizer.chat_template else prompt
-                    # Call HF pipeline directly instead of `invoke`
-                    # since LangChain is not passing along stop_strings
-                    # parameter to pipeline
-                    if 'max_tokens' in kwargs:
-                        kwargs['max_new_tokens'] = kwargs['max_tokens']
-                        del kwargs['max_tokens']
-                    result = llm.llm.pipeline(prompt,
-                                           stop_strings=stop if stop else None,
-                                           tokenizer=tokenizer,
-                                           **kwargs)[0]['generated_text']
+                    result = llm.invoke(prompt, stop=stop if stop else None, **kwargs)
 
                 # handle other models (e.g., llama_cpp, LLMs served through APIs)
                 else:

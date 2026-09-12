@@ -14,6 +14,8 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - Created custom LlamaCpp class, removing dependency on langchain-community
+- Created custom HFPipeline class in backends.py
+
 
 ### fixed:
 - Temporarily pinning langchain family to avoid incompatibilities with newer langchain
