@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{name = "Arun S. Maiya", email = "arun@maiya.net"}]
 keywords = ['nbdev', 'jupyter', 'notebook', 'python']
 classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
-dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'langchain>=0.3.18,<1.0', 'langchain-core<0.4', 'langchain_litellm==0.1.4', 'litellm', 'langchain-openai<0.4', 'langchain-huggingface<0.4', 'huggingface_hub', 'transformers<5', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'gmft<=0.4.1']
+dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'litellm', 'huggingface_hub', 'transformers', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'gmft', 'langchain>=0.3.18,<1.0', 'langchain-core<0.4', 'langchain_litellm==0.1.4', 'langchain-openai<0.4', 'langchain-huggingface<0.4']
 
 [project.urls]
 Repository = "https://github.com/amaiya/onprem"
@@ -57,11 +57,9 @@ custom_sidebar = true
 
 
 # Notes:
-# pinning to transformers>5 due to SetFit issue https://github.com/huggingface/setfit/issues/629
 # pinning to ChromaDB due to backwards compatibility issues
 # pinning: pymupdf4llm==0.0.17 because later versions produce lower-quality outputs based on tests
 # pinning langchain_litellm==0.1.4 because 0.2.1 breaks when streaming=True
 # pinning langchain family to <1.0/<0.4 (langchain, langchain-core, langchain-openai, langchain-huggingface) because langchain_litellm==0.1.4 requires langchain-core<0.4; without these bounds the resolver backtracks heavily and can pull in incompatible 1.x versions
-# pinning gmft<=0.4.1 because gmft>=0.4.2 requires torch>=2.5.0, which forces an unwanted torch upgrade (e.g., away from a CUDA-matched torch==2.4.0 build)
 # downloads: nltk punkt/averaged_perceptron_tagger (required by utils.extract_noun_phrases)
 # downloads: models for infer_table_structure and ocr (required by load_single_document)
