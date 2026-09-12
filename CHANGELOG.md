@@ -16,7 +16,8 @@ Most recent releases are shown at the top. Each release shows:
 - Created custom LlamaCpp class, removing dependency on langchain-community
 
 ### fixed:
-- N/A
+- Temporarily pinning langchain family to avoid incompatibilities with newer langchain
+- Temporarily pinning gmft for incompatibility with older PyTorch versions (e.g., 2.4)
 
 
 
