@@ -168,6 +168,63 @@ class ChatGovCloudBedrock(BaseChatModel):
 
         self.client = boto3.client(**client_kwargs)
 
+    def _normalize_content_block(self, block: Any) -> Any:
+        """
+        Normalize a single content-block into Anthropic's Bedrock `invoke_model`
+        schema. Anthropic's Bedrock Messages API expects content blocks like:
+
+            {"type": "text", "text": "..."}
+            {"type": "image", "source": {"type": "base64", "media_type": "...", "data": "..."}}
+            {"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": "..."}}
+
+        Other code paths (e.g., `LLM._format_image_prompt` in `base.py`) build
+        OpenAI-style blocks (`{"type": "image_url", "image_url": {"url": ...}}`),
+        which are translated here so images/PDFs work correctly against Bedrock.
+        Blocks already in Anthropic's native format (`text`, `image`, `document`)
+        are passed through unchanged.
+        """
+        if not isinstance(block, dict):
+            return block
+
+        block_type = block.get("type")
+
+        if block_type == "image_url":
+            return self._image_url_block_to_anthropic(block)
+
+        # Already Anthropic-native (text, image, document) or unrecognized -> pass through
+        return block
+
+    def _image_url_block_to_anthropic(self, block: Dict) -> Dict:
+        """
+        Convert an OpenAI-style `image_url` content block into Anthropic's
+        Bedrock `image` content block (base64-encoded).
+        """
+        import base64
+
+        url = block.get("image_url", {}).get("url", "")
+
+        if url.startswith("data:"):
+            # data:<media_type>;base64,<data>
+            header, _, data = url.partition(",")
+            media_type = header[len("data:"):].split(";")[0] or "image/jpeg"
+        else:
+            # Remote URL: Bedrock's invoke_model API requires base64-encoded bytes,
+            # so fetch the resource and encode it.
+            import mimetypes
+            import urllib.request
+
+            with urllib.request.urlopen(url) as response:
+                raw_bytes = response.read()
+                media_type = response.headers.get_content_type() or None
+            if not media_type:
+                media_type = mimetypes.guess_type(url)[0] or "image/jpeg"
+            data = base64.b64encode(raw_bytes).decode("utf-8")
+
+        return {
+            "type": "image",
+            "source": {"type": "base64", "media_type": media_type, "data": data},
+        }
+
     def _convert_messages_to_bedrock_format(self, messages: List[BaseMessage]) -> List[Dict[str, str]]:
         """
         Convert LangChain messages to Bedrock API format.
@@ -181,28 +238,38 @@ class ChatGovCloudBedrock(BaseChatModel):
         bedrock_messages = []
 
         for message in messages:
+            content = message.content
+            if isinstance(content, list):
+                content = [self._normalize_content_block(block) for block in content]
+
             if isinstance(message, HumanMessage):
                 bedrock_messages.append({
                     "role": "user",
-                    "content": message.content
+                    "content": content
                 })
             elif isinstance(message, AIMessage):
                 bedrock_messages.append({
                     "role": "assistant",
-                    "content": message.content
+                    "content": content
                 })
             elif isinstance(message, SystemMessage):
                 # For Claude models, system messages can be handled as user messages
                 # or through the system parameter in the request body
-                bedrock_messages.append({
-                    "role": "user",
-                    "content": f"System: {message.content}"
-                })
+                if isinstance(content, list):
+                    bedrock_messages.append({
+                        "role": "user",
+                        "content": content
+                    })
+                else:
+                    bedrock_messages.append({
+                        "role": "user",
+                        "content": f"System: {content}"
+                    })
             else:
                 # Default to user role for unknown message types
                 bedrock_messages.append({
                     "role": "user",
-                    "content": str(message.content)
+                    "content": content if isinstance(content, list) else str(content)
                 })
 
         return bedrock_messages

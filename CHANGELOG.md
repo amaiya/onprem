@@ -7,6 +7,19 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.24.2 (2026-09-15)
+
+### new:
+- N/A
+
+### changed
+- `LLM.prompt` now includes `document_path_or_url` option for raw document inputs (e.g., PDFs)
+
+### fixed:
+- N/A
+
+
+
 ## 0.24.1 (2026-09-14)
 
 ### new:

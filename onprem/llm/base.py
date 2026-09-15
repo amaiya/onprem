@@ -622,6 +622,51 @@ class LLM:
         return prompt
 
 
+    def _format_document_prompt(self, prompt:str, document_path_or_url:str):
+        """
+        Correctly format a document (e.g., PDF) prompt.
+
+        Builds an Anthropic-native `document` content block (base64-encoded),
+        which is understood natively by Claude models on Amazon Bedrock
+        (e.g., `ChatGovCloudBedrock`) -- letting the model OCR the document,
+        read tables/checkboxes, etc. directly from the raw file instead of
+        extracting text beforehand.
+        """
+        from langchain_core.messages import HumanMessage
+        import base64
+        import mimetypes
+
+        if document_path_or_url.startswith('http'):
+            import urllib.request
+            with urllib.request.urlopen(document_path_or_url) as response:
+                doc_bytes = response.read()
+                media_type = response.headers.get_content_type() or None
+            if not media_type:
+                media_type = mimetypes.guess_type(document_path_or_url)[0] or 'application/pdf'
+        else:
+            with open(document_path_or_url, "rb") as f:
+                doc_bytes = f.read()
+            media_type = mimetypes.guess_type(document_path_or_url)[0] or 'application/pdf'
+
+        doc_data = base64.b64encode(doc_bytes).decode('utf-8')
+
+        message = HumanMessage(
+            content=[
+                {"type": "text", "text": prompt},
+                {
+                    "type": "document",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": doc_data,
+                    },
+                },
+            ],
+        )
+        prompt = [message]
+        return prompt
+
+
     def _fix_output(self, completion: str, error: str, output_parser, fix_llm=None) -> str:
         """
         Ask the LLM to correct a malformed/incomplete structured output so that it
@@ -739,6 +784,7 @@ class LLM:
     def _prompt_internal(self,
                         prompt: Union[str, List[Dict]],
                         image_path_or_url: Optional[str] = None,
+                        document_path_or_url: Optional[str] = None,
                         prompt_template: Optional[str] = None,
                         stop: list = [],
                         truncate_prompt: bool = False,
@@ -817,6 +863,10 @@ class LLM:
                 prompt = self._format_image_prompt(prompt, image_path_or_url)
                 res = invoke_fn(llm, prompt, **kwargs) # including stop causes errors in gpt-4o
                 result = res.content if isinstance(res, AIMessage) else res
+            elif document_path_or_url:
+                prompt = self._format_document_prompt(prompt, document_path_or_url)
+                res = invoke_fn(llm, prompt, **kwargs) # including stop causes errors in gpt-4o
+                result = res.content if isinstance(res, AIMessage) else res
             else:
                 # set prompt template
                 prompt_template = self.prompt_template if prompt_template is None else prompt_template
@@ -861,6 +911,7 @@ class LLM:
     def prompt(self,
                prompt: Union[str, List[Dict]],
                image_path_or_url: Optional[str] = None,
+               document_path_or_url: Optional[str] = None,
                prompt_template: Optional[str] = None,
                stop: list = [],
                truncate_prompt: bool = False,
@@ -876,10 +927,16 @@ class LLM:
                     Either a string or OpenAI-style list of dictionaries
                     representing messages (e.g., "human", "system").
         - *image_path_or_url*: Path or URL to an image file
+        - *document_path_or_url*: Path or URL to a document file (e.g., PDF). The raw
+                                  document is sent to the model (base64-encoded), which
+                                  lets vision-capable models (e.g., Claude on Bedrock)
+                                  OCR the document, read tables/checkboxes, etc. directly,
+                                  instead of extracting text beforehand. Ignored if
+                                  `image_path_or_url` is also supplied.
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
-                             This value will override any `prompt_template` value supplied 
+                             This value will override any `prompt_template` value supplied
                              to `LLM` constructor.
-        - *stop*: a list of strings to stop generation when encountered. 
+        - *stop*: a list of strings to stop generation when encountered.
                   This value will override the `stop` parameter supplied to `LLM` constructor.
         - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
         - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
@@ -900,6 +957,7 @@ class LLM:
         return self._prompt_internal(
             prompt=prompt,
             image_path_or_url=image_path_or_url,
+            document_path_or_url=document_path_or_url,
             prompt_template=prompt_template,
             stop=stop,
             truncate_prompt=truncate_prompt,
@@ -911,6 +969,7 @@ class LLM:
     async def aprompt(self,
                       prompt: Union[str, List[Dict]],
                       image_path_or_url: Optional[str] = None,
+                      document_path_or_url: Optional[str] = None,
                       prompt_template: Optional[str] = None,
                       stop: list = [],
                       truncate_prompt: bool = False,
@@ -926,10 +985,16 @@ class LLM:
                     Either a string or OpenAI-style list of dictionaries
                     representing messages (e.g., "human", "system").
         - *image_path_or_url*: Path or URL to an image file
+        - *document_path_or_url*: Path or URL to a document file (e.g., PDF). The raw
+                                  document is sent to the model (base64-encoded), which
+                                  lets vision-capable models (e.g., Claude on Bedrock)
+                                  OCR the document, read tables/checkboxes, etc. directly,
+                                  instead of extracting text beforehand. Ignored if
+                                  `image_path_or_url` is also supplied.
         - *prompt_template*: Optional prompt template (must have a variable named "prompt").
-                             This value will override any `prompt_template` value supplied 
+                             This value will override any `prompt_template` value supplied
                              to `LLM` constructor.
-        - *stop*: a list of strings to stop generation when encountered. 
+        - *stop*: a list of strings to stop generation when encountered.
                   This value will override the `stop` parameter supplied to `LLM` constructor.
         - *truncate_prompt*: Truncate long string prompts. Only applies to `llama-cpp-python` and `transformers` LLMs.
         - *truncate_strategy*: Either 'first' (keep latest) or 'last` (keep earliest). Ignored if `truncate_prompt=False`.
@@ -950,17 +1015,24 @@ class LLM:
             import asyncio
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(
-                None, 
-                self.prompt,
-                prompt, image_path_or_url, prompt_template, stop,
-                truncate_prompt, truncate_strategy,
-                **kwargs
+                None,
+                lambda: self.prompt(
+                    prompt,
+                    image_path_or_url=image_path_or_url,
+                    document_path_or_url=document_path_or_url,
+                    prompt_template=prompt_template,
+                    stop=stop,
+                    truncate_prompt=truncate_prompt,
+                    truncate_strategy=truncate_strategy,
+                    **kwargs
+                )
             )
         else:
             # Cloud models - use async callback
             return await self._prompt_internal(
                 prompt=prompt,
                 image_path_or_url=image_path_or_url,
+                document_path_or_url=document_path_or_url,
                 prompt_template=prompt_template,
                 stop=stop,
                 truncate_prompt=truncate_prompt,
