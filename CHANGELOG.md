@@ -7,6 +7,19 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.24.1 (2026-09-14)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+
+### fixed:
+- Fixed ChatGovCloud streaming bug
+
+
 ## 0.24.0 (2026-09-12)
 
 ### new:

@@ -20,8 +20,8 @@ from pydantic import Field, BaseModel
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.llms import LLM
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 
 
 def _pydantic_to_bedrock_tool_schema(pydantic_model: BaseModel, tool_name: str = "structured_output") -> Dict:
@@ -339,7 +339,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
-    ) -> Iterator[ChatGeneration]:
+    ) -> Iterator[ChatGenerationChunk]:
         """
         Stream chat response using AWS Bedrock.
         """
@@ -414,7 +414,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                                             run_manager.on_llm_new_token(text)
                                     else:
                                         run_manager.on_llm_new_token(text)
-                                yield ChatGeneration(message=AIMessage(content=text))
+                                yield ChatGenerationChunk(message=AIMessageChunk(content=text))
 
                 # Handle Anthropic-style responses (Claude models)
                 elif chunk.get("type") == "content_block_delta":
@@ -436,7 +436,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                                     run_manager.on_llm_new_token(text)
                             else:
                                 run_manager.on_llm_new_token(text)
-                        yield ChatGeneration(message=AIMessage(content=text))
+                        yield ChatGenerationChunk(message=AIMessageChunk(content=text))
                     # Note: thinking_delta chunks are NOT provided by Bedrock streaming API
                     # Thinking content is only available in non-streaming responses
                 
@@ -472,7 +472,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
-    ) -> Iterator[ChatGeneration]:
+    ) -> Iterator[ChatGenerationChunk]:
         """
         Async stream chat response using AWS Bedrock.
         """
