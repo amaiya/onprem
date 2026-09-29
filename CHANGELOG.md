@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.24.3 (TBD)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- `ElasticsearchClient` now accept lists of Elasticsearch hosts
+
+
 ## 0.24.2 (2026-09-15)
 
 ### new:

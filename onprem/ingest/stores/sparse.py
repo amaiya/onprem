@@ -1193,9 +1193,22 @@ class ElasticsearchSparseStore(SparseStore):
             raise ImportError('Please install the elasticsearch package: pip install onprem[elasticsearch] '
                               'or for a specific version: pip install elasticsearch==9')
 
-        # Use persist_location as Elasticsearch URL
-        self.elasticsearch_url = persist_location if persist_location else 'http://localhost:9200'
-        self.persist_location = self.elasticsearch_url  # for interface compatibility
+        # Use persist_location as Elasticsearch URL (can be single URL or list of URLs)
+        if persist_location is None:
+            persist_location = 'http://localhost:9200'
+        
+        # Store original persist_location
+        self.persist_location = persist_location
+        
+        # Normalize to list for Elasticsearch client
+        if isinstance(persist_location, str):
+            elasticsearch_hosts = [persist_location]
+        elif isinstance(persist_location, list):
+            elasticsearch_hosts = persist_location
+        else:
+            raise ValueError(f"persist_location must be a string URL, list of URLs, or None. Got: {type(persist_location)}")
+        
+        self.elasticsearch_url = elasticsearch_hosts[0]  # for backward compatibility
         self.index_name = index_name
         
         # Store field mappings for custom field names
@@ -1238,7 +1251,7 @@ class ElasticsearchSparseStore(SparseStore):
                 es_params[k] = v
         
         # Initialize Elasticsearch client
-        self.es = Elasticsearch([self.elasticsearch_url], **es_params)
+        self.es = Elasticsearch(elasticsearch_hosts, **es_params)
         
         # Handle index creation or validation
         if not self.es.indices.exists(index=self.index_name):

@@ -303,7 +303,7 @@ class Extractor:
         from typing import get_origin
 
         list_fields = []
-        for field_name, field_info in model.model_fields.items():
+        for field_name, field_info in type(model).model_fields.items():
             origin = get_origin(field_info.annotation)
             if origin is list:
                 list_fields.append(field_name)
@@ -332,14 +332,14 @@ class Extractor:
 
         # Get all list fields or specific field
         if filter_field:
-            list_fields = [filter_field] if filter_field in model.model_fields else []
+            list_fields = [filter_field] if filter_field in type(model).model_fields else []
         else:
             list_fields = self._get_list_fields(model)
 
         if not list_fields:
             warnings.warn(
                 f"No list fields found in {model.__class__.__name__}. "
-                f"filter_fn has no effect. Available fields: {list(model.model_fields.keys())}"
+                f"filter_fn has no effect. Available fields: {list(type(model).model_fields.keys())}"
             )
             return model
 
