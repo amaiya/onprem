@@ -41,6 +41,14 @@ class AgentExecutor:
         network (str): Network mode ('bridge', 'host', 'none') [sandbox only]
         memory (str): Memory limit (e.g., '2g', '4g') [sandbox only]
         cpus (float): CPU limit (e.g., 2, 4) [sandbox only]
+        restrict_network (bool): Enable iptables firewall for network isolation (default: False) [sandbox only]
+                                Automatically detects LLM endpoints from environment variables.
+                                Blocks all network access except whitelisted URLs. Web tools and MCP 
+                                are automatically disabled. Ideal for sensitive/regulated environments.
+        allow_urls (list): Additional URLs to whitelist when restrict_network=True [sandbox only]
+                          LLM provider endpoints are auto-detected from env vars.
+                          Use this to add package repos (pypi.org) or code repos (github.com).
+                          Example: allow_urls=['https://pypi.org', 'https://github.com']
         custom_tools (list): List of Python functions to use as custom tools. Each function should have
                             type hints and a docstring. These will be written to .patchpal/tools/ directory
                             in the working directory and automatically discovered by PatchPal.
@@ -102,6 +110,8 @@ class AgentExecutor:
         network: str = "bridge",
         memory: Optional[str] = None,
         cpus: Optional[float] = None,
+        restrict_network: bool = False,
+        allow_urls: Optional[List[str]] = None,
         custom_tools: Optional[List[Callable]] = None,
         enabled_tools: Optional[List[str]] = None,
         disable_shell: bool = False,
@@ -121,6 +131,8 @@ class AgentExecutor:
         self.network = network
         self.memory = memory
         self.cpus = cpus
+        self.restrict_network = restrict_network
+        self.allow_urls = allow_urls or []
         self.custom_tools = custom_tools or []
 
         # Handle tool configuration
@@ -334,6 +346,14 @@ class AgentExecutor:
 
         if self.env_file:
             cmd.extend(['--env-file', os.path.expanduser(self.env_file)])
+
+        # Add network restriction options
+        if self.restrict_network:
+            cmd.append('--restrict-network')
+            
+            # Add additional allowed URLs
+            for url in self.allow_urls:
+                cmd.extend(['--allow-url', url])
 
         # Separator between sandbox args and patchpal args
         cmd.append('--')

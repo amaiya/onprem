@@ -22,6 +22,7 @@ except ImportError:
 
 import numpy as np
 import torch
+from typing import Literal
 
 from transformers import AutoConfig
 from transformers.configuration_utils import PretrainedConfig
