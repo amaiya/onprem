@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### changed
-- N/A
+- **AgentExecutor** `--sandbox` mode now uses `patchpal-sandbox` image as default
 
 ### fixed:
 - `ElasticsearchClient` now accept lists of Elasticsearch hosts

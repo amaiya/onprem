@@ -37,7 +37,7 @@ class AgentExecutor:
         max_iterations (int): Maximum number of autopilot iterations
         env_file (str): Path to .env file with API keys
         sandbox (bool): Run in container sandbox (default: False). Set True for isolated/secure execution.
-        image (str): Container image to use (default: python:3.11-slim) [sandbox only]
+        image (str): Container image to use (default: ghcr.io/amaiya/patchpal-sandbox:latest) [sandbox only]
         network (str): Network mode ('bridge', 'host', 'none') [sandbox only]
         memory (str): Memory limit (e.g., '2g', '4g') [sandbox only]
         cpus (float): CPU limit (e.g., 2, 4) [sandbox only]
@@ -95,7 +95,7 @@ class AgentExecutor:
         max_iterations: int = 50,
         env_file: Optional[str] = None,
         sandbox: bool = False,
-        image: str = "python:3.11-slim",
+        image: str = "ghcr.io/amaiya/patchpal-sandbox:latest",
         network: str = "bridge",
         memory: Optional[str] = None,
         cpus: Optional[float] = None,
@@ -312,7 +312,7 @@ class AgentExecutor:
         cmd = ['patchpal-sandbox']
 
         # Add sandbox options
-        if self.image != "python:3.11-slim":
+        if self.image != "ghcr.io/amaiya/patchpal-sandbox:latest":
             cmd.extend(['--image', self.image])
 
         if self.network == 'host':
