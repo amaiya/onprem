@@ -333,7 +333,7 @@ class AgentExecutor:
             cmd.extend(['--cpus', str(self.cpus)])
 
         if self.env_file:
-            cmd.extend(['--env-file', self.env_file])
+            cmd.extend(['--env-file', os.path.expanduser(self.env_file)])
 
         # Separator between sandbox args and patchpal args
         cmd.append('--')
@@ -427,7 +427,7 @@ class AgentExecutor:
                 # Load .env file if specified (for non-sandboxed execution)
                 if self.env_file and not self.sandbox:
                     # Load environment variables from .env file
-                    env_path = Path(self.env_file)
+                    env_path = Path(os.path.expanduser(self.env_file))
                     if env_path.exists():
                         with open(env_path) as f:
                             for line in f:
