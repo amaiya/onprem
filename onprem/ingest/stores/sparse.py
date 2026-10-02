@@ -72,10 +72,14 @@ class SparseStore(VectorStore):
 
         return False
 
-    def augment_query(self, query: str) -> str:
+    def augment_query(self, query: str, extra_terms: list = None) -> str:
         """
-        Augments a natural language query with extracted noun phrases,
+        Augments a natural language query with extracted noun phrases and optional extra terms,
         unless the query already looks like a Boolean or phrase query.
+        
+        Args:
+            query: The search query string
+            extra_terms: Optional list of additional search terms (synonyms, acronyms, etc.)
         """
         from onprem.utils import extract_noun_phrases
 
@@ -83,12 +87,23 @@ class SparseStore(VectorStore):
             return query  # Don't modify Boolean/phrase queries
 
         noun_phrases = extract_noun_phrases(query)
-        if not noun_phrases:
+        if not noun_phrases and not extra_terms:
             return query
 
-        quoted_nps = [f'"{np}"^2.0' for np in noun_phrases]
-        or_clause = " OR ".join(quoted_nps)
-
+        # Build OR clause with all terms
+        all_terms = []
+        
+        # Noun phrases with high boost (2.0)
+        if noun_phrases:
+            all_terms.extend([f'"{np}"^2.0' for np in noun_phrases])
+        
+        # User-specified extra terms with moderate boost (1.5)
+        if extra_terms:
+            # Clean and filter terms
+            cleaned_terms = [term.strip() for term in extra_terms if term.strip()]
+            all_terms.extend([f'"{term}"^1.5' for term in cleaned_terms])
+        
+        or_clause = " OR ".join(all_terms)
         return f"({query}) OR ({or_clause})"
 
     def _preprocess_query(self, query):
@@ -126,19 +141,21 @@ class SparseStore(VectorStore):
         Additional kwargs can be supplied to focus the search (e.g., see `where_document` and `filters` arguments of search method).
         Results of invoked search method are expected to be in the form: {'hits': list_of_dicts, 'total_hits' : int}.
         Result of this method is a list of  LangChain Document objects sorted by semantic similarity.
-        
-        If subclass supports dynamic chunking (has chunk_for_semantic_search=True), 
+
+        If subclass supports dynamic chunking (has chunk_for_semantic_search=True),
         it will chunk large documents and find the best matching chunks per document.
-        
+
         Args:
             return_chunks (bool): If True (default), return individual chunks as Document objects for RAG.
                                  If False, return original documents with full content and all chunk scores.
             load_web_documents (bool): If True, attempt to load content from web URLs when content field is empty (default: False).
             verbose (bool): If True (default), show progress bar during semantic search processing.
+            extra_terms (list): Optional list of additional search terms to boost retrieval.
         """
         args = list(args)
         query = args[0] # for semantic search
-        args[0] = self.augment_query(args[0]) # for keyword search
+        extra_terms = kwargs.pop('extra_terms', None) # extract extra_terms before passing to search
+        args[0] = self.augment_query(args[0], extra_terms=extra_terms) # for keyword search
         args = tuple(args)
 
         limit = kwargs.get('limit', 4)

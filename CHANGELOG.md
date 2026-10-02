@@ -17,6 +17,7 @@ Most recent releases are shown at the top. Each release shows:
 
 ### fixed:
 - `ElasticsearchClient` now accept lists of Elasticsearch hosts
+- Added `extra_terms` argument to `SparseStore.augment_query`
 
 
 ## 0.24.2 (2026-09-15)
