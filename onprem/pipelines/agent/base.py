@@ -65,7 +65,8 @@ class AgentExecutor:
 
         enabled_tools (list): List of tool names to enable. If None, uses DEFAULT_TOOLS:
                              ['read_file', 'read_lines', 'edit_file', 'write_file',
-                              'grep', 'find', 'run_shell', 'web_search', 'web_fetch']
+                              'grep', 'find', 'run_shell', 'web_search', 'web_fetch',
+                              'code_structure', 'repo_map']
                              Pass an empty list [] to use all available patchpal tools.
         disable_shell (bool): If True, remove 'run_shell' from default tools (default: False).
                              Only applies when enabled_tools=None. Useful for security when you
@@ -86,6 +87,8 @@ class AgentExecutor:
         'run_shell',      # Execute shell commands
         'web_search',     # Search the web for information
         'web_fetch',      # Fetch content from URLs
+        'code_structure', # Analyze code structure (AST-based)
+        'repo_map',       # Get repository structure overview
     ]
 
     def __init__(
@@ -156,6 +159,8 @@ class AgentExecutor:
             'run_shell': 'Execute shell commands',
             'web_search': 'Search the web for information',
             'web_fetch': 'Fetch and read content from URLs',
+            'code_structure': 'Analyze code structure with AST parsing',
+            'repo_map': 'Get repository-wide code structure overview',
         }
 
         for i, tool in enumerate(cls.DEFAULT_TOOLS, 1):

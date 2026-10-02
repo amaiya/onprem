@@ -7,13 +7,14 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.24.3 (TBD)
+## 0.24.3 (2026-10-02)
 
 ### new:
 - N/A
 
 ### changed
 - **AgentExecutor** `--sandbox` mode now uses `patchpal-sandbox` image as default
+- **AgentExecutor** default tools now include `code_structure` and `repo_map`
 
 ### fixed:
 - `ElasticsearchClient` now accept lists of Elasticsearch hosts
