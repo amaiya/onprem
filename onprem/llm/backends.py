@@ -616,6 +616,19 @@ class ChatGovCloudBedrock(BaseChatModel):
             for item in content:
                 if item.get('type') == 'tool_use' and item.get('name') == tool_name:
                     tool_input = item.get('input', {})
+                    
+                    # Handle case where Bedrock returns JSON strings instead of parsed objects
+                    # This can happen with nested structures (lists, dicts) in tool parameters
+                    for key, value in tool_input.items():
+                        if isinstance(value, str):
+                            # Try to parse if it looks like JSON
+                            stripped = value.strip()
+                            if stripped.startswith(('[', '{')):
+                                try:
+                                    tool_input[key] = json.loads(value)
+                                except (json.JSONDecodeError, ValueError):
+                                    pass  # Keep as string if not valid JSON
+                    
                     # Parse the tool input into the Pydantic model
                     return pydantic_model(**tool_input)
 
