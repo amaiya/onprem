@@ -43,7 +43,7 @@ class AgentExecutor:
         cpus (float): CPU limit (e.g., 2, 4) [sandbox only]
         restrict_network (bool): Enable iptables firewall for network isolation (default: False) [sandbox only]
                                 Automatically detects LLM endpoints from environment variables.
-                                Blocks all network access except whitelisted URLs. Web tools and MCP 
+                                Blocks all network access except whitelisted URLs. Web tools and MCP
                                 are automatically disabled. Ideal for sensitive/regulated environments.
         allow_urls (list): Additional URLs to whitelist when restrict_network=True [sandbox only]
                           LLM provider endpoints are auto-detected from env vars.
@@ -350,7 +350,7 @@ class AgentExecutor:
         # Add network restriction options
         if self.restrict_network:
             cmd.append('--restrict-network')
-            
+
             # Add additional allowed URLs
             for url in self.allow_urls:
                 cmd.extend(['--allow-url', url])

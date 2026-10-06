@@ -261,7 +261,7 @@ class _PDFtoTextLoader:
     def load(self) -> List[Document]:
         import subprocess
         try:
-            text = subprocess.check_output(['pdftotext', self.file_path, '-'], 
+            text = subprocess.check_output(['pdftotext', self.file_path, '-'],
                                           stderr=subprocess.PIPE).decode('utf-8')
             return [Document(page_content=text, metadata={"source": str(self.file_path)})]
         except FileNotFoundError:
@@ -327,7 +327,7 @@ def _apply_text_callables(docs:List[Document], text_callables:dict):
     Returns a dictionary with values containing results from callables for each key
     """
     if not text_callables: return {}
-        
+
     text = '\n\n'.join([d.page_content for d in docs])
     results = {}
     for k,v in text_callables.items():
@@ -341,10 +341,10 @@ def _apply_file_callables(file_path:str, file_callables:dict):
     Returns a dictionary with values containing results from callables for each key
     """
     if not file_callables: return {}
-        
+
     if not os.path.exists(file_path):
         raise ValueError('file_path does not exist: {file_path}')
-    
+
     results = {}
     for k,v in file_callables.items():
         results[k] = v(file_path)
@@ -355,18 +355,18 @@ def _concatenate_document_pages(documents: List[Document]) -> List[Document]:
     """Concatenate multi-page documents from the same source."""
     if not documents:
         return documents
-    
+
     # Group documents by source file and concatenate pages
     source_groups = {}
-    
+
     for doc in documents:
         source = doc.metadata.get('source', 'unknown')
         if source not in source_groups:
             source_groups[source] = []
         source_groups[source].append(doc)
-    
+
     concatenated_docs = []
-    
+
     for source, doc_pages in source_groups.items():
         if len(doc_pages) == 1:
             # Single page document - keep as is
@@ -375,50 +375,50 @@ def _concatenate_document_pages(documents: List[Document]) -> List[Document]:
             # Multi-page document - concatenate
             # Sort by page number if available
             doc_pages.sort(key=lambda x: x.metadata.get('page', 0))
-            
+
             # Combine content with page breaks
             combined_content = '\n\n--- PAGE BREAK ---\n\n'.join(
                 doc.page_content for doc in doc_pages
             )
-            
+
             # Create new document with combined metadata
             combined_metadata = doc_pages[0].metadata.copy()
             combined_metadata['page'] = -1  # Indicate full document
             combined_metadata['page_count'] = len(doc_pages)
             combined_metadata['concatenated'] = True
-            
+
             # Include page range if available
             pages = [doc.metadata.get('page', 0) for doc in doc_pages if doc.metadata.get('page', 0) > 0]
             if pages:
                 combined_metadata['page_range'] = f"{min(pages)}-{max(pages)}"
-            
+
             combined_doc = Document(
                 page_content=combined_content,
                 metadata=combined_metadata
             )
             concatenated_docs.append(combined_doc)
-    
+
     return concatenated_docs
 
 
 def _truncate_documents(documents: List[Document], max_words: int) -> List[Document]:
     """Truncate documents to maximum number of words."""
     truncated_docs = []
-    
+
     for doc in documents:
         content = doc.page_content
         words = content.split()
-        
+
         if len(words) > max_words:
             # Truncate to max_words
             truncated_content = ' '.join(words[:max_words])
-            
+
             # Create new document with truncated content
             new_metadata = doc.metadata.copy()
             new_metadata['original_word_count'] = len(words)
             new_metadata['truncated'] = True
             new_metadata['truncated_word_count'] = max_words
-            
+
             truncated_doc = Document(
                 page_content=truncated_content,
                 metadata=new_metadata
@@ -427,10 +427,10 @@ def _truncate_documents(documents: List[Document], max_words: int) -> List[Docum
         else:
             # Document is already under the limit
             truncated_docs.append(doc)
-    
+
     return truncated_docs
 
-    
+
 def load_single_document(file_path: str, # path to file
                          pdf_unstructured:bool=False, # use unstructured for PDF extraction if True (will also OCR if necessary)
                          pdf_markdown:bool = False, # Convert PDFs to Markdown instead of plain text if True.
@@ -452,12 +452,12 @@ def load_single_document(file_path: str, # path to file
     infer and extract tables from PDFs. When `pdf_unstructured=True` and `infer_table_structure=True`,
     tables are represented as HTML within the main body of extracted text. In all other cases, inferred tables
     are represented as Markdown and appended to the end of the extracted text when `infer_table_structure=True`.
-    
+
     The `keep_full_document` option will combine multi-page documents into single documents with page breaks
-    and disable chunking downstream. The `max_words` option will truncate documents to the specified number 
-    of words (applied after concatenation). When truncation occurs, metadata is updated to include original 
+    and disable chunking downstream. The `max_words` option will truncate documents to the specified number
+    of words (applied after concatenation). When truncation occurs, metadata is updated to include original
     word count and truncation information.
-    
+
     The `pdf_use_pdftotext` option uses the pdftotext command-line tool for PDF extraction, which is better
     at handling form-heavy documents where values are filled into PDF form fields. This option requires
     the pdftotext utility to be installed on the system (e.g., via poppler-utils package).
@@ -468,7 +468,7 @@ def load_single_document(file_path: str, # path to file
         raise ValueError('pdf_use_pdftotext cannot be combined with pdf_unstructured or pdf_markdown.')
     file_callables = {} if not file_callables else file_callables
     text_callables = {} if not text_callables else text_callables
-    
+
     # Normalize path for consistent handling - first get absolute path
     file_path = os.path.abspath(file_path)
     # Then normalize and standardize path separators to forward slashes for cross-platform consistency
@@ -486,7 +486,7 @@ def load_single_document(file_path: str, # path to file
     ext = helpers.extract_extension(file_path)
     file_metadata['extension'] = ext
     file_metadata.update(_apply_file_callables(file_path, file_callables))
-        
+
     # load file
     if ext in LOADER_MAPPING:
         try:
@@ -497,7 +497,7 @@ def load_single_document(file_path: str, # path to file
                     ext = PDFOCR
                 elif pdf_markdown:
                     ext = PDFMD
-            
+
             loader_class, loader_args = LOADER_MAPPING[ext]
             loader_args = loader_args.copy() # copy so any supplied kwargs do not persist across calls
             if ext in PDF_EXTS:
@@ -520,7 +520,7 @@ def load_single_document(file_path: str, # path to file
                     docs = _update_metadata(docs, file_metadata)
             else:
                 docs = loader.load()
-                file_metadata.update(_apply_text_callables(docs, text_callables))                
+                file_metadata.update(_apply_text_callables(docs, text_callables))
                 docs = _update_metadata(docs, file_metadata)
             # Apply concatenation and truncation if requested
             if keep_full_document and docs:
@@ -528,15 +528,15 @@ def load_single_document(file_path: str, # path to file
 
             if max_words and max_words > 0 and docs:
                 docs = _truncate_documents(docs, max_words)
-            
+
             extra_keys = list(file_metadata.keys() | text_callables.keys())
-            
+
             # Add concatenation and truncation metadata keys to extra_keys if they were used
             if keep_full_document:
                 extra_keys.extend(['concatenated', 'page_count', 'page_range'])
             if max_words and max_words > 0:
                 extra_keys.extend(['truncated', 'truncated_word_count', 'original_word_count'])
-            
+
             return helpers.set_metadata_defaults(docs, extra_keys=extra_keys)
         except Exception as e:
             logger.warning(f'\nSkipping {file_path} due to error: {str(e)}')
@@ -551,10 +551,10 @@ def _ignore_file(file_path, ignored_files:List[str]=[], ignore_fn:Optional[Calla
     # Normalize path for consistent handling - first get absolute path, then normalize path separators
     file_path = os.path.abspath(file_path)
     file_path = os.path.normpath(file_path).replace('\\', '/')
-    
+
     # Normalize ignored_files as well for consistent comparison
     normalized_ignored_files = [os.path.normpath(f).replace('\\', '/') for f in ignored_files]
-    
+
     return file_path in normalized_ignored_files or \
             os.path.basename(file_path).startswith('~$') or \
             (ignore_fn is not None and ignore_fn(file_path))
@@ -690,7 +690,7 @@ def chunk_documents(
     # Convert text strings to Documents if needed
     if documents and isinstance(documents[0], str):
         documents = [Document(page_content=text, metadata={}) for text in documents]
-    
+
     # If keep_full_document is True, skip chunking entirely
     if keep_full_document:
         # Still attach document title to each document if requested
@@ -699,7 +699,7 @@ def chunk_documents(
                 if doc.metadata.get('document_title', ''):
                     doc.page_content = f'The content below is from a document titled, \"{doc.metadata["document_title"]}\"\n\n{doc.page_content}'
         return documents
-    
+
     # remove tables before chunking
     if infer_table_structure and not kwargs.get('pdf_unstructured', False):
         tables = [d for d in documents if d.metadata.get('table', False)]
@@ -766,12 +766,12 @@ def batchify_chunks(texts, batch_size=CHROMA_MAX):
 def load_web_document(url, username=None, password=None):
     """
     Download and extract text from a web document using load_single_document.
-    
+
     Args:
         url: The URL to download from
         username: Optional username for authentication (e.g., for SharePoint)
         password: Optional password for authentication (e.g., for SharePoint)
-    
+
     Returns:
         List of Document objects
     """
@@ -779,7 +779,7 @@ def load_web_document(url, username=None, password=None):
     import os
     import requests
     from urllib.parse import urlparse
-    
+
     # Parse URL to get file extension if available
     parsed_url = urlparse(url)
     path_parts = parsed_url.path.split('/')
@@ -787,7 +787,7 @@ def load_web_document(url, username=None, password=None):
     # If the URL path ends in '/' (or is empty), there is no filename component
     if not filename:
         filename = 'document'
-    
+
     # Set up authentication if credentials provided
     auth = None
     if username and password:
@@ -798,7 +798,7 @@ def load_web_document(url, username=None, password=None):
             # Fall back to basic auth if requests_ntlm not available
             from requests.auth import HTTPBasicAuth
             auth = HTTPBasicAuth(username, password)
-    
+
     # If no extension, try to determine from Content-Type header
     if '.' not in filename:
         try:
@@ -814,7 +814,7 @@ def load_web_document(url, username=None, password=None):
                 filename += '.html'  # Default fallback
         except:
             filename += '.html'  # Default fallback
-    
+
     # Download the file to a temporary location
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
         try:
@@ -822,18 +822,18 @@ def load_web_document(url, username=None, password=None):
             response.raise_for_status()
             temp_file.write(response.content)
             temp_path = temp_file.name
-            
+
             # Use load_single_document to extract text
             docs = load_single_document(temp_path)
-            
+
             # Update source to original URL
             if docs:
                 for doc in docs:
                     doc.metadata['source'] = url
                     doc.metadata['original_source'] = url
-            
+
             return docs
-            
+
         finally:
             # Clean up temporary file
             try:
@@ -845,13 +845,13 @@ def load_web_document(url, username=None, password=None):
 def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sheet_name=None):
     """
     Load documents from a spreadsheet where each row becomes a document.
-    
+
     Args:
         file_path: Path to the spreadsheet file (.xlsx, .xls, .csv)
         text_column: Name of the column containing the text content
         metadata_columns: List of column names to include as metadata (default: all other columns)
         sheet_name: For Excel files, name of the sheet to read (default: first sheet)
-    
+
     Returns:
         List of Document objects, one per row
     """
@@ -859,13 +859,13 @@ def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sh
         import pandas as pd
     except ImportError:
         raise ImportError("pandas is required for spreadsheet loading. Install with: pip install pandas")
-    
+
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Spreadsheet file not found: {file_path}")
-    
+
     # Determine file type and load accordingly
     file_ext = os.path.splitext(file_path)[1].lower()
-    
+
     try:
         if file_ext == '.csv':
             df = pd.read_csv(file_path)
@@ -882,15 +882,15 @@ def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sh
             raise ValueError(f"Unsupported file format: {file_ext}. Supported formats: .csv, .xlsx, .xls")
     except Exception as e:
         raise RuntimeError(f"Failed to read spreadsheet: {str(e)}")
-    
+
     if df.empty:
         logger.warning(f"Spreadsheet is empty: {file_path}")
         return []
-    
+
     # Validate text column exists
     if text_column not in df.columns:
         raise ValueError(f"Text column '{text_column}' not found. Available columns: {list(df.columns)}")
-    
+
     # Determine metadata columns
     if metadata_columns is None:
         # Use all columns except the text column
@@ -900,24 +900,24 @@ def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sh
         missing_cols = [col for col in metadata_columns if col not in df.columns]
         if missing_cols:
             raise ValueError(f"Metadata columns not found: {missing_cols}. Available columns: {list(df.columns)}")
-    
+
     documents = []
-    
+
     for idx, row in df.iterrows():
         # Get text content
         text_content = str(row[text_column]) if pd.notna(row[text_column]) else ""
-        
+
         if not text_content.strip():
             logger.warning(f"Row {idx + 1}: Empty text content in column '{text_column}', skipping")
             continue
-        
+
         # Build metadata
         metadata = {
             'source': file_path,
             'row_number': idx + 1,  # 1-based row numbering
             'text_column': text_column,
         }
-        
+
         # Add metadata from other columns
         for col in metadata_columns:
             value = row[col]
@@ -930,14 +930,14 @@ def load_spreadsheet_documents(file_path, text_column, metadata_columns=None, sh
                     metadata[col] = value.item()
                 else:
                     metadata[col] = value
-        
+
         # Create document
         doc = Document(
             page_content=text_content,
             metadata=metadata
         )
         documents.append(doc)
-    
+
     logger.info(f"Loaded {len(documents)} documents from spreadsheet: {file_path}")
     return documents
 

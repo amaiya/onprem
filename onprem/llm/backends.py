@@ -296,7 +296,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         # Note: Bedrock streaming API does not support thinking content in streaming mode
         # When enable_thinking=True, force non-streaming to get thinking blocks
         use_streaming = self.streaming and not self.enable_thinking
-        
+
         # If streaming is enabled, use streaming and collect all chunks
         if use_streaming:
             chunks = []
@@ -361,7 +361,7 @@ class ChatGovCloudBedrock(BaseChatModel):
 
             # Extract the generated text
             generated_text = ""
-            
+
             # Handle OpenAI-style responses (GPT-OSS models)
             if "choices" in response_body:
                 for choice in response_body.get("choices", []):
@@ -372,7 +372,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                         if not self.include_reasoning:
                             content = self._strip_reasoning(content)
                         generated_text += content
-            
+
             # Handle Anthropic-style responses (Claude models)
             elif "content" in response_body and len(response_body["content"]) > 0:
                 # Iterate through all content blocks
@@ -454,7 +454,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             # Process streaming response
             for event in response["body"]:
                 chunk = json.loads(event["chunk"]["bytes"].decode("utf-8"))
-                
+
                 # Handle OpenAI-style responses (GPT-OSS models)
                 if "choices" in chunk:
                     for choice in chunk.get("choices", []):
@@ -487,7 +487,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                 elif chunk.get("type") == "content_block_delta":
                     delta = chunk.get("delta", {})
                     delta_type = delta.get("type", "")
-                    
+
                     # Handle text deltas
                     if delta_type == "text_delta" and "text" in delta:
                         text = delta["text"]
@@ -506,7 +506,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                         yield ChatGenerationChunk(message=AIMessageChunk(content=text))
                     # Note: thinking_delta chunks are NOT provided by Bedrock streaming API
                     # Thinking content is only available in non-streaming responses
-                
+
                 # Ignore other event types (message_start, content_block_start, content_block_stop, message_delta, message_stop)
                 # These are just markers and don't contain content to yield
 
@@ -587,7 +587,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             "tools": [tool_schema],
             "tool_choice": {"type": "tool", "name": tool_name}
         }
-        
+
         # Only include temperature if explicitly set
         if self.temperature is not None:
             request_body["temperature"] = self.temperature
@@ -616,7 +616,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             for item in content:
                 if item.get('type') == 'tool_use' and item.get('name') == tool_name:
                     tool_input = item.get('input', {})
-                    
+
                     # Handle case where Bedrock returns JSON strings instead of parsed objects
                     # This can happen with nested structures (lists, dicts) in tool parameters
                     for key, value in tool_input.items():
@@ -628,7 +628,7 @@ class ChatGovCloudBedrock(BaseChatModel):
                                     tool_input[key] = json.loads(value)
                                 except (json.JSONDecodeError, ValueError):
                                     pass  # Keep as string if not valid JSON
-                    
+
                     # Parse the tool input into the Pydantic model
                     return pydantic_model(**tool_input)
 
