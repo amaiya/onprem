@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.24.5 (2026-10-06)
+
+### new:
+- N/A
+
+### changed
+- Added support for `pdftotext` in `ingest.load_single_document`
+
+### fixed:
+- Fix intermittent issue with AWS GovCloud and JSON
+
+
 ## 0.24.4 (TBD)
 
 ### new:
