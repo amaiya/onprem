@@ -7,7 +7,7 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.24.5 (2026-10-06)
+## 0.24.4 (2026-10-06)
 
 ### new:
 - N/A
@@ -18,17 +18,6 @@ Most recent releases are shown at the top. Each release shows:
 ### fixed:
 - Fix intermittent issue with AWS GovCloud and JSON
 
-
-## 0.24.4 (TBD)
-
-### new:
-- N/A
-
-### changed
-- N/A
-
-### fixed:
-- Fix intermittent issue with AWS GovCloud and JSON
 
 
 ## 0.24.3 (2026-10-02)
