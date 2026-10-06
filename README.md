@@ -164,7 +164,7 @@ llm = LLM(verbose=False) # default model and backend are used
   ``` python
    # Modern GGUFs (e.g., Gemma) embed a chat template, so no prompt_template is needed (auto-detected).
    # Older GGUFs without one (e.g., Zephyr) still require prompt_template (see FAQ).
-   llm = LLM(model_url='https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf', 
+   llm = LLM(model_url='https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf',
              n_gpu_layers=-1)
   ```
 
@@ -173,7 +173,7 @@ llm = LLM(verbose=False) # default model and backend are used
   ``` python
    # Modern GGUFs (e.g., Gemma) embed a chat template, so no prompt_template is needed (auto-detected).
    # Older GGUFs without one (e.g., Zephyr) still require prompt_template (see FAQ).
-   llm = LLM(model_url='gemma-4-E4B-it-Q4_K_M.gguf', 
+   llm = LLM(model_url='gemma-4-E4B-it-Q4_K_M.gguf',
              model_download_path='/path/to/folder/to/where/you/downloaded/model',
              n_gpu_layers=-1)
   ```
