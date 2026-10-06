@@ -7,3 +7,8 @@ website:
   description: "A tool for running on-premises large language models on non-public data"
   repo-branch: master
   repo-url: "https://github.com/amaiya/onprem"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown

@@ -7,16 +7,143 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.23.1 (2026-06-22)
+## 0.24.4 (2026-10-06)
 
 ### new:
 - N/A
 
 ### changed
-- Updated `pyproject.toml` to use wildcard pattern for package discovery to ensure all subpackages are included
+- Added support for `pdftotext` in `ingest.load_single_document`
 
 ### fixed:
-- Fixed packaging issue where `extractor/` subpackage was not included in PyPI distribution due to naming conflict with legacy `extractor.py` file
+- Fix intermittent issue with AWS GovCloud and JSON
+
+
+
+## 0.24.3 (2026-10-02)
+
+### new:
+- N/A
+
+### changed
+- **AgentExecutor** `--sandbox` mode now uses `patchpal-sandbox` image as default
+- **AgentExecutor** default tools now include `code_structure` and `repo_map`
+
+### fixed:
+- `ElasticsearchClient` now accept lists of Elasticsearch hosts
+- Added `extra_terms` argument to `SparseStore.augment_query`
+- **AgentExecutor** now properly expands `~` in `env_file` paths
+
+
+## 0.24.2 (2026-09-15)
+
+### new:
+- N/A
+
+### changed
+- `LLM.prompt` now includes `document_path_or_url` option for raw document inputs (e.g., PDFs)
+
+### fixed:
+- N/A
+
+
+
+## 0.24.1 (2026-09-14)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+
+### fixed:
+- Fixed ChatGovCloud streaming bug
+
+
+## 0.24.0 (2026-09-12)
+
+### new:
+- Improved GGUF-handling: uses embedded chat templates when possible (#258)
+
+### changed
+- Created custom LlamaCpp class, removing dependency on langchain-community
+- Created custom HFPipeline class in backends.py
+- Removed langchain-community dependency (#254)
+
+
+### fixed:
+- Unbound LangChain family of dependencies (#253)
+- `RAGPipeline.semantic_search()` avoids hitting doc source twice for size (#248)
+
+
+
+
+## 0.23.6 (2026-08-24)
+
+### new:
+- N/A
+
+### changed
+- Support `include_reasoning`, `enable_thinking` and `thinking_effort` for
+  Anthropic models on Bedrock
+
+### fixed:
+- Don't suppy temperature to Anthropic/Bedrock if it is not explicitly supplied. (#255)
+- Fixed bug with GPT-OSS output from AWS GovCloud Bedrock. (#256)
+
+
+
+
+## 0.23.5 (2026-08-13)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Removed orphaned "TM" references in app
+
+
+## 0.23.4 (2026-07-31)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Fixed `langchain.chroma.vectorstores.Chroma got multiple
+  values for keyword argument k` in Web UI for semantic search.
+
+
+
+## 0.23.3 (2026-07-28)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Adjusted extract pipeline prompts
+
+
+
+## 0.23.2 (2026-07-17)
+
+### new:
+- N/A
+
+### changed
+- N/A
+
+### fixed:
+- Fixed issue where `extract_structured` and `extract_parameters` would fail with custom LLM providers (e.g., GovCloud Bedrock, Azure Government gateways) that don't fully support native structured outputs. Added `use_pydantic_fallback` parameter and improved automatic fallback to `pydantic_prompt` method.
 
 
 ## 0.23.0 (2026-06-16)

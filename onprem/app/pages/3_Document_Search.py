@@ -441,7 +441,7 @@ def main():
                     # Execute the semantic search
                     hits = vectorstore.semantic_search(
                         query=query_text,
-                        k=st.session_state.results_limit,
+                        limit=st.session_state.results_limit,
                         filters=filter_options if filter_options else None,
                         where_document=where_document if where_document else None
                     )
