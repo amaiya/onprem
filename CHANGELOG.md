@@ -13,7 +13,7 @@ Most recent releases are shown at the top. Each release shows:
 - Support for lightweight installs: the base install is now minimal. Local models/embeddings (`[local]`), document parsing/ingestion (`[docs]`), and the web app (`[app]`) are now optional extras.
 
 ### changed
-- N/A
+- Pipelines are now imported lazily (`onprem.pipelines`), so lightweight pipelines (e.g., `Extractor`, `Summarizer`, `RAGPipeline`) can be used without the optional dependencies required by other pipelines (e.g., `torch` for classifiers).
 
 ### fixed:
 - Fix `model_url` handling of model names with colons: (openai/gpt-oss-v1:0).
