@@ -96,7 +96,7 @@ Many LLM backends are supported (e.g., [llama_cpp](https://github.com/abetlen/ll
 
 ## Install
 
-**OnPrem.LLM** is now **cloud-first by default**: the base installation is lightweight and does *not* pull in PyTorch or other large machine-learning dependencies. This is ideal if you simply want to use **OnPrem.LLM** as a wrapper to a cloud LLM (e.g., OpenAI, Anthropic) or an LLM served through a REST API (e.g., Ollama, vLLM).
+**OnPrem.LLM** now has a **lightweight base install by default**: the base installation does *not* pull in PyTorch or other large machine-learning dependencies. This is ideal if you simply want to use **OnPrem.LLM** as a wrapper to a cloud LLM (e.g., OpenAI, Anthropic) or an LLM served through a REST API (e.g., Ollama, vLLM).
 
 ``` sh
 # minimal install (cloud LLMs, Ollama, and REST-API-served LLMs) — no PyTorch
@@ -108,7 +108,8 @@ Additional capabilities are available through optional dependency groups (“ext
 | Extra    | Install command              | Enables                                                                                                                                                                     |
 |----------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `local`  | `pip install onprem[local]`  | Local models via Hugging Face Transformers (the `model_id` parameter) and local embeddings used by RAG/semantic search. *Pulls in PyTorch.*                                 |
-| `docs`   | `pip install onprem[docs]`   | Parsing of complex document types (PDF tables, Office formats, etc.) for ingestion/RAG. *Pulls in PyTorch.*                                                                 |
+| `docs`   | `pip install onprem[docs]`   | Document ingestion/parsing for RAG and text extraction (PDF, Office, email, and complex document types).                                                                    |
+| `app`    | `pip install onprem[app]`    | The built-in web app / UI (Streamlit).                                                                                                                                      |
 | `chroma` | `pip install onprem[chroma]` | RAG with the default Chroma “Dense” vectorstore (instead of the [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)). |
 | `agent`  | `pip install onprem[agent]`  | Launching [AI agents](https://amaiya.github.io/onprem/examples_agent.html).                                                                                                 |
 | `all`    | `pip install onprem[all]`    | Everything (equivalent to the previous full installation).                                                                                                                  |

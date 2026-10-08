@@ -133,14 +133,14 @@ def filtered_generator(generator, criteria=[]):
 
 
 
-from syntok import segmenter
 import textwrap
 def segment(text:str, unit:str='paragraph', maxchars:int=2048):
     """
-    Segments text into a list of paragraphs or sentences depending on value of `unit` 
+    Segments text into a list of paragraphs or sentences depending on value of `unit`
     (one of `{'paragraph', 'sentence'}`. The `maxchars` parameter is the maximum size
     of any unit of text.
     """
+    from syntok import segmenter
     units = []
     for paragraph in segmenter.analyze(text):
         sentences = []

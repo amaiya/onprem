@@ -10,7 +10,7 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.25.0 (2026-10-08)
 
 ### new:
-- Support for lightweight installs
+- Support for lightweight installs: the base install is now minimal. Local models/embeddings (`[local]`), document parsing/ingestion (`[docs]`), and the web app (`[app]`) are now optional extras.
 
 ### changed
 - N/A
