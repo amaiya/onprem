@@ -11,7 +11,6 @@ __all__ = ['VectorStore']
 from abc import ABC, abstractmethod
 import os
 from typing import Optional, Callable
-from langchain_huggingface import HuggingFaceEmbeddings
 from ..base import DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP, TABLE_CHUNK_SIZE, CHROMA_MAX, process_folder
 
 
@@ -84,11 +83,18 @@ class VectorStore(ABC):
         """
         Instantiate embedding model
         """
-        if not embedding_model_kwargs:
-            import torch
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            embedding_model_kwargs = {"device": device}          
-        self.embeddings =  HuggingFaceEmbeddings(model_name=embedding_model_name, 
+        try:
+            if not embedding_model_kwargs:
+                import torch
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                embedding_model_kwargs = {"device": device}
+            from langchain_huggingface import HuggingFaceEmbeddings
+        except ImportError:
+            raise ImportError(
+                "Computing local embeddings (used by RAG/semantic search) requires extra "
+                "dependencies. Install them with: pip install onprem[local]"
+            )
+        self.embeddings =  HuggingFaceEmbeddings(model_name=embedding_model_name,
                                      model_kwargs=embedding_model_kwargs,
                                      encode_kwargs=embedding_encode_kwargs)
 

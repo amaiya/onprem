@@ -96,15 +96,28 @@ Many LLM backends are supported (e.g., [llama_cpp](https://github.com/abetlen/ll
 
 ## Install
 
-Once you have [installed PyTorch](https://pytorch.org/get-started/locally/), you can install **OnPrem.LLM** with:
+**OnPrem.LLM** is now **cloud-first by default**: the base installation is lightweight and does *not* pull in PyTorch or other large machine-learning dependencies. This is ideal if you simply want to use **OnPrem.LLM** as a wrapper to a cloud LLM (e.g., OpenAI, Anthropic) or an LLM served through a REST API (e.g., Ollama, vLLM).
 
 ``` sh
+# minimal install (cloud LLMs, Ollama, and REST-API-served LLMs) — no PyTorch
 pip install onprem
 ```
 
-**Chroma**: If using RAG with the default Chroma “Dense” vectorstore (instead of [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)), run `pip install[chroma]`.
+Additional capabilities are available through optional dependency groups (“extras”):
 
-**AI Agents**: If using OnPrem.LLM to launch [AI agents](https://amaiya.github.io/onprem/examples_agent.html), run `pip install onprem[agent]`.
+| Extra    | Install command              | Enables                                                                                                                                                                     |
+|----------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `local`  | `pip install onprem[local]`  | Local models via Hugging Face Transformers (the `model_id` parameter) and local embeddings used by RAG/semantic search. *Pulls in PyTorch.*                                 |
+| `docs`   | `pip install onprem[docs]`   | Parsing of complex document types (PDF tables, Office formats, etc.) for ingestion/RAG. *Pulls in PyTorch.*                                                                 |
+| `chroma` | `pip install onprem[chroma]` | RAG with the default Chroma “Dense” vectorstore (instead of the [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)). |
+| `agent`  | `pip install onprem[agent]`  | Launching [AI agents](https://amaiya.github.io/onprem/examples_agent.html).                                                                                                 |
+| `all`    | `pip install onprem[all]`    | Everything (equivalent to the previous full installation).                                                                                                                  |
+
+If you need local embeddings and local document parsing in addition to local models, you can combine extras:
+
+``` sh
+pip install onprem[local,docs,chroma]
+```
 
 **Llama-cpp-python is optional:**
 
@@ -116,7 +129,7 @@ If using llama-cpp-python as the LLM backend:
 Installing llama-cpp-python is *optional* if any of the following is true:
 
 - You are using [Ollama](https://ollama.com/) as the LLM backend.
-- You use Hugging Face Transformers (instead of llama-cpp-python) as the LLM backend by supplying the `model_id` parameter when instantiating an LLM, as [shown here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp).
+- You use Hugging Face Transformers (instead of llama-cpp-python) as the LLM backend by supplying the `model_id` parameter when instantiating an LLM, as [shown here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp). (Requires `pip install onprem[local]`.)
 - You are using **OnPrem.LLM** with an LLM being served through an [external REST API](https://amaiya.github.io/onprem/#cheat-sheet) (e.g., vLLM, OpenLLM).
 - You are using **OnPrem.LLM** with a [cloud LLM](https://amaiya.github.io/onprem/#cheat-sheet) (see cheat sheet below).
 

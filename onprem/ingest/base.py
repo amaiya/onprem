@@ -63,7 +63,13 @@ class _UnstructuredLoader:
         self.unstructured_kwargs = unstructured_kwargs
 
     def _get_elements(self):
-        from unstructured.partition.auto import partition
+        try:
+            from unstructured.partition.auto import partition
+        except ImportError:
+            raise ImportError(
+                "Parsing this document type requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
         return partition(filename=str(self.file_path), **self.unstructured_kwargs)
 
     def _get_metadata(self):

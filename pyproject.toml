@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{name = "Arun S. Maiya", email = "arun@maiya.net"}]
 keywords = ['nbdev', 'jupyter', 'notebook', 'python']
 classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
-dependencies = ['unstructured[all-docs]', 'nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'sentence_transformers', 'cmake', 'setfit', 'litellm', 'huggingface_hub', 'transformers', 'accelerate', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'gmft', 'langchain', 'langchain-core', 'langchain-text-splitters', 'langchain_litellm', 'langchain-openai', 'langchain-huggingface']
+dependencies = ['nltk>=3.9.1', 'PyMuPDF', 'pymupdf4llm==0.0.17', 'extract-msg', 'tabulate', 'pandoc', 'pypandoc', 'requests', 'tqdm', 'syntok', 'pandas', 'cmake', 'litellm', 'huggingface_hub', 'langdetect', 'charset_normalizer', 'python-magic', 'whoosh-reloaded', 'pyparsing', 'openpyxl', 'streamlit', 'langchain', 'langchain-core', 'langchain-text-splitters', 'langchain_litellm', 'langchain-openai']
 
 [project.urls]
 Repository = "https://github.com/amaiya/onprem"
@@ -32,7 +32,9 @@ chinese = ['jieba']
 aws = ['boto3']
 agent = ['patchpal']
 guidance = ['guidance>=0.1.5']
-all = ['langchain_chroma', 'chromadb', 'elasticsearch', 'requests_ntlm', 'shap', 'matplotlib', 'jieba', 'boto3', 'patchpal', 'guidance>=0.1.5']
+local = ['transformers', 'accelerate', 'sentence_transformers', 'setfit', 'langchain-huggingface']
+docs = ['unstructured[all-docs]', 'gmft']
+all = ['langchain_chroma', 'chromadb', 'elasticsearch', 'requests_ntlm', 'shap', 'matplotlib', 'jieba', 'boto3', 'patchpal', 'guidance>=0.1.5', 'transformers', 'accelerate', 'sentence_transformers', 'setfit', 'langchain-huggingface', 'unstructured[all-docs]', 'gmft']
 
 
 [project.scripts]

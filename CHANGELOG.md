@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.25.0 (2026-10-08)
+
+### new:
+- Support for lightweight installs
+
+### changed
+- N/A
+
+### fixed:
+- N/A
+
+
 ## 0.24.4 (2026-10-06)
 
 ### new:

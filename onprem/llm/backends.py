@@ -940,7 +940,13 @@ class HFPipeline:
         Any extra keyword arguments are forwarded to `transformers.pipeline`
         (e.g., `temperature`, `device_map`, `torch_dtype`, `model_kwargs`).
         """
-        from transformers import pipeline, TextStreamer, AutoTokenizer
+        try:
+            from transformers import pipeline, TextStreamer, AutoTokenizer
+        except ImportError:
+            raise ImportError(
+                "Using the Hugging Face Transformers backend (e.g., the `model_id` parameter) "
+                "requires extra dependencies. Install them with: pip install onprem[local]"
+            )
 
         tokenizer = tokenizer if tokenizer is not None else AutoTokenizer.from_pretrained(model_id)
         streamer = TextStreamer(tokenizer)
