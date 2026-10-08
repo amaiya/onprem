@@ -255,9 +255,11 @@ class LLM:
         in LiteLLM-style syntax.
         """
         if model_url:
-            if (":" not in model_url or model_url.startswith('ollama')) and model_url.count("/") == 1:
-                # conclude that this a standard LiteLLM path (e.g., openai/gpt-4o)
-                # or Ollama model which contain ":"
+            if "://" not in model_url and model_url.count("/") == 1:
+                # conclude that this is a standard LiteLLM path (e.g., openai/gpt-4o).
+                # A ":" inside the model name (e.g., Ollama tags like llama3:8b or
+                # version suffixes like bedrock-gpt-oss-120b-v1:0) is part of the model
+                # name and must NOT trigger the scheme-splitting logic below.
                 return model_url
             
             # Special handling for govcloud-bedrock that supports both :// and / separators

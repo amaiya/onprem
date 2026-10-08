@@ -16,7 +16,7 @@ Most recent releases are shown at the top. Each release shows:
 - N/A
 
 ### fixed:
-- N/A
+- Fix `model_url` handling of model names with colons: (openai/gpt-oss-v1:0).
 
 
 ## 0.24.4 (2026-10-06)
