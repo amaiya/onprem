@@ -199,6 +199,14 @@ class MyUnstructuredPDFLoader(_UnstructuredLoader):
             table_docs = [helpers.create_document(t, source=self.file_path, table=True) for t in tables]
             docs.extend(table_docs)
             return docs
+        except ImportError:
+            # The hi-res/OCR strategy relies on unstructured's vision models
+            # (unstructured-inference, etc.), which are part of the heavier
+            # `onprem[docs-ml]` extra.
+            raise ImportError(
+                "High-resolution/OCR PDF parsing requires extra dependencies. "
+                "Install them with: pip install onprem[docs-ml]"
+            )
         except Exception as e:
             # Add file_path to exception message
             raise Exception(f'{self.file_path} : {e}')

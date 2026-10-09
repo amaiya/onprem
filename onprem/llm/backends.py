@@ -945,7 +945,7 @@ class HFPipeline:
         except ImportError:
             raise ImportError(
                 "Using the Hugging Face Transformers backend (e.g., the `model_id` parameter) "
-                "requires extra dependencies. Install them with: pip install onprem[local]"
+                "requires extra dependencies. Install them with: pip install onprem[huggingface]"
             )
 
         tokenizer = tokenizer if tokenizer is not None else AutoTokenizer.from_pretrained(model_id)

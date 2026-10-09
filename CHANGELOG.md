@@ -7,6 +7,20 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.26.0 (2026-10-09)
+
+### new:
+- Support for **cloud/OpenAI-compatible embeddings** for RAG (no PyTorch): pass `embedding_model_name='openai/<model>'` (OpenAI, Ollama, vLLM, etc.).
+- Added `sklearn` extra (topic modeling and scikit-learn text classifier).
+
+### changed
+- Renamed the `local` extra to `huggingface`.
+- Split `docs` into lightweight parsing (`docs`, no PyTorch) and ML-based extraction (`docs-ml`: hi-res/OCR PDF parsing and table inference).
+
+### fixed:
+- N/A
+
+
 ## 0.25.0 (2026-10-08)
 
 ### new:

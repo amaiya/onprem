@@ -26,9 +26,9 @@ _LAZY_IMPORTS = {
 # missing dependency surfaces an actionable "pip install onprem[...]" message
 # instead of a bare ModuleNotFoundError for a transitive dependency.
 _PIPELINE_EXTRAS = {
-    "FewShotClassifier": "local",
+    "FewShotClassifier": "huggingface",
     "SKClassifier": "sklearn",
-    "HFClassifier": "local",
+    "HFClassifier": "huggingface",
     "AgentExecutor": "agent",
     "Guider": "guidance",
 }

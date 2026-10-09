@@ -275,7 +275,7 @@ def _require_transformers():
     """Lazily import the Hugging Face Transformers stack used by `HFClassifier`.
 
     Kept out of module scope so that `SKClassifier` (pure scikit-learn) can be
-    used without installing the heavier `onprem[local]` dependencies.
+    used without installing the heavier `onprem[huggingface]` dependencies.
     """
     try:
         from ..hf import HFTrainer
@@ -283,7 +283,7 @@ def _require_transformers():
     except ImportError:
         raise ImportError(
             "Using `HFClassifier` requires extra dependencies. "
-            "Install them with: pip install onprem[local]"
+            "Install them with: pip install onprem[huggingface]"
         )
     return HFTrainer, pipeline
 

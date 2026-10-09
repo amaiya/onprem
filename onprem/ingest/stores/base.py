@@ -74,15 +74,39 @@ class VectorStore(ABC):
         db = None
         return
     
-    def init_embedding_model(self, 
+    def init_embedding_model(self,
                              embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
                              embedding_model_kwargs: Optional[dict] = None,
                              embedding_encode_kwargs: dict = {"normalize_embeddings": False},
                              **kwargs
                              ):
         """
-        Instantiate embedding model
+        Instantiate the embedding model used for RAG/semantic search.
+
+        By default, a local `sentence-transformers` model is used (requires the
+        `onprem[huggingface]` extra). To use **cloud or OpenAI-compatible embeddings**
+        instead (no PyTorch required), prefix `embedding_model_name` with
+        `openai/` and pass any client options via `embedding_model_kwargs`:
+
+            # OpenAI
+            store.init_embedding_model(
+                embedding_model_name="openai/text-embedding-3-small")
+
+            # Any OpenAI-compatible server (Ollama, vLLM, LM Studio, ...)
+            store.init_embedding_model(
+                embedding_model_name="openai/nomic-embed-text",
+                embedding_model_kwargs={"base_url": "http://localhost:11434/v1",
+                                        "api_key": "ollama"})
         """
+        # Cloud / OpenAI-compatible embeddings (uses langchain-openai, a base
+        # dependency, so no PyTorch/local model is required).
+        if embedding_model_name.lower().startswith("openai/"):
+            from langchain_openai import OpenAIEmbeddings
+            model = embedding_model_name.split("/", 1)[1]
+            self.embeddings = OpenAIEmbeddings(model=model, **(embedding_model_kwargs or {}))
+            return
+
+        # Default: local Hugging Face embeddings (requires onprem[huggingface]).
         try:
             if not embedding_model_kwargs:
                 import torch
@@ -92,7 +116,10 @@ class VectorStore(ABC):
         except ImportError:
             raise ImportError(
                 "Computing local embeddings (used by RAG/semantic search) requires extra "
-                "dependencies. Install them with: pip install onprem[local]"
+                "dependencies. Install them with: pip install onprem[huggingface]. "
+                "Alternatively, use cloud/OpenAI-compatible embeddings by passing "
+                "embedding_model_name='openai/<model>' (optionally with "
+                "embedding_model_kwargs={'base_url': ..., 'api_key': ...})."
             )
         self.embeddings =  HuggingFaceEmbeddings(model_name=embedding_model_name,
                                      model_kwargs=embedding_model_kwargs,
@@ -107,21 +134,27 @@ class VectorStore(ABC):
 
     def compute_similarity(self, query:str, texts:list):
         """
-        Computes semantic similarity between a query and a list of texts
+        Computes semantic similarity (cosine) between a query and a list of texts.
+
+        Uses NumPy (a base dependency) so that cloud/OpenAI-compatible embeddings
+        work without requiring the local PyTorch stack (`onprem[huggingface]`).
         """
-        from sentence_transformers import util
-        import torch
+        import numpy as np
 
         embeddings = self.get_embedding_model()
 
         # Compute embeddings
-        query_emb = torch.tensor(embeddings.embed_query(query)).unsqueeze(0)  # Shape (1, embedding_dim)
-        text_embs = torch.tensor(embeddings.embed_documents(texts))  # Shape (len(texts), embedding_dim)
+        query_emb = np.asarray(embeddings.embed_query(query), dtype=float)          # (dim,)
+        text_embs = np.asarray(embeddings.embed_documents(texts), dtype=float)      # (n, dim)
 
-        # Compute cosine similarity
-        cos_scores = util.pytorch_cos_sim(query_emb, text_embs).squeeze(0).tolist()  # Shape (len(texts),)
+        # Cosine similarity between the query and each text
+        query_norm = np.linalg.norm(query_emb)
+        text_norms = np.linalg.norm(text_embs, axis=1)
+        denom = text_norms * query_norm
+        denom[denom == 0] = 1e-12  # avoid division by zero
+        cos_scores = (text_embs @ query_emb) / denom
 
-        return cos_scores
+        return cos_scores.tolist()
 
 
     def check(self):

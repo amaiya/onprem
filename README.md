@@ -84,6 +84,8 @@ Many LLM backends are supported (e.g., [llama_cpp](https://github.com/abetlen/ll
 
 *Latest News* 🔥
 
+- \[2026/10\] v0.26.0 released: **RAG/semantic search now works without PyTorch** via cloud or OpenAI-compatible embeddings (OpenAI, Ollama, vLLM, etc.) using `embedding_model_name='openai/<model>'`. The `local` extra is renamed to `huggingface`. See the [FAQ](https://amaiya.github.io/onprem/#faq).
+- \[2026/10\] v0.25.0 released with **lightweight installs**: the base install no longer pulls in PyTorch or other heavy ML dependencies. Optional capabilities are now available via extras (e.g., `onprem[huggingface]`, `onprem[docs]`). See [Install](https://amaiya.github.io/onprem/#install).
 - \[2026/09\] v0.24.0 released with better GGUF-handling. Embedded prompt templates are automatically used when available. See [cheatsheet](https://amaiya.github.io/onprem/#cheat-sheet) for examples.
 - \[2026/06\] v0.23.0 released and includes improved information extraction.
 - \[2026/03\] v0.22.0 released and now includes the **AgentExecutor**: safely launch AI agents in a sandboxed environment to solve problems in two lines of code. See [the example notebook on agents](https://amaiya.github.io/onprem/examples_agent.html).
@@ -105,19 +107,23 @@ pip install onprem
 
 Additional capabilities are available through optional dependency groups (“extras”):
 
-| Extra    | Install command              | Enables                                                                                                                                                                          |
-|----------|------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `local`  | `pip install onprem[local]`  | Local models via Hugging Face Transformers (the `model_id` parameter) and local embeddings used by RAG/semantic search. *Pulls in PyTorch.*                                      |
-| `docs`   | `pip install onprem[docs]`   | Parsing/extraction of documents (PDF, Office, email, and complex types) for ingestion and text extraction. *Semantic search / RAG also requires `[local]` for local embeddings.* |
-| `app`    | `pip install onprem[app]`    | The built-in web app / UI (Streamlit).                                                                                                                                           |
-| `chroma` | `pip install onprem[chroma]` | RAG with the default Chroma “Dense” vectorstore (instead of the [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)).      |
-| `agent`  | `pip install onprem[agent]`  | Launching [AI agents](https://amaiya.github.io/onprem/examples_agent.html).                                                                                                      |
-| `all`    | `pip install onprem[all]`    | Everything (equivalent to the previous full installation).                                                                                                                       |
+| Extra         | Install command                   | Enables                                                                                                                                                                     |
+|---------------|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `huggingface` | `pip install onprem[huggingface]` | Local models via Hugging Face Transformers (the `model_id` parameter), local embeddings for RAG/semantic search, and SetFit few-shot classification. *Pulls in PyTorch.*    |
+| `docs`        | `pip install onprem[docs]`        | Lightweight parsing/extraction of documents (PDF text, Office, email, HTML, Markdown, etc.) for ingestion and text extraction. *No PyTorch.*                                |
+| `docs-ml`     | `pip install onprem[docs-ml]`     | ML-based document extraction: high-resolution/OCR PDF parsing and table-structure inference (`unstructured[all-docs]`, `gmft`). *Pulls in PyTorch.*                         |
+| `sklearn`     | `pip install onprem[sklearn]`     | scikit-learn topic modeling and the scikit-learn text classifier.                                                                                                           |
+| `app`         | `pip install onprem[app]`         | The built-in web app / UI (Streamlit).                                                                                                                                      |
+| `chroma`      | `pip install onprem[chroma]`      | RAG with the default Chroma “Dense” vectorstore (instead of the [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)). |
+| `agent`       | `pip install onprem[agent]`       | Launching [AI agents](https://amaiya.github.io/onprem/examples_agent.html).                                                                                                 |
+| `all`         | `pip install onprem[all]`         | Everything (equivalent to the previous full installation).                                                                                                                  |
 
-If you need local embeddings and local document parsing in addition to local models, you can combine extras:
+**RAG/semantic search does not require PyTorch.** You can run RAG against documents using **cloud or OpenAI-compatible embeddings** (OpenAI, Ollama, vLLM, etc.) with only the base install (plus `[docs]` for parsing your documents) — see the [FAQ](https://amaiya.github.io/onprem/#faq). The `[huggingface]` extra is only needed if you want **local** embeddings computed on your own machine with `sentence-transformers`.
+
+You can combine extras as needed, for example:
 
 ``` sh
-pip install onprem[local,docs,chroma]
+pip install onprem[huggingface,docs,chroma]
 ```
 
 **Llama-cpp-python is optional:**
@@ -130,7 +136,7 @@ If using llama-cpp-python as the LLM backend:
 Installing llama-cpp-python is *optional* if any of the following is true:
 
 - You are using [Ollama](https://ollama.com/) as the LLM backend.
-- You use Hugging Face Transformers (instead of llama-cpp-python) as the LLM backend by supplying the `model_id` parameter when instantiating an LLM, as [shown here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp). (Requires `pip install onprem[local]`.)
+- You use Hugging Face Transformers (instead of llama-cpp-python) as the LLM backend by supplying the `model_id` parameter when instantiating an LLM, as [shown here](https://amaiya.github.io/onprem/#using-hugging-face-transformers-instead-of-llama.cpp). (Requires `pip install onprem[huggingface]`.)
 - You are using **OnPrem.LLM** with an LLM being served through an [external REST API](https://amaiya.github.io/onprem/#cheat-sheet) (e.g., vLLM, OpenLLM).
 - You are using **OnPrem.LLM** with a [cloud LLM](https://amaiya.github.io/onprem/#cheat-sheet) (see cheat sheet below).
 
@@ -498,6 +504,23 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
     > ``` python
     > llm = LLM("anthropic/claude-4-5-sonnet-latest", max_output=32000) # example
     > ```
+
+9.  **How do I use cloud or OpenAI-compatible embeddings for RAG (instead of local embeddings)?**
+
+    > By default, RAG/semantic search uses a local `sentence-transformers` model (requires the `onprem[huggingface]` extra and PyTorch). To use cloud or OpenAI-compatible embeddings instead (no PyTorch required), prefix `embedding_model_name` with `openai/` and supply client options via `embedding_model_kwargs`. This works with OpenAI as well as any OpenAI-compatible server (Ollama, vLLM, LM Studio, etc.).
+    >
+    > ``` python
+    > # OpenAI
+    > llm = LLM(embedding_model_name="openai/text-embedding-3-small")
+    >
+    > # Ollama (or any OpenAI-compatible server)
+    > llm = LLM(embedding_model_name="openai/nomic-embed-text",
+    >          embedding_model_kwargs={"base_url": "http://localhost:11434/v1",
+    >                                  "api_key": "ollama",
+    >                                  "check_embedding_ctx_length": False})
+    > ```
+    >
+    > **Note for Ollama/local servers:** set `"check_embedding_ctx_length": False` in `embedding_model_kwargs`. Without it, the OpenAI client pre-tokenizes the input and sends integer token IDs, which Ollama rejects with `400 - invalid input type`. This flag sends the raw text instead. (Real OpenAI works with or without it.)
 
 <!--
 8. **What are ways in which OnPrem.LLM has been used?**
