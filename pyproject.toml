@@ -23,7 +23,7 @@ Documentation = "https://amaiya.github.io/onprem"
 onprem = "onprem._modidx:d"
 
 [project.optional-dependencies]
-dev = ['nbdev']
+dev = ['nbdev', 'onprem[all]']
 chroma = ['langchain_chroma', 'chromadb']
 elasticsearch = ['elasticsearch']
 sharepoint = ['requests_ntlm']
