@@ -105,14 +105,14 @@ pip install onprem
 
 Additional capabilities are available through optional dependency groups (“extras”):
 
-| Extra    | Install command              | Enables                                                                                                                                                                     |
-|----------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `local`  | `pip install onprem[local]`  | Local models via Hugging Face Transformers (the `model_id` parameter) and local embeddings used by RAG/semantic search. *Pulls in PyTorch.*                                 |
-| `docs`   | `pip install onprem[docs]`   | Document ingestion/parsing for RAG and text extraction (PDF, Office, email, and complex document types).                                                                    |
-| `app`    | `pip install onprem[app]`    | The built-in web app / UI (Streamlit).                                                                                                                                      |
-| `chroma` | `pip install onprem[chroma]` | RAG with the default Chroma “Dense” vectorstore (instead of the [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)). |
-| `agent`  | `pip install onprem[agent]`  | Launching [AI agents](https://amaiya.github.io/onprem/examples_agent.html).                                                                                                 |
-| `all`    | `pip install onprem[all]`    | Everything (equivalent to the previous full installation).                                                                                                                  |
+| Extra    | Install command              | Enables                                                                                                                                                                          |
+|----------|------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `local`  | `pip install onprem[local]`  | Local models via Hugging Face Transformers (the `model_id` parameter) and local embeddings used by RAG/semantic search. *Pulls in PyTorch.*                                      |
+| `docs`   | `pip install onprem[docs]`   | Parsing/extraction of documents (PDF, Office, email, and complex types) for ingestion and text extraction. *Semantic search / RAG also requires `[local]` for local embeddings.* |
+| `app`    | `pip install onprem[app]`    | The built-in web app / UI (Streamlit).                                                                                                                                           |
+| `chroma` | `pip install onprem[chroma]` | RAG with the default Chroma “Dense” vectorstore (instead of the [sparse vectorstore](https://amaiya.github.io/onprem/#step-1-ingest-the-documents-into-a-vector-database)).      |
+| `agent`  | `pip install onprem[agent]`  | Launching [AI agents](https://amaiya.github.io/onprem/examples_agent.html).                                                                                                      |
+| `all`    | `pip install onprem[all]`    | Everything (equivalent to the previous full installation).                                                                                                                       |
 
 If you need local embeddings and local document parsing in addition to local models, you can combine extras:
 
