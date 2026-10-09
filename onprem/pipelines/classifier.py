@@ -267,10 +267,25 @@ class SKClassifier(ClassifierBase):
         
 
 # %% ../../nbs/04_pipelines.classifier.ipynb #61b8f15c
-from ..hf import HFTrainer
-from transformers import pipeline
 import numpy as np
 import os.path
+
+
+def _require_transformers():
+    """Lazily import the Hugging Face Transformers stack used by `HFClassifier`.
+
+    Kept out of module scope so that `SKClassifier` (pure scikit-learn) can be
+    used without installing the heavier `onprem[local]` dependencies.
+    """
+    try:
+        from ..hf import HFTrainer
+        from transformers import pipeline
+    except ImportError:
+        raise ImportError(
+            "Using `HFClassifier` requires extra dependencies. "
+            "Install them with: pip install onprem[local]"
+        )
+    return HFTrainer, pipeline
 
 
 class HFClassifier(ClassifierBase):
@@ -344,6 +359,7 @@ class HFClassifier(ClassifierBase):
         data = [{'text': x, 'label':y[i]} for i, x in enumerate(X)]
 
         # create a trainer
+        HFTrainer, _ = _require_transformers()
         trainer = HFTrainer()
 
         # train
@@ -377,6 +393,7 @@ class HFClassifier(ClassifierBase):
             modelpath = temp_dir.name
         else:
             modelpath = self.model_id_or_path
+        _, pipeline = _require_transformers()
         clf = pipeline('text-classification', model=modelpath, device=self.device)
         return clf
         
@@ -421,7 +438,6 @@ class HFClassifier(ClassifierBase):
 
 
 # %% ../../nbs/04_pipelines.classifier.ipynb #677ae6e7
-from sklearn.datasets import fetch_20newsgroups
 from .classifier import HFClassifier
 
 # %% ../../nbs/04_pipelines.classifier.ipynb #77ff6d1b

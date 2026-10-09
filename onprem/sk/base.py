@@ -18,7 +18,6 @@ import pandas as pd
 import warnings
 
 import charset_normalizer as chardet
-import langdetect
 
 DEFAULT_TOKEN_PATTERN = (
     r"\b[a-zA-Z][a-zA-Z0-9]*(?:[_/&-][a-zA-Z0-9]+)+\b|"
@@ -90,6 +89,13 @@ def detect_lang(texts:list, sample_size:int=32):
     if not isinstance(texts, (list, np.ndarray)):
         raise ValueError("texts must be a list or NumPy array of strings")
     lst = []
+    try:
+        import langdetect
+    except ImportError:
+        raise ImportError(
+            "Language detection requires the `langdetect` package. "
+            "Install it with: pip install langdetect"
+        )
     for doc in texts[:sample_size]:
         try:
             lst.append(langdetect.detect(doc))

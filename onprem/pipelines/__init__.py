@@ -22,6 +22,17 @@ _LAZY_IMPORTS = {
     "Guider": "onprem.pipelines.guider",
 }
 
+# Map each pipeline to the optional extra required to use it (if any), so that a
+# missing dependency surfaces an actionable "pip install onprem[...]" message
+# instead of a bare ModuleNotFoundError for a transitive dependency.
+_PIPELINE_EXTRAS = {
+    "FewShotClassifier": "local",
+    "SKClassifier": "sklearn",
+    "HFClassifier": "local",
+    "AgentExecutor": "agent",
+    "Guider": "guidance",
+}
+
 __all__ = list(_LAZY_IMPORTS)
 
 
@@ -32,7 +43,16 @@ def __getattr__(name):
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     import importlib
 
-    module = importlib.import_module(module_path)
+    try:
+        module = importlib.import_module(module_path)
+    except ImportError as e:
+        extra = _PIPELINE_EXTRAS.get(name)
+        if extra is not None:
+            raise ImportError(
+                f"Using `{name}` requires extra dependencies. "
+                f"Install them with: pip install onprem[{extra}]"
+            ) from e
+        raise
     attr = getattr(module, name)
     # Cache on the package so subsequent lookups skip __getattr__.
     globals()[name] = attr

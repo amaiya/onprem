@@ -216,7 +216,13 @@ class _PyMuPDFLoader:
         self.text_kwargs = kwargs
 
     def _load_pages(self) -> List[Document]:
-        import pymupdf
+        try:
+            import pymupdf
+        except ImportError:
+            raise ImportError(
+                "Parsing PDF documents requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
         docs = []
         with pymupdf.open(self.file_path) as pdf:
             for page in pdf:
@@ -232,6 +238,9 @@ class _PyMuPDFLoader:
             if self.infer_table_structure:
                 docs = helpers.extract_tables(docs=docs)
             return docs
+        except ImportError:
+            # Let missing-dependency errors propagate with their helpful message.
+            raise
         except Exception as e:
             raise Exception(f'{self.file_path} : {e}')
 
@@ -240,7 +249,13 @@ class PDF2MarkdownLoader(_PyMuPDFLoader):
     """Custom PDF to Markdown Loader (via pymupdf4llm)."""
 
     def load(self) -> List[Document]:
-        import pymupdf4llm
+        try:
+            import pymupdf4llm
+        except ImportError:
+            raise ImportError(
+                "Parsing PDF documents requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
         try:
             md_text = pymupdf4llm.to_markdown(self.file_path, show_progress=False)
             if not md_text.strip():
@@ -544,6 +559,11 @@ def load_single_document(file_path: str, # path to file
                 extra_keys.extend(['truncated', 'truncated_word_count', 'original_word_count'])
 
             return helpers.set_metadata_defaults(docs, extra_keys=extra_keys)
+        except ImportError:
+            # Missing optional dependencies (e.g., onprem[docs]) are an environment
+            # issue, not a bad file. Re-raise so the helpful install message surfaces
+            # instead of being silently swallowed and returning None.
+            raise
         except Exception as e:
             logger.warning(f'\nSkipping {file_path} due to error: {str(e)}')
             import traceback
