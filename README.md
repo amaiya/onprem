@@ -98,7 +98,7 @@ Many LLM backends are supported (e.g., [llama_cpp](https://github.com/abetlen/ll
 
 ## Install
 
-**OnPrem.LLM** now has a **lightweight base install by default**: the base installation does *not* pull in PyTorch or other large machine-learning dependencies. This is ideal if you simply want to use **OnPrem.LLM** as a wrapper to a serving harness for local LLMs (e.g., Ollama, vLLM, LM Studio) our cloud LLM (e.g., OpenAI, Anthropic).
+**OnPrem.LLM** now has a **lightweight base install by default**: the base installation does *not* pull in PyTorch or other large machine-learning dependencies. This is ideal if you simply want to use **OnPrem.LLM** as a wrapper to a serving harness for local LLMs (e.g., Ollama, vLLM, LM Studio) or cloud LLMs (e.g., OpenAI, Anthropic).
 
 ``` sh
 # minimal install (Ollama, REST-API-served LLMs like vLLM, or cloud LLMs) — no PyTorch
