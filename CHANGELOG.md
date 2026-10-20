@@ -7,6 +7,18 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.27.0 (2026-10-19)
+
+### new:
+- Added the `Decider` pipeline for typed, calibrated decisions (ask, choice, classify, score) via the `/v1/systemone` API.
+
+### changed
+- `onprem[docs]` is now a lightweight ingestion tier that parses `.docx`, `.pptx`, `.xlsx`, `.html`, and `.md` without `unstructured` (no PyTorch/numba/spacy); legacy/OCR formats (`.doc`, `.ppt`, `.odt`, `.epub`, `.eml`, OCR PDF) now require `onprem[docs-ml]`.
+
+### fixed:
+- N/A
+
+
 ## 0.26.0 (2026-10-09)
 
 ### new:

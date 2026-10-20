@@ -308,6 +308,136 @@ class _PDFtoTextLoader:
             raise Exception(f'{self.file_path} : {e}')
 
 
+class _DocxLoader:
+    """Lightweight .docx loader using python-docx (no unstructured/torch).
+
+    Extracts paragraph and table text. Legacy binary .doc is NOT supported here
+    (use `onprem[docs-ml]`, which routes .doc through unstructured).
+    """
+
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+
+    def load(self) -> List[Document]:
+        try:
+            import docx  # python-docx
+        except ImportError:
+            raise ImportError(
+                "Parsing .docx requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
+        d = docx.Document(self.file_path)
+        parts = [p.text for p in d.paragraphs if p.text]
+        for table in d.tables:
+            for row in table.rows:
+                cells = [c.text.strip() for c in row.cells]
+                if any(cells):
+                    parts.append("\t".join(cells))
+        text = "\n".join(parts)
+        return [Document(page_content=text, metadata={"source": str(self.file_path)})]
+
+
+class _PptxLoader:
+    """Lightweight .pptx loader using python-pptx (no unstructured/torch).
+
+    Extracts text from shapes and tables across all slides. Legacy binary .ppt
+    is NOT supported here (use `onprem[docs-ml]`).
+    """
+
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+
+    def load(self) -> List[Document]:
+        try:
+            from pptx import Presentation  # python-pptx
+        except ImportError:
+            raise ImportError(
+                "Parsing .pptx requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
+        prs = Presentation(self.file_path)
+        parts = []
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if shape.has_text_frame and shape.text_frame.text:
+                    parts.append(shape.text_frame.text)
+                if shape.has_table:
+                    for row in shape.table.rows:
+                        cells = [c.text.strip() for c in row.cells]
+                        if any(cells):
+                            parts.append("\t".join(cells))
+        text = "\n".join(parts)
+        return [Document(page_content=text, metadata={"source": str(self.file_path)})]
+
+
+class _XlsxLoader:
+    """Lightweight .xlsx loader using openpyxl (no unstructured/torch).
+
+    Produces one Document per worksheet with tab-separated cell values.
+    """
+
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+
+    def load(self) -> List[Document]:
+        try:
+            import openpyxl
+        except ImportError:
+            raise ImportError(
+                "Parsing .xlsx requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
+        wb = openpyxl.load_workbook(self.file_path, read_only=True, data_only=True)
+        docs = []
+        for ws in wb.worksheets:
+            rows = []
+            for row in ws.iter_rows(values_only=True):
+                rows.append("\t".join("" if c is None else str(c) for c in row))
+            content = "\n".join(rows)
+            docs.append(Document(
+                page_content=content,
+                metadata={"source": str(self.file_path), "sheet": ws.title},
+            ))
+        wb.close()
+        return docs if docs else [Document(page_content="", metadata={"source": str(self.file_path)})]
+
+
+class _HTMLLoader:
+    """Lightweight .html/.htm loader using BeautifulSoup (no unstructured/torch)."""
+
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+
+    def load(self) -> List[Document]:
+        try:
+            from bs4 import BeautifulSoup
+        except ImportError:
+            raise ImportError(
+                "Parsing .html requires extra dependencies. "
+                "Install them with: pip install onprem[docs]"
+            )
+        with open(self.file_path, encoding="utf-8", errors="replace") as f:
+            soup = BeautifulSoup(f.read(), "html.parser")
+        for tag in soup(["script", "style"]):
+            tag.decompose()
+        text = soup.get_text(separator="\n")
+        text = "\n".join(line.strip() for line in text.splitlines() if line.strip())
+        return [Document(page_content=text, metadata={"source": str(self.file_path)})]
+
+
+class _MarkdownLoader:
+    """Lightweight .md loader (no unstructured/torch).
+
+    Keeps the raw Markdown text, which is typically ideal for RAG ingestion.
+    """
+
+    def __init__(self, file_path, **kwargs):
+        self.file_path = file_path
+
+    def load(self) -> List[Document]:
+        with open(self.file_path, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+        return [Document(page_content=text, metadata={"source": str(self.file_path)})]
 
 
 # %% ../../nbs/01_ingest.base.ipynb #816b67de
@@ -320,18 +450,18 @@ PDF_EXTS = [PDF, PDFOCR, PDFMD, PDFTXT]
 OCR_CHAR_THRESH = 32
 LOADER_MAPPING = {
     "csv": (_CSVLoader, {}),
-    "doc": (_UnstructuredLoader, {}),
-    "docx": (_UnstructuredLoader, {}),
-    "xlsx": (_UnstructuredLoader, {}),
+    "doc": (_UnstructuredLoader, {}),      # legacy binary .doc -> unstructured ([docs-ml])
+    "docx": (_DocxLoader, {}),             # modern .docx -> python-docx (light)
+    "xlsx": (_XlsxLoader, {}),             # .xlsx -> openpyxl (light)
     "enex": (_EverNoteLoader, {}),
     "eml": (MyElmLoader, {}),
     "epub": (_UnstructuredLoader, {}),
-    "html": (_UnstructuredLoader, {}),
-    "htm": (_UnstructuredLoader, {}),
-    "md": (_UnstructuredLoader, {}),
+    "html": (_HTMLLoader, {}),             # .html -> BeautifulSoup (light)
+    "htm": (_HTMLLoader, {}),              # .htm -> BeautifulSoup (light)
+    "md": (_MarkdownLoader, {}),           # .md -> raw markdown (light)
     "odt": (_UnstructuredLoader, {}),
-    "ppt": (_UnstructuredLoader, {}),
-    "pptx": (_UnstructuredLoader, {}),
+    "ppt": (_UnstructuredLoader, {}),      # legacy binary .ppt -> unstructured ([docs-ml])
+    "pptx": (_PptxLoader, {}),             # modern .pptx -> python-pptx (light)
     "txt": (_TextLoader, {"autodetect_encoding": True}),
     "json": (_TextLoader, {"autodetect_encoding": True}),
     PDF   : (_PyMuPDFLoader, {}),
