@@ -20,6 +20,7 @@ _LAZY_IMPORTS = {
     "KVRouter": "onprem.pipelines.rag",
     "CategorySelection": "onprem.pipelines.rag",
     "Guider": "onprem.pipelines.guider",
+    "Decider": "onprem.pipelines.decider",
 }
 
 # Map each pipeline to the optional extra required to use it (if any), so that a
