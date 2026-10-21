@@ -84,6 +84,7 @@ Many LLM backends are supported (e.g., [llama_cpp](https://github.com/abetlen/ll
 
 *Latest News* 🔥
 
+- \[2026/10\] v0.27.0 released and now includes support for Decision Models. See the [example notebook](https://amaiya.github.io/onprem/examples_decision_models.html).
 - \[2026/10\] v0.26.0 released: **RAG/semantic search now works without PyTorch** via cloud or OpenAI-compatible embeddings (OpenAI, Ollama, vLLM, etc.) using `embedding_model_name='openai/<model>'`. The `local` extra is renamed to `huggingface`. See the [FAQ](https://amaiya.github.io/onprem/#faq).
 - \[2026/10\] v0.25.0 released with **lightweight installs**: the base install no longer pulls in PyTorch or other heavy ML dependencies. Optional capabilities are now available via extras (e.g., `onprem[huggingface]`, `onprem[docs]`). See [Install](https://amaiya.github.io/onprem/#install).
 - \[2026/09\] v0.24.0 released with better GGUF-handling. Embedded prompt templates are automatically used when available. See [cheatsheet](https://amaiya.github.io/onprem/#cheat-sheet) for examples.

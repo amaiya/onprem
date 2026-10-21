@@ -15,6 +15,7 @@ website:
         - 99j_examples_legal_analysis.ipynb
         - 99k_examples_agent.ipynb
         - 99m_examples_text_extraction.ipynb
+        - 99n_examples_decision_models.ipynb
         - 99x_examples_openai.ipynb
         - 99l_examples_vectorstore_factory.ipynb
         - workflows.qmd
@@ -38,4 +39,5 @@ website:
         - 04_pipelines.summarizer.ipynb
         - 04_pipelines.classifier.ipynb
         - 04_pipelines.guider.ipynb
+        - 04_pipelines.decider.ipynb
         - 04_pipelines.agent.base.ipynb
