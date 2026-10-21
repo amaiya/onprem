@@ -411,6 +411,63 @@ def test_decider(**kwargs):
     except ValueError:
         pass
 
+    # --- /v1/decisions (OpenAI) protocol: request translation + response normalization ---
+    dcap = {}
+
+    def fake_post_decisions(payload):
+        dcap['payload'] = payload
+        return {
+            "model": "gpt-6-luna",
+            "answers": [
+                {"type": "predicate", "name": "noul_0", "probability": 0.92},
+                {
+                    "type": "choice", "name": "choice_0", "choice": "billing",
+                    "probabilities": [
+                        {"value": "billing", "probability": 0.95},
+                        {"value": "other", "probability": 0.05},
+                    ],
+                    "confidence": 0.93,
+                },
+                {"type": "score", "name": "score_0", "score": 1.4},
+            ],
+        }
+
+    dd = Decider(base_url="https://api.openai.com", model="gpt-6-luna",
+                 api_key="test", protocol="decisions")
+    assert dd.endpoint.endswith("/v1/decisions")
+    dd._post = fake_post_decisions
+
+    rd = dd.ask(
+        "I was charged twice.",
+        nouls=["Does the customer ask for a refund?"],
+        choices=[("Which team?", ["billing", "other"])],
+        scores=[("How urgent?", ["low", "medium", "high"])],
+    )
+    # request was translated to the OpenAI shape
+    dp = dcap['payload']
+    assert dp["input"] == "I was charged twice."          # state -> input
+    assert isinstance(dp["questions"], list)               # map -> list
+    qtypes = {q["type"] for q in dp["questions"]}
+    assert qtypes == {"predicate", "choice", "score"}      # noul -> predicate
+    choice_q = [q for q in dp["questions"] if q["type"] == "choice"][0]
+    assert choice_q["choices"][0] == {"value": "billing", "description": ""}
+    score_q = [q for q in dp["questions"] if q["type"] == "score"][0]
+    assert score_q["levels"][0] == {"label": "low", "description": ""}
+    # response was normalized back to the common shape
+    assert abs(rd.answers["noul_0"].noul - 0.92) < 1e-9    # probability -> noul
+    assert rd.answers["choice_0"].choice == "billing"
+    assert rd.answers["choice_0"].probabilities == {"billing": 0.95, "other": 0.05}  # list -> map
+    assert abs(rd.answers["score_0"].score - 1.4) < 1e-9
+    # convenience methods work identically on the decisions protocol
+    assert abs(dd.noul("s", "q?") - 0.92) < 1e-9
+    assert dd.choice("s", "q?", ["billing", "other"])["billing"] == 0.95
+    # invalid protocol is rejected
+    try:
+        Decider(base_url="http://x", model="m", protocol="bogus")
+        raise AssertionError("expected ValueError for bad protocol")
+    except ValueError:
+        pass
+
     print("Decider unit test passed (no server/Ollama required).")
 
 

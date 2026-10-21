@@ -15,8 +15,10 @@ import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 
-# Default endpoint path appended to `base_url` (the one System One endpoint).
-_SYSTEMONE_PATH = "/v1/systemone"
+# Endpoint paths appended to `base_url` for each supported protocol.
+_SYSTEMONE_PATH = "/v1/systemone"   # legacy TypeSafe/Ollama "System One" format
+_DECISIONS_PATH = "/v1/decisions"   # OpenAI "Decisions" format (gpt-6-luna, etc.)
+_PROTOCOL_PATHS = {"systemone": _SYSTEMONE_PATH, "decisions": _DECISIONS_PATH}
 
 # Statuses that should NOT be retried (client errors), per the API spec.
 _NO_RETRY_STATUSES = {400, 401, 422}
@@ -38,43 +40,73 @@ class _Answer:
     Mirrors the fields of the `/v1/systemone` response so callers can use
     `answer.choice`, `answer.noul`, `answer.score`, `answer.probabilities`, and
     `answer.confidence` regardless of question type (absent fields are `None`).
+
+    When the response comes from the OpenAI `/v1/decisions` protocol, the fields
+    are normalized into this same shape: `predicate.probability` becomes `noul`,
+    and the `probabilities` list `[{value, probability}, ...]` becomes the
+    `{value: probability}` map used by System One.
     """
 
     __slots__ = ("type", "choice", "noul", "score", "legend", "probabilities",
                  "confidence", "raw")
 
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: Dict[str, Any], protocol: str = "systemone"):
         self.raw = data
         self.type = data.get("type")
-        self.choice = data.get("choice")
-        self.noul = data.get("noul")
-        self.score = data.get("score")
         self.legend = data.get("legend")
-        self.probabilities = data.get("probabilities")
         self.confidence = data.get("confidence")
+        self.score = data.get("score")
+
+        if protocol == "decisions":
+            # predicate -> noul; keep choice/score as-is.
+            self.noul = data.get("probability")
+            self.choice = data.get("choice")
+            # probabilities: list[{value, probability}] -> {value: probability}
+            probs = data.get("probabilities")
+            if isinstance(probs, list):
+                self.probabilities = {
+                    p.get("value"): p.get("probability") for p in probs
+                }
+            else:
+                self.probabilities = probs
+        else:
+            self.choice = data.get("choice")
+            self.noul = data.get("noul")
+            self.probabilities = data.get("probabilities")
 
     def __repr__(self):
         return f"_Answer({self.raw!r})"
 
 
 class SystemOneResponse:
-    """Parsed response from the `/v1/systemone` endpoint.
+    """Parsed response from a decision endpoint (`/v1/systemone` or `/v1/decisions`).
 
     **Attributes:**
 
     - *model*: The model that produced the answers.
-    - *answers*: A dict mapping each question key to an `_Answer`.
+    - *answers*: A dict mapping each question key/name to an `_Answer`.
     - *usage*: Token-usage dict (the billing basis).
     - *raw*: The raw decoded JSON response.
+
+    The `/v1/decisions` response returns `answers` as a list of objects each
+    carrying a `name`; this is normalized to the same `{name: _Answer}` map used
+    by System One so downstream code is identical across protocols.
     """
 
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: Dict[str, Any], protocol: str = "systemone"):
         self.raw = data
         self.model = data.get("model")
         self.usage = data.get("usage")
-        self.answers: Dict[str, _Answer] = {
-            key: _Answer(val) for key, val in (data.get("answers") or {}).items()
-        }
+        raw_answers = data.get("answers")
+        answers: Dict[str, _Answer] = {}
+        if protocol == "decisions":
+            # answers is a list; key each by its `name`.
+            for item in (raw_answers or []):
+                answers[item.get("name")] = _Answer(item, protocol="decisions")
+        else:
+            for key, val in (raw_answers or {}).items():
+                answers[key] = _Answer(val, protocol="systemone")
+        self.answers: Dict[str, _Answer] = answers
 
     def __repr__(self):
         return f"SystemOneResponse(model={self.model!r}, answers={list(self.answers)})"
@@ -83,38 +115,54 @@ class SystemOneResponse:
 class Decider:
     def __init__(
         self,
-        base_url: Optional[str] = None, # Base URL of a `/v1/systemone`-compatible server (e.g., "http://localhost:11434" for Ollama, "https://api.typesafe.ai" for Jev). Falls back to the `TYPESAFE_BASE_URL` environment variable.
-        model: Optional[str] = None, # Model name/route (e.g., "nimble", "jev-latest"). Falls back to the `TYPESAFE_DEFAULT_MODEL` environment variable.
+        base_url: Optional[str] = None, # Base URL of a decision server (e.g., "http://localhost:11434" for Ollama, "https://api.typesafe.ai" for Jev, "https://api.openai.com" for OpenAI). Falls back to the `TYPESAFE_BASE_URL` environment variable.
+        model: Optional[str] = None, # Model name/route (e.g., "nimble", "jev-latest", "gpt-6-luna"). Falls back to the `TYPESAFE_DEFAULT_MODEL` environment variable.
         api_key: Optional[str] = None, # Bearer API key. Falls back to the `TYPESAFE_API_KEY` environment variable. Use "ollama" (or any placeholder) for a local Ollama server.
+        protocol: str = "systemone", # Wire protocol: "systemone" (legacy TypeSafe/Ollama `/v1/systemone`, the default) or "decisions" (OpenAI `/v1/decisions`). Falls back to the `DECIDER_PROTOCOL` environment variable.
         timeout: int = 120, # Per-request timeout in seconds.
         max_retries: int = 3, # Number of retries for retryable statuses (429/5xx) using exponential backoff with jitter.
         **kwargs, # Reserved for future options.
     ):
         """
         `Decider` sends application *state* plus one or more typed *questions* to
-        a System One decision model and returns typed, calibrated *answers*.
+        a decision model and returns typed, calibrated *answers*.
 
-        It speaks the shared `/v1/systemone` HTTP contract, so a single client
-        works across any compatible provider (TypeSafe/Jev, Ollama, etc.) --
-        just change `base_url`, `model`, and `api_key`.
+        It speaks two interchangeable HTTP contracts, selected via `protocol`:
+
+        - `"systemone"` (default): the legacy TypeSafe/Ollama `/v1/systemone`
+          format. Use this for Ollama (which is `/v1/systemone`-only) and
+          existing TypeSafe/Jev deployments.
+        - `"decisions"`: OpenAI's `/v1/decisions` format (e.g., `gpt-6-luna`).
+
+        Requests are built for the chosen protocol and responses are normalized
+        to the same `SystemOneResponse`/`_Answer` shape, so downstream code
+        (`.noul`, `.choice`, `.score`, `.probabilities`) is identical either way.
         """
         self.base_url = (base_url or os.environ.get("TYPESAFE_BASE_URL") or "").rstrip("/")
         if not self.base_url:
             raise ValueError(
                 "A `base_url` is required (or set the TYPESAFE_BASE_URL environment "
-                'variable). Examples: "http://localhost:11434" (Ollama) or '
-                '"https://api.typesafe.ai" (TypeSafe/Jev).'
+                'variable). Examples: "http://localhost:11434" (Ollama), '
+                '"https://api.typesafe.ai" (TypeSafe/Jev), or '
+                '"https://api.openai.com" (OpenAI).'
             )
         self.model = model or os.environ.get("TYPESAFE_DEFAULT_MODEL")
         if not self.model:
             raise ValueError(
                 "A `model` is required (or set the TYPESAFE_DEFAULT_MODEL environment "
-                'variable). Examples: "nimble" (Ollama) or "jev-latest" (TypeSafe/Jev).'
+                'variable). Examples: "nimble" (Ollama), "jev-latest" (TypeSafe/Jev), '
+                'or "gpt-6-luna" (OpenAI).'
+            )
+        self.protocol = (protocol or os.environ.get("DECIDER_PROTOCOL") or "systemone").lower()
+        if self.protocol not in _PROTOCOL_PATHS:
+            raise ValueError(
+                f"Unsupported protocol {self.protocol!r}. "
+                f"Choose one of: {', '.join(sorted(_PROTOCOL_PATHS))}."
             )
         self.api_key = api_key or os.environ.get("TYPESAFE_API_KEY")
         self.timeout = timeout
         self.max_retries = max_retries
-        self.endpoint = self.base_url + _SYSTEMONE_PATH
+        self.endpoint = self.base_url + _PROTOCOL_PATHS[self.protocol]
 
     # ---------------------------------------------------------------- HTTP
 
@@ -194,39 +242,62 @@ class Decider:
         nouls: Optional[Sequence[str]],
         choices: Optional[Sequence[Tuple[str, Sequence[str]]]],
         scores: Optional[Sequence[Tuple[str, Sequence[str]]]],
-    ) -> Dict[str, Dict[str, Any]]:
-        """Build the `questions` map from convenience arguments.
+        protocol: str = "systemone",
+    ):
+        """Build the `questions` payload from convenience arguments.
 
-        Keys are auto-named `noul_0`, `choice_0`, `score_0`, ...
+        For `protocol="systemone"` returns a map keyed `noul_0`, `choice_0`,
+        `score_0`, ... For `protocol="decisions"` returns a list of question
+        objects whose `name` fields use those same keys, mapping
+        noul->predicate, choice criteria->choices list, score levels->levels list.
         """
-        questions: Dict[str, Dict[str, Any]] = {}
-
-        for i, q in enumerate(nouls or []):
-            questions[f"noul_{i}"] = {"type": "noul", "instructions": q}
-
-        for i, (q, options) in enumerate(choices or []):
+        # Validate and normalize option/level lists once (shared by both protocols).
+        norm_choices = []
+        for q, options in (choices or []):
             opts = [o.strip() for o in options if o and o.strip()]
             if not opts:
                 raise ValueError(f"choice {q!r} needs at least one option")
-            # Criteria is an option map; descriptions are optional (empty here).
-            questions[f"choice_{i}"] = {
-                "type": "choice",
-                "instructions": q,
-                "criteria": {o: "" for o in opts},
-            }
+            norm_choices.append((q, opts))
 
-        for i, (q, levels) in enumerate(scores or []):
+        norm_scores = []
+        for q, levels in (scores or []):
             lvls = [s.strip() for s in levels if s and s.strip()]
             if len(lvls) < 2:
                 raise ValueError(f"score {q!r} needs at least two ordered levels")
-            # Criteria is an ordered list of levels (ascending).
-            questions[f"score_{i}"] = {
-                "type": "score",
-                "instructions": q,
-                "criteria": lvls,
-            }
+            norm_scores.append((q, lvls))
 
-        return questions
+        if protocol == "decisions":
+            questions: List[Dict[str, Any]] = []
+            for i, q in enumerate(nouls or []):
+                # noul -> predicate (returns a probability in [0, 1]).
+                questions.append({"type": "predicate", "name": f"noul_{i}",
+                                   "instructions": q})
+            for i, (q, opts) in enumerate(norm_choices):
+                questions.append({
+                    "type": "choice", "name": f"choice_{i}", "instructions": q,
+                    "choices": [{"value": o, "description": ""} for o in opts],
+                })
+            for i, (q, lvls) in enumerate(norm_scores):
+                questions.append({
+                    "type": "score", "name": f"score_{i}", "instructions": q,
+                    "levels": [{"label": s, "description": ""} for s in lvls],
+                })
+            return questions
+
+        # Default: System One map.
+        q_map: Dict[str, Dict[str, Any]] = {}
+        for i, q in enumerate(nouls or []):
+            q_map[f"noul_{i}"] = {"type": "noul", "instructions": q}
+        for i, (q, opts) in enumerate(norm_choices):
+            q_map[f"choice_{i}"] = {
+                "type": "choice", "instructions": q,
+                "criteria": {o: "" for o in opts},
+            }
+        for i, (q, lvls) in enumerate(norm_scores):
+            q_map[f"score_{i}"] = {
+                "type": "score", "instructions": q, "criteria": lvls,
+            }
+        return q_map
 
     def ask(
         self,
@@ -256,15 +327,21 @@ class Decider:
                 raise ValueError(
                     "`questions` is mutually exclusive with `nouls`/`choices`/`scores`."
                 )
-            q_map = questions
+            # Advanced raw questions are assumed to already match the active
+            # protocol's shape (map for systemone, list for decisions).
+            q_payload = questions
         else:
-            q_map = self._build_questions(nouls, choices, scores)
+            q_payload = self._build_questions(nouls, choices, scores,
+                                              protocol=self.protocol)
 
-        if not q_map:
+        if not q_payload:
             raise ValueError("provide at least one noul, choice, or score question")
 
-        payload = {"model": self.model, "state": state, "questions": q_map}
-        return SystemOneResponse(self._post(payload))
+        if self.protocol == "decisions":
+            payload = {"model": self.model, "input": state, "questions": q_payload}
+        else:
+            payload = {"model": self.model, "state": state, "questions": q_payload}
+        return SystemOneResponse(self._post(payload), protocol=self.protocol)
 
     # ---------------------------------------------------------------- convenience
 
