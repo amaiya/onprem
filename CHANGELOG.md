@@ -10,10 +10,9 @@ Most recent releases are shown at the top. Each release shows:
 ## 0.27.1 (2026-10-21)
 
 ### new:
-- `Decider` now also supports OpenAI's `/v1/decisions` protocol via `protocol="decisions"` (default remains `"systemone"` for Ollama/TypeSafe); requests and responses are translated so downstream code is identical across protocols.
 
 ### changed
-- N/A
+- `Decider` now also supports OpenAI's `/v1/decisions` protocol via `protocol="decisions"` (default remains `"systemone"` for Ollama/TypeSafe); requests and responses are translated so downstream code is identical across protocols.
 
 ### fixed:
 - N/A
