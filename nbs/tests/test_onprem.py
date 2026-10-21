@@ -338,6 +338,82 @@ def test_guider(**kwargs):
     assert(int(result['answer']) == 7)
 
 
+def test_decider(**kwargs):
+    """Unit test for the Decider pipeline.
+
+    Mocks the HTTP layer (`Decider._post`) so it validates request building and
+    response parsing without a live /v1/systemone server. Does NOT require Ollama
+    or any LLM, so it runs anywhere.
+    """
+    from onprem.pipelines.decider import Decider, SystemOneResponse
+
+    # Capture the payload sent to the server and return a canned response.
+    captured = {}
+
+    def fake_post(payload):
+        captured['payload'] = payload
+        return {
+            "model": "test-model",
+            "usage": {"total_tokens": 1},
+            "answers": {
+                "noul_0": {"type": "noul", "noul": 0.98, "confidence": 0.9},
+                "choice_0": {
+                    "type": "choice",
+                    "choice": "billing",
+                    "probabilities": {"billing": 0.98, "technical": 0.01, "other": 0.01},
+                },
+                "score_0": {"type": "score", "score": 3, "legend": "high"},
+            },
+        }
+
+    # base_url/model provided directly so no env vars or network are needed.
+    d = Decider(base_url="http://localhost:9999", model="test-model", api_key="test")
+    d._post = fake_post  # monkeypatch the only method that touches the network
+
+    # --- ask() with all three question types ---
+    resp = d.ask(
+        "I was charged twice. Please refund.",
+        nouls=["Does the customer ask for a refund?"],
+        choices=[("Which team should handle this?", ["billing", "technical", "other"])],
+        scores=[("How urgent is this?", ["low", "medium", "high"])],
+    )
+    assert isinstance(resp, SystemOneResponse)
+    assert resp.model == "test-model"
+    assert abs(resp.answers["noul_0"].noul - 0.98) < 1e-9
+    assert resp.answers["choice_0"].choice == "billing"
+    assert resp.answers["score_0"].score == 3
+
+    # Verify the request payload was built correctly from the convenience args.
+    payload = captured['payload']
+    assert payload["model"] == "test-model"
+    assert payload["state"].startswith("I was charged twice")
+    q = payload["questions"]
+    assert q["noul_0"]["type"] == "noul"
+    assert q["choice_0"]["type"] == "choice"
+    assert set(q["choice_0"]["criteria"]) == {"billing", "technical", "other"}
+    assert q["score_0"]["type"] == "score"
+    assert q["score_0"]["criteria"] == ["low", "medium", "high"]
+
+    # --- convenience methods ---
+    assert abs(d.noul("state", "ask?") - 0.98) < 1e-9
+    probs = d.choice("state", "which team?", ["billing", "technical", "other"])
+    assert probs["billing"] == 0.98
+
+    # --- input validation (no network involved) ---
+    try:
+        d.ask("state")  # no questions provided
+        raise AssertionError("expected ValueError for empty questions")
+    except ValueError:
+        pass
+    try:
+        Decider()  # missing base_url and env vars
+        raise AssertionError("expected ValueError for missing base_url")
+    except ValueError:
+        pass
+
+    print("Decider unit test passed (no server/Ollama required).")
+
+
 def test_summarization(**kwargs):
 
     llm = kwargs.get('llm', None)
@@ -978,6 +1054,7 @@ def test_agent(**kwargs):
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
           #'test_agent' : test_agent,
+          'test_decider' : test_decider,
           'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
           'test_rag_dual'     : test_rag_dual,
