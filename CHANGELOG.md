@@ -13,9 +13,10 @@ Most recent releases are shown at the top. Each release shows:
 
 ### changed
 - `ChatGovCloudBedrock` now supports AWS SSO/ADFS authentication via a new `profile_name` parameter (e.g., a profile created with `aws configure sso`). Static access keys (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` and explicit args) remain fully supported.
+- `LLM`'s `max_tokens` now defaults to `None` (uncapped) instead of `512`. When unset, the parameter is omitted so generation is bounded only by the model's stop token or context window (`-1`/unlimited for llama.cpp).
 
 ### fixed:
-- N/A
+- `max_tokens` is no longer sent to the backend when unset, so reasoning models (e.g., GPT-5/o-series) that reject `max_tokens` no longer error. To cap such models, supply `max_completion_tokens`.
 
 
 ## 0.27.1 (2026-10-21)

@@ -8,7 +8,8 @@ Docs: https://amaiya.github.io/onprem/llm.base.html.md"""
 __all__ = ['MIN_MODEL_SIZE', 'OLLAMA_URL', 'MISTRAL_MODEL_URL', 'MISTRAL_MODEL_ID', 'MISTRAL_PROMPT_TEMPLATE', 'ZEPHYR_MODEL_URL',
            'ZEPHYR_MODEL_ID', 'ZEPHYR_PROMPT_TEMPLATE', 'LLAMA_MODEL_URL', 'LLAMA_MODEL_ID', 'LLAMA_PROMPT_TEMPLATE',
            'MODEL_URL_DICT', 'URL2NAME', 'MODEL_ID_DICT', 'LLAMA_CPP', 'TRANSFORMERS', 'ENGINE_DICT', 'PROMPT_DICT',
-           'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_EMBEDDING_MODEL', 'DEFAULT_QA_PROMPT', 'LLM']
+           'DEFAULT_MODEL', 'DEFAULT_ENGINE', 'DEFAULT_GEN_TOKEN_RESERVE', 'DEFAULT_EMBEDDING_MODEL',
+           'DEFAULT_QA_PROMPT', 'LLM']
 
 # %% ../../nbs/00_llm.base.ipynb #9023ab96
 from ..utils import get_datadir, get_models_dir, download, format_string, DEFAULT_DB
@@ -51,6 +52,9 @@ ENGINE_DICT = {LLAMA_CPP: MODEL_URL_DICT, TRANSFORMERS : MODEL_ID_DICT}
 PROMPT_DICT = {'mistral': MISTRAL_PROMPT_TEMPLATE, 'zephyr' : ZEPHYR_PROMPT_TEMPLATE, 'llama' : LLAMA_PROMPT_TEMPLATE} 
 DEFAULT_MODEL = 'zephyr'
 DEFAULT_ENGINE = LLAMA_CPP
+# Tokens reserved for the response when max_tokens is None (uncapped), used
+# only to leave room within the context window during prompt truncation.
+DEFAULT_GEN_TOKEN_RESERVE = 512
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 DEFAULT_QA_PROMPT = """"Use the following pieces of context delimited by three backticks to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
@@ -72,7 +76,7 @@ class LLM:
         vectordb_path: Optional[str] = None,
         store_type:str='dense',
         vectorstore=None,
-        max_tokens: int = 512,
+        max_tokens: Optional[int] = None,
         n_gpu_layers: Optional[int] = None,
         n_ctx: int = 3900,
         n_batch: int = 1024,
@@ -112,7 +116,11 @@ class LLM:
                         (Documents stored in sparse vector databases are converted to dense vectors at inference time 
                         when used with `LLM.ask`.)
         - *vectorstore*: an onprem.ingest.stores.base.VectorStore instance.
-        - *max_tokens*: The maximum number of tokens to generate.
+        - *max_tokens*: The maximum number of tokens to generate. Default is `None`, which means
+                        generation is not artificially capped: the model generates until it emits a
+                        natural stop token or fills the context window (`n_ctx`). Set an integer to
+                        impose a hard cap. For reasoning models (e.g., GPT-5/o-series) this value is
+                        automatically sent as `max_completion_tokens`.
         - *n_gpu_layers*: Number of layers to be loaded into gpu memory. Default is `None`. Only used for llama-cpp backend.
         - *n_ctx*: Token context window. Only used for llama-cpp backend.
                    For Ollama backend, explicitly supply `num_ctx` instead which is passed to LiteLLM.
@@ -308,7 +316,7 @@ class LLM:
 
     def update_stop(self, value:list=[]):
         """
-        Update `max_tokens` (maximum length of generation).
+        Update the `stop` strings that halt generation.
         """
         llm = self.load_llm()
         llm.stop = value
@@ -543,6 +551,12 @@ class LLM:
         Loads the LLM from the model path.
         """
 
+        # Only send max_tokens to the API when explicitly set. When None, the
+        # field is omitted so generation is not capped (and reasoning models
+        # like GPT-5/o-series, which reject `max_tokens`, won't error). Users
+        # needing a cap on such models can pass `max_completion_tokens` as an
+        # extra kwarg, which is forwarded to the backend.
+        max_tokens_kwarg = {} if self.max_tokens is None else {'max_tokens': self.max_tokens}
 
         if not self.llm and self.is_govcloud_bedrock():
             kwargs = self._prepare_llm_kwargs(ChatGovCloudBedrock)
@@ -551,7 +565,7 @@ class LLM:
                 model_id=model_id,
                 callbacks=self.callbacks,
                 streaming=not self.mute_stream,
-                max_tokens=self.max_tokens,
+                **max_tokens_kwarg,
                 **kwargs)
         elif not self.llm and\
                 self.process_service(self.model_url) and\
@@ -559,20 +573,20 @@ class LLM:
             # Set drop_params=True to gracefully handle unsupported parameters
             import litellm
             litellm.drop_params = True
-            
+
             kwargs = self._prepare_llm_kwargs(ChatLiteLLM)
             self.llm = ChatLiteLLM(model=self.process_service(self.model_url),
                                   callbacks=self.callbacks,
                                   streaming=not self.mute_stream,
-                                  max_tokens=self.max_tokens,
+                                  **max_tokens_kwarg,
                                   **kwargs)
         elif not self.llm and self.is_local_api():
             kwargs = self._prepare_llm_kwargs(ChatOpenAI)
             self.llm = ChatOpenAI(base_url=self.model_url,
-                                  #model_name=self.model_name, 
-                                  callbacks=self.callbacks, 
+                                  #model_name=self.model_name,
+                                  callbacks=self.callbacks,
                                   streaming=not self.mute_stream,
-                                  max_tokens=self.max_tokens,
+                                  **max_tokens_kwarg,
                                   **kwargs)
         elif not self.llm and self.is_hf():
             # LangChain-free HF backend: HFPipeline builds and wraps the raw
@@ -874,16 +888,20 @@ class LLM:
                 prompt_template = self.prompt_template if prompt_template is None else prompt_template
 
                 # truncate prompt
+                # When max_tokens is None (uncapped generation), reserve a
+                # default number of tokens for the response so the prompt still
+                # leaves room within the context window.
+                max_gen_tokens = self.max_tokens if self.max_tokens is not None else DEFAULT_GEN_TOKEN_RESERVE
                 if truncate_prompt and self.is_hf():
                     prompt = helpers.truncate_prompt(llm.pipeline,
                                                      prompt,
-                                                     max_gen_tokens=self.max_tokens,
+                                                     max_gen_tokens=max_gen_tokens,
                                                      truncate_from=truncate_strategy,
                                                      prompt_template=prompt_template)
                 elif truncate_prompt and self.is_llamacpp():
                     prompt = helpers.truncate_prompt(self.llm.client,
                                                      prompt,
-                                                     max_gen_tokens=self.max_tokens,
+                                                     max_gen_tokens=max_gen_tokens,
                                                      truncate_from=truncate_strategy,
                                                      prompt_template=prompt_template)
 

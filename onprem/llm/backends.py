@@ -740,7 +740,7 @@ class LlamaCpp:
     def __init__(
         self,
         model_path: str,
-        max_tokens: Optional[int] = 256,
+        max_tokens: Optional[int] = None,
         temperature: Optional[float] = 0.8,
         top_p: Optional[float] = 0.95,
         top_k: Optional[int] = 40,
@@ -812,8 +812,11 @@ class LlamaCpp:
 
     def _generation_params(self, stop: Optional[List[str]] = None) -> Dict[str, Any]:
         """Build the parameter dict passed to each llama_cpp generation call."""
+        # llama-cpp-python defaults raw completions to just 16 tokens; map
+        # None -> -1 so generation is only bounded by the context window / EOT.
+        max_tokens = -1 if self.max_tokens is None else self.max_tokens
         params: Dict[str, Any] = {
-            "max_tokens": self.max_tokens,
+            "max_tokens": max_tokens,
             "temperature": self.temperature,
             "top_p": self.top_p,
             "top_k": self.top_k,
@@ -956,13 +959,17 @@ class HFPipeline:
     - `get_num_tokens(text)`: convenience token counter.
     """
 
-    def __init__(self, model_id: str, max_tokens: int = 512, mute_stream: bool = False,
+    def __init__(self, model_id: str, max_tokens: Optional[int] = None, mute_stream: bool = False,
                  tokenizer: Any = None, **kwargs: Any):
         """
         Build a Hugging Face text-generation pipeline from `model_id`.
 
         Any extra keyword arguments are forwarded to `transformers.pipeline`
         (e.g., `temperature`, `device_map`, `torch_dtype`, `model_kwargs`).
+
+        `max_tokens` maps to the pipeline's `max_new_tokens`. When None, a
+        generous default (512) is used, since transformers otherwise falls back
+        to a very small built-in default that truncates output prematurely.
         """
         try:
             from transformers import pipeline, TextStreamer, AutoTokenizer
@@ -972,6 +979,8 @@ class HFPipeline:
                 "requires extra dependencies. Install them with: pip install onprem[huggingface]"
             )
 
+        max_new_tokens = 512 if max_tokens is None else max_tokens
+
         tokenizer = tokenizer if tokenizer is not None else AutoTokenizer.from_pretrained(model_id)
         streamer = TextStreamer(tokenizer)
 
@@ -980,7 +989,7 @@ class HFPipeline:
             model_id,
             tokenizer=tokenizer,
             streamer=streamer if not mute_stream else None,
-            max_new_tokens=max_tokens,
+            max_new_tokens=max_new_tokens,
             return_full_text=False,
             do_sample=True if kwargs.get('temperature', 0.8) > 0.0 else False,
             **kwargs,
