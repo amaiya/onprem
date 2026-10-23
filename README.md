@@ -292,7 +292,7 @@ More information on using OpenAI models specifically with **OnPrem.LLM** is [her
 
 Extra parameters supplied to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and [`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt) are passed directly to the LLM backend. Parameter names will vary depending on the backend you chose.
 
-For instance, with the default llama-cpp backend, the default context window size (`n_ctx`) is set to 3900 and the default output size (`max_tokens`) is set 512. Both are configurable parameters to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase if you have larger prompts or need longer outputs. Other parameters (e.g., `api_key`, `device_map`, etc.) can be supplied directly to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be routed to the LLM backend or API (e.g., llama-cpp-python, Hugging Face transformers, vLLM, OpenAI, etc.). The `max_tokens` parameter can also be adjusted on-the-fly by supplying it to [`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
+For instance, with the default llama-cpp backend, the default context window size (`n_ctx`) is set to 3900. The default output size (`max_tokens`) is `None` (uncapped), meaning generation is bounded only by the model’s natural stop token or the context window. Both are configurable parameters to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm). Increase `n_ctx` if you have larger prompts, and set `max_tokens` to an integer if you need to cap output length. Other parameters (e.g., `api_key`, `device_map`, etc.) can be supplied directly to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) and will be routed to the LLM backend or API (e.g., llama-cpp-python, Hugging Face transformers, vLLM, OpenAI, etc.). The `max_tokens` parameter can also be adjusted on-the-fly by supplying it to [`LLM.prompt`](https://amaiya.github.io/onprem/llm.base.html#llm.prompt).
 
 On the other hand, for Ollama models, context window and output size are controlled by `num_ctx` and `num_predict`, respectively.
 
@@ -502,10 +502,10 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
 
 8.  **When I use the [`Extractor.extract_structured`](https://amaiya.github.io/onprem/pipelines.extractor.base.html#extractor.extract_structured) method, I get an incorrect empty response?**
 
-    > Structured outputs generate more output tokens. The default value for `max_tokens` is 512. Increase to 16K or 32K.
+    > Structured outputs generate more output tokens. As of v0.27.2, `max_tokens` defaults to `None` (uncapped), so this is usually only an issue if you’ve explicitly set a low `max_tokens` value — increase it (e.g., to 16K or 32K) or leave it unset.
     >
     > ``` python
-    > llm = LLM("anthropic/claude-4-5-sonnet-latest", max_output=32000) # example
+    > llm = LLM("anthropic/claude-4-5-sonnet-latest", max_tokens=32000) # example
     > ```
 
 9.  **How do I use cloud or OpenAI-compatible embeddings for RAG (instead of local embeddings)?**

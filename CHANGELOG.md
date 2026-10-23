@@ -18,6 +18,7 @@ Most recent releases are shown at the top. Each release shows:
 ### fixed:
 - `max_tokens` is no longer sent to the backend when unset, so reasoning models (e.g., GPT-5/o-series) that reject `max_tokens` no longer error. To cap such models, supply `max_completion_tokens`.
 - Web app file uploads (e.g., Excel/CSV) that failed with `AxiosError: Network Error` when the app was accessed from another machine on the network now work: the `onprem` launcher disables Streamlit's XSRF/CORS protection for non-localhost binds (override with `--enable-xsrf-protection`).
+- Do not save checkpoints in few shot classification due to incompatibility between SetFit and latest transformers.
 
 
 ## 0.27.1 (2026-10-21)

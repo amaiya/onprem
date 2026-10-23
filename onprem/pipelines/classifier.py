@@ -509,6 +509,13 @@ class FewShotClassifier(ClassifierBase):
         # convert to HF dataset
         train_dataset = self.arrays2dataset(X, y, text_key='text', label_key='label')
 
+        # Default to not saving checkpoints during training. Newer versions of
+        # sentence-transformers reference `save_safetensors` on the training
+        # arguments when saving checkpoints, which SetFit's TrainingArguments
+        # does not define. Disabling checkpoint saving avoids that incompatible
+        # code path. Users can still override via kwargs.
+        kwargs.setdefault('save_strategy', 'no')
+
         args = TrainingArguments(
                 batch_size=batch_size,
                 num_epochs=num_epochs,
