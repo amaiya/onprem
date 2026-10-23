@@ -7,6 +7,17 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.27.2 (2026-10-23)
+
+### new:
+
+### changed
+- `ChatGovCloudBedrock` now supports AWS SSO/ADFS authentication via a new `profile_name` parameter (e.g., a profile created with `aws configure sso`). Static access keys (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` and explicit args) remain fully supported.
+
+### fixed:
+- N/A
+
+
 ## 0.27.1 (2026-10-21)
 
 ### new:
