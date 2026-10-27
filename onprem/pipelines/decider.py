@@ -121,6 +121,8 @@ class Decider:
         protocol: str = "systemone", # Wire protocol: "systemone" (legacy TypeSafe/Ollama `/v1/systemone`, the default) or "decisions" (OpenAI `/v1/decisions`). Falls back to the `DECIDER_PROTOCOL` environment variable.
         timeout: int = 120, # Per-request timeout in seconds.
         max_retries: int = 3, # Number of retries for retryable statuses (429/5xx) using exponential backoff with jitter.
+        verify: Optional[Union[bool, str]] = None, # TLS verification passed to `requests`. A path to a custom CA bundle (e.g., a corporate root CA behind a TLS-intercepting firewall), or `True`/`False`. When `None` (default), verification is left to `requests` (which honors the `REQUESTS_CA_BUNDLE`/`CURL_CA_BUNDLE` env vars, then `certifi`). Also falls back to the `TYPESAFE_CA_BUNDLE` environment variable.
+        cert: Optional[Union[str, Tuple[str, str]]] = None, # Optional client-side certificate for mutual TLS, passed to `requests` as `cert`: either a path to a combined cert+key PEM, or a `(cert_path, key_path)` tuple. Required by some corporate proxies.
         **kwargs, # Reserved for future options.
     ):
         """
@@ -162,6 +164,12 @@ class Decider:
         self.api_key = api_key or os.environ.get("TYPESAFE_API_KEY")
         self.timeout = timeout
         self.max_retries = max_retries
+        # TLS options for corporate firewalls / TLS interception. Leaving `verify`
+        # as `None` preserves `requests`' default resolution (which honors the
+        # REQUESTS_CA_BUNDLE/CURL_CA_BUNDLE env vars, then certifi); only when it
+        # is explicitly set (here or via TYPESAFE_CA_BUNDLE) is it forwarded.
+        self.verify = verify if verify is not None else os.environ.get("TYPESAFE_CA_BUNDLE")
+        self.cert = cert
         self.endpoint = self.base_url + _PROTOCOL_PATHS[self.protocol]
 
     # ---------------------------------------------------------------- HTTP
@@ -177,11 +185,19 @@ class Decider:
         last_exc: Optional[Exception] = None
         for attempt in range(self.max_retries + 1):
             try:
+                request_kwargs: Dict[str, Any] = {}
+                if self.verify is not None:
+                    # Only pass `verify` when explicitly configured so that the
+                    # default path keeps honoring REQUESTS_CA_BUNDLE/certifi.
+                    request_kwargs["verify"] = self.verify
+                if self.cert is not None:
+                    request_kwargs["cert"] = self.cert
                 resp = requests.post(
                     self.endpoint,
                     data=json.dumps(payload),
                     headers=headers,
                     timeout=self.timeout,
+                    **request_kwargs,
                 )
             except requests.RequestException as e:
                 # Network-level error: retry with backoff, then re-raise.
