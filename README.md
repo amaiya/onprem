@@ -243,7 +243,7 @@ The instantiations above are described in more detail below.
 
 #### GGUF Models and Llama.cpp
 
-The default LLM backend is [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the default model is currently a 7B-parameter model called **Zephyr-7B-beta**, which is automatically downloaded and used. Llama.cpp run models in [GGUF](https://huggingface.co/docs/hub/en/gguf) format. The two other default models are `llama` and `mistral`. For instance, if `default_model='llama'` is supplied, then a **Llama-3.1-8B-Instsruct** model is automatically downloaded and used:
+The default LLM backend is [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), and the default model is currently a 7B-parameter model called **Zephyr-7B-beta**, which is automatically downloaded and used. Llama.cpp run models in [GGUF](https://huggingface.co/docs/hub/en/gguf) format. The two other default models are `llama` and `mistral`. For instance, if `default_model='llama'` is supplied, then a **Llama-3.1-8B-Instruct** model is automatically downloaded and used:
 
 ``` python
 # Llama 3.1 is downloaded here and the correct prompt template for Llama-3.1 is automatically configured and used
@@ -256,7 +256,7 @@ llm = LLM(default_model='llama')
 
 #### Changing the Default LLM Backend
 
-If `default_engine="transformers"` is supplied to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face [transformers](https://github.com/huggingface/transformers) is used as the LLM backend. Extra parameters to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (e.g., ‘device=’cuda’`) are forwarded diretly to`transformers.pipeline`. If supplying a`model_id\` parameter, the default LLM backend is automatically changed to Hugging Face [transformers](https://github.com/huggingface/transformers).
+If `default_engine="transformers"` is supplied to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm), Hugging Face [transformers](https://github.com/huggingface/transformers) is used as the LLM backend. Extra parameters to [`LLM`](https://amaiya.github.io/onprem/llm.base.html#llm) (e.g., ‘device=’cuda’`) are forwarded directly to`transformers.pipeline`. If supplying a`model_id\` parameter, the default LLM backend is automatically changed to Hugging Face [transformers](https://github.com/huggingface/transformers).
 
 ``` python
 # LLama-3.1 model quantized using AWQ is downloaded and run with Hugging Face transformers (requires GPU)
@@ -275,7 +275,7 @@ You can also connect to **Ollama**, local LLM APIs (e.g., vLLM), and cloud LLMs.
 lm = LLM(model_url='ollama/llama3.2')
 
 # connecting to an LLM served through vLLM (set API key as needed)
-llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')`
+llm = LLM(model_url='http://localhost:8000/v1', api_key='token-abc123', model='Qwen/Qwen2.5-0.5B-Instruct')
 
 # connecting to a cloud-backed LLM (e.g., OpenAI, Anthropic).
 llm = LLM(model_url="openai/gpt-4o-mini")  # OpenAI
@@ -530,9 +530,9 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
     > Examples include:
     > - extracting key performance parameters and other performance attributes from engineering documents
     > - auto-coding responses to government requests for information (RFIs)
-    > - analyzing the Federal Aquisition Regulations (FAR)
+    > - analyzing the Federal Acquisition Regulations (FAR)
     > - understanding where and how Executive Order 14028 on cybersecurity aligns with the National Cybersecurity Strategy
-    > - generating a summary of ways to improve a course from thousdands of reviews
+    > - generating a summary of ways to improve a course from thousands of reviews
     > - extracting specific information of interest from resumes for talent acquisition.
 &#10;-->
 

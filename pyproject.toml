@@ -12,8 +12,8 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{name = "Arun S. Maiya", email = "arun@maiya.net"}]
 keywords = ['nbdev', 'jupyter', 'notebook', 'python']
-classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
-dependencies = ['requests', 'tqdm', 'charset_normalizer', 'pyparsing', 'pandas', 'whoosh-reloaded', 'litellm', 'huggingface_hub', 'langchain', 'langchain-core', 'langchain-text-splitters', 'langchain_litellm', 'langchain-openai']
+classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 4 - Beta", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
+dependencies = ['requests', 'tqdm', 'charset_normalizer', 'pyparsing', 'numpy', 'pandas', 'whoosh-reloaded', 'litellm', 'huggingface_hub', 'langchain', 'langchain-core', 'langchain-text-splitters', 'langchain_litellm', 'langchain-openai']
 
 [project.urls]
 Repository = "https://github.com/amaiya/onprem"

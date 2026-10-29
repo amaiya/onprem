@@ -7,13 +7,14 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.27.3 (2026-10-27)
+## 0.27.3 (2026-10-29)
 
 ### new:
 - N/A
 
 ### changed
 - Added `verify` parameter to `Decider` pipeline
+- Added `numpy` as explicit dependency
 
 ### fixed:
 - N/A
