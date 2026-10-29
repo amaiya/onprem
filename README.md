@@ -208,8 +208,6 @@ llm = LLM(verbose=False) # default model and backend are used
 
 - **Also Ollama**: `llm = LLM(model_url="ollama/llama3.2", api_key='na')`
 
-- **Also Ollama**: `llm = LLM(model_url='http://localhost:11434/v1', api_key='na', model='llama3.2')`
-
 - **vLLM**: `llm = LLM(model_url='http://localhost:8666/v1', api_key='na', model='Qwen/Qwen2.5-0.5B-Instruct')`
 
 - **Also vLLM**: `llm = LLM('hosted_vllm/served-model-name', api_base="http://localhost:8666/v1", api_key="test123")` (assumes `served-model-name` parameter is supplied to `vllm.entrypoints.openai.api_server`).
@@ -220,6 +218,13 @@ llm = LLM(verbose=False) # default model and backend are used
   # important: set max_tokens to high value due to intermediate reasoning steps that are generated
   llm = LLM(model_url='http://localhost:8666/v1', api_key='your_api_key', model=served_model_name, max_tokens=32000)
   result = llm.prompt(prompt, reasoning_effort="high")
+  ```
+
+- **Any OpenAI-compatible API**: Supply the server’s `/v1` endpoint as `model_url`, along with `api_key` and `model`. Works with any OpenAI-compatible service (Ollama, vLLM, LM Studio, LocalAI, llama.cpp REST server, etc.):
+
+  ``` python
+  # e.g., Ollama
+  llm = LLM(model_url='http://localhost:11434/v1', api_key='na', model='llama3.2')
   ```
 
 *Cloud Models:* In addition to local LLMs, all cloud LLM providers supported by [LiteLLM](https://github.com/BerriAI/litellm) are compatible:
