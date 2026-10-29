@@ -710,7 +710,8 @@ def test_loading(**kwargs):
     print('Testing OCR ...', end='')
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ocr_document/lynn1975.pdf')
     docs_ocred = load_single_document(fpath)
-    assert('EXECUTIVE' in docs_ocred[0].page_content and 'Lynn' in docs_ocred[0].page_content), 'OCRed text not found'
+    ocr_text = '\n'.join(d.page_content for d in docs_ocred)
+    assert('EXECUTIVE' in ocr_text and 'Lynn' in ocr_text), 'OCRed text not found'
     print('done.')
 
 

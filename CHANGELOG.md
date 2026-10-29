@@ -7,14 +7,16 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
-## 0.27.3 (2026-10-29)
+## 0.28.0 (2026-10-29)
 
 ### new:
-- N/A
-
+- Lightweight OCR for scanned/image-based PDFs via Tesseract (PyMuPDF + `pytesseract`), added to the `onprem[docs]` extra. Scanned PDFs are now OCR'd by default without requiring the heavy `onprem[docs-ml]` (`unstructured[all-docs]`/PyTorch) stack. The `unstructured` `hi_res` OCR path is still available via `pdf_unstructured=True`.
+- Rotated scans are now auto-rotated for correct OCR.
+- Documentation updates and typo fixes in `index.ipynb` (README).
 ### changed
 - Added `verify` parameter to `Decider` pipeline
 - Added `numpy` as explicit dependency
+- `load_single_document` now falls back to lightweight Tesseract OCR (instead of `unstructured` hi_res) when a PDF has little/no extractable text layer.
 
 ### fixed:
 - N/A
