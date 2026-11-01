@@ -24,7 +24,7 @@ The full documentation is [here](https://amaiya.github.io/onprem/).
 
 ``` python
 # install
-!pip install onprem[chroma]
+!pip install onprem[docs,chroma]
 from onprem import LLM, utils
 
 # local LLM with Ollama as backend
@@ -52,6 +52,7 @@ print(structured_output.value) # 35
 print(structured_output.unit)  # mph
 
 # Safely launch a sandboxed AI agent
+!pip install onprem[agent]
 from onprem.pipelines import AgentExecutor
 executor = AgentExecutor(model='openai/gpt-5-mini', sandbox=True)
 result = executor.run("""
