@@ -234,7 +234,7 @@ llm = LLM(verbose=False) # default model and backend are used
 
 - **OpenAI GPT-4o**: `llm = LLM(model_url="openai/gpt-4o")`
 
-- **AWS GovCloud Bedrock** (assumes AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set as environment variables)
+- **AWS GovCloud Bedrock** (assumes **either** AWS_PROFILE **or** AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set as environment variables)
 
   ``` python
   from onprem import LLM
