@@ -332,6 +332,7 @@ Context: {context_str}.\n\nGive a title that summarizes what the context describ
 Title: """
 
 class Title(BaseModel):
+    "Pydantic model representing an extracted title."
     title: str = Field(description="title of text")
 
 def extract_title(docs_or_text:Union[List[Document], str], llm, max_words=1024, retries=1, **kwargs):
@@ -371,6 +372,7 @@ and output the real/existing table title/caption if context provided."""
 TABLE_PROMPT= """\
 {context_str}\n\nWhat is this table about? Give a very concise summary (imagine you are adding a new caption and summary for this table)."""
 class TableSummary(BaseModel):
+    "Pydantic model representing an table summary."
     summary: str = Field(description="concise summary or caption of table")
 
 def caption_table_text(table_text:str, llm, max_chars=4096, retries=1, attempt_exact=False, **kwargs):
