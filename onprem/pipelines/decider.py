@@ -447,4 +447,3 @@ class Decider:
                 results.append(max(probs, key=probs.get) if probs else None)
 
         return results[0] if single else results
-
