@@ -15,7 +15,13 @@ from ..utils import format_string
 
 
 class PythonCodeMixin:
-    """Shared functionality for executing Python code safely in workflow nodes."""
+    """Shared functionality for executing Python code in workflow nodes.
+
+    Note: code runs via ``exec`` with a restricted set of builtins. This limits
+    casual misuse but is NOT a security sandbox and can be bypassed by
+    determined code. Only run workflows authored by trusted users. For untrusted
+    code, use the Docker-based sandbox (see ``onprem.pipelines.AgentExecutor``).
+    """
     
     def _load_code(self, node_id: str, config: Dict[str, Any]) -> str:
         """Load Python code from config or file."""
@@ -38,7 +44,10 @@ class PythonCodeMixin:
         return python_code
     
     def _create_safe_globals(self) -> Dict[str, Any]:
-        """Create a safe execution environment with restricted builtins."""
+        """Create an execution environment with a restricted set of builtins.
+
+        This reduces casual misuse but is NOT a security boundary.
+        """
         return {
             '__builtins__': {
                 # Basic operations
@@ -61,7 +70,10 @@ class PythonCodeMixin:
         }
     
     def _execute_code_safely(self, node_id: str, code: str, local_vars: Dict[str, Any], item_id: int, item_type: str = "item") -> Dict[str, Any]:
-        """Execute Python code safely and return the result."""
+        """Execute Python code with restricted builtins and return the result.
+
+        Not a security sandbox; only run trusted workflow code.
+        """
         safe_globals = self._create_safe_globals()
         
         try:

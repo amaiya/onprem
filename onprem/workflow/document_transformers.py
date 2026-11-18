@@ -191,7 +191,10 @@ class PythonDocumentTransformerNode(DocumentTransformerNode):
         return python_code
     
     def _create_safe_globals(self) -> Dict[str, Any]:
-        """Create a safe execution environment with restricted builtins."""
+        """Create an execution environment with a restricted set of builtins.
+
+        This reduces casual misuse but is NOT a security boundary.
+        """
         return {
             '__builtins__': {
                 # Basic operations
@@ -214,7 +217,10 @@ class PythonDocumentTransformerNode(DocumentTransformerNode):
         }
     
     def _execute_code_safely(self, node_id: str, code: str, local_vars: Dict[str, Any], item_id: int) -> Dict[str, Any]:
-        """Execute Python code safely and return the result."""
+        """Execute Python code with restricted builtins and return the result.
+
+        Not a security sandbox; only run trusted workflow code.
+        """
         safe_globals = self._create_safe_globals()
         
         try:

@@ -71,6 +71,7 @@ class ChatGovCloudBedrock(BaseChatModel):
     model_id: str = Field(description="The Bedrock model ID or inference profile ARN")
     region_name: str = Field(default="us-gov-east-1", description="AWS GovCloud region")
     endpoint_url: Optional[str] = Field(default=None, description="Custom endpoint URL for VPC endpoints")
+    profile_name: Optional[str] = Field(default=None, description="AWS named profile to use (e.g., an SSO/ADFS profile created via 'aws configure sso')")
     aws_access_key_id: Optional[str] = Field(default=None, description="AWS access key ID")
     aws_secret_access_key: Optional[str] = Field(default=None, description="AWS secret access key")
     max_tokens: int = Field(default=512, description="Maximum tokens to generate")
@@ -95,6 +96,7 @@ class ChatGovCloudBedrock(BaseChatModel):
         model_id: str,
         region_name: str = "us-gov-east-1",
         endpoint_url: Optional[str] = None,
+        profile_name: Optional[str] = None,
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
         max_tokens: int = 512,
@@ -113,6 +115,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             model_id: The Bedrock model ID or inference profile ARN
             region_name: AWS GovCloud region (us-gov-east-1 or us-gov-west-1)
             endpoint_url: Custom endpoint URL for VPC endpoints
+            profile_name: AWS named profile to use for credentials (e.g., an SSO/ADFS profile created via 'aws configure sso'). When supplied, credentials are resolved from this profile (including automatic SSO token refresh).
             aws_access_key_id: AWS access key ID (or use environment variables)
             aws_secret_access_key: AWS secret access key (or use environment variables)
             max_tokens: Maximum tokens to generate
@@ -128,6 +131,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             model_id=model_id,
             region_name=region_name,
             endpoint_url=endpoint_url,
+            profile_name=profile_name,
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
             max_tokens=max_tokens,
@@ -141,8 +145,27 @@ class ChatGovCloudBedrock(BaseChatModel):
         )
 
     def model_post_init(self, __context: Any) -> None:
-        """Initialize boto3 client after model validation."""
-        # Initialize boto3 client
+        """Initialize boto3 client after model validation.
+
+        Credentials are resolved in the following order of precedence:
+          1. Explicit ``aws_access_key_id`` / ``aws_secret_access_key`` arguments.
+          2. A named ``profile_name`` (e.g., an SSO/ADFS profile created via
+             ``aws configure sso``). boto3 handles automatic SSO token refresh.
+          3. The default boto3 credential chain, which includes the
+             ``AWS_ACCESS_KEY_ID`` / ``AWS_SECRET_ACCESS_KEY`` environment
+             variables (still fully supported), shared credentials/config
+             files, the default profile, instance roles, etc.
+
+        Note: static credentials (explicit access keys and the
+        ``AWS_ACCESS_KEY_ID`` / ``AWS_SECRET_ACCESS_KEY`` environment variables)
+        remain fully supported. Organizations using SSO/ADFS should supply a
+        ``profile_name`` instead.
+        """
+        try:
+            import boto3
+        except ImportError:
+            raise ImportError('Please install the aws package: pip install onprem[aws]')
+
         client_kwargs = {
             "service_name": "bedrock-runtime",
             "region_name": self.region_name,
@@ -151,22 +174,22 @@ class ChatGovCloudBedrock(BaseChatModel):
         if self.endpoint_url:
             client_kwargs["endpoint_url"] = self.endpoint_url
 
+        # Only pass explicit static credentials when they are actually provided.
+        # Do NOT inject None values, as that interferes with boto3's normal
+        # credential resolution (SSO profiles, env vars, instance roles, etc.).
         if self.aws_access_key_id:
             client_kwargs["aws_access_key_id"] = self.aws_access_key_id
-        else:
-            client_kwargs["aws_access_key_id"] = os.environ.get('AWS_ACCESS_KEY_ID')
-
         if self.aws_secret_access_key:
             client_kwargs["aws_secret_access_key"] = self.aws_secret_access_key
+
+        if self.profile_name:
+            # Use a session bound to the named profile. This enables SSO/ADFS
+            # profiles (and automatic SSO token refresh) created via
+            # `aws configure sso`.
+            session = boto3.Session(profile_name=self.profile_name)
+            self.client = session.client(**client_kwargs)
         else:
-            client_kwargs["aws_secret_access_key"] = os.environ.get('AWS_SECRET_ACCESS_KEY')
-
-        try:
-            import boto3
-        except ImportError:
-            raise ImportError('Please install the aws package: pip install onprem[aws]')
-
-        self.client = boto3.client(**client_kwargs)
+            self.client = boto3.client(**client_kwargs)
 
     def _normalize_content_block(self, block: Any) -> Any:
         """
@@ -688,6 +711,7 @@ class ChatGovCloudBedrock(BaseChatModel):
             "model_id": self.model_id,
             "region_name": self.region_name,
             "endpoint_url": self.endpoint_url,
+            "profile_name": self.profile_name,
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
@@ -716,7 +740,7 @@ class LlamaCpp:
     def __init__(
         self,
         model_path: str,
-        max_tokens: Optional[int] = 256,
+        max_tokens: Optional[int] = None,
         temperature: Optional[float] = 0.8,
         top_p: Optional[float] = 0.95,
         top_k: Optional[int] = 40,
@@ -788,8 +812,11 @@ class LlamaCpp:
 
     def _generation_params(self, stop: Optional[List[str]] = None) -> Dict[str, Any]:
         """Build the parameter dict passed to each llama_cpp generation call."""
+        # llama-cpp-python defaults raw completions to just 16 tokens; map
+        # None -> -1 so generation is only bounded by the context window / EOT.
+        max_tokens = -1 if self.max_tokens is None else self.max_tokens
         params: Dict[str, Any] = {
-            "max_tokens": self.max_tokens,
+            "max_tokens": max_tokens,
             "temperature": self.temperature,
             "top_p": self.top_p,
             "top_k": self.top_k,
@@ -932,15 +959,27 @@ class HFPipeline:
     - `get_num_tokens(text)`: convenience token counter.
     """
 
-    def __init__(self, model_id: str, max_tokens: int = 512, mute_stream: bool = False,
+    def __init__(self, model_id: str, max_tokens: Optional[int] = None, mute_stream: bool = False,
                  tokenizer: Any = None, **kwargs: Any):
         """
         Build a Hugging Face text-generation pipeline from `model_id`.
 
         Any extra keyword arguments are forwarded to `transformers.pipeline`
         (e.g., `temperature`, `device_map`, `torch_dtype`, `model_kwargs`).
+
+        `max_tokens` maps to the pipeline's `max_new_tokens`. When None, a
+        generous default (512) is used, since transformers otherwise falls back
+        to a very small built-in default that truncates output prematurely.
         """
-        from transformers import pipeline, TextStreamer, AutoTokenizer
+        try:
+            from transformers import pipeline, TextStreamer, AutoTokenizer
+        except ImportError:
+            raise ImportError(
+                "Using the Hugging Face Transformers backend (e.g., the `model_id` parameter) "
+                "requires extra dependencies. Install them with: pip install onprem[huggingface]"
+            )
+
+        max_new_tokens = 512 if max_tokens is None else max_tokens
 
         tokenizer = tokenizer if tokenizer is not None else AutoTokenizer.from_pretrained(model_id)
         streamer = TextStreamer(tokenizer)
@@ -950,7 +989,7 @@ class HFPipeline:
             model_id,
             tokenizer=tokenizer,
             streamer=streamer if not mute_stream else None,
-            max_new_tokens=max_tokens,
+            max_new_tokens=max_new_tokens,
             return_full_text=False,
             do_sample=True if kwargs.get('temperature', 0.8) > 0.0 else False,
             **kwargs,

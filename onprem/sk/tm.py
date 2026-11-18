@@ -17,8 +17,14 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Union, List, Any
 
-from sklearn.decomposition import NMF, LatentDirichletAllocation
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+try:
+    from sklearn.decomposition import NMF, LatentDirichletAllocation
+    from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+except ImportError:
+    raise ImportError(
+        "Topic modeling requires scikit-learn. "
+        "Install it with: pip install onprem[sklearn]"
+    )
 
 from . import base as U
 

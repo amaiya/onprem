@@ -22,93 +22,90 @@ def ocr_document(input_path, output_path=None, lang='eng', psm=3, dpi=300):
 
     Returns:
         Extracted text as string
+
+    Raises:
+        ImportError: if a required Python library is not installed.
+        RuntimeError: if Tesseract is not found in the system PATH.
+        ValueError: if ``dpi`` is not a positive integer.
+        FileNotFoundError: if ``input_path`` does not exist.
     """
     try:
         import pytesseract
         from PIL import Image
         from pdf2image import convert_from_path
     except ImportError as e:
-        print(f"Error: Required Python library not found: {e}")
-        print("Install with: pip install pytesseract pillow pdf2image")
-        sys.exit(1)
+        raise ImportError(
+            f"Required Python library not found: {e}. "
+            "Install with: pip install pytesseract pillow pdf2image"
+        ) from e
 
     # Check if tesseract is installed
     try:
         pytesseract.get_tesseract_version()
-    except Exception:
-        print("Error: Tesseract OCR not found in system PATH")
-        print("Install tesseract:")
-        print("  Ubuntu/Debian: apt-get install tesseract-ocr")
-        print("  macOS: brew install tesseract")
-        sys.exit(1)
+    except Exception as e:
+        raise RuntimeError(
+            "Tesseract OCR not found in system PATH. Install tesseract:\n"
+            "  Ubuntu/Debian: apt-get install tesseract-ocr\n"
+            "  macOS: brew install tesseract"
+        ) from e
+
+    # Validate DPI
+    if dpi <= 0:
+        raise ValueError(f"dpi must be a positive integer, got: {dpi}")
 
     # Check if input file exists
     if not os.path.exists(input_path):
-        print(f"Error: File not found: {input_path}")
-        sys.exit(1)
+        raise FileNotFoundError(f"File not found: {input_path}")
 
     print(f"Processing: {input_path}")
     print(f"Language: {lang}, PSM: {psm}, DPI: {dpi}")
 
-    try:
-        # Determine file type
-        file_ext = Path(input_path).suffix.lower()
+    # Determine file type
+    file_ext = Path(input_path).suffix.lower()
+    custom_config = f'--psm {psm}'
 
-        if file_ext == '.pdf':
-            # Handle PDF files
-            print("Converting PDF to images...")
-            images = convert_from_path(input_path, dpi=dpi)
-            print(f"Converted {len(images)} page(s)")
+    if file_ext == '.pdf':
+        # Handle PDF files
+        print("Converting PDF to images...")
+        images = convert_from_path(input_path, dpi=dpi)
+        print(f"Converted {len(images)} page(s)")
 
-            # OCR each page
-            text_parts = []
+        # OCR each page
+        text_parts = []
+        try:
             for i, image in enumerate(images, 1):
                 print(f"Processing page {i}/{len(images)}...")
-
-                # Configure Tesseract
-                custom_config = f'--psm {psm}'
-
-                # Perform OCR
                 page_text = pytesseract.image_to_string(
                     image,
                     lang=lang,
                     config=custom_config
                 )
-
                 text_parts.append(f"--- Page {i} ---\n{page_text}")
+        finally:
+            for image in images:
+                image.close()
 
-            full_text = "\n\n".join(text_parts)
+        full_text = "\n\n".join(text_parts)
 
-        else:
-            # Handle image files directly
-            print("Processing image...")
-            image = Image.open(input_path)
-
-            # Configure Tesseract
-            custom_config = f'--psm {psm}'
-
-            # Perform OCR
+    else:
+        # Handle image files directly
+        print("Processing image...")
+        with Image.open(input_path) as image:
             full_text = pytesseract.image_to_string(
                 image,
                 lang=lang,
                 config=custom_config
             )
 
-        print(f"Total characters extracted: {len(full_text)}")
+    print(f"Total characters extracted: {len(full_text)}")
 
-        # Save to file if output path provided
-        if output_path:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(full_text)
-            print(f"Output saved to: {output_path}")
+    # Save to file if output path provided
+    if output_path:
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(full_text)
+        print(f"Output saved to: {output_path}")
 
-        return full_text
-
-    except Exception as e:
-        print(f"Error processing document: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    return full_text
 
 
 def main():
@@ -171,13 +168,15 @@ Language Support:
     parser.add_argument(
         'output_file',
         nargs='?',
-        help='Path to output text file (default: <input>_ocr.txt)'
+        help='Path to output text file (default: <input>_ocr.txt). '
+             'Cannot be combined with -o/--output.'
     )
 
     parser.add_argument(
         '-o', '--output',
         dest='output_file_alt',
-        help='Alternative way to specify output file'
+        help='Alternative way to specify output file. '
+             'Cannot be combined with the positional output argument.'
     )
 
     parser.add_argument(
@@ -205,6 +204,12 @@ Language Support:
 
     input_path = args.input_file
 
+    # Reject ambiguous/conflicting output specifications (#3)
+    if args.output_file and args.output_file_alt:
+        parser.error(
+            "specify the output file either positionally or with -o/--output, not both"
+        )
+
     # Determine output path
     output_path = args.output_file or args.output_file_alt
     if not output_path:
@@ -213,13 +218,22 @@ Language Support:
         output_path = f"{input_stem}_ocr.txt"
 
     # Process document
-    text = ocr_document(
-        input_path,
-        output_path,
-        lang=args.lang,
-        psm=args.psm,
-        dpi=args.dpi
-    )
+    try:
+        text = ocr_document(
+            input_path,
+            output_path,
+            lang=args.lang,
+            psm=args.psm,
+            dpi=args.dpi
+        )
+    except (ImportError, RuntimeError, ValueError, FileNotFoundError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error processing document: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
     # Print preview
     print("\n" + "="*60)

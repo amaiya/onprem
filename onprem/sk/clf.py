@@ -17,17 +17,23 @@ import numpy as np
 import pandas as pd
 import warnings
 from . import base as U
-from joblib import dump, load
-from sklearn.datasets import load_files
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelEncoder
-from sklearn.svm import LinearSVC
-from sklearn.linear_model._base import LinearClassifierMixin, SparseCoefMixin
-from sklearn.base import BaseEstimator
-from scipy.sparse import coo_matrix, spmatrix
+try:
+    from joblib import dump, load
+    from sklearn.datasets import load_files
+    from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+    from sklearn.linear_model import LogisticRegression, SGDClassifier
+    from sklearn.model_selection import GridSearchCV
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import LabelEncoder
+    from sklearn.svm import LinearSVC
+    from sklearn.linear_model._base import LinearClassifierMixin, SparseCoefMixin
+    from sklearn.base import BaseEstimator
+    from scipy.sparse import coo_matrix, spmatrix
+except ImportError:
+    raise ImportError(
+        "The scikit-learn text classifier requires scikit-learn. "
+        "Install it with: pip install onprem[sklearn]"
+    )
 
 
 

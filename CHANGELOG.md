@@ -7,6 +7,85 @@ Most recent releases are shown at the top. Each release shows:
 - **Fixed**: Bug fixes that don't change documented behaviour
 
 
+## 0.28.0 (2026-10-29)
+
+### new:
+- Lightweight OCR for scanned/image-based PDFs via Tesseract (PyMuPDF + `pytesseract`), added to the `onprem[docs]` extra. Scanned PDFs are now OCR'd by default without requiring the heavy `onprem[docs-ml]` (`unstructured[all-docs]`/PyTorch) stack. The `unstructured` `hi_res` OCR path is still available via `pdf_unstructured=True`.
+- Rotated scans are now auto-rotated for correct OCR.
+- Documentation updates and typo fixes in `index.ipynb` (README).
+### changed
+- Added `verify` parameter to `Decider` pipeline
+- Added `numpy` as explicit dependency
+- `load_single_document` now falls back to lightweight Tesseract OCR (instead of `unstructured` hi_res) when a PDF has little/no extractable text layer.
+
+### fixed:
+- N/A
+
+
+## 0.27.2 (2026-10-23)
+
+### new:
+- N/A
+
+### changed
+- `ChatGovCloudBedrock` now supports AWS SSO/ADFS authentication via a new `profile_name` parameter (e.g., a profile created with `aws configure sso`). Static access keys (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` and explicit args) remain fully supported.
+- `LLM`'s `max_tokens` now defaults to `None` (uncapped) instead of `512`. When unset, the parameter is omitted so generation is bounded only by the model's stop token or context window (`-1`/unlimited for llama.cpp).
+
+### fixed:
+- `max_tokens` is no longer sent to the backend when unset, so reasoning models (e.g., GPT-5/o-series) that reject `max_tokens` no longer error. To cap such models, supply `max_completion_tokens`.
+- Web app file uploads (e.g., Excel/CSV) that failed with `AxiosError: Network Error` when the app was accessed from another machine on the network now work: the `onprem` launcher disables Streamlit's XSRF/CORS protection for non-localhost binds (override with `--enable-xsrf-protection`).
+- Do not save checkpoints in few shot classification due to incompatibility between SetFit and latest transformers.
+
+
+## 0.27.1 (2026-10-21)
+
+### new:
+
+### changed
+- `Decider` now also supports OpenAI's `/v1/decisions` protocol via `protocol="decisions"` (default remains `"systemone"` for Ollama/TypeSafe); requests and responses are translated so downstream code is identical across protocols.
+
+### fixed:
+- N/A
+
+
+## 0.27.0 (2026-10-19)
+
+### new:
+- Added the `Decider` pipeline for typed, calibrated decisions (ask, choice, classify, score) via the `/v1/systemone` API.
+
+### changed
+- `onprem[docs]` is now a lightweight ingestion tier that parses `.docx`, `.pptx`, `.xlsx`, `.html`, and `.md` without `unstructured` (no PyTorch/numba/spacy); legacy/OCR formats (`.doc`, `.ppt`, `.odt`, `.epub`, `.eml`, OCR PDF) now require `onprem[docs-ml]`.
+
+### fixed:
+- N/A
+
+
+## 0.26.0 (2026-10-09)
+
+### new:
+- Support for **cloud/OpenAI-compatible embeddings** for RAG (no PyTorch): pass `embedding_model_name='openai/<model>'` (OpenAI, Ollama, vLLM, etc.).
+- Added `sklearn` extra (topic modeling and scikit-learn text classifier).
+
+### changed
+- Renamed the `local` extra to `huggingface`.
+- Split `docs` into lightweight parsing (`docs`, no PyTorch) and ML-based extraction (`docs-ml`: hi-res/OCR PDF parsing and table inference).
+
+### fixed:
+- N/A
+
+
+## 0.25.0 (2026-10-08)
+
+### new:
+- Support for lightweight installs: the base install is now minimal. Local models/embeddings (`[local]`), document parsing/ingestion (`[docs]`), and the web app (`[app]`) are now optional extras.
+
+### changed
+- Pipelines are now imported lazily (`onprem.pipelines`), so lightweight pipelines (e.g., `Extractor`, `Summarizer`, `RAGPipeline`) can be used without the optional dependencies required by other pipelines (e.g., `torch` for classifiers).
+
+### fixed:
+- Fix `model_url` handling of model names with colons: (openai/gpt-oss-v1:0).
+
+
 ## 0.24.4 (2026-10-06)
 
 ### new:

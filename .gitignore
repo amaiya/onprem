@@ -86,6 +86,9 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Model training/test checkpoints
+nbs/tests/checkpoints/
+
 # pyenv
 .python-version
 

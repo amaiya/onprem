@@ -338,6 +338,139 @@ def test_guider(**kwargs):
     assert(int(result['answer']) == 7)
 
 
+def test_decider(**kwargs):
+    """Unit test for the Decider pipeline.
+
+    Mocks the HTTP layer (`Decider._post`) so it validates request building and
+    response parsing without a live /v1/systemone server. Does NOT require Ollama
+    or any LLM, so it runs anywhere.
+    """
+    from onprem.pipelines.decider import Decider, SystemOneResponse
+
+    # Capture the payload sent to the server and return a canned response.
+    captured = {}
+
+    def fake_post(payload):
+        captured['payload'] = payload
+        return {
+            "model": "test-model",
+            "usage": {"total_tokens": 1},
+            "answers": {
+                "noul_0": {"type": "noul", "noul": 0.98, "confidence": 0.9},
+                "choice_0": {
+                    "type": "choice",
+                    "choice": "billing",
+                    "probabilities": {"billing": 0.98, "technical": 0.01, "other": 0.01},
+                },
+                "score_0": {"type": "score", "score": 3, "legend": "high"},
+            },
+        }
+
+    # base_url/model provided directly so no env vars or network are needed.
+    d = Decider(base_url="http://localhost:9999", model="test-model", api_key="test")
+    d._post = fake_post  # monkeypatch the only method that touches the network
+
+    # --- ask() with all three question types ---
+    resp = d.ask(
+        "I was charged twice. Please refund.",
+        nouls=["Does the customer ask for a refund?"],
+        choices=[("Which team should handle this?", ["billing", "technical", "other"])],
+        scores=[("How urgent is this?", ["low", "medium", "high"])],
+    )
+    assert isinstance(resp, SystemOneResponse)
+    assert resp.model == "test-model"
+    assert abs(resp.answers["noul_0"].noul - 0.98) < 1e-9
+    assert resp.answers["choice_0"].choice == "billing"
+    assert resp.answers["score_0"].score == 3
+
+    # Verify the request payload was built correctly from the convenience args.
+    payload = captured['payload']
+    assert payload["model"] == "test-model"
+    assert payload["state"].startswith("I was charged twice")
+    q = payload["questions"]
+    assert q["noul_0"]["type"] == "noul"
+    assert q["choice_0"]["type"] == "choice"
+    assert set(q["choice_0"]["criteria"]) == {"billing", "technical", "other"}
+    assert q["score_0"]["type"] == "score"
+    assert q["score_0"]["criteria"] == ["low", "medium", "high"]
+
+    # --- convenience methods ---
+    assert abs(d.noul("state", "ask?") - 0.98) < 1e-9
+    probs = d.choice("state", "which team?", ["billing", "technical", "other"])
+    assert probs["billing"] == 0.98
+
+    # --- input validation (no network involved) ---
+    try:
+        d.ask("state")  # no questions provided
+        raise AssertionError("expected ValueError for empty questions")
+    except ValueError:
+        pass
+    try:
+        Decider()  # missing base_url and env vars
+        raise AssertionError("expected ValueError for missing base_url")
+    except ValueError:
+        pass
+
+    # --- /v1/decisions (OpenAI) protocol: request translation + response normalization ---
+    dcap = {}
+
+    def fake_post_decisions(payload):
+        dcap['payload'] = payload
+        return {
+            "model": "gpt-6-luna",
+            "answers": [
+                {"type": "predicate", "name": "noul_0", "probability": 0.92},
+                {
+                    "type": "choice", "name": "choice_0", "choice": "billing",
+                    "probabilities": [
+                        {"value": "billing", "probability": 0.95},
+                        {"value": "other", "probability": 0.05},
+                    ],
+                    "confidence": 0.93,
+                },
+                {"type": "score", "name": "score_0", "score": 1.4},
+            ],
+        }
+
+    dd = Decider(base_url="https://api.openai.com", model="gpt-6-luna",
+                 api_key="test", protocol="decisions")
+    assert dd.endpoint.endswith("/v1/decisions")
+    dd._post = fake_post_decisions
+
+    rd = dd.ask(
+        "I was charged twice.",
+        nouls=["Does the customer ask for a refund?"],
+        choices=[("Which team?", ["billing", "other"])],
+        scores=[("How urgent?", ["low", "medium", "high"])],
+    )
+    # request was translated to the OpenAI shape
+    dp = dcap['payload']
+    assert dp["input"] == "I was charged twice."          # state -> input
+    assert isinstance(dp["questions"], list)               # map -> list
+    qtypes = {q["type"] for q in dp["questions"]}
+    assert qtypes == {"predicate", "choice", "score"}      # noul -> predicate
+    choice_q = [q for q in dp["questions"] if q["type"] == "choice"][0]
+    assert choice_q["choices"][0] == {"value": "billing", "description": ""}
+    score_q = [q for q in dp["questions"] if q["type"] == "score"][0]
+    assert score_q["levels"][0] == {"label": "low", "description": ""}
+    # response was normalized back to the common shape
+    assert abs(rd.answers["noul_0"].noul - 0.92) < 1e-9    # probability -> noul
+    assert rd.answers["choice_0"].choice == "billing"
+    assert rd.answers["choice_0"].probabilities == {"billing": 0.95, "other": 0.05}  # list -> map
+    assert abs(rd.answers["score_0"].score - 1.4) < 1e-9
+    # convenience methods work identically on the decisions protocol
+    assert abs(dd.noul("s", "q?") - 0.92) < 1e-9
+    assert dd.choice("s", "q?", ["billing", "other"])["billing"] == 0.95
+    # invalid protocol is rejected
+    try:
+        Decider(base_url="http://x", model="m", protocol="bogus")
+        raise AssertionError("expected ValueError for bad protocol")
+    except ValueError:
+        pass
+
+    print("Decider unit test passed (no server/Ollama required).")
+
+
 def test_summarization(**kwargs):
 
     llm = kwargs.get('llm', None)
@@ -577,7 +710,8 @@ def test_loading(**kwargs):
     print('Testing OCR ...', end='')
     fpath = os.path.join( os.path.dirname(os.path.realpath(__file__)), 'sample_data/ocr_document/lynn1975.pdf')
     docs_ocred = load_single_document(fpath)
-    assert('EXECUTIVE' in docs_ocred[0].page_content and 'Lynn' in docs_ocred[0].page_content), 'OCRed text not found'
+    ocr_text = '\n'.join(d.page_content for d in docs_ocred)
+    assert('EXECUTIVE' in ocr_text and 'Lynn' in ocr_text), 'OCRed text not found'
     print('done.')
 
 
@@ -978,6 +1112,7 @@ def test_agent(**kwargs):
 TESTS = { 'test_prompt' : test_prompt,
           #'test_guider' : test_guider, # Guidance tends to segfault with newer llama_cpp
           #'test_agent' : test_agent,
+          'test_decider' : test_decider,
           'test_rag_dense'    : test_rag_dense,
           'test_rag_sparse'    : test_rag_sparse,
           'test_rag_dual'     : test_rag_dual,
