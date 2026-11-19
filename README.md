@@ -545,14 +545,14 @@ The [documentation](https://amaiya.github.io/onprem/) includes many examples.
 
 ## How to Cite
 
-Please cite the [following paper](https://arxiv.org/abs/2509.21040) when using **OnPrem.LLM**:
+Please cite the [following paper](https://arxiv.org/abs/2505.07672) when using **OnPrem.LLM**:
 
-    @article{maiya2025generativeaiffrdcs,
-          title={Generative AI for FFRDCs}, 
+    @article{maiya2025onprem,
+          title={OnPrem.LLM: A Privacy-Conscious Document Intelligence Toolkit}, 
           author={Arun S. Maiya},
           year={2025},
-          eprint={2509.21040},
+          eprint={2505.07672},
           archivePrefix={arXiv},
           primaryClass={cs.CL},
-          url={https://arxiv.org/abs/2509.21040}, 
+          url={https://arxiv.org/abs/2505.07672}, 
     }
