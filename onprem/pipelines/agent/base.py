@@ -201,6 +201,67 @@ class AgentExecutor:
         print(")")
         print()
 
+    @staticmethod
+    def _get_module_imports_and_constants(module_source: str, tool_source: str):
+        """
+        Get the import statements and the module-level constants a tool needs from its module source.
+
+        Uses `ast`, so statements that span several lines (e.g., `from x import (a, b)` wrapped
+        over several lines, or a line ending in a backslash) are kept whole. Constants are
+        module-level assignments to names the tool uses (directly or via another constant).
+
+        Returns:
+            Tuple of (list of import statements, list of assignment statements), in file order.
+        """
+        import ast
+
+        module_tree = ast.parse(module_source)
+
+        # Import statements anywhere in the module (each one as a single line)
+        import_nodes = [
+            node for node in ast.walk(module_tree) if isinstance(node, (ast.Import, ast.ImportFrom))
+        ]
+        imports = []
+        for node in sorted(import_nodes, key=lambda n: (n.lineno, n.col_offset)):
+            statement = ast.unparse(node)
+            if 'onprem' not in statement:
+                imports.append(statement)
+
+        def used_names(node):
+            return {n.id for n in ast.walk(node) if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)}
+
+        # Map each module-level name to the assignment statements that set it
+        assignments = {}
+        for node in module_tree.body:
+            if isinstance(node, ast.Assign):
+                targets = node.targets
+            elif isinstance(node, ast.AnnAssign) and node.value is not None:
+                targets = [node.target]
+            else:
+                continue
+            for target in targets:
+                for n in ast.walk(target):
+                    if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store):
+                        assignments.setdefault(n.id, []).append(node)
+
+        # Collect the assignments the tool needs, including constants built from other constants
+        needed = []
+        pending = list(used_names(ast.parse(tool_source)))
+        seen = set()
+        while pending:
+            name = pending.pop()
+            if name in seen:
+                continue
+            seen.add(name)
+            for node in assignments.get(name, []):
+                if node not in needed:
+                    needed.append(node)
+                    pending.extend(used_names(node.value))
+        constants = [
+            ast.get_source_segment(module_source, node) for node in sorted(needed, key=lambda n: n.lineno)
+        ]
+        return imports, constants
+
     def _write_custom_tools(self, tools_dir: Path):
         """Write custom tool functions to Python files in the tools directory."""
         if not self.custom_tools:
@@ -223,17 +284,15 @@ class AgentExecutor:
             # Dedent the source code
             source = textwrap.dedent(source)
 
-            # Try to get imports from the source file (works for .py files)
+            # Try to get imports and used module-level constants from the source file (works for .py files)
             imports = []
+            constants = []
             try:
                 source_file = inspect.getsourcefile(func)
                 if source_file and Path(source_file).exists():
-                    with open(source_file, 'r') as f:
-                        for line in f:
-                            stripped = line.strip()
-                            if stripped.startswith('import ') or stripped.startswith('from '):
-                                if 'onprem' not in stripped:
-                                    imports.append(stripped)
+                    imports, constants = self._get_module_imports_and_constants(
+                        Path(source_file).read_text(), source
+                    )
             except Exception:
                 pass
 
@@ -315,6 +374,8 @@ class AgentExecutor:
                         seen.add(imp)
                         unique_imports.append(imp)
                 file_content = "\n".join(unique_imports) + "\n\n"
+            if constants:
+                file_content += "\n".join(constants) + "\n\n"
             file_content += source
 
             # Write to file
